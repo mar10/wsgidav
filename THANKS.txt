@@ -1,0 +1,16 @@
+Thanks
+======
+
+* Ian Bicking <ianb(at)colorstudy.com>: For mentoring this project
+
+* Julian Reschke <julian.reschke(at)gmx.de>: For your valuable help in 
+  clarifying the webdav specification and assistance on the w3c-dist-auth
+  and litmus mailing lists 
+
+* BerliOS Developers <http://developer.berlios.de>: For providing free hosting
+  and project management facilities for open source projects
+
+* Google's Code Program <http://code.google.com>: For running the Summer of 
+  Code 2005 program to encourage students around the world to contribute
+  to open source software.
+   

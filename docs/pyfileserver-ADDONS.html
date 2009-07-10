@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>ADDONS GUIDE</title>
+<meta name="author" content="Ho Chun Wei, fuzzybr80(at)gmail.com" />
+<meta name="copyright" content="Lesser GNU Public License, see LICENSE file attached with package" />
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="addons-guide">
+<h1 class="title">ADDONS GUIDE</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Module:</th><td class="field-body">pyfileserver</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Ho Chun Wei, fuzzybr80(at)gmail.com</td></tr>
+<tr class="field"><th class="docinfo-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>Lesser GNU Public License, see LICENSE file attached with package</td></tr>
+</tbody>
+</table>
+<p>This section describes the addons available:</p>
+<ul class="simple">
+<li><a class="reference" href="#windowsdomaincontroller">windowsdomaincontroller</a></li>
+</ul>
+<hr class="docutils" />
+<div class="section" id="windowsdomaincontroller">
+<h1><a name="windowsdomaincontroller">windowsdomaincontroller</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.addons.windowsdomaincontroller</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="purpose">
+<h2><a name="purpose">Purpose</a></h2>
+<p>Usage:</p>
+<pre class="literal-block">
+from pyfileserver.addons.windowsdomaincontroller import SimpleWindowsDomainController
+domaincontroller = SimpleWindowsDomainController(presetdomain = None, presetserver = None)
+</pre>
+<p>where:</p>
+<ul class="simple">
+<li>domaincontroller object corresponds to that in <tt class="docutils literal"><span class="pre">PyFileServer.conf</span></tt> or
+as input into <tt class="docutils literal"><span class="pre">pyfileserver.httpauthentication.HTTPAuthenticator</span></tt>.</li>
+<li>presetdomain allows the admin to specify a domain to be used (instead of any domain that
+may come as part of the username in domain\user). This is useful only if there
+is one domain to be authenticated against and you want to spare users from typing the
+domain name</li>
+<li>presetserver allows the admin to specify the NETBIOS name of the domain controller to
+be used (complete with the preceding \\). if absent, it will look for trusted 
+domain controllers on the localhost.</li>
+</ul>
+<p>This class allows the user to authenticate against a Windows NT domain or a local computer,
+requires NT or beyond (2000, XP, 2003, etc).</p>
+<p>This class requires Mark Hammond's Win32 extensions for Python at <a class="reference" href="http://starship.python.net/crew/mhammond/win32/Downloads.html">here</a> or <a class="reference" href="http://sourceforge.net/projects/pywin32/">sourceforge</a></p>
+<p>Information on Win32 network authentication was from the following resources:</p>
+<ul class="simple">
+<li><a class="reference" href="http://ejabberd.jabber.ru/node/55">http://ejabberd.jabber.ru/node/55</a></li>
+<li><a class="reference" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/81402">http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/81402</a></li>
+</ul>
+</div>
+<div class="section" id="testability-and-caveats">
+<h2><a name="testability-and-caveats">Testability and caveats</a></h2>
+<dl class="docutils">
+<dt><strong>Digest Authentication</strong></dt>
+<dd><p class="first">Digest authentication requires the password to be retrieve from the system to compute
+the correct digest for comparison. This is sofar impossible (and indeed would be a 
+big security loophole if it was allowed), so digest authentication WILL not work
+with this class.</p>
+<p class="last">Highly recommend basic authentication over SSL support.</p>
+</dd>
+<dt><strong>User Login</strong></dt>
+<dd><p class="first">Authentication will count as a user login attempt, so any security in place for
+invalid password attempts may be triggered.</p>
+<p class="last">Also note that, even though the user is logged in, the application does not impersonate
+the user - the application will continue to run under the account and permissions it
+started with. The user has the read/write permissions to the share of the running account 
+and not his own account.</p>
+</dd>
+<dt><strong>Using on a local computer</strong></dt>
+<dd>This class has been tested on a local computer (Windows XP). Leave domain as None and
+do not specify domain when entering username in this case.</dd>
+<dt><strong>Using for a network domain</strong></dt>
+<dd>This class is being tested for a network domain (I'm setting one up to test).</dd>
+</dl>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="simplemysqlabstractionlayer">
+<h1><a name="simplemysqlabstractionlayer">simplemysqlabstractionlayer</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.addons.simplemysqlabstractionlayer</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>This module is specific to the PyFileServer application. It provides a 
+classes <tt class="docutils literal"><span class="pre">SimpleMySQLResourceAbstractionLayer</span></tt>.</p>
+<p>Usage:</p>
+<pre class="literal-block">
+(see PyFileServer-example.conf)
+SimpleMySQLResourceAbstractionLayer(host, user, passwd, db)
+
+host - host of database server
+user - username to access database
+passwd - passwd to access database
+db - name of database on database server
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">SimpleMySQLResourceAbstractionLayer</span></tt> provides a very basic, read-only
+resource layer emulation of a MySQL database. It provides the following interface:</p>
+<ul class="simple">
+<li>the root collection shared consists of collections that correspond to table
+names</li>
+<li>in each table collection, there is a resource called &quot;_ENTIRE_CONTENTS&quot;.
+This is a non-collection resource that returns a csv representation of the
+entire table</li>
+<li>if the table has a single primary key, each table record will also appear
+as a non-collection resource in the table collection using the primary key
+value as its name. This resource returns a csv representation of the record
+and will also include the record attributes as live properties with 
+attribute name as property name and table name suffixed with colon as the
+property namespace</li>
+</ul>
+<p>This is a very basic interface and below is a by no means thorough summary of 
+its limitations:</p>
+<ul class="simple">
+<li>Really only supports having numbers or strings as primary keys. The code uses
+a numeric or string comparison that may not hold up if the primary key is 
+a date or some other datatype.</li>
+<li>There is no handling for cases like BLOBs as primary keys or such. Well, there is
+no handling for BLOBs in general.</li>
+<li>When returning contents, it buffers the entire contents! A bad way to return
+large tables. Ideally you would have a FileMixin that reads the database even
+as the application reads the file object....</li>
+<li>It takes too many database queries to return information. 
+Ideally there should be some sort of caching for metadata at least, to avoid
+unnecessary queries to the database.</li>
+</ul>
+<p>Abstraction Layers must provide the methods as described in 
+<a class="reference" href="interfaces/abstractionlayerinterface.py">abstractionlayerinterface</a></p>
+<p>See extrequestserver.py for more information about resource abstraction layers in 
+PyFileServer</p>
+<hr class="docutils" />
+<p>Last Generated : Wed, 31 Aug 2005 07:10:19 GMT</p>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+/* Document elements */
+
+body {
+	margin: 0;
+	padding: 0;
+	padding-left: 30px; 
+	padding-right: 30px;
+	font: 0.8em/1.3 Verdana, Geneva, Arial, Helvetica, sans-serif;
+	color: #000;
+	background: #f1f1f1 /* url(../images/side.gif) left repeat-y; */
+}
+
+/* Links */
+
+a:link, a:visited {
+	color: #333;
+	text-decoration: underline;
+}
+
+a:hover, a:active {
+	color: #5b6053;
+	text-decoration: underline;
+}
+
+/* Headings */
+
+h1 {
+	font: normal 1.8em Georgia, "Times New Roman", Times, serif;
+	color: #222;
+}
+
+h2 {
+	font: normal 1.4em Georgia, "Times New Roman", Times, serif;
+	color: #111;
+}
+
+/* Images */
+
+img, img a {
+	border: 0;
+}
+
+
+/* Main content */
+
+#content {
+}
+
+/* Sidebar */
+
+#sidebar {
+   height: 600;
+}
+
+/* Nav list / links */
+
+#sidebar ul {
+	margin: 0;
+	padding: 0;
+}
+
+#sidebar li {
+	list-style: none none;
+	margin: 0;
+	padding: 0;
+	display: block;
+	width: 150px;
+	height: 25px;
+}
+
+#sidebar a:link, #sidebar a:visited {
+	display: block;
+	width: 150px;
+	background-color: #e1e1e1;
+	text-align: right;
+	text-decoration: none;
+	margin: 0 0 2px 0;
+	padding: 3px 10px 3px 0;
+	font-size: 1em;
+	color: #444;
+}
+
+#sidebar a:hover, #sidebar a:active {
+	display: block;
+	width: 150px;
+	background-color: #d3d3d3;
+	text-align: right;
+	text-decoration: none;
+	margin: 0 0 2px 0;
+	padding: 3px 10px 3px 0;
+	font-size: 1em;
+	color: #000;
+}
+

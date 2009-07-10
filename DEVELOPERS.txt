@@ -1,0 +1,83 @@
+================
+DEVELOPERS GUIDE
+================
+
+:Module: pyfileserver
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com
+:Project: PyFileServer, http://pyfilesync.berlios.de/
+:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+
+This section attempts to give a brief introduction to the PyFileServer application package.
+
+
+WSGI Application
+================
+
+PyFileServer is a WSGI application.
+
+WSGI <http://www.python.org/peps/pep-0333.html> stands for Web Server Gateway
+Interface, a proposed standard interface between web servers and Python web 
+applications or frameworks, to promote web application portability across a 
+variety of web servers. If you are unfamiliar with WSGI, do take a moment to 
+read the PEP. Most WSGI application consists middleware which serve as pre-filters and 
+post-processors, and the actual application.
+
+PyFileServer::
+
+ Request -> PyFileApp (container)
+                  |
+                  +-> ErrorPrinter (middleware)
+                           |
+                     RequestResolver (middleware)
+                           |
+                   HTTPAuthenticator (middleware)
+                           |
+                     RequestServer (application)
+                                                
+                                                
+In addition, PyFileServer comes with an existing WSGI webserver so that the
+application can be run as a standalone program.
+
+
+The PyFileServer application consists of the following modules::
+   
+   Bundled Web Server:
+         ext_wsgiutils_server 
+   
+   Application objects: 
+         pyfileserver.mainappwrapper
+            + class PyFileApp
+      
+         pyfileserver.processrequesterrorhandler    
+            + class ErrorPrinter
+            + Exception HTTPRequestException
+      
+         pyfileserver.requestresolver
+            + class RequestResolver
+         
+         pyfileserver.httpauthentication
+            + class HTTPAuthenticator
+            + class SimpleDomainController    
+         
+         pyfileserver.pyfiledomaincontroller
+            + class PyFileServerDomainController    
+         
+         pyfileserver.extrequestserver    
+            + class RequestServer
+      
+         pyfileserver.propertylibrary    
+            + class LockManager
+            + class PropertyManager
+      
+         pyfileserver.etagprovider    
+            + func object getETag
+   
+   Miscellaneous libraries:
+         pyfileserver.websupportfuncs    
+         pyfileserver.loadconfig_primitive    
+         pyfileserver.httpdatehelper    
+
+
+Each of these modules are documented below.
+
+ 

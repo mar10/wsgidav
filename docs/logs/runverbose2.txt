@@ -1,0 +1,2713 @@
+<======== Request Environ
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'OPTIONS'
+	PATH_INFO :	'/test/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 200 OK
+	Content-Length :	'0'
+	Server :	'DAV/2'
+	DAV :	'1,2'
+	Allow :	'OPTIONS HEAD GET PROPFIND PROPPATCH COPY MOVE'
+	Date :	'Tue, 09 Aug 2005 07:40:24 GMT'
+	Content-Type :	'text/html'
+
+
+
+<======== Request Environ
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 401 Not Authorized
+	WWW-Authenticate :	'Digest realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", algorithm="MD5", qop="auth"'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/", response="62844c1b7d95332532bce0708a7dfb98", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000001, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:28 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:16 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/", response="b539fb50e4fa98b7fa1ff6ca47c9aaaf", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000002, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:42 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:16 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/DAVExplorer/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Mon, 08 Aug 2005 11:20:14 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/litmus/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Mon, 08 Aug 2005 08:30:29 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/", response="fe4feb86ec2e03e1cb875efbdd1e11e5", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000003, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 404 Not Found
+	Date :	'Tue, 09 Aug 2005 07:40:42 GMT'
+	Content-Type :	'text/html'
+
+
+<html><head><title>404 Not Found</title></head><body><H1>404 Not Found</H1>The specified resource was not found<HR><A href="mailto:fuzzybr80@gmail.com">Administrator</A> at Google's Summer of Code Project - http://cwho.blogspot.com/<BR>Tue, 09 Aug 2005 07:40:42 GMT</body></html>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/", response="403d745803ba27a14f55d9f247e199f5", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000004, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'MKCOL'
+	PATH_INFO :	'/test/cadaverTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	0
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/", response="1812e71219b5183600eb260cd04dac4d", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000005, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:42 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:42 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/TUTORIAL.txt", response="80d83ea4895f158b181ddd824990a34b", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000006, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PUT'
+	PATH_INFO :	'/test/cadaverTEST/TUTORIAL.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'10'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'10'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Date :	'Tue, 09 Aug 2005 07:40:43 GMT'
+	Content-Length :	'0'
+	Content-Type :	'text/html'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/TODO.txt", response="77da0e22c0005e0bbc124074080184b4", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000007, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PUT'
+	PATH_INFO :	'/test/cadaverTEST/TODO.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'4836'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'4836'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Date :	'Tue, 09 Aug 2005 07:40:43 GMT'
+	Content-Length :	'0'
+	Content-Type :	'text/html'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/README.txt", response="db67bad075c09e136655898da782607a", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000008, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PUT'
+	PATH_INFO :	'/test/cadaverTEST/README.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'3790'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'3790'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Date :	'Tue, 09 Aug 2005 07:40:43 GMT'
+	Content-Length :	'0'
+	Content-Type :	'text/html'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/LICENSE.txt", response="3fe6f5b6d2a3e0057d2dc65462956690", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000009, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PUT'
+	PATH_INFO :	'/test/cadaverTEST/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'26445'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'26445'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Date :	'Tue, 09 Aug 2005 07:40:44 GMT'
+	Content-Length :	'0'
+	Content-Type :	'text/html'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/container/", response="5b22a1a0020c4cdb26d0c0523a7f9205", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000000a, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'MKCOL'
+	PATH_INFO :	'/test/cadaverTEST/container/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	0
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/", response="df23d279bce9a5a709102b4e0bb5f8ec", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000000b, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:44 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:44 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/container/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:44 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+26445
+</D:getcontentlength>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:44 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/README.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+3790
+</D:getcontentlength>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:43 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/TODO.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+4836
+</D:getcontentlength>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:43 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/TUTORIAL.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+10
+</D:getcontentlength>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:43 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/container/", response="922add524fc31cfca4aa2b0096d26a58", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000000c, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/container/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:45 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/container/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:44 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/TUTORIAL.txt", response="95b776e2e84fdf45977f0d01671dbc4c", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000000d, qop="auth"'
+	SCRIPT_NAME :	''
+	HTTP_OVERWRITE :	'T'
+	REQUEST_METHOD :	'MOVE'
+	PATH_INFO :	'/test/cadaverTEST/TUTORIAL.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	HTTP_DESTINATION :	'http://localhost/test/cadaverTEST/container/TUTORIAL.txt'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/TODO.txt", response="06a67d85a857d9eb3846151069b8d3bd", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000000e, qop="auth"'
+	SCRIPT_NAME :	''
+	HTTP_OVERWRITE :	'T'
+	REQUEST_METHOD :	'MOVE'
+	PATH_INFO :	'/test/cadaverTEST/TODO.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	HTTP_DESTINATION :	'http://localhost/test/cadaverTEST/container/TODO.txt'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/README.txt", response="912eb3a8503fa794b8e2d23723a81262", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000000f, qop="auth"'
+	SCRIPT_NAME :	''
+	HTTP_OVERWRITE :	'T'
+	REQUEST_METHOD :	'MOVE'
+	PATH_INFO :	'/test/cadaverTEST/README.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	HTTP_DESTINATION :	'http://localhost/test/cadaverTEST/container/README.txt'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/LICENSE.txt", response="c726b5fc61693b9cc701bc200a53ce19", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000010, qop="auth"'
+	SCRIPT_NAME :	''
+	HTTP_OVERWRITE :	'T'
+	REQUEST_METHOD :	'MOVE'
+	PATH_INFO :	'/test/cadaverTEST/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	HTTP_DESTINATION :	'http://localhost/test/cadaverTEST/container/LICENSE.txt'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="92013753ea52dc33a05295fcb6b53fea", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000011, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'MKCOL'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	0
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/", response="20b0648fdd3ba7995b89b46f84604e5f", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000012, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'MKCOL'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	0
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST", response="8060cfd7c23686208403d400e14b34e6", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000013, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:48 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:47 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="9e540f800346b0da1119534443d5b7d9", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000014, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'LOCK'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'197'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'infinity'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'197'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 200 OK
+	Lock-Token :	'opaquelocktoken:0xCC8B574FDAB40D39C2F6F04BAD501BA2EFE2B131C0EC5BDA3FE8D1D89BF3DBE3L'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:prop xmlns:D='DAV:'><D:lockdiscovery>
+<D:activelock>
+<D:locktype><write/></D:locktype>
+<D:lockscope><exclusive/></D:lockscope>
+<D:depth>infinity</D:depth>
+<D:owner>
+<href xmlns='DAV:'>mailto:cwho_2@CHIMAERA</href>
+</D:owner>
+<D:timeout>Second-604799</D:timeout>
+<D:locktoken><D:href>opaquelocktoken:0xCC8B574FDAB40D39C2F6F04BAD501BA2EFE2B131C0EC5BDA3FE8D1D89BF3DBE3L</D:href></D:locktoken>
+</D:activelock>
+
+</D:lockdiscovery></D:prop>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST", response="a13154ee838ec42a748c651c269e358e", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000015, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'122'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'122'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:48 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:lockdiscovery>
+<D:activelock>
+<D:locktype><write/></D:locktype>
+<D:lockscope><exclusive/></D:lockscope>
+<D:depth>infinity</D:depth>
+<D:owner>
+<href xmlns='DAV:'>mailto:cwho_2@CHIMAERA</href>
+</D:owner>
+<D:timeout>Second-604799</D:timeout>
+<D:locktoken><D:href>opaquelocktoken:0xCC8B574FDAB40D39C2F6F04BAD501BA2EFE2B131C0EC5BDA3FE8D1D89BF3DBE3L</D:href></D:locktoken>
+</D:activelock>
+
+</D:lockdiscovery>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST", response="fd399cf90c493fb0cf79c3f44d860085", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000016, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:48 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:48 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/", response="9ddfc68f7d2690f5768113fe34a9e05d", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000017, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'LOCK'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'197'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'infinity'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'197'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 423 Locked
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST", response="ef0e2aaf92c7ebc4e94bc0d5cb128603", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000018, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'122'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'122'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:49 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:lockdiscovery>
+<D:activelock>
+<D:locktype><write/></D:locktype>
+<D:lockscope><exclusive/></D:lockscope>
+<D:depth>infinity</D:depth>
+<D:owner>
+<href xmlns='DAV:'>mailto:cwho_2@CHIMAERA</href>
+</D:owner>
+<D:timeout>Second-604696</D:timeout>
+<D:locktoken><D:href>opaquelocktoken:0x26439B1BA30D62B6E06783E05CA02EEE8D93A4FA40C0E48689A248D96AB78547L</D:href></D:locktoken>
+</D:activelock>
+
+</D:lockdiscovery>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="24b446ea750ef8dbb8eb941415de6974", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000019, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:49 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:47 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/container", response="a1239a9e0041f40b653eef282c60028f", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000001a, qop="auth"'
+	SCRIPT_NAME :	''
+	HTTP_OVERWRITE :	'T'
+	REQUEST_METHOD :	'MOVE'
+	PATH_INFO :	'/test/cadaverTEST/container'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	HTTP_DESTINATION :	'http://localhost/test/cadaverTEST/MOVETEST/container'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_IF :	'<http://localhost/test/cadaverTEST/MOVETEST/> (<opaquelocktoken:0xCC8B574FDAB40D39C2F6F04BAD501BA2EFE2B131C0EC5BDA3FE8D1D89BF3DBE3L>)'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 201 Created
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="b7568f3fd22d278d1f9a556ca1bdbfee", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000001b, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:56 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:50 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:55 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container/LICENSE.txt", response="7caccb7a411875a67fd923f907512c6a", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000001c, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'122'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'122'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:56 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:lockdiscovery>
+<D:activelock>
+<D:locktype><write/></D:locktype>
+<D:lockscope><exclusive/></D:lockscope>
+<D:depth>infinity</D:depth>
+<D:owner>
+<href xmlns='DAV:'>mailto:cwho_2@CHIMAERA</href>
+</D:owner>
+<D:timeout>Second-604791</D:timeout>
+<D:locktoken><D:href>opaquelocktoken:0xCC8B574FDAB40D39C2F6F04BAD501BA2EFE2B131C0EC5BDA3FE8D1D89BF3DBE3L</D:href></D:locktoken>
+</D:activelock>
+
+</D:lockdiscovery>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/", response="9dfa94906c03713ecd6b0d6d2a15a884", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000001d, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:56 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:48 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container", response="7c244c72a44638b857647abb85bf30a5", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000001e, qop="auth"'
+	SCRIPT_NAME :	''
+	HTTP_OVERWRITE :	'T'
+	REQUEST_METHOD :	'COPY'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	HTTP_DESTINATION :	'http://localhost/test/cadaverTEST/COPYTEST/container'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'infinity'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multi Status
+	Content-Length :	'0'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/container/</D:href>
+<D:status>HTTP/1.1 423 Locked</D:status>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/", response="dc39d9a9cc3be00191fbf33373e02b77", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000001f, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:57 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:48 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/container/LICENSE.txt", response="786d7cba1c5f512e32b1d68f987840ca", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000020, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'122'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'122'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 404 Not Found
+	Date :	'Tue, 09 Aug 2005 07:40:57 GMT'
+	Content-Type :	'text/html'
+
+
+<html><head><title>404 Not Found</title></head><body><H1>404 Not Found</H1>The specified resource was not found<HR><A href="mailto:fuzzybr80@gmail.com">Administrator</A> at Google's Summer of Code Project - http://cwho.blogspot.com/<BR>Tue, 09 Aug 2005 07:40:57 GMT</body></html>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/", response="7d3f92ce9393e8995ef1e1ad091fb010", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000021, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:57 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:48 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/COPYTEST/", response="c510559dbcbd3f3d024c1faf93094ca1", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000022, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'DELETE'
+	PATH_INFO :	'/test/cadaverTEST/COPYTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 423 Locked
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/", response="6a4fbe7d9c9a96449c2a8a8c6926c159", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000023, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:57 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:56 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/COPYTEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:48 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:50 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST", response="6955541b81c56ca81eb27cc8fcaef2dc", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000024, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:58 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:50 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="7cfad48bd07a299377f168eb785014b2", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000025, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'UNLOCK'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_LOCK_TOKEN :	'<opaquelocktoken:0xCC8B574FDAB40D39C2F6F04BAD501BA2EFE2B131C0EC5BDA3FE8D1D89BF3DBE3L>'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 204 No Content
+	Content-Length :	'0'
+
+
+
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST", response="63edb827c6b98242788d17f234d55be1", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000026, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'122'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'122'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:lockdiscovery>
+
+</D:lockdiscovery>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container/LICENSE.txt", response="a3f457a9a89773b59ddba2984cb1a88c", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000027, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'122'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'122'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:lockdiscovery>
+
+</D:lockdiscovery>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container/LICENSE.txt", response="4776c24555bd5e480ec31634a54cf880", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000028, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'85'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'85'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:creationdate/>
+<D:displayname/>
+<D:getcontenttype/>
+<D:resourcetype/>
+<D:getlastmodified/>
+<D:lockdiscovery/>
+<D:supportedlock/>
+<D:getcontentlength/>
+<D:getetag/>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container/LICENSE.txt", response="2750629439c911cc7027e8383dc750b1", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=00000029, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'86'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'86'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:creationdate>
+Tue, 09 Aug 2005 07:40:51 GMT
+</D:creationdate>
+<D:displayname>
+/test/cadaverTEST/MOVETEST/container/LICENSE.txt
+</D:displayname>
+<D:getcontenttype>
+text/plain
+</D:getcontenttype>
+<D:resourcetype>
+
+</D:resourcetype>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:44 GMT
+</D:getlastmodified>
+<D:lockdiscovery>
+
+</D:lockdiscovery>
+<D:supportedlock>
+<D:lockentry xmlns:D="DAV:" >
+<D:lockscope><D:exclusive/></D:lockscope>
+<D:locktype><D:write/></D:locktype>
+</D:lockentry>
+<D:lockentry xmlns:D="DAV:" >
+<D:lockscope><D:shared/></D:lockscope>
+<D:locktype><D:write/></D:locktype>
+</D:lockentry>
+</D:supportedlock>
+<D:getcontentlength>
+26445
+</D:getcontentlength>
+<D:getetag>
+5f04cd67a4cd21ff54bba7a68bfdd9f8-1123573244-26445
+</D:getetag>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container/LICENSE.txt", response="7ca7da722e74b70731e1faed100ec73e", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000002a, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPPATCH'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'220'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'220'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<A:deadproperty xmlns:A='http://webdav.org/cadaver/custom-properties/'/>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/container/LICENSE.txt", response="42f3177178d79472a89dd20e411bda6a", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000002b, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/container/LICENSE.txt'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'86'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'86'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/container/LICENSE.txt</D:href>
+<D:propstat>
+<D:prop>
+<D:creationdate>
+Tue, 09 Aug 2005 07:40:51 GMT
+</D:creationdate>
+<D:displayname>
+/test/cadaverTEST/MOVETEST/container/LICENSE.txt
+</D:displayname>
+<D:getcontenttype>
+text/plain
+</D:getcontenttype>
+<D:resourcetype>
+
+</D:resourcetype>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:44 GMT
+</D:getlastmodified>
+<D:lockdiscovery>
+
+</D:lockdiscovery>
+<D:supportedlock>
+<D:lockentry xmlns:D="DAV:" >
+<D:lockscope><D:exclusive/></D:lockscope>
+<D:locktype><D:write/></D:locktype>
+</D:lockentry>
+<D:lockentry xmlns:D="DAV:" >
+<D:lockscope><D:shared/></D:lockscope>
+<D:locktype><D:write/></D:locktype>
+</D:lockentry>
+</D:supportedlock>
+<D:getcontentlength>
+26445
+</D:getcontentlength>
+<D:getetag>
+5f04cd67a4cd21ff54bba7a68bfdd9f8-1123573244-26445
+</D:getetag>
+<A:deadproperty xmlns:A='http://webdav.org/cadaver/custom-properties/' >
+testvalue
+</A:deadproperty>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="29dcf822789b11f65548f95e9e1c2fbd", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000002c, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'PROPFIND'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	'297'
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	HTTP_DEPTH :	'0'
+	SERVER_PORT :	'80'
+	HTTP_CONTENT_LENGTH :	'297'
+	HTTP_HOST :	'localhost'
+	HTTP_CONTENT_TYPE :	'application/xml'
+	CONTENT_TYPE :	'application/xml'
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 207 Multistatus
+	Date :	'Tue, 09 Aug 2005 07:40:59 GMT'
+	Content-Type :	'text/xml'
+
+
+<?xml version='1.0' ?>
+<D:multistatus xmlns:D='DAV:'>
+<D:response>
+<D:href>http://localhost/test/cadaverTEST/MOVETEST/</D:href>
+<D:propstat>
+<D:prop>
+<D:getcontentlength>
+
+</D:getcontentlength>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:getlastmodified>
+Tue, 09 Aug 2005 07:40:50 GMT
+</D:getlastmodified>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<A:executable xmlns:A='http://apache.org/dav/props/' >
+
+</A:executable>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:resourcetype>
+<D:collection />
+</D:resourcetype>
+</D:prop>
+<D:status>HTTP/1.1 200 OK</D:status>
+</D:propstat>
+<D:propstat>
+<D:prop>
+<D:checked-in>
+
+</D:checked-in>
+<D:checked-out>
+
+</D:checked-out>
+</D:prop>
+<D:status>HTTP/1.1 404 Not Found</D:status>
+</D:propstat>
+</D:response>
+</D:multistatus>
+<======== Request Environ
+	HTTP_AUTHORIZATION :	'Digest username="tester", realm="/test", nonce="MTEyMzU3MzIyNC4xNGRjM2MxYWRjMDlhMjMzN2RhNDJiNTA2MzQ3YzM3YjEy", uri="/test/cadaverTEST/MOVETEST/", response="c4113d16cf89384dbc9d148953ae2d6e", algorithm="MD5", cnonce="7bc8929f36b25857b2cc00bcdf32481f", nc=0000002d, qop="auth"'
+	SCRIPT_NAME :	''
+	REQUEST_METHOD :	'DELETE'
+	PATH_INFO :	'/test/cadaverTEST/MOVETEST/'
+	SERVER_PROTOCOL :	'HTTP/1.1'
+	QUERY_STRING :	''
+	HTTP_TE :	'trailers'
+	CONTENT_LENGTH :	''
+	HTTP_USER_AGENT :	'cadaver/0.22.2 neon/0.24.7'
+	HTTP_CONNECTION :	'TE, Keep-Alive'
+	SERVER_NAME :	'localhost'
+	REMOTE_ADDR :	'127.0.0.1'
+	SERVER_PORT :	'80'
+	HTTP_HOST :	'localhost'
+	CONTENT_TYPE :	''
+	HTTP_KEEP_ALIVE :	''
+
+
+=========> Response
+Response code: 204 No Content
+	Content-Length :	'0'
+
+
+

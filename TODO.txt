@@ -1,0 +1,136 @@
+
+TODO
+====
+
+This section documents in varying details some of the issues waiting for
+resolution or to be done.
+
+Better support for Weak Entity Tags
+-----------------------------------
+
+Move entity tag matching from a simple string match to perhaps
+matching from the abstraction layer itself. This allows the 
+abstraction layer to implement weak/semantic entity tags
+
+Change of architecture
+----------------------
+
+The application was developed initially as a file-sharing 
+application and then converted to a more generic resource-sharing
+application. Hence most of the functionality is based on what
+files would implement.
+
+Need to shift this so that control on what functionality is active
+is based on the resource layer. Example, if entity tags are not
+implemented, then entity tag functionality (headers, matching)
+should be disabled. If {DAV:}getcontentlanguage is implemented in
+the resource layer, then the server should start returning
+language headers.... etc.
+
+
+Gzip Content Encoding
+---------------------
+
+Supporting Gzip Content Encoding normally can be done by middleware - see 
+GzipMiddleWare <http://www.saddi.com/software/py-lib/>
+
+One buggy issue is supporting Content Encoding AND Content Ranges, which
+does not work too well since Content Ranges is applied after Content Encoding,
+i.e. you send ranges of the gzipped file and need to know the total length of
+the gzip file in advance to decode and send the Range headers. Trying to do it
+in a way that does not buffer unnecessarily (memory or disk).
+
+
+
+Encryption Support
+------------------
+
+This is really in the domain of the webserver itself to support SSL.
+
+
+
+
+Concurrent Conflicting Requests Robustness
+------------------------------------------
+
+This section describes the problem of concurrent conflicting requests,
+as a result of conflicts at the filesystem level:
+
+**Read and Write**
+   Constant GET requests for a file causes it to be file-open locked 
+   for reading all the time. No write operations like PUT, DELETE, 
+   MOVE can be done even if a write LOCK is obtained since the file 
+   remains locked by filesystem level. 
+
+   Note: some file systems do support deleting a read-open file. 
+   The file is deleted but remains available to the read handle until 
+   it is closed.
+
+**Concurrent Write**
+   Two concurrent write requests, like MOVE and DELETE, for the same 
+   resource arrives at the server and is processed in separate threads 
+   concurrently. Exact behaviour will depend on the actual resulting 
+   interleaved execution but it is likely that some MOVE files will fail
+   as they have been DELETEd and vice versa. 
+
+Although the operations themself may fail (interpreting partial success on either 
+side to be failure) a proper response is returned. This does not cause the webserver or
+filesystem to crash or enter an inconsistent/unstable state.
+
+**Most filesharing operations should not have any need to resolve these issues.**
+
+
+Three solutions have been identified:
+
+**Optimistic Locking**
+   This assumes that most operations go forward successfully. If it does 
+   not due to the filesystem (as evidenced by a 500 Internal Server Error 
+   flagged for an operation), then the entire request should be rollbacked 
+   and a HTTP 409 Conflict error thrown::
+
+      successful = []
+      try:
+          for item in actions:
+              successful.append(do_action(item))
+      except:
+          for result in successful:
+              result.rollback()
+          raise
+      else:
+          for result in successful:
+              result.commit()
+
+   The server has to ensure that rollback() and commit() operations do not 
+   fail. Also partial MOVE/COPY operations may be difficult to rollback.
+
+
+**File Locking**
+   A WRITE request could block until it has obtained all the filesystem level
+   locks on all the files it should process. It needs to address the following:
+
+   + Should the request block indefinitely waiting for the locks or should it 
+     adopt optimistic locking (409 Conflict if it fails to get all the locks 
+     it wants)
+
+   + Race conditions or deadlocks between concurrent requests waiting for the 
+     same locks. Locks should be obtained in a specific order to minimize the 
+     possibility of this happening.
+
+
+**Variable Locking**
+   This is a complex locking mechanism, when requests identified as possibly 
+   conflicting are prevented from being executed concurrently by a blocking 
+   lock. Conflicting requests can be loosely identified as the request URLs 
+   being the same or ancestor/descendant of each other (Depth: infinity).
+
+   Such a scheme should address the following:
+
+   + Conflicting read operations can be done concurrently but not conflicting 
+     write operations
+   
+   + Assuming that all requests that are started will complete in finite time, any request 
+     should eventually complete.
+
+
+
+

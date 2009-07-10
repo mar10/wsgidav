@@ -1,0 +1,14 @@
+============
+ADDONS GUIDE
+============
+
+:Module: pyfileserver
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com
+:Project: PyFileServer, http://pyfilesync.berlios.de/
+:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+
+This section describes the addons available:
+
++ windowsdomaincontroller_
+
+ 

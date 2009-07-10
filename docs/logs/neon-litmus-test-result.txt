@@ -1,0 +1,110 @@
+cwho_2@CHIMAERA /cygdrive/c/Soc/litmus-0.10.2/litmus-0.10.2
+$ litmus http://localhost:8080/test/ tester tester
+-> running `basic':
+ 0. init.................. pass
+ 1. begin................. pass
+ 2. options............... pass
+ 3. put_get............... pass
+ 4. put_get_utf8_segment.. pass
+ 5. mkcol_over_plain...... pass
+ 6. delete................ pass
+ 7. delete_null........... pass
+ 8. delete_fragment....... WARNING: DELETE removed collection resource with Requ
+est-URI including fragment; unsafe
+    ...................... pass (with 1 warning)
+ 9. mkcol................. pass
+10. mkcol_again........... pass
+11. delete_coll........... pass
+12. mkcol_no_parent....... pass
+13. mkcol_with_body....... pass
+14. finish................ pass
+<- summary for `basic': of 15 tests run: 15 passed, 0 failed. 100.0%
+-> 1 warning was issued.
+-> running `copymove':
+ 0. init.................. pass
+ 1. begin................. pass
+ 2. copy_init............. pass
+ 3. copy_simple........... pass
+ 4. copy_overwrite........ pass
+ 5. copy_nodestcoll....... pass
+ 6. copy_cleanup.......... pass
+ 7. copy_coll............. pass
+ 8. move.................. pass
+ 9. move_coll............. pass
+10. move_cleanup.......... pass
+11. finish................ pass
+<- summary for `copymove': of 12 tests run: 12 passed, 0 failed. 100.0%
+-> running `props':
+ 0. init.................. pass
+ 1. begin................. pass
+ 2. propfind_invalid...... pass
+ 3. propfind_invalid2..... pass
+ 4. propfind_d0........... pass
+ 5. propinit.............. pass
+ 6. propset............... pass
+ 7. propget............... pass
+ 8. propextended.......... pass
+ 9. propmove.............. pass
+10. propget............... pass
+11. propdeletes........... pass
+12. propget............... pass
+13. propreplace........... pass
+14. propget............... pass
+15. propnullns............ pass
+16. propget............... pass
+17. prophighunicode....... pass
+18. propget............... pass
+19. propvalnspace......... pass
+20. propwformed........... pass
+21. propinit.............. pass
+22. propmanyns............ pass
+23. propget............... pass
+24. propcleanup........... pass
+25. finish................ pass
+<- summary for `props': of 26 tests run: 26 passed, 0 failed. 100.0%
+-> running `locks':
+ 0. init.................. pass
+ 1. begin................. pass
+ 2. options............... pass
+ 3. precond............... pass
+ 4. init_locks............ pass
+ 5. put................... pass
+ 6. lock_excl............. pass
+ 7. discover.............. pass
+ 8. refresh............... pass
+ 9. notowner_modify....... pass
+10. notowner_lock......... pass
+11. owner_modify.......... pass
+12. notowner_modify....... pass
+13. notowner_lock......... pass
+14. copy.................. pass
+15. cond_put.............. pass
+16. fail_cond_put......... pass
+17. cond_put_with_not..... pass
+18. cond_put_corrupt_token pass
+19. complex_cond_put...... pass
+20. fail_complex_cond_put. pass
+21. unlock................ pass
+22. lock_shared........... pass
+23. notowner_modify....... pass
+24. notowner_lock......... pass
+25. owner_modify.......... pass
+26. double_sharedlock..... pass
+27. notowner_modify....... pass
+28. notowner_lock......... pass
+29. unlock................ pass
+30. prep_collection....... pass
+31. lock_collection....... pass
+32. owner_modify.......... pass
+33. notowner_modify....... pass
+34. refresh............... pass
+35. indirect_refresh...... pass
+36. unlock................ pass
+37. finish................ pass
+<- summary for `locks': of 38 tests run: 38 passed, 0 failed. 100.0%
+-> running `http':
+ 0. init.................. pass
+ 1. begin................. pass
+ 2. expect100............. pass
+ 3. finish................ pass
+<- summary for `http': of 4 tests run: 4 passed, 0 failed. 100.0%

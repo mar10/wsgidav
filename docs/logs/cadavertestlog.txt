@@ -1,0 +1,169 @@
+cwho@CHIMAERA /cygdrive/c/soc/test2
+$ cadaver http://localhost/test
+Authentication required for /test on server `localhost':
+Username: tester
+Password:
+dav:/test/> ls
+Listing collection `/test/': succeeded.
+Coll:   DAVExplorer                            0  Aug  8 11:20
+Coll:   litmus                                 0  Aug  8 08:30
+dav:/test/> rmcol cadaverTEST
+Deleting collection `cadaverTEST': is not a collection.
+The `rmcol' command can only be used to delete collections.
+Use `rm cadaverTEST' to delete this resource.
+dav:/test/> mkcol cadaverTEST
+Creating `cadaverTEST': succeeded.
+dav:/test/> cd cadaverTEST
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> mput *.txt
+[Matching... 4 matches.]
+Uploading TUTORIAL.txt to `/test/cadaverTEST/TUTORIAL.txt':
+Progress: [=============================>] 100.0% of 10 bytes succeeded.
+Uploading TODO.txt to `/test/cadaverTEST/TODO.txt':
+Progress: [=============================>] 100.0% of 4836 bytes succeeded.
+Uploading README.txt to `/test/cadaverTEST/README.txt':
+Progress: [=============================>] 100.0% of 3790 bytes succeeded.
+Uploading LICENSE.txt to `/test/cadaverTEST/LICENSE.txt':
+Progress: [=============================>] 100.0% of 26445 bytes succeeded.
+dav:/test/cadaverTEST/> mkcol container
+Creating `container': succeeded.
+dav:/test/cadaverTEST/> move *.txt container
+[Matching... 4 matches.]
+Moving `/test/cadaverTEST/TUTORIAL.txt' to `/test/cadaverTEST/container/TUTORIAL
+.txt':  succeeded.
+Moving `/test/cadaverTEST/TODO.txt' to `/test/cadaverTEST/container/TODO.txt':
+succeeded.
+Moving `/test/cadaverTEST/README.txt' to `/test/cadaverTEST/container/README.txt
+':  succeeded.
+Moving `/test/cadaverTEST/LICENSE.txt' to `/test/cadaverTEST/container/LICENSE.t
+xt':  succeeded.
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> mkcol MOVETEST
+Creating `MOVETEST': succeeded.
+dav:/test/cadaverTEST/> mkcol COPYTEST
+Creating `COPYTEST': succeeded.
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> lock MOVETEST
+Locking collection `MOVETEST': succeeded.
+dav:/test/cadaverTEST/> discover MOVETEST
+Discovering locks on `MOVETEST':
+Lock token <opaquelocktoken:0x42914AD09029CEBC959E7C88E686AA59E83811236B40017EA4
+C0C188E8ECB2C6L>:
+  Depth infinity on `http://localhost/test/cadaverTEST/MOVETEST/'
+  Scope: exclusive  Type: write  Timeout: 604799 seconds
+  Owner:
+
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> lock COPYTEST
+Locking collection `COPYTEST': succeeded.
+dav:/test/cadaverTEST/> discover COPYTEST
+Discovering locks on `COPYTEST':
+Lock token <opaquelocktoken:0x9BE7557A3B12E587912EC91B4A5B22F263CA3568D8B295E09D
+AEE3281D6EDCE4L>:
+  Depth infinity on `http://localhost/test/cadaverTEST/COPYTEST/'
+  Scope: exclusive  Type: write  Timeout: 604799 seconds
+  Owner:
+
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> move container MOVETEST
+Moving `/test/cadaverTEST/container' to `/test/cadaverTEST/MOVETEST/container':
+ succeeded.
+dav:/test/cadaverTEST/> ls MOVETEST
+Listing collection `/test/cadaverTEST/MOVETEST/': succeeded.
+Coll:   container                              0  Aug  9 06:44
+dav:/test/cadaverTEST/> discover MOVETEST/container/LICENSE.txt
+Discovering locks on `MOVETEST/container/LICENSE.txt':
+Lock token <opaquelocktoken:0x42914AD09029CEBC959E7C88E686AA59E83811236B40017EA4
+C0C188E8ECB2C6L>:
+  Depth infinity on `http://localhost/test/cadaverTEST/MOVETEST/container/LICENS
+E.txt'
+  Scope: exclusive  Type: write  Timeout: 604791 seconds
+  Owner:
+
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> copy MOVETEST/container COPYTEST
+Copying `/test/cadaverTEST/MOVETEST/container' to `/test/cadaverTEST/COPYTEST/co
+ntainer':  succeeded.
+dav:/test/cadaverTEST/> ls COPYTEST
+Listing collection `/test/cadaverTEST/COPYTEST/': succeeded.
+Coll:   container                              0  Aug  9 06:45
+dav:/test/cadaverTEST/> discover COPYTEST/container/LICENSE.txt
+Discovering locks on `COPYTEST/container/LICENSE.txt':
+Lock token <opaquelocktoken:0x9BE7557A3B12E587912EC91B4A5B22F263CA3568D8B295E09D
+AEE3281D6EDCE4L>:
+  Depth infinity on `http://localhost/test/cadaverTEST/COPYTEST/container/LICENS
+E.txt'
+  Scope: exclusive  Type: write  Timeout: 604785 seconds
+  Owner:
+
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> rmcol COPYTEST
+Deleting collection `COPYTEST': succeeded.
+dav:/test/cadaverTEST/> ls
+Listing collection `/test/cadaverTEST/': succeeded.
+Coll:   MOVETEST                               0  Aug  9 06:44
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> unlock MOVETEST
+Unlocking `MOVETEST': succeeded.
+dav:/test/cadaverTEST/> discover MOVETEST
+Discovering locks on `MOVETEST': no locks found.
+dav:/test/cadaverTEST/> discover MOVETEST/container/LICENSE.txt
+Discovering locks on `MOVETEST/container/LICENSE.txt': no locks found.
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> propnames MOVETEST/container/LICENSE.txt
+Fetching property names `MOVETEST/container/LICENSE.txt': DAV: creationdate
+ DAV: displayname
+ DAV: getcontenttype
+ DAV: resourcetype
+ DAV: getlastmodified
+ DAV: lockdiscovery
+ DAV: supportedlock
+ DAV: getcontentlength
+ DAV: getetag
+ succeeded.
+dav:/test/cadaverTEST/> propget MOVETEST/container/LICENSE.txt
+Fetching properties for `MOVETEST/container/LICENSE.txt':
+creationdate = Tue, 09 Aug 2005 06:44:55 GMT
+displayname = /test/cadaverTEST/MOVETEST/container/LICENSE.txt
+getcontenttype = text/plain
+resourcetype =
+getlastmodified = Tue, 09 Aug 2005 06:44:47 GMT
+lockdiscovery =
+supportedlock = <lockentry>
+<lockscope><exclusive></exclusive></lockscope>
+<locktype><write></write></locktype>
+</lockentry>
+<lockentry>
+<lockscope><shared></shared></lockscope>
+<locktype><write></write></locktype>
+</lockentry>
+getcontentlength = 26445
+getetag = 5f04cd67a4cd21ff54bba7a68bfdd9f8-1123569887-26445
+dav:/test/cadaverTEST/> propset MOVETEST/container/LICENSE.txt deadproperty tes
+tvalue
+Setting property on `MOVETEST/container/LICENSE.txt': succeeded.
+dav:/test/cadaverTEST/> propget MOVETEST/container/LICENSE.txt
+Fetching properties for `MOVETEST/container/LICENSE.txt':
+creationdate = Tue, 09 Aug 2005 06:44:55 GMT
+displayname = /test/cadaverTEST/MOVETEST/container/LICENSE.txt
+getcontenttype = text/plain
+resourcetype =
+getlastmodified = Tue, 09 Aug 2005 06:44:47 GMT
+lockdiscovery =
+supportedlock = <lockentry>
+<lockscope><exclusive></exclusive></lockscope>
+<locktype><write></write></locktype>
+</lockentry>
+<lockentry>
+<lockscope><shared></shared></lockscope>
+<locktype><write></write></locktype>
+</lockentry>
+getcontentlength = 26445
+getetag = 5f04cd67a4cd21ff54bba7a68bfdd9f8-1123569887-26445
+deadproperty = testvalue
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> rmcol MOVETEST
+Deleting collection `MOVETEST': succeeded.
+dav:/test/cadaverTEST/>
+dav:/test/cadaverTEST/> quit
+Connection to `localhost' closed.

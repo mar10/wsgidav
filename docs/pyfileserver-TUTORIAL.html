@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>TUTORIAL</title>
+<meta name="author" content="Ho Chun Wei, fuzzybr80(at)gmail.com" />
+<meta name="copyright" content="Lesser GNU Public License, see LICENSE file attached with package" />
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="tutorial">
+<h1 class="title">TUTORIAL</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Module:</th><td class="field-body">pyfileserver</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Ho Chun Wei, fuzzybr80(at)gmail.com</td></tr>
+<tr class="field"><th class="docinfo-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>Lesser GNU Public License, see LICENSE file attached with package</td></tr>
+</tbody>
+</table>
+<div class="section" id="purpose">
+<h1><a name="purpose">Purpose</a></h1>
+<p>The purpose of this document is to provide a step-by-step example for obtaining
+the PyFileServer package and running it to share a number of directories as 
+realms over the web.</p>
+<p>At the end of the tutorial is a FAQ addressing issues with logging, authentication
+and WinXP Network Places support.</p>
+</div>
+<div class="section" id="downloading-and-installing-pyfileserver">
+<h1><a name="downloading-and-installing-pyfileserver">Downloading and Installing PyFileServer</a></h1>
+<p>PyFileServer is a WSGI web application for sharing filesystem directories 
+over WebDAV.</p>
+<ol class="arabic">
+<li><p class="first">Get and install the latest release of Python, available from</p>
+<blockquote>
+<p><a class="reference" href="http://www.python.org/">http://www.python.org/</a></p>
+</blockquote>
+<p>Python 2.3 or later is required; Python 2.4.1 or later is
+recommended.</p>
+</li>
+<li><p class="first">Get and install the latest release of PyXML, an advanced XML
+library that is required for PyFileServer. You can obtain the
+package from</p>
+<blockquote>
+<p><a class="reference" href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a></p>
+</blockquote>
+<p>Follow instructions from the PyXML documentation for installation.
+PyFileServer REQUIRES PyXML to compile and run.</p>
+<p>To verify that PyXML is installed on your system, you may run
+the python interpreter, and at the python prompt:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; import xml.dom.ext.reader
+</pre>
+<p>If PyXML is installed, the module will be found and the statement
+returns without any output. If PyXML is not installed, the module
+is not found and the python interpreter will throw the following
+error:</p>
+<pre class="literal-block">
+Traceback (most recent call last):
+File &quot;&lt;stdin&gt;&quot;, line 1, in ?
+ImportError: No module named xml.dom.ext.reader
+</pre>
+</li>
+<li><p class="first">Download the latest PyFileServer release. Get the code from:</p>
+<blockquote>
+<p><a class="reference" href="http://developer.berlios.de/project/showfiles.php?group_id=4191">http://developer.berlios.de/project/showfiles.php?group_id=4191</a></p>
+</blockquote>
+<p>Unpack the archive in a new directory (<strong>not</strong> directly in Python's 
+<tt class="docutils literal"><span class="pre">site-packages</span></tt>).</p>
+<p>For the purposes of this tutorial, we will assume that PyFileServer was 
+extracted into the directory <tt class="docutils literal"><span class="pre">C:\pkgs\PyFileServer</span></tt> (assuming Windows
+machine. PyFileServer is designed to work over all
+flavours of unix and linux, as well as Windows. It is not tested over other 
+platforms such as Macs).</p>
+</li>
+<li><p class="first">You may wish to simply run PyFileServer with the bundled standalone server
+from the directory rather than install it as a python site package. If so,
+you can skip this step and proceed to the next section.</p>
+<p>You only need to install PyFileServer if you wish to use the included python 
+applications or libraries in other applications or python web frameworks.</p>
+<p>Within the directory, type the following command to install the package:</p>
+<pre class="literal-block">
+C:\pkgs\PyFileServer&gt; python setup.py install
+</pre>
+<p>The installation process will:</p>
+<ul class="simple">
+<li>Install <tt class="docutils literal"><span class="pre">setuptools</span></tt> and <tt class="docutils literal"><span class="pre">easysetup</span></tt> on your machine if it does
+not already have them. These are useful utilities for installing
+python packages.</li>
+<li>Check that PyXML is installed. If not, process will aborted with an 
+error message stating that PyXML could not be detected.</li>
+<li>Install and compile PyFileServer as one of the python site packages 
+on your machine.</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="section" id="preparing-your-shares">
+<h1><a name="preparing-your-shares">Preparing Your Shares</a></h1>
+<p>PyFileServer allows the user to share any number of filesystem directories 
+as different realms. For example, I could share:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">C:\pkgs\PyFileServer\docs</span></tt> as the realm &quot;docs&quot; </div>
+<div class="line"><tt class="docutils literal"><span class="pre">C:\Space\Satellite\Images</span></tt> as the realm &quot;satelliteimages&quot;. </div>
+</div>
+<p>This means that the contents of <tt class="docutils literal"><span class="pre">C:\pkgs\PyFileServer\docs</span></tt>
+would be available at <a class="reference" href="http://localhost/docs/">http://localhost/docs/</a> while the pictures at 
+<tt class="docutils literal"><span class="pre">C:\Space\Satellite\Images</span></tt> would be available at 
+<a class="reference" href="http://localhost/satelliteimages">http://localhost/satelliteimages</a></p>
+<p>I will continue to use the locations <tt class="docutils literal"><span class="pre">C:\pkgs\PyFileServer\docs</span></tt> and 
+<tt class="docutils literal"><span class="pre">C:\Space\Satellite\Images</span></tt> for this tutorial. You may wish to create your
+own test share files or directories.</p>
+<p><strong>It is highly recommended that you do not share any important or sensitive 
+information or system files (such as the windows directory or your entire 
+drive) in your testing.</strong></p>
+</div>
+<div class="section" id="configuration-file">
+<h1><a name="configuration-file">Configuration File</a></h1>
+<p>Let us first run through the configuration file. 
+An example of the configuration file is given in <a class="reference" href="logs/PyFileServer-example.conf">PyFileServer-example.conf</a> .
+The configuration file consists of the following sections:</p>
+<p><strong>Configuration File</strong></p>
+<blockquote>
+<p><strong>Initialization</strong>: Do not modify this section - it contains code to help with the rest
+of the configuration file.</p>
+<p><strong>Server Options</strong></p>
+<blockquote>
+<dl class="docutils">
+<dt><strong>Property Options</strong>, <strong>Locks Options</strong>, <strong>Domain Controller Options</strong></dt>
+<dd><p class="first">These sections allow the administrator to define python objects
+and functions to customize the application. For example, instead of the
+built-in domain controller that uses the Users section below for
+authentication, a domain controller could be coded to interface and 
+verify authentication with the organization's LDAP server. For more 
+information about this, refer to the developer's guide.</p>
+<p class="last">For our purposes in this tutorial, we can leave these options as they are
+to use the default objects bundled with the application.</p>
+</dd>
+<dt><strong>HTTP Authentication Options</strong></dt>
+<dd><p class="first">This section configures the types of HTTP authentication accepted. PyFileServer
+supports basic and digest HTTP authentication schemes
+&lt;<a class="reference" href="http://www.ietf.org/rfc/rfc2617.txt">http://www.ietf.org/rfc/rfc2617.txt</a>&gt;.</p>
+<p class="last">There are three options to be set to &quot;True&quot; or &quot;False&quot;. <em>acceptbasic</em> determines
+if basic authentication is enabled. <em>acceptdigest</em> determines if digest
+authentication is enabled. <em>defaultdigest</em> determines if the server should
+respond with a digest authentication request (instead of a basic one) if
+an unauthenticated request arrives.</p>
+</dd>
+<dt><strong>Verbose Output</strong></dt>
+<dd>The <em>verbose</em> option takes a value of 0, 1 or 2, and determines the level of 
+logging. 0 means no logging, 1 summary and 2 full logging. A sample of logs
+at <a class="reference" href="logs/runverbose1.txt">verbose = 1</a> and <a class="reference" href="logs/runverbose2.txt">verbose = 2</a> is 
+available.</dd>
+</dl>
+</blockquote>
+<blockquote>
+<dl class="docutils">
+<dt><strong>Organizational Information</strong>    </dt>
+<dd><p class="first">The <em>Info_AdminEmail</em> and <em>Info_Organization</em> options allow the administrator to
+customize the trailer line at the bottom of any html output, such as error
+messages or directory listings in a browser window. For example:</p>
+<pre class="literal-block">
+Info_AdminEmail = 'admin&#64;sampleserver.com'
+Info_Organization = 'PyFileServer - Hosted at Sample Server'
+</pre>
+<dl class="last docutils">
+<dt>Yields the following trailer line:</dt>
+<dd><a class="reference" href="mailto:admin&#64;sampleserver.com">Administrator</a> at PyFileServer - Hosted at Sample Server</dd>
+</dl>
+</dd>
+</dl>
+</blockquote>
+<p><strong>Resource Abstraction Layers</strong> : Area to define custom resource abstraction layers.</p>
+<p><strong>Realms</strong>: Area for the administrator to define realms for sharing.</p>
+<p><strong>Users</strong>: Area for the administrator to define users for the realms.</p>
+</blockquote>
+</div>
+<div class="section" id="configuring-pyfileserver-for-shares">
+<h1><a name="configuring-pyfileserver-for-shares">Configuring PyFileServer for Shares</a></h1>
+<ol class="arabic">
+<li><p class="first">Make a copy of PyFileServer-example.conf and call it PyFileServer.conf.
+Open the file PyFileServer.conf in a text editor.</p>
+</li>
+<li><p class="first">Browse through the configuration file until you hit the <strong>Realms</strong> section:</p>
+<pre class="literal-block">
+########################################################################################
+# REALMS
+# if you would like to access files in the location 'c:\v_root' through PyFileServer as
+# http://server:port/v_root, insert the following:
+#   addrealm('vroot', 'c:\v_root', '')
+#
+# The last field refers to the registered name of the abstraction layer to use (register
+# in the above section RESOURCE ABSTRACTION LAYERS). 
+#   addAL('myowndatabase', MyOwnDatabaseAbstractionLayer()) 
+#   addrealm('db', 'database:\UserDB', 'myowndatabase')
+#  
+# If you wish to share files using the default resource abstraction layer provided by
+# PyFileServer, simply omit the field.
+#   addrealm('file', 'C:\files')
+#
+</pre>
+</li>
+<li><p class="first">Recall that we would like to share (substitute your test directory locations):</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">C:\pkgs\PyFileServer\docs</span></tt> as the realm &quot;docs&quot; </div>
+<div class="line"><tt class="docutils literal"><span class="pre">C:\Space\Satellite\Images</span></tt> as the realm &quot;satelliteimages&quot;. </div>
+</div>
+<p>Now add the following code underneath it:</p>
+<pre class="literal-block">
+addrealm('docs','C:\\pkgs\\PyFileServer\\docs')
+addrealm('satelliteimages','C:\\Space\\Satellite\\Images')
+</pre>
+<p><em>Note</em>: In the path name, there are two forward slashes for each one required. This is
+because the forward slash is a escape character used to input special characters. Two
+forward slashes escape to a single forward slash.</p>
+</li>
+<li><p class="first">Save the configuration file (PyFileServer.conf).</p>
+</li>
+</ol>
+</div>
+<div class="section" id="testing-the-shares">
+<h1><a name="testing-the-shares">Testing the Shares</a></h1>
+<ol class="arabic">
+<li><p class="first">From the directory that PyFileServer is in, type the following:</p>
+<pre class="literal-block">
+C:\pkgs\PyFileServer&gt; python ext_wsgiutils_server.py --help
+
+usage: python ext_wsgiutils_server.py [options] [config-file]
+
+config-file:
+  The configuration file for PyFileServer. if omitted, the application
+  will look for a file named 'PyFileServer.conf' in the current directory
+
+options:
+  --port=PORT  Port to serve on (default: 8080)
+  --host=HOST  Host to serve from (default: localhost, which is only
+               accessible from the local computer; use 0.0.0.0 to make your
+               application public)
+  -h, --help   show this help message and exit   
+</pre>
+</li>
+<li><p class="first">This shows how the standalone server can be run. Try it now with 
+our configuration file:</p>
+<pre class="literal-block">
+C:\pkgs\PyFileServer&gt; python ext_wsgiutils_server.py --port 80
+</pre>
+</li>
+<li><p class="first">Now open up your web browser and try accessing the url: <a class="reference" href="http://localhost/docs/">http://localhost/docs/</a> .
+You can try browsing around the directory listing. Clicking on a file accesses it, while
+clicking on a directory name opens up the directory listing for that directory.</p>
+<div class="image"><img alt="images/tutorial_initial_share.jpg" src="images/tutorial_initial_share.jpg" /></div>
+</li>
+<li><p class="first">You can also test out the share with other webdav clients, such as <a class="reference" href="http://www.webdav.org/cadaver/">cadaver</a> 
+(also runs over <a class="reference" href="http://www.cygwin.com/">cygwin</a> on Windows) or <a class="reference" href="#winxp-network-places">WinXP Network Places</a></p>
+</li>
+</ol>
+<p>If you meet any problems testing the shares, proceed to the <a class="reference" href="#errors">Errors</a> section.</p>
+</div>
+<div class="section" id="authentication">
+<h1><a name="authentication">Authentication</a></h1>
+<ol class="arabic">
+<li><p class="first">Open the file PyFileServer.conf in a text editor.</p>
+</li>
+<li><p class="first">Browse through the configuration file until you hit the <strong>Users</strong> section:</p>
+<pre class="literal-block">
+############################################################################################
+# USERS
+# adduser('v_root' , 'user', 'password', 'description')  
+# If no users are specified for a realm, no authentication is required to fully access the realm 
+#
+# Note: If you wish to use Windows WebDAV support (such as Windows XP's My Network Places),
+# you need to include the domain of the user as part of the username (note the DOUBLE slash), 
+# such as:
+# adduser('v_root', 'domain\\user', 'password', 'description')
+</pre>
+</li>
+<li><p class="first">Let us add the following users:</p>
+<div class="line-block">
+<div class="line">For the &quot;docs&quot; realm (sharing <tt class="docutils literal"><span class="pre">C:\pkgs\PyFileServer\docs</span></tt>)</div>
+<div class="line-block">
+<div class="line">User &quot;John Smith&quot;, password &quot;ABCD&quot;</div>
+<div class="line">User &quot;Dan Brown&quot;, password &quot;DEFG&quot;</div>
+<div class="line"><br /></div>
+</div>
+<div class="line">For the &quot;satelliteimages&quot; realm (sharing <tt class="docutils literal"><span class="pre">C:\Space\Satellite\Images</span></tt>)</div>
+<div class="line-block">
+<div class="line">User &quot;SpaceGuy&quot;, password &quot;SpacePictures&quot;</div>
+</div>
+</div>
+<p>We add the following code to the section. Note that the last field is empty - it is a
+description field that is currently not used:</p>
+<pre class="literal-block">
+adduser('docs', 'John Smith', 'ABCD', '')
+adduser('docs', 'Dan Brown', 'DEFG', '')
+adduser('satelliteimages', 'SpaceGuy', 'SpacePictures', '')
+</pre>
+</li>
+<li><p class="first">Save the configuration file (PyFileServer.conf)</p>
+</li>
+<li><p class="first">Restart the server. This is usually done by going to the window/shell that the server
+is running and pressing Ctrl-Break (or Ctrl-C/kill for linux/unix), and then re-running
+the server:</p>
+<pre class="literal-block">
+C:\pkgs\PyFileServer&gt; python ext_wsgiutils_server.py --port 80
+</pre>
+</li>
+<li><p class="first">Now you can test the url: <a class="reference" href="http://localhost/docs/">http://localhost/docs/</a> again. You may have to refresh or
+navigate to a new portion of the share to avoid the browser showing you a cached copy.         
+The browser will prompt automatically for the username and password.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="errors">
+<h1><a name="errors">Errors</a></h1>
+<p>This section describes some of the more common errors that may crop up while using 
+PyFileServer. If the error is specific to accessing the share from WinXP Network Places,
+please refer to the next section <a class="reference" href="#winxp-network-places">WinXP Network Places</a> .</p>
+<ol class="arabic">
+<li><p class="first"><em>The server runs, but when I try to access the url, the browser/client indicates
+that the server could not be found.</em></p>
+<p>You should doublecheck the hostname and port used. The default hostname used is
+&quot;localhost&quot;, which allows only local access. To access the share from another
+computer, use &quot;0.0.0.0&quot; as the hostname. The default port is 8080, not 80 
+(standard HTTP port).</p>
+<p>You could also check with the computer administrator
+if any firewall or hosts configuration is preventing you from accessing that
+url/port.</p>
+</li>
+<li><p class="first"><em>When I run the server, it fails with the following error (or similar)</em>:</p>
+<pre class="literal-block">
+RuntimeError: Failed to read PyFileServer configuration file : C:\SoC\PyFileServer\PyFileServer.conf
+</pre>
+<p>This is usually appears as part of a larger chunk, like:</p>
+<pre class="literal-block">
+Traceback (most recent call last):
+  File &quot;ext_wsgiutils_server.py&quot;, line 254, in ?
+    serve(optionsdict, PyFileApp(configfilespecified))
+  File &quot;C:\SoC\PyFileServer\pyfileserver\mainappwrapper.py&quot;, line 54, in __init__
+    raise RuntimeError('Failed to read PyFileServer configuration file : ' + specifiedconfigfile + '\nDue to ' + exceptiontext)
+
+RuntimeError: Failed to read PyFileServer configuration file : C:\SoC\PyFileServer\PyFileServer.conf
+Due to   File &quot;C:\SoC\PyFileServer\PyFileServer.conf&quot;, line 100
+    This is a syntax error      
+                   ^      
+SyntaxError: invalid syntax
+</pre>
+<p>This means that there was an error reading the PyFileServer.conf, usually as a result of
+a syntax error within the file. The text below the error may give additional information
+as to the cause of the syntax error.</p>
+</li>
+<li><p class="first"><em>My shares/users configuration is not working! It refuses access for user or returns
+a 404 Not Found error when I try to access the share.</em></p>
+<p>Check your configuration and paths. Most likely it is due to forward slashes in the
+username/password or path name. Remember that the forward slash is used as an escape
+character - you need two forward slashes where one is required to properly escape
+the forward slash.</p>
+</li>
+<li><p class="first"><em>I occasionally get the following exception output on the screen, that includes the
+text</em>: <tt class="docutils literal"><span class="pre">error:</span> <span class="pre">(10053,</span> <span class="pre">&quot;Software</span> <span class="pre">Caused</span> <span class="pre">Connection</span> <span class="pre">Abort&quot;)</span></tt></p>
+<p>The full trace is usually like:</p>
+<pre class="literal-block">
+ERROR:root:Traceback (most recent call last):
+  File &quot;ext_wsgiutils_server.py&quot;, line 163, in runWSGIApp
+    self.wsgiWriteData (data)
+  File &quot;ext_wsgiutils_server.py&quot;, line 199, in wsgiWriteData
+    self.wfile.write (data)
+  File &quot;C:\Apps\Python24\lib\socket.py&quot;, line 256, in write
+    self.flush()
+  File &quot;C:\Apps\Python24\lib\socket.py&quot;, line 243, in flush
+    self._sock.sendall(buffer)
+error: (10053, 'Software caused connection abort')
+
+----------------------------------------
+Exception happened during processing of request from ('127.0.0.1', 2539)
+Traceback (most recent call last):
+  File &quot;C:\Apps\Python24\lib\SocketServer.py&quot;, line 463, in process_request_thread
+    self.finish_request(request, client_address)
+  File &quot;C:\Apps\Python24\lib\SocketServer.py&quot;, line 254, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File &quot;C:\Apps\Python24\lib\SocketServer.py&quot;, line 521, in __init__
+    self.handle()
+  File &quot;C:\Apps\Python24\lib\BaseHTTPServer.py&quot;, line 314, in handle
+    self.handle_one_request()
+  File &quot;C:\Apps\Python24\lib\BaseHTTPServer.py&quot;, line 308, in handle_one_requestmethod()
+  File &quot;ext_wsgiutils_server.py&quot;, line 113, in handlerFunction
+    self.do_method()
+  File &quot;ext_wsgiutils_server.py&quot;, line 121, in do_method
+    self.runWSGIApp (app, scriptName, pathInfo, query)
+  File &quot;ext_wsgiutils_server.py&quot;, line 173, in runWSGIApp
+    self.wsgiWriteData(SERVER_ERROR)
+  File &quot;ext_wsgiutils_server.py&quot;, line 199, in wsgiWriteData
+    self.wfile.write (data)
+  File &quot;C:\Apps\Python24\lib\socket.py&quot;, line 256, in write
+    self.flush()
+  File &quot;C:\Apps\Python24\lib\socket.py&quot;, line 243, in flush
+    self._sock.sendall(buffer)
+error: (10053, 'Software caused connection abort')
+----------------------------------------
+</pre>
+<p>This is a common occurrence, and is caused by the client (software that is connecting
+to the server) breaking the connection as soon as it obtains the return code without 
+reading the rest of the headers and response body. Its the telephone conversation 
+equivalent of hanging up after you've heard what u needed, even if the other person
+is still in mid-sentence.</p>
+<p>If this is a issue, post on the user list (see last question) and a fix would be put
+in to omit such printouts.</p>
+</li>
+<li><p class="first"><em>My question is not in this list</em></p>
+<p>For further help or documentation, please refer to the project web page or
+send a query to the mailing list.</p>
+<div class="line-block">
+<div class="line">Project Page: PyFileServer &lt;<a class="reference" href="http://pyfilesync.berlios.de/pyfileserver.html">http://pyfilesync.berlios.de/pyfileserver.html</a>&gt;</div>
+<div class="line">Mailing List: <a class="reference" href="mailto:pyfilesync-users&#64;lists.berlios.de">pyfilesync-users&#64;lists.berlios.de</a> ( <a class="reference" href="http://lists.berlios.de/mailman/listinfo/pyfilesync-users">subscribe</a> )</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="winxp-network-places">
+<h1><a name="winxp-network-places">WinXP Network Places</a></h1>
+<p>This section describes some of the caveats when using PyFileServer with WinXP Network
+Places.</p>
+<p>To access PyFileServer from WinXP Network Places, do the following:</p>
+<ol class="arabic">
+<li><p class="first">Go to My Network Places, and click on &quot;Add a network place&quot;</p>
+<div class="image"><img alt="images/tutorial_xp_1.jpg" src="images/tutorial_xp_1.jpg" /></div>
+</li>
+<li><p class="first">The Add Network Place wizard will launch. Click Next to proceed. Select the 
+following option and click Next.</p>
+<div class="image"><img alt="images/tutorial_xp_2.jpg" src="images/tutorial_xp_2.jpg" /></div>
+</li>
+<li><p class="first">Enter the appropriate URL and click Next.</p>
+<div class="image"><img alt="images/tutorial_xp_3.jpg" src="images/tutorial_xp_3.jpg" /></div>
+</li>
+<li><p class="first">If authentication is required, Windows will popup a window to request for the details.</p>
+<div class="image"><img alt="images/tutorial_xp_4.jpg" src="images/tutorial_xp_4.jpg" /></div>
+</li>
+<li><p class="first">You can then select a name for the network place, and click Next</p>
+<div class="image"><img alt="images/tutorial_xp_5.jpg" src="images/tutorial_xp_5.jpg" /></div>
+</li>
+<li><p class="first">Click Finish to complete the procedure</p>
+</li>
+</ol>
+<p>There are certain caveats to be observed:</p>
+<ol class="arabic">
+<li><p class="first">When entering the URL, no port must be specified. This means that PyFileServer
+MUST run on port 80. (This is a winXP specific issue, and is tracked 
+<a class="reference" href="http://greenbytes.de/tech/webdav/webdav-redirector-list.html">here</a>)</p>
+</li>
+<li><p class="first">When specifying usernames for authentication, please specify them in the form
+domainuser (windows form) or <a class="reference" href="mailto:user&#64;domain">user&#64;domain</a> (msn form). If a domain is not specified
+then Windows will send the current user's domain as part of the username to the 
+server. Example in the users section:</p>
+<pre class="literal-block">
+adduser('docs', 'docreaders\\John Smith', 'ABCD', '')
+adduser('docs', 'docreaders\\Dan Brown', 'DEFG', '')
+</pre>
+<p>And then the user should enter as the username &quot;docreaders\John Smith&quot;. If the
+user entered only &quot;John Smith&quot; and the current domain name is &quot;HOMEPC&quot;, then 
+Windows will send &quot;HOMEPC\John Smith&quot;, which will not authenticate properly.</p>
+</li>
+<li><p class="first">Windows may remember your username and password based on the host URL. 
+For example, if you have already mapped <a class="reference" href="http://localhost/docs/">http://localhost/docs/</a> as a user,
+it may remember and use the same details to authenticate if you attempt to
+map <a class="reference" href="http://localhost/satelliteimages/">http://localhost/satelliteimages/</a>.</p>
+</li>
+</ol>
+<hr class="docutils" />
+<p>Last Generated : Wed, 31 Aug 2005 07:10:19 GMT</p>
+</div>
+</div>
+</body>
+</html>

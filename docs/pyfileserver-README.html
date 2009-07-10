@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>README</title>
+<meta name="author" content="Ho Chun Wei, fuzzybr80(at)gmail.com" />
+<meta name="copyright" content="Lesser GNU Public License, see LICENSE file attached with package" />
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="readme">
+<h1 class="title">README</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Module:</th><td class="field-body">pyfileserver</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Ho Chun Wei, fuzzybr80(at)gmail.com</td></tr>
+<tr class="field"><th class="docinfo-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>Lesser GNU Public License, see LICENSE file attached with package</td></tr>
+</tbody>
+</table>
+<div class="section" id="what-is-pyfileserver">
+<h1><a name="what-is-pyfileserver">What is PyFileServer?</a></h1>
+<p>PyFileServer is a WSGI web application for sharing filesystem directories 
+over WebDAV.</p>
+<p>For a more detailed discussion of the package, go to the project page
+&lt;<a class="reference" href="http://pyfilesync.berlios.de/pyfileserver.html">http://pyfilesync.berlios.de/pyfileserver.html</a>&gt;</p>
+</div>
+<div class="section" id="installing-pyfileserver">
+<h1><a name="installing-pyfileserver">Installing PyFileServer</a></h1>
+<ol class="arabic">
+<li><p class="first">Get and install the latest release of Python, available from</p>
+<blockquote>
+<p><a class="reference" href="http://www.python.org/">http://www.python.org/</a></p>
+</blockquote>
+<p>Python 2.3 or later is required; Python 2.4.1 or later is
+recommended.</p>
+</li>
+<li><p class="first">Use the latest PyFileServer release. Get the code from:</p>
+<blockquote>
+<p><a class="reference" href="http://pyfilesync.berlios.de/pyfileserver.html">http://pyfilesync.berlios.de/pyfileserver.html</a></p>
+</blockquote>
+</li>
+<li><p class="first">Unpack the archive in a temporary directory (<strong>not</strong> directly in
+Python's <tt class="docutils literal"><span class="pre">site-packages</span></tt>) and install with the standard</p>
+<pre class="literal-block">
+python setup.py install
+</pre>
+<p>PyFileServer requires the PyXML library &lt;<a class="reference" href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a>&gt;
+to run, and the installation process will install it if it is
+not present on the system.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="configuring-pyfileserver">
+<h1><a name="configuring-pyfileserver">Configuring PyFileServer</a></h1>
+<p>PyFileServer reads its configuration from a user-specified configuration file. 
+An example of this file is given in the package as 'PyFileServer-example.conf'.</p>
+<p>You should make a copy of this file to use as your configuration file. The file
+is self-documented and you can modify any settings as required.</p>
+<p>Refer to the TUTORIAL documentation for an example.</p>
+</div>
+<div class="section" id="running-pyfileserver">
+<h1><a name="running-pyfileserver">Running PyFileServer</a></h1>
+<p>PyFileServer comes bundled with a simple wsgi webserver.</p>
+<div class="section" id="running-as-standalone-server">
+<h2><a name="running-as-standalone-server">Running as standalone server</a></h2>
+<p>To run as a standalone server using the bundled ext_wsgiutils_server.py:</p>
+<pre class="literal-block">
+usage: python ext_wsgiutils_server.py [options] [config-file]
+
+config-file:
+  The configuration file for PyFileServer. if omitted, the application
+  will look for a file named 'PyFileServer.conf' in the current directory
+
+options:
+  --port=PORT  Port to serve on (default: 8080)
+  --host=HOST  Host to serve from (default: localhost, which is only
+               accessible from the local computer; use 0.0.0.0 to make your
+               application public)
+  -h, --help   show this help message and exit
+</pre>
+</div>
+<div class="section" id="running-using-other-web-servers">
+<h2><a name="running-using-other-web-servers">Running using other web servers</a></h2>
+<p>To run it with other WSGI web servers, you can:</p>
+<pre class="literal-block">
+from pyfileserver.mainappwrapper import PyFileApp
+publish_app = PyFileApp('PyFileServer.conf')   
+# construct the application with configuration file 
+# if configuration file is omitted, the application
+# will look for a file named 'PyFileServer.conf'
+# in the current directory
+</pre>
+<p>where <tt class="docutils literal"><span class="pre">publish_app</span></tt> is the WSGI application to be run, it will be called with 
+<tt class="docutils literal"><span class="pre">publish_app(environ,</span> <span class="pre">start_response)</span></tt> for each incoming request, as 
+described in WSGI &lt;<a class="reference" href="http://www.python.org/peps/pep-0333.html">http://www.python.org/peps/pep-0333.html</a>&gt;</p>
+<p>Note: if you are using the paster development server (from Paste 
+&lt;<a class="reference" href="http://pythonpaste.org">http://pythonpaste.org</a>&gt;), you can copy <tt class="docutils literal"><span class="pre">ext_wsgi_server.py</span></tt> to 
+<tt class="docutils literal"><span class="pre">&lt;Paste-installation&gt;/paste/servers</span></tt> and use this server to run the 
+application by specifying <tt class="docutils literal"><span class="pre">server='ext_wsgiutils'</span></tt> in the <tt class="docutils literal"><span class="pre">server.conf</span></tt> 
+or appropriate paste configuration.</p>
+</div>
+</div>
+<div class="section" id="help-and-documentation">
+<h1><a name="help-and-documentation">Help and Documentation</a></h1>
+<p>For further help or documentation, please refer to the project web page or
+send a query to the mailing list.</p>
+<p>Project Page: PyFileServer &lt;<a class="reference" href="http://pyfilesync.berlios.de/pyfileserver.html">http://pyfilesync.berlios.de/pyfileserver.html</a>&gt;</p>
+<dl class="docutils">
+<dt>Mailing List: <a class="reference" href="mailto:pyfilesync-users&#64;lists.berlios.de">pyfilesync-users&#64;lists.berlios.de</a> (subscribe </dt>
+<dd>&lt;<a class="reference" href="http://lists.berlios.de/mailman/listinfo/pyfilesync-users">http://lists.berlios.de/mailman/listinfo/pyfilesync-users</a>&gt;)</dd>
+</dl>
+</div>
+<hr class="docutils" />
+<div class="section" id="thanks">
+<h1><a name="thanks">Thanks</a></h1>
+<ul class="simple">
+<li>Ian Bicking &lt;ianb(at)colorstudy.com&gt;: For mentoring this project</li>
+<li>Julian Reschke &lt;julian.reschke(at)gmx.de&gt;: For your valuable help in 
+clarifying the webdav specification and assistance on the w3c-dist-auth
+and litmus mailing lists</li>
+<li>BerliOS Developers &lt;<a class="reference" href="http://developer.berlios.de">http://developer.berlios.de</a>&gt;: For providing free hosting
+and project management facilities for open source projects</li>
+<li>Google's Code Program &lt;<a class="reference" href="http://code.google.com">http://code.google.com</a>&gt;: For running the Summer of 
+Code 2005 program to encourage students around the world to contribute
+to open source software.</li>
+</ul>
+<hr class="docutils" />
+<p>Last Generated : Wed, 31 Aug 2005 07:10:19 GMT</p>
+</div>
+</div>
+</body>
+</html>

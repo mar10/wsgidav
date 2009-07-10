@@ -1,0 +1,45 @@
+open http://localhost/test
+tester
+tester
+
+ls
+rmcol cadaverTEST
+mkcol cadaverTEST
+cd cadaverTEST
+
+mput *.txt 
+mkcol container
+move *.txt container
+
+mkcol MOVETEST
+mkcol COPYTEST
+
+lock MOVETEST
+discover MOVETEST
+
+lock COPYTEST
+discover COPYTEST
+
+move container MOVETEST
+ls MOVETEST
+discover MOVETEST/container/LICENSE.txt
+
+copy MOVETEST/container COPYTEST
+ls COPYTEST
+discover COPYTEST/container/LICENSE.txt
+
+rmcol COPYTEST
+ls
+
+unlock MOVETEST
+discover MOVETEST
+discover MOVETEST/container/LICENSE.txt
+
+propnames MOVETEST/container/LICENSE.txt
+propget MOVETEST/container/LICENSE.txt
+propset MOVETEST/container/LICENSE.txt deadproperty testvalue
+propget MOVETEST/container/LICENSE.txt
+
+rmcol MOVETEST
+
+quit

@@ -1,0 +1,919 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.9: http://docutils.sourceforge.net/" />
+<title>DEVELOPERS GUIDE</title>
+<meta name="author" content="Ho Chun Wei, fuzzybr80(at)gmail.com" />
+<meta name="copyright" content="Lesser GNU Public License, see LICENSE file attached with package" />
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="developers-guide">
+<h1 class="title">DEVELOPERS GUIDE</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Module:</th><td class="field-body">pyfileserver</td>
+</tr>
+<tr><th class="docinfo-name">Author:</th>
+<td>Ho Chun Wei, fuzzybr80(at)gmail.com</td></tr>
+<tr class="field"><th class="docinfo-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>Lesser GNU Public License, see LICENSE file attached with package</td></tr>
+</tbody>
+</table>
+<p>This section attempts to give a brief introduction to the PyFileServer application package.</p>
+<div class="section" id="wsgi-application">
+<h1><a name="wsgi-application">WSGI Application</a></h1>
+<p>PyFileServer is a WSGI application.</p>
+<p>WSGI &lt;<a class="reference" href="http://www.python.org/peps/pep-0333.html">http://www.python.org/peps/pep-0333.html</a>&gt; stands for Web Server Gateway
+Interface, a proposed standard interface between web servers and Python web 
+applications or frameworks, to promote web application portability across a 
+variety of web servers. If you are unfamiliar with WSGI, do take a moment to 
+read the PEP. Most WSGI application consists middleware which serve as pre-filters and 
+post-processors, and the actual application.</p>
+<p>PyFileServer:</p>
+<pre class="literal-block">
+Request -&gt; PyFileApp (container)
+                 |
+                 +-&gt; ErrorPrinter (middleware)
+                          |
+                    RequestResolver (middleware)
+                          |
+                  HTTPAuthenticator (middleware)
+                          |
+                    RequestServer (application)
+</pre>
+<p>In addition, PyFileServer comes with an existing WSGI webserver so that the
+application can be run as a standalone program.</p>
+<p>The PyFileServer application consists of the following modules:</p>
+<pre class="literal-block">
+Bundled Web Server:
+      ext_wsgiutils_server 
+
+Application objects: 
+      pyfileserver.mainappwrapper
+         + class PyFileApp
+   
+      pyfileserver.processrequesterrorhandler    
+         + class ErrorPrinter
+         + Exception HTTPRequestException
+   
+      pyfileserver.requestresolver
+         + class RequestResolver
+      
+      pyfileserver.httpauthentication
+         + class HTTPAuthenticator
+         + class SimpleDomainController    
+      
+      pyfileserver.pyfiledomaincontroller
+         + class PyFileServerDomainController    
+      
+      pyfileserver.extrequestserver    
+         + class RequestServer
+   
+      pyfileserver.propertylibrary    
+         + class LockManager
+         + class PropertyManager
+   
+      pyfileserver.etagprovider    
+         + func object getETag
+
+Miscellaneous libraries:
+      pyfileserver.websupportfuncs    
+      pyfileserver.loadconfig_primitive    
+      pyfileserver.httpdatehelper    
+</pre>
+<p>Each of these modules are documented below.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="running-pyfileserver">
+<h1><a name="running-pyfileserver">Running PyFileServer</a></h1>
+<p>PyFileServer comes bundled with a simple wsgi webserver.</p>
+<div class="section" id="running-as-standalone-server">
+<h2><a name="running-as-standalone-server">Running as standalone server</a></h2>
+<p>To run as a standalone server using the bundled ext_wsgiutils_server.py:</p>
+<pre class="literal-block">
+usage: python ext_wsgiutils_server.py [options] [config-file]
+
+config-file:
+  The configuration file for PyFileServer. if omitted, the application
+  will look for a file named 'PyFileServer.conf' in the current directory
+
+options:
+  --port=PORT  Port to serve on (default: 8080)
+  --host=HOST  Host to serve from (default: localhost, which is only
+               accessible from the local computer; use 0.0.0.0 to make your
+               application public)
+  -h, --help   show this help message and exit
+</pre>
+</div>
+<div class="section" id="running-using-other-web-servers">
+<h2><a name="running-using-other-web-servers">Running using other web servers</a></h2>
+<p>To run it with other WSGI web servers, you can:</p>
+<pre class="literal-block">
+from pyfileserver.mainappwrapper import PyFileApp
+publish_app = PyFileApp('PyFileServer.conf')   
+# construct the application with configuration file 
+# if configuration file is omitted, the application
+# will look for a file named 'PyFileServer.conf'
+# in the current directory
+</pre>
+<p>where <tt class="docutils literal"><span class="pre">publish_app</span></tt> is the WSGI application to be run, it will be called with 
+<tt class="docutils literal"><span class="pre">publish_app(environ,</span> <span class="pre">start_response)</span></tt> for each incoming request, as described in 
+WSGI &lt;<a class="reference" href="http://www.python.org/peps/pep-0333.html">http://www.python.org/peps/pep-0333.html</a>&gt;</p>
+<p>Note: if you are using the paster development server (from Paste &lt;<a class="reference" href="http://pythonpaste.org">http://pythonpaste.org</a>&gt;), you can 
+copy <tt class="docutils literal"><span class="pre">ext_wsgi_server.py</span></tt> to <tt class="docutils literal"><span class="pre">&lt;Paste-installation&gt;/paste/servers</span></tt> and use this server to run the 
+application by specifying <tt class="docutils literal"><span class="pre">server='ext_wsgiutils'</span></tt> in the <tt class="docutils literal"><span class="pre">server.conf</span></tt> or appropriate paste 
+configuration.</p>
+</div>
+<div class="section" id="about-ext-wsgiutils-server">
+<h2><a name="about-ext-wsgiutils-server">About ext_wsgiutils_server</a></h2>
+<p>ext_wsgiutils_server.py is an extension of the wsgiutils server in Paste. 
+It supports passing all of the HTTP and WebDAV (rfc 2518) methods.</p>
+<p>It includes code from the following sources:
+<tt class="docutils literal"><span class="pre">wsgiServer.py</span></tt> from wsgiKit &lt;<a class="reference" href="http://www.owlfish.com/software/wsgiutils/">http://www.owlfish.com/software/wsgiutils/</a>&gt; under PSF license, 
+<tt class="docutils literal"><span class="pre">wsgiutils_server.py</span></tt> from Paste &lt;<a class="reference" href="http://pythonpaste.org">http://pythonpaste.org</a>&gt; under PSF license, 
+flexible handler method &lt;<a class="reference" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618">http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618</a>&gt; under public domain.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="mainappwrapper">
+<h1><a name="mainappwrapper">mainappwrapper</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.mainappwrapper</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>See Running PyFileServer in ext_wsgiutils_server.py</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="processrequesterrorhandler">
+<h1><a name="processrequesterrorhandler">processrequesterrorhandler</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.processrequesterrorhandler</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>WSGI Middleware to catch application thrown HTTPRequestExceptions and return 
+proper responses</p>
+<p>Usage:</p>
+<pre class="literal-block">
+from pyfileserver.processrequesterrorhandler import ErrorPrinter
+WSGIApp = ErrorPrinter(ProtectedWSGIApp, server_descriptor, catchall)
+
+where:
+   ProtectedWSGIApp is the application throwing HTTPRequestExceptions, 
+
+   server_descriptor is an optional html string to be included as the 
+   footer of any html response sent  
+
+   catchall is an optional boolean. if True, ErrorPrinter will catch all
+   other exceptions and print a trace to sys.stderr stream before sending
+   a 500 Internal Server Error response (default = False)
+
+
+Within ProtectedWSGIApp:
+
+   from pyfileserver import processrequesterrorhandler
+   from pyfileserver.processrequesterrorhandler import HTTPRequestException
+   ...
+   ...
+   raise HTTPRequestException(404)
+      or
+   raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)
+   #escape the existing application and return the 404 Bad Request immediately
+</pre>
+<p>Occasionally it may be useful for an internal ProtectedWSGIApp method to catch the
+HTTPRequestException (for compiling into a multi-status, for example). The response 
+code of the error can be returned as:</p>
+<pre class="literal-block">
+from pyfileserver import processrequesterrorhandler
+from pyfileserver.processrequesterrorhandler import HTTPRequestException
+
+try:
+   ...
+   raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)
+   ...
+except HTTPRequestException, e:
+   numberCode = processrequesterrorhandler.getErrorCodeFromException(e)
+   textCode = processrequesterrorhandler.interpretErrorException(e)
+</pre>
+<div class="section" id="interface">
+<h2><a name="interface">Interface</a></h2>
+<p>Classes:</p>
+<ul class="simple">
+<li>'ErrorPrinter': WSGI Middleware to catch HTTPRequestExceptions and return 
+proper responses</li>
+</ul>
+<p>Exception(s):</p>
+<ul class="simple">
+<li>'HTTPRequestException': Raised with error code integer (1xx-5xx) within protected 
+application to be caught by ErrorPrinter</li>
+</ul>
+<p>Function(s):</p>
+<ul class="simple">
+<li>'interpretErrorException(e)': Returns response code string for HTTPRequestException
+e.</li>
+<li>'getErrorCodeFromException(e)': Returns the response code number (1xx-5xx) for 
+HTTPRequestException e</li>
+</ul>
+<p>Constants:</p>
+<pre class="literal-block">
+HTTP_CONTINUE = 100
+HTTP_SWITCHING_PROTOCOLS = 101
+HTTP_PROCESSING = 102
+HTTP_OK = 200
+HTTP_CREATED = 201
+HTTP_ACCEPTED = 202
+HTTP_NON_AUTHORITATIVE_INFO = 203
+HTTP_NO_CONTENT = 204
+HTTP_RESET_CONTENT = 205
+HTTP_PARTIAL_CONTENT = 206
+HTTP_MULTI_STATUS = 207
+HTTP_IM_USED = 226
+HTTP_MULTIPLE_CHOICES = 300
+HTTP_MOVED = 301
+HTTP_FOUND = 302
+HTTP_SEE_OTHER = 303
+HTTP_NOT_MODIFIED = 304
+HTTP_USE_PROXY = 305
+HTTP_TEMP_REDIRECT = 307
+HTTP_BAD_REQUEST = 400
+HTTP_PAYMENT_REQUIRED = 402
+HTTP_FORBIDDEN = 403
+HTTP_NOT_FOUND = 404
+HTTP_METHOD_NOT_ALLOWED = 405
+HTTP_NOT_ACCEPTABLE = 406
+HTTP_PROXY_AUTH_REQUIRED = 407
+HTTP_REQUEST_TIMEOUT = 408
+HTTP_CONFLICT = 409
+HTTP_GONE = 410
+HTTP_LENGTH_REQUIRED = 411
+HTTP_PRECONDITION_FAILED = 412
+HTTP_REQUEST_ENTITY_TOO_LARGE = 413
+HTTP_REQUEST_URI_TOO_LONG = 414
+HTTP_MEDIATYPE_NOT_SUPPORTED = 415
+HTTP_RANGE_NOT_SATISFIABLE = 416
+HTTP_EXPECTATION_FAILED = 417
+HTTP_UNPROCESSABLE_ENTITY = 422
+HTTP_LOCKED = 423
+HTTP_FAILED_DEPENDENCY = 424
+HTTP_UPGRADE_REQUIRED = 426
+HTTP_INTERNAL_ERROR = 500
+HTTP_NOT_IMPLEMENTED = 501
+HTTP_BAD_GATEWAY = 502
+HTTP_SERVICE_UNAVAILABLE = 503
+HTTP_GATEWAY_TIMEOUT = 504
+HTTP_VERSION_NOT_SUPPORTED = 505
+HTTP_INSUFFICIENT_STORAGE = 507
+HTTP_NOT_EXTENDED = 510
+</pre>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="requestresolver">
+<h1><a name="requestresolver">requestresolver</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.requestresolver</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="pyfileserver-file-sharing">
+<h2><a name="pyfileserver-file-sharing">PyFileServer file sharing</a></h2>
+<p>PyFileServer allows the user to specify in PyFileServer.conf a number of 
+realms, and a number of users for each realm.</p>
+<dl class="docutils">
+<dt>Realms</dt>
+<dd><p class="first">Each realm corresponds to a filestructure on disk to be stored, 
+for example:</p>
+<pre class="literal-block">
+addrealm('pubshare','/home/public/share') 
+</pre>
+<p>would allow the users to access using WebDAV the directory/file 
+structure at /home/public/share from the url 
+<a class="reference" href="http:/">http:/</a>/&lt;servername:port&gt;/&lt;approot&gt;/pubshare</p>
+<p>The realm name is set as '/pubshare'</p>
+<p class="last">e.g. /home/public/share/PyFileServer/LICENSE becomes accessible as
+<a class="reference" href="http:/">http:/</a>/&lt;servername:port&gt;/&lt;approot&gt;/pubshare/PyFileServer/LICENSE</p>
+</dd>
+<dt>Users</dt>
+<dd><p class="first">A number of username/password pairs can be set for each realm:</p>
+<pre class="literal-block">
+adduser('pubshare', 'username', 'password', 'description/unused')
+</pre>
+<p class="last">would add a username/password pair to realm /pubshare.</p>
+</dd>
+</dl>
+<p>Note: if developers wish to maintain a separate users database, you can 
+write your own domain controller for the HTTPAuthenticator. See 
+httpauthentication.py and pyfiledomaincontroller.py for more details.</p>
+</div>
+<div class="section" id="request-resolver">
+<h2><a name="request-resolver">Request Resolver</a></h2>
+<p>This module is specific to the PyFileServer application</p>
+<p>WSGI Middleware for Resolving Realm and Paths for the PyFileServer 
+application.</p>
+<p>Usage:</p>
+<pre class="literal-block">
+from pyfileserver.requestresolver import RequestResolver
+WSGIApp = RequestResolver(InternalWSGIApp)
+</pre>
+<p>The RequestResolver resolves the requested URL to the following values 
+placed in the environ dictionary. First it resolves the corresponding
+realm:</p>
+<pre class="literal-block">
+url: http://&lt;servername:port&gt;/&lt;approot&gt;/pubshare/PyFileServer/LICENSE
+environ['pyfileserver.mappedrealm'] = /pubshare
+</pre>
+<p>Based on the configuration given, the resource abstraction layer for the
+realm is determined. if no configured abstraction layer is found, the
+default abstraction layer fileabstractionlayer.FilesystemAbstractionLayer()
+is used:</p>
+<pre class="literal-block">
+environ['pyfileserver.resourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
+</pre>
+<p>The path identifiers for the requested url are then resolved using the
+resource abstraction layer:</p>
+<pre class="literal-block">
+environ['pyfileserver.mappedpath'] = /home/public/share/PyFileServer/LICENSE 
+environ['pyfileserver.mappedURI'] = /pubshare/PyFileServer/LICENSE
+</pre>
+<p>in this case, FilesystemAbstractionLayer resolves any relative paths 
+to its canonical absolute path</p>
+<p>The RequestResolver also resolves any value in the Destination request 
+header, if present, to:</p>
+<pre class="literal-block">
+Destination: http://&lt;servername:port&gt;/&lt;approot&gt;/pubshare/PyFileServer/LICENSE-dest
+environ['pyfileserver.destrealm'] = /pubshare
+environ['pyfileserver.destpath'] = /home/public/share/PyFileServer/LICENSE-dest 
+environ['pyfileserver.destURI'] = /pubshare/PyFileServer/LICENSE
+environ['pyfileserver.destresourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
+</pre>
+</div>
+<div class="section" id="id1">
+<h2><a name="id1">Interface</a></h2>
+<p>classes:</p>
+<pre class="literal-block">
+RequestResolver: Request resolver for PyFileServer
+</pre>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="httpauthentication">
+<h1><a name="httpauthentication">httpauthentication</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.httpauthentication</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>WSGI middleware for HTTP basic and digest authentication.</p>
+<dl class="docutils">
+<dt>Usage::</dt>
+<dd><p class="first">from httpauthentication import HTTPAuthenticator</p>
+<dl class="last docutils">
+<dt>WSGIApp = HTTPAuthenticator(ProtectedWSGIApp, domain_controller, acceptbasic,</dt>
+<dd>acceptdigest, defaultdigest)</dd>
+<dt>where:</dt>
+<dd><p class="first">ProtectedWSGIApp is the application requiring authenticated access</p>
+<p>domain_controller is a domain controller object meeting specific 
+requirements (below)</p>
+<p>acceptbasic is a boolean indicating whether to accept requests using
+the basic authentication scheme (default = True)</p>
+<p>acceptdigest is a boolean indicating whether to accept requests using
+the digest authentication scheme (default = True)</p>
+<p class="last">defaultdigest is a boolean. if True, an unauthenticated request will 
+be sent a digest authentication required response, else the unathenticated 
+request will be sent a basic authentication required response 
+(default = True)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>The HTTPAuthenticator will put the following authenticated information in the 
+environ dictionary:</p>
+<pre class="literal-block">
+environ['httpauthentication.realm'] = realm name
+environ['httpauthentication.username'] = username
+</pre>
+<div class="section" id="domain-controllers">
+<h2><a name="domain-controllers">Domain Controllers</a></h2>
+<p>The HTTP basic and digest authentication schemes are based on the following 
+concept:</p>
+<p>Each requested relative URI can be resolved to a realm for authentication, 
+for example:
+/fac_eng/courses/ee5903/timetable.pdf -&gt; might resolve to realm 'Engineering General'
+/fac_eng/examsolns/ee5903/thisyearssolns.pdf -&gt; might resolve to realm 'Engineering Lecturers'
+/med_sci/courses/m500/surgery.htm -&gt; might resolve to realm 'Medical Sciences General'
+and each realm would have a set of username and password pairs that would 
+allow access to the resource.</p>
+<p>A domain controller provides this information to the HTTPAuthenticator. 
+This allows developers to write their own domain controllers, that might,
+for example, interface with their own user database.</p>
+<p>for simple applications, a SimpleDomainController is provided that will take
+in a single realm name (for display) and a single dictionary of username (key)
+and password (value) string pairs</p>
+<dl class="docutils">
+<dt>Usage::</dt>
+<dd>from httpauthentication import SimpleDomainController
+users = dict(({'John Smith': 'YouNeverGuessMe', 'Dan Brown': 'DontGuessMeEither'})
+realm = 'Sample Realm'
+domain_controller = SimpleDomainController(users, realm)</dd>
+</dl>
+<p>Domain Controllers must provide the methods as described in 
+<tt class="docutils literal"><span class="pre">pyfileserver.interfaces.domaincontrollerinterface</span></tt> (<a class="reference" href="interfaces/domaincontrollerinterface.py">interface</a>)</p>
+<p>The environ variable here is the WSGI 'environ' dictionary. It is passed to 
+all methods of the domain controller as a means for developers to pass information
+from previous middleware or server config (if required).</p>
+</div>
+<div class="section" id="id3">
+<h2><a name="id3">Interface</a></h2>
+<p>Classes</p>
+<ul class="simple">
+<li>HTTPAuthenticator : WSGI Middleware for basic and digest authenticator.</li>
+<li>SimpleDomainController : Simple domain controller for HTTPAuthenticator.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="pyfiledomaincontroller">
+<h1><a name="pyfiledomaincontroller">pyfiledomaincontroller</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.pyfiledomaincontroller</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>This module is specific to the PyFileServer application.</p>
+<p>The PyFileServerDomainController fulfills the requirements of a 
+DomainController as used for authentication with 
+httpauthentication.HTTPAuthenticator for the PyFileServer application</p>
+<p>Domain Controllers must provide the methods as described in 
+<a class="reference" href="interfaces/domaincontrollerinterface.py">domaincontrollerinterface</a></p>
+<p>See requestresolver.py for more information about user mappings in 
+PyFileServer</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="extrequestserver">
+<h1><a name="extrequestserver">extrequestserver</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.extrequestserver</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>This is the main implementation module for the various webDAV methods. Each 
+method is implemented as a do&lt;METHOD&gt; generator function that is a wsgi 
+subapplication:</p>
+<pre class="literal-block">
+class RequestServer(object)
+
+   constructor :
+      __init__(self, propertymanager, 
+                     lockmanager)
+
+   main application:      
+      __call__(self, environ, start_response)
+
+   application methods:
+      doPUT(self, environ, start_response)
+      doOPTIONS(self, environ, start_response)
+      doGETHEADDirectory(self, environ, start_response)
+      doGETHEADFile(self, environ, start_response)
+      doMKCOL(self, environ, start_response)
+      doDELETE(self, environ, start_response)
+      doPROPPATCH(self, environ, start_response)
+      doPROPFIND(self, environ, start_response)
+      doCOPY(self, environ, start_response)
+      doMOVE(self, environ, start_response)
+      doLOCK(self, environ, start_response)
+      doUNLOCK(self, environ, start_response)
+
+   misc methods:
+      evaluateSingleIfConditionalDoException(self, mappedpath, displaypath, 
+                                environ, start_response, checkLock = False)
+      evaluateSingleHTTPConditionalsDoException(self, mappedpath, 
+                                       displaypath, environ, start_response)
+</pre>
+<p>This module is specific to the PyFileServer application.</p>
+<div class="section" id="supporting-objects">
+<h2><a name="supporting-objects">Supporting Objects</a></h2>
+<p>The RequestServer takes two supporting objects:</p>
+<dl class="docutils">
+<dt>propertymanager</dt>
+<dd><p class="first">An object that provides storage for dead properties assigned for webDAV resources.</p>
+<p>PropertyManagers must provide the methods as described in 
+<tt class="docutils literal"><span class="pre">pyfileserver.interfaces.propertymanagerinterface</span></tt></p>
+<p class="last">See propertylibrary.PropertyManager for a sample implementation
+using shelve.</p>
+</dd>
+<dt>lockmanager</dt>
+<dd><p class="first">An object that provides storage for locks made on webDAV resources.</p>
+<p>LockManagers must provide the methods as described in 
+<tt class="docutils literal"><span class="pre">pyfileserver.interfaces.lockmanagerinterface</span></tt></p>
+<p class="last">See locklibrary.LockManager for a sample implementation
+using shelve.</p>
+</dd>
+</dl>
+<p>The RequestServer also uses a resource abstraction layer placed in 
+<tt class="docutils literal"><span class="pre">environ['pyfileserver.resourceAL']</span></tt> by requestresolver.py</p>
+<dl class="docutils">
+<dt>abstractionlayer</dt>
+<dd><p class="first">An object that provides a basic interface to resources.</p>
+<p>This layer allows developers to write layers allowing the application to share
+resources other than filesystems.</p>
+<p>Abstraction Layers must provide the methods as described in 
+<tt class="docutils literal"><span class="pre">pyfileserver.interfaces.abstractionlayerinterface</span></tt></p>
+<p class="last">See fileabstractionlayer.FilesystemAbstractionLayer and
+fileabstractionlayer.ReadOnlyFilesystemAbstractionLayer for sample
+implementations based on filesystems.</p>
+</dd>
+</dl>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="websupportfuncs">
+<h1><a name="websupportfuncs">websupportfuncs</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.websupportfuncs</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>This module consists of miscellaneous support functions for PyFileServer:</p>
+<pre class="literal-block">
+resource list functions
+   recursiveGetPath(resourceAL, dirtorecurs, displaypath, recursfurther, liststore, preadd=True)
+   getDepthActionList(resourceAL, mappedpath, displaypath, depthlevel, preadd=True)
+   getCopyDepthActionList(depthactionlist, origpath, origdisplaypath, destpath, destdisplaypath)
+
+URL functions
+   getLevelUpURL(displayPath)
+   cleanUpURL(displayURL)
+   cleanUpURLWithoutQuote(displayURL)
+   constructFullURL(displaypath, environ)
+   getRelativeURL(fullurl, environ)
+
+interpret content range header
+   obtainContentRanges(rangetext, filesize)
+
+evaluate HTTP If-Match, if-None-Match, If-Modified-Since, If-Unmodified-Since headers   
+   evaluateHTTPConditionals(lastmodifiedsecs, entitytag, environ, isnewfile=False)
+
+evaluate webDAV if header   
+   getIfHeaderDict(iftext)
+   testIfHeaderDict(dictIf, url, locktokenlist, entitytag, returnlocklist, environ)
+   testForLockTokenInIfHeaderDict(dictIf, locktoken, fullurl, headurl)
+</pre>
+<p><em>author note</em>: More documentation here required</p>
+<p>This module is specific to the PyFileServer application.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="propertylibrary">
+<h1><a name="propertylibrary">propertylibrary</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.propertylibrary</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>This module consists of a number of miscellaneous functions for the dead 
+properties features of webDAV.</p>
+<p>It also includes an implementation of a PropertyManager for
+storage of dead properties. This implementation use
+shelve for file storage.  See extrequestserver.py for details.</p>
+<p>PropertyManagers must provide the methods as described in 
+<a class="reference" href="interfaces/propertymanagerinterface.py">propertymanagerinterface</a></p>
+<div class="section" id="properties-and-pyfileserver">
+<h2><a name="properties-and-pyfileserver">Properties and PyFileServer</a></h2>
+<p>Properties of a resource refers to the attributes of the resource. A property
+is referenced by the property name and the property namespace. We usually
+refer to the property as <tt class="docutils literal"><span class="pre">{property</span> <span class="pre">namespace}property</span> <span class="pre">name</span></tt></p>
+<p>Properties of resources as defined in webdav falls under three categories:</p>
+<dl class="docutils">
+<dt>Live properties</dt>
+<dd><p class="first">These properties are attributes actively maintained by the server, such as 
+file size, or read permissions. if you are sharing a database record as a 
+resource, for example, the attributes of the record could become the live 
+properties of the resource.</p>
+<p>The webdav specification defines the following properties that could be
+live properties (refer to webdav specification for details):
+{DAV:}creationdate
+{DAV:}displayname
+{DAV:}getcontentlanguage
+{DAV:}getcontentlength
+{DAV:}getcontenttype
+{DAV:}getetag
+{DAV:}getlastmodified
+{DAV:}resourcetype
+{DAV:}source</p>
+<p class="last">These properties are implemented by the abstraction layer.</p>
+</dd>
+<dt>Locking properties </dt>
+<dd><p class="first">They refer to the two webdav-defined properties 
+{DAV:}supportedlock and {DAV:}lockdiscovery</p>
+<p class="last">These properties are implemented by the locking library in
+<tt class="docutils literal"><span class="pre">pyfileserver.locklibrary</span></tt> and dead properties library in
+<tt class="docutils literal"><span class="pre">pyfileserver.propertylibrary</span></tt></p>
+</dd>
+<dt>Dead properties</dt>
+<dd><p class="first">They refer to arbitrarily assigned properties not actively maintained.</p>
+<p class="last">These properties are implemented by the dead properties library in
+<tt class="docutils literal"><span class="pre">pyfileserver.propertylibrary</span></tt></p>
+</dd>
+</dl>
+</div>
+<div class="section" id="id4">
+<h2><a name="id4">Interface</a></h2>
+<p>Classes:</p>
+<pre class="literal-block">
+class PropertyManager(object)
+</pre>
+<p>Misc and Interface methods:</p>
+<pre class="literal-block">
+removeProperties(pm, displaypath)
+copyProperties(pm, displaypath, destdisplaypath)
+writeProperty(pm, resourceAL, mappedpath, displaypath, propns, propname, propupdatemethod, propvalue, reallydoit = True)
+getProperty(pm, lm, resourceAL, mappedpath, displaypath, propns, propname)
+getApplicablePropertyNames(pm, lm, resourceAL, mappedpath, displaypath)
+</pre>
+<p><em>author note</em>: More documentation here required</p>
+<p>This module is specific to the PyFileServer application.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="fileabstractionlayer">
+<h1><a name="fileabstractionlayer">fileabstractionlayer</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.fileabstractionlayer</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>This module is specific to the PyFileServer application. It provides two 
+classes <tt class="docutils literal"><span class="pre">FilesystemAbstractionLayer</span></tt> and <tt class="docutils literal"><span class="pre">ReadOnlyFilesystemAbstractionLayer</span></tt>.</p>
+<p>Abstraction Layers must provide the methods as described in 
+<a class="reference" href="interfaces/abstractionlayerinterface.py">abstractionlayerinterface</a></p>
+<p>See extrequestserver.py for more information about resource abstraction layers in 
+PyFileServer</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="loadconfig-primitive">
+<h1><a name="loadconfig-primitive">loadconfig_primitive</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.loadconfig_primitive</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>Loads a python module file returning its module namespace as a dictionary, 
+except all variables starting with '__' (excluding system and built-in objects).
+A compiled module with the filename suffixed with a 'c' may be created as a 
+byproduct.</p>
+<p>If Paste &lt;<a class="reference" href="http://pythonpaste.org">http://pythonpaste.org</a>&gt; is installed, then paste.pyconfig should be 
+used as a safer and better variant.</p>
+<p>functions:</p>
+<pre class="literal-block">
+load(filename)
+</pre>
+</div>
+<hr class="docutils" />
+<div class="section" id="httpdatehelper">
+<h1><a name="httpdatehelper">httpdatehelper</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">pyfileserver.httpdatehelper</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Ho Chun Wei, fuzzybr80(at)gmail.com</td>
+</tr>
+<tr class="field"><th class="field-name">Project:</th><td class="field-body">PyFileServer, <a class="reference" href="http://pyfilesync.berlios.de/">http://pyfilesync.berlios.de/</a></td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Lesser GNU Public License, see LICENSE file attached with package</td>
+</tr>
+</tbody>
+</table>
+<p>HTTP dates helper - an assorted library of helpful date functions:</p>
+<ul class="simple">
+<li>getstrftime(secs) - returns the rfc 1123 date/time format of secs, where secs is the number
+of seconds since the epoch. if secs is not given, the current system time is used</li>
+<li>getsecstime(timetypestring) - returns as the number of seconds since the epoch, the date/time
+described in timetypestring. Returns None for invalid input</li>
+<li>getgmtime(timetypestring) -  returns as a standard time tuple (see time and calendar), the date/time
+described in timetypestring. Returns None for invalid input</li>
+</ul>
+<p>The following time type strings are supported by getsecstime() and getgmtime():</p>
+<pre class="literal-block">
+Sun, 06 Nov 1994 08:49:37 GMT  ; RFC 822, updated by RFC 1123
+Sunday, 06-Nov-94 08:49:37 GMT ; RFC 850, obsoleted by RFC 1036
+Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format  
+</pre>
+</div>
+<hr class="docutils" />
+<div class="section" id="todo">
+<h1><a name="todo">TODO</a></h1>
+<p>This section documents in varying details some of the issues waiting for
+resolution or to be done.</p>
+<div class="section" id="better-support-for-weak-entity-tags">
+<h2><a name="better-support-for-weak-entity-tags">Better support for Weak Entity Tags</a></h2>
+<p>Move entity tag matching from a simple string match to perhaps
+matching from the abstraction layer itself. This allows the 
+abstraction layer to implement weak/semantic entity tags</p>
+</div>
+<div class="section" id="change-of-architecture">
+<h2><a name="change-of-architecture">Change of architecture</a></h2>
+<p>The application was developed initially as a file-sharing 
+application and then converted to a more generic resource-sharing
+application. Hence most of the functionality is based on what
+files would implement.</p>
+<p>Need to shift this so that control on what functionality is active
+is based on the resource layer. Example, if entity tags are not
+implemented, then entity tag functionality (headers, matching)
+should be disabled. If {DAV:}getcontentlanguage is implemented in
+the resource layer, then the server should start returning
+language headers.... etc.</p>
+</div>
+<div class="section" id="gzip-content-encoding">
+<h2><a name="gzip-content-encoding">Gzip Content Encoding</a></h2>
+<p>Supporting Gzip Content Encoding normally can be done by middleware - see 
+GzipMiddleWare &lt;<a class="reference" href="http://www.saddi.com/software/py-lib/">http://www.saddi.com/software/py-lib/</a>&gt;</p>
+<p>One buggy issue is supporting Content Encoding AND Content Ranges, which
+does not work too well since Content Ranges is applied after Content Encoding,
+i.e. you send ranges of the gzipped file and need to know the total length of
+the gzip file in advance to decode and send the Range headers. Trying to do it
+in a way that does not buffer unnecessarily (memory or disk).</p>
+</div>
+<div class="section" id="encryption-support">
+<h2><a name="encryption-support">Encryption Support</a></h2>
+<p>This is really in the domain of the webserver itself to support SSL.</p>
+</div>
+<div class="section" id="concurrent-conflicting-requests-robustness">
+<h2><a name="concurrent-conflicting-requests-robustness">Concurrent Conflicting Requests Robustness</a></h2>
+<p>This section describes the problem of concurrent conflicting requests,
+as a result of conflicts at the filesystem level:</p>
+<dl class="docutils">
+<dt><strong>Read and Write</strong></dt>
+<dd><p class="first">Constant GET requests for a file causes it to be file-open locked 
+for reading all the time. No write operations like PUT, DELETE, 
+MOVE can be done even if a write LOCK is obtained since the file 
+remains locked by filesystem level.</p>
+<p class="last">Note: some file systems do support deleting a read-open file. 
+The file is deleted but remains available to the read handle until 
+it is closed.</p>
+</dd>
+<dt><strong>Concurrent Write</strong></dt>
+<dd>Two concurrent write requests, like MOVE and DELETE, for the same 
+resource arrives at the server and is processed in separate threads 
+concurrently. Exact behaviour will depend on the actual resulting 
+interleaved execution but it is likely that some MOVE files will fail
+as they have been DELETEd and vice versa.</dd>
+</dl>
+<p>Although the operations themself may fail (interpreting partial success on either 
+side to be failure) a proper response is returned. This does not cause the webserver or
+filesystem to crash or enter an inconsistent/unstable state.</p>
+<p><strong>Most filesharing operations should not have any need to resolve these issues.</strong></p>
+<p>Three solutions have been identified:</p>
+<dl class="docutils">
+<dt><strong>Optimistic Locking</strong></dt>
+<dd><p class="first">This assumes that most operations go forward successfully. If it does 
+not due to the filesystem (as evidenced by a 500 Internal Server Error 
+flagged for an operation), then the entire request should be rollbacked 
+and a HTTP 409 Conflict error thrown:</p>
+<pre class="literal-block">
+successful = []
+try:
+    for item in actions:
+        successful.append(do_action(item))
+except:
+    for result in successful:
+        result.rollback()
+    raise
+else:
+    for result in successful:
+        result.commit()
+</pre>
+<p class="last">The server has to ensure that rollback() and commit() operations do not 
+fail. Also partial MOVE/COPY operations may be difficult to rollback.</p>
+</dd>
+<dt><strong>File Locking</strong></dt>
+<dd><p class="first">A WRITE request could block until it has obtained all the filesystem level
+locks on all the files it should process. It needs to address the following:</p>
+<ul class="last simple">
+<li>Should the request block indefinitely waiting for the locks or should it 
+adopt optimistic locking (409 Conflict if it fails to get all the locks 
+it wants)</li>
+<li>Race conditions or deadlocks between concurrent requests waiting for the 
+same locks. Locks should be obtained in a specific order to minimize the 
+possibility of this happening.</li>
+</ul>
+</dd>
+<dt><strong>Variable Locking</strong></dt>
+<dd><p class="first">This is a complex locking mechanism, when requests identified as possibly 
+conflicting are prevented from being executed concurrently by a blocking 
+lock. Conflicting requests can be loosely identified as the request URLs 
+being the same or ancestor/descendant of each other (Depth: infinity).</p>
+<p>Such a scheme should address the following:</p>
+<ul class="last simple">
+<li>Conflicting read operations can be done concurrently but not conflicting 
+write operations</li>
+<li>Assuming that all requests that are started will complete in finite time, any request 
+should eventually complete.</li>
+</ul>
+</dd>
+</dl>
+<hr class="docutils" />
+<p>Last Generated : Wed, 31 Aug 2005 07:10:19 GMT</p>
+</div>
+</div>
+</div>
+</body>
+</html>
