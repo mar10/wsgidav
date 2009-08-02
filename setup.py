@@ -13,12 +13,16 @@ import sys
 
 print "\nChecking manual dependencies...\n"
 try:
-   import xml.dom.ext
-   import xml.dom.ext.reader
+#    import xml.dom.ext
+#    import xml.dom.ext.reader
+    from lxml import etree
+   
 except ImportError:
-   print "Failed to detect PyXML. PyXML is required for PyFileServer. Please install"
-   print "PyXML <http://pyxml.sourceforge.net/> before installing PyFileServer"
-   sys.exit(-1)
+#    print "Failed to detect PyXML. PyXML is required for PyFileServer. Please install"
+#    print "PyXML <http://pyxml.sourceforge.net/> before installing PyFileServer"
+    print "Failed to detect lxml. lxml is required for PyFileServer. Please install"
+    print "lxml <http://codespeak.net/lxml/> before installing PyFileServer"
+    sys.exit(-1)
 
 
 from setuptools import setup, find_packages
@@ -50,5 +54,3 @@ It comes bundled with a simple wsgi webserver.
       zip_safe=False,
       extras_require={}
       )
-
-

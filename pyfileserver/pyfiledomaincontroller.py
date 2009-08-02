@@ -46,9 +46,9 @@ class PyFileServerDomainController(object):
     def getRealmUserPassword(self, realmname, username, environ):
         if realmname in environ['pyfileserver.config']['user_mapping']:
             if username in environ['pyfileserver.config']['user_mapping'][realmname]:
-               return environ['pyfileserver.config']['user_mapping'][realmname][username]
+                return environ['pyfileserver.config']['user_mapping'][realmname][username]
             else:
-               return None
+                return None
         else:
             return None
       

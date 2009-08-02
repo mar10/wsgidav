@@ -13,11 +13,11 @@ implement stronger or more content specific etags to be used with
 PyFileServer, read extrequestserver.py for more details.
 
 Functions::
-   
-   getETag(filePath): Returns the following as entity tags
-      Non-file - md5(pathname)
-      Win32 - md5(pathname)-lastmodifiedtime-filesize
-      Others - inode-lastmodifiedtime-filesize
+    
+    getETag(filePath): Returns the following as entity tags
+        Non-file - md5(pathname)
+        Win32 - md5(pathname)-lastmodifiedtime-filesize
+        Others - inode-lastmodifiedtime-filesize
 
 
 """
@@ -25,19 +25,19 @@ Functions::
 __docformat__ = 'reStructuredText'
 
 import sys
-import os
+#import os
 import os.path
 import stat
 import md5
-      
+        
 def getETag(filePath):
-   if not os.path.isfile(filePath):
-      return md5.new(filePath).hexdigest()   
-   if sys.platform == 'win32':
-      statresults = os.stat(filePath)
-      return md5.new(filePath).hexdigest() + '-' + str(statresults[stat.ST_MTIME]) + '-' + str(statresults[stat.ST_SIZE])
-   else:
-      statresults = os.stat(filePath)
-      return str(statresults[stat.ST_INO]) + '-' + str(statresults[stat.ST_MTIME]) + '-' + str(statresults[stat.ST_SIZE])
+    if not os.path.isfile(filePath):
+        return md5.new(filePath).hexdigest()   
+    if sys.platform == 'win32':
+        statresults = os.stat(filePath)
+        return md5.new(filePath).hexdigest() + '-' + str(statresults[stat.ST_MTIME]) + '-' + str(statresults[stat.ST_SIZE])
+    else:
+        statresults = os.stat(filePath)
+        return str(statresults[stat.ST_INO]) + '-' + str(statresults[stat.ST_MTIME]) + '-' + str(statresults[stat.ST_SIZE])
 
-   
+    

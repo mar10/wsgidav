@@ -158,8 +158,8 @@ class SimpleWindowsDomainController(object):
                 users, total, resume = win32net.NetUserEnum(server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0)
                 userslist += users
                 for userinfo in users:
-                   if username.lower() == str(userinfo['name']).lower():
-                      return True
+                    if username.lower() == str(userinfo['name']).lower():
+                        return True
             except win32net.error, err:
                 #print err
                 return False
@@ -179,7 +179,3 @@ class SimpleWindowsDomainController(object):
                 htoken.Close() #guarantee's cleanup
                 return True
             return False    
-     
-
-
-                             

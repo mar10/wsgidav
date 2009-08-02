@@ -101,12 +101,16 @@ import httpdatehelper
 import propertylibrary
 import locklibrary
 
-from xml.dom.ext.reader import Sax2
-import xml.dom.ext
-from xml.dom import implementation, Node
+#from xml.dom.ext.reader import Sax2
+#import xml.dom.ext
+#from xml.dom import implementation, Node
+
+from lxml import etree
+   
 
 BUFFER_SIZE = 8192
 BUF_SIZE = 8192
+
 
 class RequestServer(object):
     def __init__(self, propertymanager, lockmanager):
@@ -551,6 +555,17 @@ a.symlink { font-style: italic; }
 
 
     def doPROPPATCH(self, environ, start_response):
+        """Handle PROPPATCH request to set or remove a property.
+        
+        Example
+        <A:propertyupdate xmlns:A="DAV:" xmlns:B="http://wwwendt.de/dav">
+            <A:set>
+                <A:prop>
+                    <B:mw3>v3</B:mw3>
+                </A:prop>
+            </A:set>
+        </A:propertyupdate>        
+        """
         environ['HTTP_DEPTH'] = '0' #nothing else allowed
         mappedpath = environ['pyfileserver.mappedpath']
         displaypath =  environ['pyfileserver.mappedURI']
@@ -569,39 +584,41 @@ a.symlink { font-style: italic; }
             requestbody = environ['wsgi.input'].read(contentlengthtoread)
 
         try:
-            doc = Sax2.Reader().fromString(requestbody)
+            pproot = etree.fromstring(requestbody) # TODO: MW: use .parse() with the stream instead
         except Exception, e:
             raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST, srcexception=e)   
-        pproot = doc.documentElement
-        if pproot.namespaceURI != 'DAV:' or pproot.localName != 'propertyupdate':
+
+        if pproot.tag != "{DAV:}propertyupdate":
             raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)   
 
         propupdatelist = []
-        for ppnode in pproot.childNodes:
-            if ppnode.namespaceURI != 'DAV:' or ppnode.localName not in ('remove', 'set'):
-                continue
 
-            for propnode in ppnode.childNodes:
-                if propnode.namespaceURI != 'DAV:' or propnode.localName != 'prop':
+        for ppnode in pproot:
+            if ppnode.tag == "{DAV:}remove":
+                propupdatemethod = "remove"
+            elif ppnode.tag == "{DAV:}set":
+                propupdatemethod = "set"
+            else:
+                continue
+            
+            for propnode in ppnode:
+                if propnode.tag != '{DAV:}prop':
                     continue
 
-                for propertynode in propnode.childNodes: 
-                    if propertynode.nodeType != xml.dom.Node.ELEMENT_NODE: 
-                        continue
-
+                for propertynode in propnode: 
                     propvalue = None
-                    if ppnode.localName == 'set':
-                        if len(propertynode.childNodes) == 1 and propertynode.firstChild.nodeType == xml.dom.Node.TEXT_NODE:
-                            propvalue = propertynode.firstChild.nodeValue
+                    if propupdatemethod == "set":
+                        if len(propertynode) == 0:
+                            propvalue = propertynode.text
                         else:
                             propvaluestream = StringIO.StringIO()
-                            for childnode in propertynode.childNodes:
-                                xml.dom.ext.PrettyPrint(childnode, stream=propvaluestream)
+                            for childnode in propertynode:
+                                print >>propvaluestream, etree.tostring(childnode, pretty_print=True)
                             propvalue = propvaluestream.getvalue()
                             propvaluestream.close()
                             
-                    verifyns = propertynode.namespaceURI or ''
-                    propupdatelist.append( ( verifyns , propertynode.localName , ppnode.localName , propvalue) )
+                    qn = etree.QName(propertynode)
+                    propupdatelist.append( (qn.namespace, qn.localname, propupdatemethod, propvalue) )
 
         successflag = True
         writeresultlist = []
@@ -671,6 +688,7 @@ a.symlink { font-style: italic; }
             yield "</D:response>\n</D:multistatus>"
         return
 
+
     # does not yet support If and If HTTP Conditions   
     def doPROPFIND(self, environ, start_response):
 
@@ -692,12 +710,11 @@ a.symlink { font-style: italic; }
             requestbody = "<D:propfind xmlns:D='DAV:'><D:allprop/></D:propfind>"      
 
         try:
-            doc = Sax2.Reader().fromString(requestbody)
+            pfroot = etree.fromstring(requestbody)
         except Exception, e:
             raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST, srcexception=e)   
 
-        pfroot = doc.documentElement
-        if pfroot.namespaceURI != 'DAV:' or pfroot.localName != 'propfind':
+        if pfroot.tag != "{DAV:}propfind":
             raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)   
 
         if not resourceAL.exists(mappedpath):
@@ -707,19 +724,17 @@ a.symlink { font-style: italic; }
 
         propList = []
         propFindMode = 3
-        for pfnode in pfroot.childNodes:
-            if pfnode.namespaceURI == 'DAV:' and pfnode.localName == 'allprop':
+        for pfnode in pfroot:
+            if pfnode.tag == "{DAV:}allprop":
                 propFindMode = 1  
                 break
-            if pfnode.namespaceURI == 'DAV:' and pfnode.localName == 'propname':
+            if pfnode.tag == "{DAV:}propname":
                 propFindMode = 2       
                 break
-            if pfnode.namespaceURI == 'DAV:' and pfnode.localName == 'prop':
-                pfpList = pfnode.childNodes
-                for pfpnode in pfpList:
-                    if pfpnode.nodeType == xml.dom.Node.ELEMENT_NODE:
-                        verifyns = pfpnode.namespaceURI or ''
-                        propList.append( (verifyns, pfpnode.localName) )       
+            if pfnode.tag == "{DAV:}prop":
+                for pfpnode in pfnode:
+                    qn = etree.QName(pfpnode)
+                    propList.append( (qn.namespace, qn.localname) )       
 
         start_response('207 Multistatus', [('Content-Type','text/xml'), ('Date',httpdatehelper.getstrftime())])
 
@@ -785,6 +800,7 @@ a.symlink { font-style: italic; }
         yield "</D:multistatus>"      
         return 
 
+
     def doCOPY(self, environ, start_response):
         mappedrealm = environ['pyfileserver.mappedrealm']
         mappedpath = environ['pyfileserver.mappedpath']
@@ -800,7 +816,7 @@ a.symlink { font-style: italic; }
 
 
         if 'HTTP_DESTINATION' not in environ:
-            raise HTTPRequestException(processreuesterrorhandler.HTTP_BAD_REQUEST)
+            raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)
 
         destrealm = environ['pyfileserver.destrealm']
         destpath = environ['pyfileserver.destpath']
@@ -922,7 +938,7 @@ a.symlink { font-style: italic; }
 
 
         if 'HTTP_DESTINATION' not in environ:
-            raise HTTPRequestException(processreuesterrorhandler.HTTP_BAD_REQUEST)
+            raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)
 
         destrealm = environ['pyfileserver.destrealm']
         destpath = environ['pyfileserver.destpath']
@@ -1055,6 +1071,7 @@ a.symlink { font-style: italic; }
             yield ''
         return
 
+
     def doLOCK(self, environ, start_response):
         environ.setdefault('HTTP_DEPTH', 'infinity')         
         if environ['HTTP_DEPTH'] != '0':
@@ -1096,11 +1113,11 @@ a.symlink { font-style: italic; }
         else:   
 
             try:
-                doc = Sax2.Reader().fromString(requestbody)
+                liroot = etree.fromstring(requestbody)
             except Exception, e:
                 raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST, srcexception=e)   
-            liroot = doc.documentElement
-            if liroot.namespaceURI != 'DAV:' or liroot.localName != 'lockinfo':
+
+            if liroot.tag != "{DAV:}lockinfo":
                 raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)   
 
             locktype = 'write'         # various defaults
@@ -1108,32 +1125,31 @@ a.symlink { font-style: italic; }
             lockowner = ''
             lockdepth = environ['HTTP_DEPTH']
 
-            for linode in liroot.childNodes:
-                if linode.namespaceURI == 'DAV:' and linode.localName == 'lockscope':
-                    for lsnode in linode.childNodes:
-                        if lsnode.nodeType != xml.dom.Node.ELEMENT_NODE:
-                            continue                       
-                        if lsnode.namespaceURI == 'DAV:' and lsnode.localName in ['exclusive','shared']: 
-                            lockscope = lsnode.localName 
+            for linode in liroot:
+                # MW: TODO: use XPath instead? 
+                if linode.tag == "{DAV:}lockscope":
+                    for lsnode in linode:
+                        if lsnode.tag == "{DAV:}exclusive": 
+                            lockscope = "exclusive" 
+                        elif lsnode.tag == "{DAV:}shared": 
+                            lockscope = "shared" 
                         else:
                             raise HTTPRequestException(processrequesterrorhandler.HTTP_PRECONDITION_FAILED)
                         break               
-                elif linode.namespaceURI == 'DAV:' and linode.localName == 'locktype':
-                    for ltnode in linode.childNodes:
-                        if ltnode.nodeType == xml.dom.Node.ELEMENT_NODE:
-                            continue
-                        if ltnode.namespaceURI == 'DAV:' and ltnode.localName == 'write': 
+                elif linode.tag == "{DAV:}locktype":
+                    for ltnode in linode:
+                        if ltnode.tag == "{DAV:}write": 
                             locktype = 'write'   # only type accepted
                         else:
                             raise HTTPRequestException(processrequesterrorhandler.HTTP_PRECONDITION_FAILED)
                         break
-                elif linode.namespaceURI == 'DAV:' and linode.localName == 'owner':
-                    if len(linode.childNodes) == 1 and linode.firstChild.nodeType == xml.dom.Node.TEXT_NODE:
-                        lockowner = linode.firstChild.nodeValue
+                elif linode.tag == "{DAV:}owner":
+                    if len(linode) == 0:
+                        lockowner = linode.text
                     else:
                         lockownerstream = StringIO.StringIO()
-                        for childnode in linode.childNodes:
-                            xml.dom.ext.PrettyPrint(childnode, stream=lockownerstream)
+                        for childnode in linode:
+                            print >>lockownerstream, etree.tostring(childnode, pretty_print=True)
                         lockowner = lockownerstream.getvalue()
                         lockownerstream.close()                        
 
@@ -1225,6 +1241,7 @@ a.symlink { font-style: italic; }
             yield "</D:multistatus>"      
         return
 
+
     def doUNLOCK(self, environ, start_response):
         mappedpath = environ['pyfileserver.mappedpath']
         displaypath =  environ['pyfileserver.mappedURI']
@@ -1243,6 +1260,7 @@ a.symlink { font-style: italic; }
 
         raise HTTPRequestException(processrequesterrorhandler.HTTP_BAD_REQUEST)
         return
+
 
     def evaluateSingleIfConditionalDoException(self, mappedpath, displaypath, environ, start_response, checkLock=False):
         resourceAL = environ['pyfileserver.resourceAL']
@@ -1308,4 +1326,3 @@ a.symlink { font-style: italic; }
             lastmodified = -1 # nonvalid modified time
             entitytag = '[]' # Non-valid entity tag
         websupportfuncs.evaluateHTTPConditionals(resourceAL, mappedpath, lastmodified, entitytag, environ)
-
