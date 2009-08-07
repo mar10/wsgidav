@@ -2,55 +2,79 @@
 # revision (set to True for real releases)
 RELEASE = False
 
-__version__ = "0.2"
+from wsgidav.version import __version__
 
 from ez_setup import use_setuptools
 use_setuptools()
 
 
-#manual check for dependencies: PyXML - somehow installer unable to find on PyPI.
-import sys
 
-print "\nChecking manual dependencies...\n"
-try:
-#    import xml.dom.ext
-#    import xml.dom.ext.reader
-    from lxml import etree
-   
-except ImportError:
-#    print "Failed to detect PyXML. PyXML is required for PyFileServer. Please install"
-#    print "PyXML <http://pyxml.sourceforge.net/> before installing PyFileServer"
-    print "Failed to detect lxml. lxml is required for PyFileServer. Please install"
-    print "lxml <http://codespeak.net/lxml/> before installing PyFileServer"
-    sys.exit(-1)
+#manual check for dependencies: PyXML - somehow installer unable to find on PyPI.
+#import sys
+#try:
+#    from lxml import etree  #@UnusedImport
+#except ImportError:
+#    print "Failed to detect lxml. lxml is required for WsgiDAV. Please install"
+#    print "lxml <http://codespeak.net/lxml/> before installing WsgiDAV"
+#    sys.exit(-1)
 
 
 from setuptools import setup, find_packages
 
-setup(name="PyFileServer",
-      version=__version__,
-      description="Python-based WSGI application for file sharing over WebDAV",
+setup(name="WsgiDAV",
+      version = __version__,
+      author = "Ho Chun Wei, Martin Wendt",
+      author_email = "wsgidav@wwwendt.de",
+      maintainer = "Martin Wendt",
+      maintainer_email = "wsgidav@wwwendt.de",
+      url = "http://wsgidav.googlecode.com/",
+      description = "Generic WebDAV server based on WSGI",
       long_description="""\
-PyFileServer is a WebDAV server web application for sharing files and 
-directories over the web. It is based on the wsgi interface 
-<http://www.python.org/peps/pep-0333.html>.
+WsgiDAV is a WebDAV server for sharing files and other resources over the web. 
+It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
 
-It comes bundled with a simple wsgi webserver. 
+It comes bundled with a simple WSIG web server.
+
+*This package is based on PyFileServer by Ho Chun Wei.*
+
+Project home: http://wsgidav.googlecode.com/  
 """,
-      classifiers=["Development Status :: 4 - Beta",
-                   "Intended Audience :: Information Technology, Developers, System Administrators",
-                   "License :: OSI Approved :: Lesser GNU Public License",
-                   "Programming Language :: Python",
-                   "Topic :: Internet :: WWW/HTTP :: HTTP Server",
-                   ],
-      keywords='web wsgi webdav application server',
-      author="Ho Chun Wei",
-      author_email="fuzzybr80@gmail.com",
-      url="http://pyfilesync.berlios.de",
-      license="LGPL",
-      install_requires = [],
-      packages=find_packages(exclude=[]),
-      package_data={'': ['*.txt', '*.html', '*.conf']},
-      zip_safe=False,
-      extras_require={}
+
+        #Development Status :: 2 - Pre-Alpha
+        #Development Status :: 3 - Alpha
+        #Development Status :: 4 - Beta
+        #Development Status :: 5 - Production/Stable
+
+      classifiers = ["Development Status :: 3 - Alpha",
+                     "Intended Audience :: Information Technology",
+                     "Intended Audience :: Developers",
+                     "Intended Audience :: System Administrators",
+                     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+                     "Operating System :: OS Independent",
+                     "Programming Language :: Python",
+                     "Topic :: Internet :: WWW/HTTP",
+                     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+                     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+                     "Topic :: Internet :: WWW/HTTP :: WSGI",
+                     "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+                     "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
+                     "Topic :: Software Development :: Libraries :: Python Modules",
+                     ],
+      keywords = 'web wsgi webdav application server', 
+#      platforms=['Unix', 'Windows'],
+      license = "LGPL",
+      install_requires = ["lxml"],
+      packages = find_packages(exclude=[]),
+#      package_data={'': ['*.txt', '*.html', '*.conf']},
+#      include_package_data = True, # TODO: PP
+      zip_safe = False,
+      extras_require = {},
+      entry_points = {
+          "console_scripts" : ["wsgidav = wsgidav.server.run_server:run"],
+          },
+      # TODO: PP:
+#      entry_points = """
+#      [paste.app_factory]
+#      main = wsgidav.wsgiapp:make_app
+#      """,
       )

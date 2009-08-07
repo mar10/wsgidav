@@ -1,83 +1,442 @@
-================
-DEVELOPERS GUIDE
-================
+========================
+WsgiDAV Developers Guide
+========================
 
-:Module: pyfileserver
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com
-:Project: PyFileServer, http://pyfilesync.berlios.de/
+:Authors: - Ho Chun Wei, fuzzybr80(at)gmail.com (original PyFileServer)
+          - Martin Wendt
+:Project: WsgiDAV, http://wsgidav.googlecode.com/
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Abstract: This document gives a brief introduction to the WsgiDAV application package.
 
-This section attempts to give a brief introduction to the PyFileServer application package.
+
+.. contents:: Table Of Contents
 
 
-WSGI Application
-================
+WSGI application stack
+======================
 
-PyFileServer is a WSGI application.
+WsgiDAV is a WSGI application.
 
 WSGI <http://www.python.org/peps/pep-0333.html> stands for Web Server Gateway
 Interface, a proposed standard interface between web servers and Python web 
 applications or frameworks, to promote web application portability across a 
 variety of web servers. If you are unfamiliar with WSGI, do take a moment to 
-read the PEP. Most WSGI application consists middleware which serve as pre-filters and 
-post-processors, and the actual application.
+read the PEP. 
 
-PyFileServer::
+As most WSGI applications, WsgiDAV consists of middleware which serve as 
+pre-filters and post-processors, and the actual application.
 
- Request -> PyFileApp (container)
-                  |
-                  +-> ErrorPrinter (middleware)
-                           |
-                     RequestResolver (middleware)
-                           |
-                   HTTPAuthenticator (middleware)
-                           |
-                     RequestServer (application)
+WSGI application stack::
+
+ <Request>
+   |
+ <Server> -> wsgidav_app.WsgiDavApp (container)
+              |
+              +-> debug_filter.WsgiDavDebugFilter (middleware, optional)
+                    |
+                  error_printer.ErrorPrinter (middleware)
+                    |
+                  httpauthentication.HTTPAuthenticator (middleware)
+                    |           \- Uses a domain controller object 
+                    |
+                  dir_browser.WsgiDavDirBrowser (middleware, optional)
+                    |
+                  requestresolver.RequestResolver (middleware)
+                    |
+                    *-> requestserver.RequestServer (application)
+                                \- Uses a DAVProvider object 
+
+See the following sections for details.
+
+Or browse the `API documentation`_
+
+.. _API documentation : apidocs/index.html
+
                                                 
-                                                
-In addition, PyFileServer comes with an existing WSGI webserver so that the
-application can be run as a standalone program.
-
-
-The PyFileServer application consists of the following modules::
-   
-   Bundled Web Server:
-         ext_wsgiutils_server 
-   
-   Application objects: 
-         pyfileserver.mainappwrapper
-            + class PyFileApp
-      
-         pyfileserver.processrequesterrorhandler    
-            + class ErrorPrinter
-            + Exception HTTPRequestException
-      
-         pyfileserver.requestresolver
-            + class RequestResolver
-         
-         pyfileserver.httpauthentication
-            + class HTTPAuthenticator
-            + class SimpleDomainController    
-         
-         pyfileserver.pyfiledomaincontroller
-            + class PyFileServerDomainController    
-         
-         pyfileserver.extrequestserver    
-            + class RequestServer
-      
-         pyfileserver.propertylibrary    
-            + class LockManager
-            + class PropertyManager
-      
-         pyfileserver.etagprovider    
-            + func object getETag
-   
-   Miscellaneous libraries:
-         pyfileserver.websupportfuncs    
-         pyfileserver.loadconfig_primitive    
-         pyfileserver.httpdatehelper    
-
-
-Each of these modules are documented below.
-
+Container ``wsgidav_app.WsgiDavApp``
+------------------------------------
+Main module, that handles the HTTP requests. This object is passed to the WSGI 
+server and represents our WsgiDAV application to the outside.
  
+On init:
+    Use the configuration dictionary to initialize lock manager, property manager,
+    domain controller. 
+
+    Create a dictionary of share-to-provider mappings.         
+
+    Initialize middleware objects and RequestResolver and setup the WSGI 
+    application stack.
+      
+For every request:
+
+    Note: The OPTIONS method for the '*' path is handled directly.
+
+    Find the registered DAV provider for the current request.   
+    
+    Add or modify info in the WSGI ``eniron``:
+    
+        environ["SCRIPT_NAME"]
+            Mount-point of the current share.            
+        environ["PATH_INFO"]
+            Resource path, relative to the mount path.
+        environ["wsgidav.provider"]
+            DAVProvider object that is registered for handling the current 
+            request. 
+        environ["wsgidav.config"]
+            Configuration dictionary.
+        environ["wsgidav.verbose"]
+            Debug level [0-3].
+
+    Log the HTTP request, then pass the request to the first middleware.
+
+
+
+Middleware ``debug_filter.WsgiDavDebugFilter``
+----------------------------------------------
+Optional middleware for debugging. 
+
+On init:
+    Define HTTP methods and litmus tests, that should turn on the verbose mode
+    (currently hard coded).
+              
+For every request:
+    Increase value of ``eniron['verbose']``, if the request should be debugged.
+    Also dump request and response headers and body.
+    
+    Then pass the request to the next middleware.  
+
+
+Middleware ``error_printer.ErrorPrinter``
+-----------------------------------------
+Handle DAV exceptions and internal errors.
+
+On init:
+    Store error handling preferences.
+    
+For every request:
+    Pass the request to the next middleware. 
+    If a DAV exception occurs, log info, then pass it on. 
+    Internal exceptions are converted to HTTP_INTERNAL_ERRORs.  
+
+
+Middleware ``httpauthentication.HTTPAuthenticator``
+---------------------------------------------------
+Uses a domain controller to establish HTTP authentication.
+
+On init:
+    Store the domain controller object that is used for authentication.
+              
+For every request:
+    if authentication is required and user is not logged in: return authentication
+    response.
+    
+    Else set these values:: 
+
+        ``environ['httpauthentication.realm']``
+        ``environ['httpauthentication.username']``
+
+
+Middleware ``dir_browser.WsgiDavDirBrowser``
+--------------------------------------------
+Handles GET requests on collections to display a HTML directory listing.
+
+On init:
+    -
+    
+For every request:
+    If path maps to a collection: 
+        Render collection members as directory (HTML table).  
+
+
+Middleware ``requestresolver.RequestResolver``
+----------------------------------------------
+Find the mapped DAV-Provider, create a new RequestServer instance, and dispatch 
+the request.
+ 
+On init:
+    Store URL-to-DAV-Provider mapping.
+              
+For every request:
+    Setup ``environ["SCRIPT_NAME"]`` to request realm and and 
+    ``environ["PATH_INFO"]`` to resource path.
+    
+    Then find the registered DAV-Provider for this realm, create a new 
+    ``RequestServer`` instance, and pass the request to it.
+    
+    Note: The OPTIONS method for '*' is handled directly.
+
+
+Application ``requestserver.RequestServer``
+-------------------------------------------
+Handles one single WebDAV request.
+ 
+On init:
+    Store a reference to the DAV-Provider object.
+              
+For every request:
+    Handle one single WebDAV method (PROPFIND, PROPPATCH, LOCK, ...) using a 
+    DAV-Provider instance. Then return the response body or raise an DAVError.
+    
+    Note: this object only handles one single request.  
+
+
+
+API documentation
+=================
+Follow this link to browse the `API documentation`_.
+
+.. _API documentation : apidocs/index.html
+
+
+DAV providers
+=============
+DAV providers are abstractions layers that are used by the ``RequestServer`` to
+access and manipulate DAV resources.
+
+All DAV providers must implement a common interface. This is usually done by 
+deriving from the abstract base class ``dav_provider.DAVProvider``.
+
+WsgiDAV comes with a DAV provider for file systems, called 
+``fs_dav_provider.FilesystemProvider``. That is why WsgiDAV a WebDAV file
+server out-of-the-box. 
+
+There are also a few other modules that may serve as examples on how to plug-in
+your own custom DAV providers: 
+
+ReadOnlyFilesystemProvider
+    Similar to ``FilesystemProvider``, but raise HTTP_FORBIDDEN on write access
+    attempts.
+
+DummyDAVProvider
+    TODO
+
+VirtualResourceProvider
+    TODO
+
+SimpleMySQLResourceAbstractionLayer
+    TODO
+
+
+Property Managers
+=================
+DAV providers may use a property manager to support persistence for *dead 
+properties*.  
+
+WsgiDAV comes with a default implementation based in shelve, called 
+``property_manager.PropertyManager``.
+
+However, this may be replaced by a custom version, as long as the required
+interface is implemented.
+  
+
+Lock Managers
+=============
+DAV providers may use a lock manager to support exclusive and shared write 
+locking.  
+
+WsgiDAV comes with a default implementation based in shelve, called 
+``lock_manager.LockManager``.
+
+However, this may be replaced by a custom version, as long as the required
+interface is implemented.
+
+
+Domain controllers
+==================
+A domain controller provides user/password checking for a realm to the 
+HTTPAuthenticator.
+
+WsgiDAV comes with a default implementation that reads a user/password list from
+the config file.
+
+However, this may be replaced by a custom version, as long as the required
+interface is implemented.
+
+``wsgidav.addons.windowsdomaincontroller`` is an example for such an extension.   
+
+
+Other objects
+=============
+``wsgidav.domain_controller.WsgiDAVDomainController``
+    Default implementation of a domain controller as used by ``HTTPAuthenticator``.
+
+``pyfileserver.etagprovider``
+    TODO:    
+
+                                                
+Running a WsgiDAV server
+========================
+
+WsgiDAV is a WSGI application, so any web server that knows WSGI can be used to 
+run it.
+
+In addition, the WsgiDAV package contains an own WSGI web server so that the
+application can be run as a stand-alone program.
+
+The module ``wsgidav.run_server`` is an entry point to start a server. It tries
+to load known servers in this order:
+
+ 1. CherryPy
+ 2. Paste
+ 3. wsgidav_server.ext_wsgiutils_server (part of the WsgiDAV package) 
+
+
+Glossary
+========
+You will find this terms / naming conventions in the source:
+
++--------------------------------------------------------------------+
+| Currently, this is more a plan than a status. Open for discussion. |
++--------------------------------------------------------------------+
+
+*URL*:
+  In general URLs follow these rules:
+
+  - Byte strings, using ISO-8859-1 encoding
+  - Case sensitive
+  - Quoted, i.e. special characters are escaped
+  - Collections have a trailing '/' 
+    (but we also accept request URLs, that omit them.)
+  
+  When we use the term *URL* in WsgiDAV variables, we typically mean **absolute** URLs:  
+      ``/<mount>/<path>``
+  When we use the term *full URL*, we typically mean **complete** URLs:  
+      ``http://<server>:<port>/<mount>/<path>``
+    
+  Constructed like
+      fullUrl = util.makeCompleteURL(environ)
+  Example
+      "http://example.com:8080/dav/public/my%20nice%20doc.txt"
+
+
+*Path* (in general):
+  When we use the term *Path* in WsgiDAV variables, we typically mean 
+  **unquoted** URLs, relative to the *mount point*.  
+
+  Example
+      "/public/my nice doc.txt"
+
+
+*mount point* (also 'mount path', 'approot'): 
+  Unquoted, ISO-8859-1 encoded byte string.
+
+  The application's mount point. Starts with a '/' (if not empty).
+    
+  This is the virtual directory, where the web server mounted the WsgiDAV 
+  application.
+  So it is the environ[SCRIPT_NAME] that the server had set, before calling 
+  WsgiDAVApp.
+
+  Example
+      ""
+
+
+*share path* (also 'share', 'domain'): 
+  Unquoted, ISO-8859-1 encoded byte string.
+
+  The application's share path, relative to the mount point. Starts with a '/' 
+  (if not empty).
+ 
+  For every request, WsgiDAVApp tries to find the registered provider for the 
+  URL (after the mount path was popped). 
+  The share path is the common URL prefix of this URL.
+  
+  TODO: do we need to ditinguish between server mount points ('mount path') and
+  WsgiDAV mount points ('share path')? 
+    
+  Constructed like
+      mountPath = environ[SCRIPT_NAME]
+  Example
+      "/dav"
+
+
+*realm*:
+  Unquoted, ISO-8859-1 encoded byte string.
+  
+  The domain name, that a resource belongs to. 
+  
+  This string is used for HTTP authentication.
+  
+  Each realm would have a set of username and password pairs that would allow 
+  access to the resources.   
+  
+  Examples
+      "Marketing Department"
+      "Windows Domain Authentication"
+      
+  The ``domain_controller.WsgiDAVDomainController`` implementation uses the 
+  mount path as realm name.  
+    
+
+*path*
+  Unquoted, ISO-8859-1 encoded byte string.
+
+  The resource URL, relative to the application's mount point. 
+  Starts with a '/'. Collections also should have a trailing '/'.
+    
+  Constructed like:
+      path = environ[PATH_INFO]
+  Examples:
+      "/public/my nice doc.txt"
+      "/public/"
+
+
+*preferred path*:
+  Unquoted, ISO-8859-1 encoded byte string.
+
+  The preferred or normalized *path*.
+
+  Depending on case sensitivity of the OS file system, all these paths
+  may map to the same collection resource::
+    
+    /public/my folder/
+    /public/my folder   (missing '/')
+    /public/MY FOLDER/  (on a Windows server, which is not case sensitive) 
+
+  provider.getPreferredPath(path) will return::
+    
+    /public/my folder/
+    
+  for all of these variants.
+
+
+*reference URL*:
+  Quoted, ISO-8859-1 encoded byte string.
+
+  This is basically the same as an URL, that was build from the *preferred path*. 
+  But this deals with 'virtual locations' as well.
+  
+  Since it is always unique for one resource, <refUrl> is used as key for the
+  lock- and property storage.
+     
+  A resource has always one 'real location' and may have 0..n 'virtual locations'.
+    
+  For example::   
+
+    /dav/public/my%20folder/file1.txt
+    /dav/by_key/1234
+    /dav/by_status/approved/file1.txt
+
+  may map to the same resource, but only:: 
+
+    /dav/by_key/1234
+      
+  is the refUrl.
+
+  Constructed like:
+      realUrl = quote(mountPath + reference path)
+  Examples:
+      "/dav/by_key/1234"
+
+
+*href*:
+  **Quoted**,  ISO-8859-1 encoded byte string.
+  
+  Used in XML responses. We are using the path-absolute option. i.e. starting 
+  with '/'.  (See http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3)
+
+  Constructed like:
+      href = quote(mountPath + preferredPath)
+  Example:
+      "/dav/public/my%20nice%20doc.txt"
+  
