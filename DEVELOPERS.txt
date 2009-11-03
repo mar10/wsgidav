@@ -341,7 +341,7 @@ You will find this terms / naming conventions in the source:
   URL (after the mount path was popped). 
   The share path is the common URL prefix of this URL.
   
-  TODO: do we need to ditinguish between server mount points ('mount path') and
+  TODO: do we need to distinguish between server mount points ('mount path') and
   WsgiDAV mount points ('share path')? 
     
   Constructed like
