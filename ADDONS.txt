@@ -9,6 +9,6 @@ ADDONS GUIDE
 
 This section describes the addons available:
 
-+ windowsdomaincontroller_
++ nt_domain_controller_
 
  

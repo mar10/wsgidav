@@ -292,25 +292,25 @@ class VirtualResourceProvider(DAVProvider):
         return res.entryList
 
 
-    def getSupportedInfoTypes(self, path):
-        """Return a list of supported information types.
-        
-        See DAVProvider.getSupportedInfoTypes()
-        """
-        res = self._getResByPath(path)
-        infoTypes = ["isCollection",
-                     "displayName", 
-                     "displayType", 
-                    ]
-        if not res.isCollection(): 
-            infoTypes.append("contentType")
-            infoTypes.append("contentLength")
-            infoTypes.append("etag")
-        if isinstance(res, VirtualResFile):
-            infoTypes.append("created")
-            infoTypes.append("modified")
-
-        return infoTypes
+#    def getSupportedInfoTypes(self, path):
+#        """Return a list of supported information types.
+#        
+#        See DAVProvider.getSupportedInfoTypes()
+#        """
+#        res = self._getResByPath(path)
+#        infoTypes = ["isCollection",
+#                     "displayName", 
+#                     "displayType", 
+#                    ]
+#        if not res.isCollection(): 
+#            infoTypes.append("contentType")
+#            infoTypes.append("contentLength")
+#            infoTypes.append("etag")
+#        if isinstance(res, VirtualResFile):
+#            infoTypes.append("created")
+#            infoTypes.append("modified")
+#
+#        return infoTypes
 
     
     def getInfoDict(self, path, typeList=None):
@@ -332,6 +332,18 @@ class VirtualResourceProvider(DAVProvider):
         else:
             displayType = "%s-File" % res.data["type"]
         
+#        supportedInfoTypes = ["isCollection",
+#                              "displayName", 
+#                              "displayType", 
+#                              ]
+#        if not isCollection(): 
+#            supportedInfoTypes.append("contentType")
+#            supportedInfoTypes.append("contentLength")
+#            supportedInfoTypes.append("etag")
+#        if isinstance(res, VirtualResFile):
+#            supportedInfoTypes.append("created")
+#            supportedInfoTypes.append("modified")
+
         dict = {"contentLength": None,
                 "contentType": None,
                 "name": name,
@@ -341,6 +353,7 @@ class VirtualResourceProvider(DAVProvider):
                 "modified": res.getModifiedDate(),
                 "created": res.getCreationDate(),
                 "supportRanges": False,
+#                "supportedInfoTypes": supportedInfoTypes,
                 "isCollection": isCollection, 
                 }
 #        fp = res.data.get("file")
@@ -378,6 +391,6 @@ class VirtualResourceProvider(DAVProvider):
         raise DAVError(HTTP_FORBIDDEN)               
 
     
-    def openResourceForRead(self, path):
+    def openResourceForRead(self, path, davres=None):
         res = self._getResByPath(path)
         return res.getContent()

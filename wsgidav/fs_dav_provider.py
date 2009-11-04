@@ -19,7 +19,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 from dav_provider import DAVProvider
 
@@ -32,6 +32,8 @@ import stat
 from dav_error import DAVError, HTTP_FORBIDDEN
 
 
+_logger = util.getModuleLogger(__name__)
+
 BUFFER_SIZE = 8192
 
     
@@ -41,75 +43,65 @@ BUFFER_SIZE = 8192
 class ReadOnlyFilesystemProvider(DAVProvider):
 
     def __init__(self, rootFolderPath):
+        if not rootFolderPath or not os.path.exists(rootFolderPath):
+            raise ValueError("Invalid root path: %s" % rootFolderPath)
         super(ReadOnlyFilesystemProvider, self).__init__()
-        self.rootFolderPath = rootFolderPath
+        self.rootFolderPath = os.path.abspath(rootFolderPath)
 
         
     def __repr__(self):
-#        return "%s for  '%s', path '%s'" % (self.__class__.__name__, self., self.rootFolderPath)
         return "%s for path '%s'" % (self.__class__.__name__, self.rootFolderPath)
 
 
     def _locToFilePath(self, path):
-        """Convert resource path to an absolute file path."""
+        """Convert resource path to a unicode absolute file path."""
         # TODO: cache results
 #        print "_locToFilePath(%s)..." % (path)
         assert self.rootFolderPath is not None
         pathInfoParts = path.strip("/").split("/")
         
-        r = os.path.join(self.rootFolderPath, *pathInfoParts)
-        r = os.path.abspath(r)
+        r = os.path.abspath(os.path.join(self.rootFolderPath, *pathInfoParts))
         if not r.startswith(self.rootFolderPath):
             raise RuntimeError("Security exception: tried to access file outside root.")
+#        if not isinstance(r, unicode):
+#            util.log("_locToFilePath(%s): %r" % (path, r))
+#            r = r.decode("utf8")
+        r = util.toUnicode(r)
 #        print "_locToFilePath(%s): %s" % (path, r)
         return r  
 
     
     def getMemberNames(self, path):
-        """Return list of (direct) collection member names (ISO-8859-1 byte strings)."""
+        """Return list of (direct) collection member names (UTF-8 byte strings)."""
         fp = self._locToFilePath(path)
 
         # TODO: iso_8859_1 doesn't know EURO sign
         # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result 
         # will be a list of Unicode objects. 
         # Undecodable filenames will still be returned as string objects
+        
+        # If we don't request unicode, for example Vista may return a '?' 
+        # instead of a special character. The name would then be unusable to
+        # build a URL that references this resource.
 #        fp = unicode(fp)
         nameList = []
         for name in os.listdir(fp):
 #            print "%r" % name
+            assert isinstance(name, unicode)
+            name = name.encode("utf8")
+#            print "-> %r" % name
             nameList.append(name)
-#            if isinstance(name, unicode):
-#                print "->%r" % name.encode("iso_8859_1")
-#                nameList.append(name.encode("iso_8859_1"))
-#            else:  
-#                nameList.append(name)
         return nameList
         
 
-    def getSupportedInfoTypes(self, path):
-        """Return a list of supported information types.
-        
-        See DAVProvider.getSupportedInfoTypes()
-        """
-        infoTypes = ["created", 
-                     "contentType",
-                     "isCollection",
-                     "modified", 
-                     "displayName", 
-                    ]
-        if not self.isCollection(path): 
-            infoTypes.append("contentLength")
-            infoTypes.append("etag")
-
-        return infoTypes
-
-    
     def getInfoDict(self, path, typeList=None):
         """Return info dictionary for path.
 
         See DAVProvider.getInfoDict()
         """
         fp = self._locToFilePath(path)
+#        print >>sys.stderr, "getInfoDict(%s)" % (path, )
+        
         if not os.path.exists(fp):
             return None
         # Early out,if typeList is [] (i.e. test for resource existence only)
@@ -120,7 +112,10 @@ class ReadOnlyFilesystemProvider(DAVProvider):
         # The file system may have non-files (e.g. links)
         isFile = os.path.isfile(fp)
         name = util.getUriName(self.getPreferredPath(path))
-#        print "name(%s)=%s" % (path, name)
+        
+#       TODO: this line in: browser doesn't work, but DAVEx does
+#        name = name.decode("utf8")
+#        util.log("getInfoDict(%s): name='%s'" % (path, name))
 
         displayType = "File"
         if isCollection:
@@ -166,6 +161,9 @@ class ReadOnlyFilesystemProvider(DAVProvider):
 
 
     def isResource(self, path):
+        # TODO: does it make sense to treat non-files/non-collections as
+        #       existing, but neither isCollection nor isResource?
+        #       Maybe we should define existing as 'isCollection or isResource'
         fp = self._locToFilePath(path)
         return os.path.isfile(fp)
 
@@ -182,14 +180,17 @@ class ReadOnlyFilesystemProvider(DAVProvider):
         raise DAVError(HTTP_FORBIDDEN)               
 
 
-    def openResourceForRead(self, path):
+    def openResourceForRead(self, path, davres=None):
         fp = self._locToFilePath(path)
-#        mime = self.getContentType(path)
-        mime = self.getInfo(path, "contentType")
-        if mime.startswith("text"):
-            return file(fp, 'r', BUFFER_SIZE)
+        if davres: 
+            mime = davres.contentType()
         else:
-            return file(fp, 'rb', BUFFER_SIZE)
+            mime = self.getInfoDict(path, ["contentType"]).get("contentType")
+
+        if mime.startswith("text"):
+            return file(fp, "r", BUFFER_SIZE)
+        else:
+            return file(fp, "rb", BUFFER_SIZE)
     
 
     def openResourceForWrite(self, path, contenttype=None):
@@ -230,14 +231,19 @@ class FilesystemProvider(ReadOnlyFilesystemProvider):
 
     def openResourceForWrite(self, path, contenttype=None):
         fp = self._locToFilePath(path)
-        if contenttype is None:
-            istext = False
-        else:
-            istext = contenttype.startswith("text")            
-        if istext:
-            return file(fp, 'w', BUFFER_SIZE)
-        else:
-            return file(fp, 'wb', BUFFER_SIZE)
+#        if contenttype is None:
+#            istext = False
+#        else:
+#            istext = contenttype.startswith("text")
+#        if istext:
+#            return file(fp, "w", BUFFER_SIZE)
+#        else:
+#            return file(fp, "wb", BUFFER_SIZE)
+        mode = "wb"
+        if contenttype and contenttype.startswith("text"):
+            mode = "w"
+        _logger.debug("openResourceForWrite: %s, %s" % (fp, mode))
+        return file(fp, mode, BUFFER_SIZE)
     
     def deleteResource(self, path):
         fp = self._locToFilePath(path)

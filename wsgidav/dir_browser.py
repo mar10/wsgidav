@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 """
 request_server
-=============
+==============
 
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
@@ -15,6 +15,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
+from wsgidav.dav_provider import DAVResource
 import sys
 import urllib
 import util
@@ -35,10 +36,17 @@ class WsgiDavDirBrowser(object):
         dav = environ["wsgidav.provider"]
         
         if environ["REQUEST_METHOD"] in ("GET", "HEAD" ) and dav and dav.isCollection(path):
-            # TODO: do we nee to handle IF headers?
+            # TODO: do we need to handle IF headers?
 #            self._evaluateIfHeaders(path, environ)
             if environ["REQUEST_METHOD"] =="HEAD":
                 return util.sendSimpleResponse(environ, start_response, HTTP_OK)
+            
+#            if True:
+#                from cProfile import Profile
+#                profile = Profile()
+#                profile.runcall(self._listDirectory, environ, start_response)
+#                # sort: 0:"calls",1:"time", 2: "cumulative"
+#                profile.print_stats(sort=2)
             return self._listDirectory(environ, start_response)
         
         return self._application(environ, start_response)
@@ -67,8 +75,10 @@ class WsgiDavDirBrowser(object):
         displaypath = urllib.unquote(dav.getHref(path))
         trailer = environ.get("wsgidav.config", {}).get("response_trailer")
         
-        o_list = []        
-        o_list.append('<html><head><title>WsgiDAV - Index of %s </title>' % displaypath)
+        o_list = []
+        o_list.append("<html><head>")
+        o_list.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />")
+        o_list.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
         o_list.append("""\
 <style type="text/css">
     img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
@@ -80,22 +90,33 @@ class WsgiDavDirBrowser(object):
 </head>        
 <body>
 """)
-        o_list.append('<H1>%s</H1>' % (displaypath,))
+        o_list.append("<H1>%s</H1>" % displaypath)
         o_list.append("<hr/><table>")
 
         if path in ("", "/"):
-            o_list.append('<tr><td colspan="4">Top level share</td></tr>')
+            o_list.append("<tr><td colspan='4'>Top level share</td></tr>")
         else:
-            o_list.append('<tr><td colspan="4"><a href="' + dav.getHref(dav.getParent(path)) + '">Up to higher level</a></td></tr>')
+            o_list.append("<tr><td colspan='4'><a href='" + dav.getHref(dav.getParent(path)) + "'>Up to higher level</a></td></tr>")
 
         for name in dav.getMemberNames(path):
             childPath = path.rstrip("/") + "/" + name
-            infoDict = dav.getInfoDict(childPath)
-            infoDict["strModified"] = util.getRfc1123Time(infoDict["modified"])
-            if infoDict["contentLength"] or not infoDict["isCollection"]:
-                infoDict["strSize"] = "%s B" % infoDict["contentLength"]
+            res = DAVResource(dav, childPath)
+            infoDict = res._dict
+            if not infoDict:
+                print >>sys.stderr, "WARNING: WsgiDavDirBrowser could not getInfoDict for '%s'" % childPath
+                continue
+
+            if infoDict["modified"] is not None:
+                infoDict["strModified"] = util.getRfc1123Time(infoDict["modified"])
+            else:
+                infoDict["strModified"] = ""
+                
+            if infoDict["contentLength"] is not None and not infoDict["isCollection"]:
+#                infoDict["strSize"] = "%s Bytes" % infoDict["contentLength"]
+                infoDict["strSize"] = util.byteNumberString(infoDict["contentLength"])
             else:
                 infoDict["strSize"] = ""
+                
             infoDict["url"] = dav.getHref(path).rstrip("/") + "/" + urllib.quote(name)
             if infoDict["isCollection"]:
                 infoDict["url"] = infoDict["url"] + "/"
@@ -105,25 +126,13 @@ class WsgiDavDirBrowser(object):
             <td>%(displayType)s</td>
             <td>%(strSize)s</td>
             <td>%(strModified)s</td></tr>\n""" % infoDict)
-#        for name in dav.getMemberNames(path):
-#            childPath = path.rstrip("/") + "/" + name
-#            infoDict = dav.getResourceInfo(childPath)
-#            infoDict["strModified"] = util.getRfc1123Time(infoDict["modified"])
-#            if infoDict["size"] or not infoDict["isCollection"]:
-#                infoDict["strSize"] = "%s B" % infoDict["size"]
-#            else:
-#                infoDict["strSize"] = ""
-#            infoDict["url"] = dav.getHref(path).rstrip("/") + "/" + urllib.quote(name)
-#            if infoDict["isCollection"]:
-#                infoDict["url"] = infoDict["url"] + "/"
-# 
-#            o_list.append("""\
-#            <tr><td><a href="%(url)s">%(displayName)s</a></td>
-#            <td>%(resourceType)s</td>
-#            <td>%(strSize)s</td>
-#            <td>%(strModified)s</td></tr>\n""" % infoDict)
             
         o_list.append("</table>\n")
+
+        if "http_authenticator.username" in environ:
+            o_list.append("<p>Authenticated user: '%s', realm: '%s'.</p>" % (environ.get("http_authenticator.username"),
+                                                                             environ.get("http_authenticator.realm")))
+
         if trailer:
             o_list.append("%s\n" % trailer)
         o_list.append("<hr/>\n<a href='http://wsgidav.googlecode.com/'>WsgiDAV server</a> - %s\n" % util.getRfc1123Time())
@@ -133,4 +142,4 @@ class WsgiDavDirBrowser(object):
         start_response("200 OK", [("Content-Type", "text/html"), 
                                   ("Date", util.getRfc1123Time()),
                                   ])
-        return [ "\n".join(o_list) ] # TODO: no need to join?
+        return [ "\n".join(o_list) ] 

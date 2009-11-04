@@ -2,8 +2,8 @@
 dav_provider
 ============
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Abstract base class for DAV resource providers.
@@ -45,30 +45,84 @@ lockmMnager
    See lock_manager.LockManager for a sample implementation
    using shelve.
 """
-from wsgidav import util
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
-import urllib
-import time
-from lxml import etree
-import traceback
 import sys
+import time
+import traceback
+import urllib
+from wsgidav import util
+# Trick PyDev to do intellisense and don't produce warnings:
+from util import etree #@UnusedImport
+if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
 from dav_error import DAVError, \
     HTTP_NOT_FOUND, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty, asDAVError
 
-_livePropNames = ['{DAV:}creationdate', 
-                  '{DAV:}displayname', 
-                  '{DAV:}getcontenttype',
-                  '{DAV:}resourcetype',
-                  '{DAV:}getlastmodified', 
-                  '{DAV:}getcontentlength', 
-                  '{DAV:}getetag', 
-                  '{DAV:}getcontentlanguage', 
-                  '{DAV:}source', 
-                  '{DAV:}lockdiscovery', 
-                  '{DAV:}supportedlock']
+_logger = util.getModuleLogger(__name__)
+
+_livePropNames = ["{DAV:}creationdate", 
+                  "{DAV:}displayname", 
+                  "{DAV:}getcontenttype",
+                  "{DAV:}resourcetype",
+                  "{DAV:}getlastmodified", 
+                  "{DAV:}getcontentlength", 
+                  "{DAV:}getetag", 
+                  "{DAV:}getcontentlanguage", 
+                  "{DAV:}source", 
+                  "{DAV:}lockdiscovery", 
+                  "{DAV:}supportedlock"]
+
+
+#===============================================================================
+# DAVResource 
+#===============================================================================
+class DAVResource(object):
+    """Helper class that represents a single DAV resource instance.
+    
+    This class reads resource information on initialization, so querying 
+    multiple live properties can be handled more efficiently.
+
+    See also DAVProvider.getInfoDict().
+    """
+    def __init__(self, davProvider, path, typeList=None):
+        self.provider = davProvider
+        self.path = path
+        self._dict = davProvider.getInfoDict(path, typeList) or {}
+        self._exists = bool(self._dict)
+    def __repr__(self):
+        return "%s(%s): %s" % (self.__class__.__name__, self.path, self._dict)
+    def exists(self):
+        return self._exists
+    def isCollection(self):
+        return self._exists and self._dict["isCollection"]
+    def isResource(self):
+        return self._exists and not self._dict["isCollection"]
+    def contentLength(self):
+        return self._dict.get("contentLength")
+    def contentType(self):
+        return self._dict.get("contentType")
+    def created(self):
+        return self._dict.get("created")
+    def displayName(self):
+        return self._dict.get("displayName")
+    def displayType(self):
+        return self._dict.get("displayType")
+    def etag(self):
+        return self._dict.get("etag")
+    def modified(self):
+        return self._dict.get("modified")
+    def name(self):
+        return self._dict.get("name")
+    def supportRanges(self):
+        return self._dict.get("supportRanges")
+    def supportEtag(self):
+        return self._dict.get("etag") is not None
+    def supportModified(self):
+        return self._dict.get("modified") is not None
+    def supportContentLength(self):
+        return self._dict.get("contentLength") is not None
 
 
 #===============================================================================
@@ -76,45 +130,44 @@ _livePropNames = ['{DAV:}creationdate',
 #===============================================================================
 
 class DAVProvider(object):
-    """Abstract base class for DAV resource providers."""
+    """Abstract base class for DAV resource providers.
+    
+    There will be only one DAVProvider instance per share (not per request).
+    """
     
     
     """Available info types, that a DAV Provider MAY support.
        See DAVProvider.getInfoDict() for details."""
-    INFO_TYPES = ["contentLength",
-                  "contentType",
-                  "created",
-                  "displayName",
-                  "displayType",
-                  "etag",
-                  "isCollection", 
-                  "modified",
-                  "name",
-                  "supportRanges",
-                  ]
-       
 
     def __init__(self):
         self.mountPath = ""
-        self.sharePath = None # TODO_ define encoding / quoting
+        self.sharePath = None 
         self.lockManager = None
         self.propManager = None 
         self.verbose = 2
         self.caseSensitiveUrls = True
 
     
-    def _log(self, msg):
-        if self.verbose >= 2:
-            print msg
+    def __repr__(self):
+        return self.__class__.__name__
 
 
+    def setMountPath(self, mountPath):
+        """Set application root for this resource provider.
+        
+        This is the value of SCRIPT_NAME, when WsgiDAVApp is called.
+        """
+        assert mountPath in ("", "/") or not mountPath.endswith("/")
+        self.mountPath = mountPath
+
+    
     def setSharePath(self, sharePath):
         """Set application location for this resource provider.
         
-        @param sharePath: a ISO-8859-1 encoded byte string (unquoted).
+        @param sharePath: a UTF-8 encoded, unquoted byte string.
         """
         if isinstance(sharePath, unicode):
-            sharePath = sharePath.encode("iso_8859_1")
+            sharePath = sharePath.encode("utf8")
         assert sharePath=="" or sharePath.startswith("/")
         if sharePath == "/":
             sharePath = ""  # This allows to code 'absPath = sharePath + path'
@@ -137,7 +190,10 @@ class DAVProvider(object):
         Different URLs may map to the same resource, e.g.:
             '/a/b' == '/A/b' == '/a/b/'
         getPreferredPath() returns the same value for all these variants, e.g.:
-            '/a/b/'
+            '/a/b/'   (assuming resource names considered case insensitive)
+
+        @param path: a UTF-8 encoded, unquoted byte string.
+        @return: a UTF-8 encoded, unquoted byte string.
         """
         if path in ("", "/"):
             return "/"
@@ -153,45 +209,62 @@ class DAVProvider(object):
         
 
     def getRefUrl(self, path):
-        """Return the quoted, absolute, unique URL of a resource, relative to the server.
+        """Return the quoted, absolute, unique URL of a resource, relative to appRoot.
         
-        Byte string, ISO-8859-1 encoded.
+        Byte string, UTF-8 encoded, quoted.
         Starts with a '/'. Collections also have a trailing '/'.
         
-        This is basically the same as normPath, but deals with 'virtual locations'
-        as well.
-        Since it is always unique for one resource, <refUrl> is used as key for the
-        lock- and property storage.
+        This is basically the same as getPreferredPath, but deals with 
+        'virtual locations' as well.
         
         e.g. '/a/b' == '/A/b' == '/bykey/123' == '/byguid/as532'
         
         getRefUrl() returns the same value for all these URLs, so it can be
-        used for locking and persistence. 
+        used as a key for locking and persistence storage. 
 
-        DAV providers that allow these virtual-mappings must  override this 
-        method.
+        DAV providers that allow virtual-mappings must override this method.
 
         See also comments in DEVELOPERS.txt glossary.
         """
         return urllib.quote(self.sharePath + self.getPreferredPath(path))
 
 
+#    def getRefKey(self, path):
+#        """Return an unambigous identifier string for a resource.
+#        
+#        Since it is always unique for one resource, <refKey> is used as key for 
+#        the lock- and property storage dictionaries.
+#        
+#        This default implementation calls getRefUrl(), and strips a possible 
+#        trailing '/'.
+#        """
+#        refKey = self.getRefUrl(path)
+#        if refKey == "/":
+#            return refKey
+#        return refKey.rstrip("/")
+
+
     def getHref(self, path):
         """Convert path to a URL that can be passed to XML responses.
+        
+        Byte string, UTF-8 encoded, quoted.
+
         @see http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3
-             We are using the path-absolute option. i.e. starting with '/'. 
+        We are using the path-absolute option. i.e. starting with '/'. 
         URI ; See section 3.2.1 of [RFC2068]
         """
-        # TODO: Nautilus chokes, if href encodes '(' as '%28'
+        # Nautilus chokes, if href encodes '(' as '%28'
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
-
-        return urllib.quote(self.sharePath + self.getPreferredPath(path), safe=safe)
+        return urllib.quote(self.mountPath + self.sharePath + self.getPreferredPath(path), safe=safe)
 
 
     def refUrlToPath(self, refUrl):
-        """Convert a refUrl to a path, by stripping the mount prefix."""
-        return "/" + urllib.unquote(refUrl.lstrip(self.sharePath).lstrip("/"))
+        """Convert a refUrl to a path, by stripping the mount prefix.
+        
+        Used to calculate the <path> from a storage key by inverting getRefUrl().
+        """
+        return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
 
     def getParent(self, path):
@@ -206,7 +279,7 @@ class DAVProvider(object):
 
 
     def getMemberNames(self, path):
-        """Return list of (direct) collection member names (ISO-8859-1 byte strings).
+        """Return list of (direct) collection member names (UTF-8 byte strings).
         
         Every provider must override this method.
         """
@@ -221,12 +294,15 @@ class DAVProvider(object):
         """Return iterator of child path's.
         
         This default implementation calls getMemberNames() recursively.
-         
-        @param deptFirst: use <False>, to list containers before content.
-                          (e.g. when moving / copying branches.)
-                          Use <True>, to list content before containers. 
-                          (e.g. when deleting branches.)
-        @param depth: '0' | '1' | 'infinity'
+        
+        :Parameters:
+            depthFirst : bool
+                use <False>, to list containers before content.
+                (e.g. when moving / copying branches.)
+                Use <True>, to list content before containers. 
+                (e.g. when deleting branches.)
+            depth : string
+                '0' | '1' | 'infinity'
         """
         assert depth in ("0", "1", "infinity")
 
@@ -265,22 +341,24 @@ class DAVProvider(object):
         return list(self.iter(path, collections=True, resources=True, depthFirst=False, depth="1", addSelf=False))
         
         
-    def getSupportedInfoTypes(self, path):
-        """Return a list of supported information types for a resource.
-        
-        Return None, if <path> does not exist.
-        Otherwise return a list with a subset of DAVProvider.INFO_TYPES 
-
-        This method must be implemented.
-        """
-        raise NotImplementedError()
-    
-    
     def getInfoDict(self, path, typeList=None):
-        """Return info dictionary for path.
+        """Return an info dictionary for path.
 
-        This function is used to ...
-         
+        This function is mainly used to query live properties for a resource.
+        Also display information should be provided here, that can be used to 
+        render HTML directories. 
+        
+        The assumption is, that it is more efficient to query all infos in one
+        call, rather than have single calls for every info type. 
+
+        ``getInfoDict()`` is called indirectly by the ``DAVResource`` constructor.
+        It should be called only once per request and resource::
+            
+            davres = DAVResource(davprovider, path)
+            [..]
+            if davres.exists():
+                print davres.contentType()
+        
         Return None, if <path> does not exist.
         
         Otherwise return a dictionary with these items:
@@ -296,7 +374,8 @@ class DAVProvider(object):
                 (int) last modification date (in seconds, compatible with time module)
             created: 
                 (int) creation date (in seconds, compatible with time module)
-        and for simple resources (i.e. isCollection == False):
+        
+        and additionally for simple resources (i.e. isCollection == False):
             contentType:
                 (str) MIME type of content
             contentLength: 
@@ -310,31 +389,17 @@ class DAVProvider(object):
         not supported.   
 
         typeList MAY be passed, to specify a list of requested information types.
-        A caller may pass an empty array, if he only wants to check for existence.
-
         The implementation MAY uses this list to avoid expensive calculation of
         unwanted information types.
+
+        A caller may pass an empty array for typeList, if he only wants to check 
+        for the existence of path.
 
         This method must be implemented.
         """
         raise NotImplementedError()
 
 
-    def isInfoTypeSupported(self, path, infoType):
-        """Shortcut to query support of one single info type via getSupportedInfoTypes().
-        
-        This method may be overridden with a more efficient version.
-        """
-        assert infoType in DAVProvider.INFO_TYPES
-        return infoType in self.getSupportedInfoTypes(path)
-    
-    
-    def getInfo(self, path, infoType):
-        """Shortcut to query one single value via getInfoDict(). """
-        assert infoType in DAVProvider.INFO_TYPES
-        return self.getInfoDict(path, [infoType]).get(infoType)
-
-    
     def exists(self, path):
         """Return True, if path maps to an existing resource.
 
@@ -361,10 +426,10 @@ class DAVProvider(object):
     
     # --- Properties -----------------------------------------------------------
      
-    def getPropertyNames(self, path, mode="allprop"):
+    def getPropertyNames(self, davres, mode="allprop"):
         """Return list of supported property names in Clark Notation.
         
-        @param mode: 'allprop': common properties, that should be send on 'allprop' requests. 
+        @param mode: 'allprop': common properties, that should be sent on 'allprop' requests. 
                      'propname': all available properties.
 
         This default implementation returns a combination of:
@@ -379,7 +444,7 @@ class DAVProvider(object):
             raise ValueError("Invalid mode '%s'." % mode)
 
         # use a copy
-        propNameList = self.getSupportedLivePropertyNames(path) [:]
+        propNameList = self.getSupportedLivePropertyNames(davres) [:]
 
         if self.lockManager:
             if not "{DAV:}lockdiscovery" in propNameList:
@@ -388,46 +453,47 @@ class DAVProvider(object):
                 propNameList.append("{DAV:}supportedlock")
         
         if self.propManager:
-            refUrl = self.getRefUrl(path)
+            refUrl = self.getRefUrl(davres.path)
             for deadProp in self.propManager.getProperties(refUrl):
                 propNameList.append(deadProp)
         return propNameList
 
 
-    def getProperties(self, path, mode, nameList=None, namesOnly=False):
+    def getProperties(self, davres, mode, nameList=None, namesOnly=False):
         """Return properties as list of 2-tuples (name, value).
 
-        <name> is the property name in Clark notation.
-        <value> may have different types, depending on the status: 
+        name 
+            is the property name in Clark notation.
+        value 
+            may have different types, depending on the status: 
             - string or unicode: for standard property values.
-            - lxml.etree.Element: for complex values.
+            - etree.Element: for complex values.
             - DAVError in case of errors.
             - None: if namesOnly was passed.
 
         @param path: 
         @param mode: "allprop", "propname", or "named"
         @param nameList: list of property names in Clark Notation (only for mode 'named')
-        @param namesOnly: return None for <value>  
+        @param namesOnly: return None for <value>
+        @param davres: pass a DAVResource to access cached info  
         """
         if not mode in ("allprop", "propname", "named"):
             raise ValueError("Invalid mode '%s'." % mode)
 
         if mode in ("allprop", "propname"):
             # TODO: allprop can have nameList, when <include> option is implemented
-            # TODO: we create a namelist for the root path, but it should be constructed for every child individually?
             assert nameList is None
-            nameList = self.getPropertyNames(path, mode)
+            nameList = self.getPropertyNames(davres, mode)
         else:
             assert nameList is not None
-            
-        
+
         propList = []
         for name in nameList:
             try:
                 if namesOnly:
                     propList.append( (name, None) )
                 else:
-                    value = self.getPropertyValue(path, name)
+                    value = self.getPropertyValue(davres.path, name, davres)
                     propList.append( (name, value) )
             except DAVError, e:
                 propList.append( (name, e) )
@@ -439,11 +505,17 @@ class DAVProvider(object):
         return propList
 
 
-    def getPropertyValue(self, path, name):
+    def getPropertyValue(self, path, propname, davres=None):
         """Return the value of a property.
         
-        name:
+        path:
+            resource path.
+        propname:
             is the property name in Clark notation.
+        davres:
+            DAVResource instance. Contains cached resource information.
+            Manadatory for live properties, but may be omitted for 
+            '{DAV:}lockdiscovery' or dead properties.
         return value:
             may have different types, depending on the status:
              
@@ -455,19 +527,21 @@ class DAVProvider(object):
         This default implementation handles ``{DAV:}lockdiscovery`` and
         ``{DAV:}supportedlock`` using the associated lock manager.
         
-        All other *live* properties (i.e. name starts with ``{DAV:}``) are 
+        All other *live* properties (i.e. propname starts with ``{DAV:}``) are 
         delegated to self.getLivePropertyValue()
         
         Finally, other properties are considered *dead*, and are handled  using 
         the associated property manager. 
         """
         refUrl = self.getRefUrl(path)
-#        refUrl = str(refUrl)
-        if self.lockManager and name == '{DAV:}lockdiscovery':
+
+#        print "getPropertyValue(%s, %s)" % (path, propname)
+        
+        if self.lockManager and propname == "{DAV:}lockdiscovery":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
             lm = self.lockManager     
             activelocklist = lm.getUrlLockList(refUrl)
-            lockdiscoveryEL = etree.Element(name)
+            lockdiscoveryEL = etree.Element(propname)
             for lock in activelocklist:
                 activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
 
@@ -484,9 +558,9 @@ class DAVProvider(object):
                 
                 timeout = lock["timeout"]
                 if timeout < 0:
-                    timeout =  'Infinite'
+                    timeout =  "Infinite"
                 else:
-                    timeout = 'Second-' + str(long(timeout - time.time())) 
+                    timeout = "Second-" + str(long(timeout - time.time())) 
                 etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
                 
                 locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
@@ -498,10 +572,10 @@ class DAVProvider(object):
 
             return lockdiscoveryEL            
 
-        elif self.lockManager and name == '{DAV:}supportedlock':
+        elif self.lockManager and propname == "{DAV:}supportedlock":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
             # TODO: the lockmanager should decide about it's features
-            supportedlockEL = etree.Element(name)
+            supportedlockEL = etree.Element(propname)
 
             lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
             lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
@@ -517,14 +591,15 @@ class DAVProvider(object):
             
             return supportedlockEL
 
-        elif name.startswith("{DAV:}"):
+        elif propname.startswith("{DAV:}"):
+            assert davres is not None, "Must pass DAVResource for querying live properties"
             # Standard live property (raises HTTP_NOT_FOUND if not supported)
-            return self.getLivePropertyValue(path, name)
+            return self.getLivePropertyValue(davres, propname)
         
         # Dead property
         if self.propManager:
             refUrl = self.getRefUrl(path)
-            value = self.propManager.getProperty(refUrl, name)
+            value = self.propManager.getProperty(refUrl, propname)
             if value is not None:
 #                return value 
                 return etree.XML(value) 
@@ -533,7 +608,7 @@ class DAVProvider(object):
         raise DAVError(HTTP_NOT_FOUND)               
     
 
-    def setPropertyValue(self, path, name, value, dryRun=False):
+    def setPropertyValue(self, path, propname, value, dryRun=False):
         """Set or remove property value.
         
         value == None means 'remove property'.
@@ -544,29 +619,29 @@ class DAVProvider(object):
         run, but MUST NOT change any data.
                  
         @param path:
-        @param name: property name in Clark Notation
+        @param propname: property name in Clark Notation
         @param value: value == None means 'remove property'.
         @param dryRun: boolean
         """
 #        if value is not None and not isinstance(value, (unicode, str, etree._Element)):
         if value is not None and not isinstance(value, (etree._Element)):
             raise ValueError() 
-        if self.lockManager and name in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
+        if self.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
             raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
                            preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
-        if name.startswith("{DAV:}"):
+        if propname.startswith("{DAV:}"):
             # raises DAVError(HTTP_FORBIDDEN) if read-only, or not supported
-            return self.setLivePropertyValue(path, name, value, dryRun)
+            return self.setLivePropertyValue(path, propname, value, dryRun)
         # Dead property
         if self.propManager:
             # TODO: do we write all proprties?
             # TODO: accept etree._Element
             refUrl = self.getRefUrl(path)
             if value is None:
-                return self.propManager.removeProperty(refUrl, name)
+                return self.propManager.removeProperty(refUrl, propname)
             else:
-                value = etree.tostring(value, pretty_print=False)
-                return self.propManager.writeProperty(refUrl, name, value, dryRun)             
+                value = etree.tostring(value)
+                return self.propManager.writeProperty(refUrl, propname, value, dryRun)             
 
         raise DAVError(HTTP_FORBIDDEN)  # TODO: Chun used HTTP_CONFLICT 
 
@@ -577,77 +652,71 @@ class DAVProvider(object):
             self.propManager.removeProperties(self.getRefUrl(path))
 
 
-    def getSupportedLivePropertyNames(self, path):
-        """Return list of supported live properties in Clark Notation.
-
-        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
-        
-        This default implementation uses self.getSupportedInfoTypes() to figure
-        it out.
-        """
-        types = self.getSupportedInfoTypes(path)
-        appProps = [] 
-        if "created" in types:
-            appProps.append("{DAV:}creationdate")
-        if "contentType" in types:
-            appProps.append("{DAV:}getcontenttype")
-        if "isCollection" in types:
-            appProps.append("{DAV:}resourcetype")
-        if "modified" in types:
-            appProps.append("{DAV:}getlastmodified")
-        if "displayName" in types:
-            appProps.append("{DAV:}displayname")
-        if "etag" in types:
-            appProps.append("{DAV:}getetag")
-        # for non-collections:
-        if "contentLength" in types:
-            appProps.append("{DAV:}getcontentlength")
-        return appProps
-
-
-    def getLivePropertyValue(self, path, name):
+    def getSupportedLivePropertyNames(self, davres):
         """Return list of supported live properties in Clark Notation.
 
         SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
         
         This default implementation uses self.getInfoDict() to figure it out.
         """
-        # TODO: this could be more efficient if we could query a list of
-        # livre props with a single call. Currently getInfoDict is called
-        # once per prop! 
-        infos = self.getInfoDict(path)
+        propmap = {"created": "{DAV:}creationdate",
+                   "contentType": "{DAV:}getcontenttype",
+                   "isCollection": "{DAV:}resourcetype",
+                   "modified": "{DAV:}getlastmodified",
+                   "displayName": "{DAV:}displayname",
+                   "etag": "{DAV:}getetag",
+                   }
+        if not davres.isCollection():
+            propmap["contentLength"] = "{DAV:}getcontentlength"
+            
+        appProps = []
+        for k, v in propmap.items(): 
+            if k in davres._dict:
+                appProps.append(v)
+        return appProps
 
-        if name == '{DAV:}creationdate':
-            return util.getRfc1123Time(infos["created"])
 
-        elif name == '{DAV:}getcontenttype':
-            return infos["contentType"]
+    def getLivePropertyValue(self, davres, propname):
+        """Return list of supported live properties in Clark Notation.
+
+        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
         
-        elif name == '{DAV:}resourcetype':
-            if infos["isCollection"]:
-                resourcetypeEL = etree.Element(name)
+        This default implementation uses self.getInfoDict() to figure it out.
+        """
+        if not davres.exists():
+            raise DAVError(HTTP_NOT_FOUND)
+
+        if propname == "{DAV:}creationdate":
+            return util.getRfc1123Time(davres.created())
+
+        elif propname == "{DAV:}getcontenttype":
+            return davres.contentType()
+        
+        elif propname == "{DAV:}resourcetype":
+            if davres.isCollection():
+                resourcetypeEL = etree.Element(propname)
                 etree.SubElement(resourcetypeEL, "{DAV:}collection")
                 return resourcetypeEL            
             return ""   
         
-        elif name == '{DAV:}getlastmodified':
-            return util.getRfc1123Time(infos["modified"])
+        elif propname == "{DAV:}getlastmodified":
+            return util.getRfc1123Time(davres.modified())
         
-        elif name == '{DAV:}getcontentlength':
-            if infos["contentLength"] is not None:
-                return str(infos["contentLength"])
+        elif propname == "{DAV:}getcontentlength":
+            if davres.contentLength() is not None:
+                return str(davres.contentLength())
         
-        elif name == '{DAV:}getetag':
-            return infos["etag"]
+        elif propname == "{DAV:}getetag":
+            return davres.etag()
 
-        elif name == '{DAV:}displayname':
-            return infos["displayName"]
+        elif propname == "{DAV:}displayname":
+            return davres.displayName()
 
         # No persistence available, or property not found
         raise DAVError(HTTP_NOT_FOUND)               
 
 
-    def setLivePropertyValue(self, path, name, value, dryRun=False):
+    def setLivePropertyValue(self, path, propname, value, dryRun=False):
         """Set or remove a live property value.
         
         value == None means 'remove property'.
@@ -663,7 +732,7 @@ class DAVProvider(object):
         removed.
 
         @param path:
-        @param name: property name in Clark Notation
+        @param propname: property name in Clark Notation
         @param value: value == None means 'remove property'.
         @param dryRun: boolean
         
@@ -716,7 +785,7 @@ class DAVProvider(object):
         raise DAVError(HTTP_FORBIDDEN)               
 
     
-    def openResourceForRead(self, path):
+    def openResourceForRead(self, path, davres=None):
         """Every provider must override this method."""
         raise NotImplementedError()
     

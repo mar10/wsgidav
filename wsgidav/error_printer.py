@@ -82,7 +82,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 import util
 from dav_error import DAVError, getHttpStatusString, asDAVError,\
@@ -111,10 +111,10 @@ class ErrorPrinter(object):
                     util.debug("sc", "ErrorPrinter: yield start")
                     yield v
                     util.debug("sc", "ErrorPrinter: yield end")
-            except GeneratorExit:
-                # TODO: required?
-                util.debug("sc", "GeneratorExit")
-                raise
+#            except GeneratorExit:
+#                # TODO: required?
+#                util.debug("sc", "GeneratorExit")
+#                raise
             except DAVError, e:
                 util.debug("sc", "re-raising %s" % e)
                 raise
@@ -122,7 +122,8 @@ class ErrorPrinter(object):
                 util.debug("sc", "re-raising 2 - %s" % e)
                 if self._catch_all_exceptions:
                     # Catch all exceptions to return as 500 Internal Error
-                    traceback.print_exc(10, sys.stderr) 
+#                    traceback.print_exc(10, sys.stderr) 
+                    traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr) 
                     raise asDAVError(e)               
                 else:
                     util.log("ErrorPrinter: caught Exception")
@@ -136,26 +137,26 @@ class ErrorPrinter(object):
             
             if evalue == HTTP_INTERNAL_ERROR:# and e.srcexception:
                 print >>sys.stderr, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
-                traceback.print_exc(10, sys.stderr) # TODO: inserted this for debugging
+                traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr) # TODO: inserted this for debugging
                 print >>sys.stderr, "e.srcexception:\n%s" % e.srcexception
 
             if evalue in ERROR_RESPONSES:                  
-                respbody = '<html><head><title>' + respcode + '</title></head><body><h1>' + respcode + '</h1>' 
-                respbody = respbody + '<p>' + ERROR_RESPONSES[evalue] + '</p>'         
+                respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1>" 
+                respbody = respbody + "<p>" + ERROR_RESPONSES[evalue] + "</p>"         
                 if e.contextinfo:
                     respbody +=  "%s\n" % e.contextinfo
-                respbody += '<hr>\n'
+                respbody += "<hr>\n"
                 if self._server_descriptor:
-                    respbody = respbody + self._server_descriptor + '<hr>'
-                respbody = respbody + datestr + '</body></html>'        
+                    respbody = respbody + self._server_descriptor + "<hr>"
+                respbody = respbody + datestr + "</body></html>"        
             else:
                 # TODO: added html body, to see if this fixes 'connection closed' bug  
-                respbody = '<html><head><title>' + respcode + '</title></head><body><h1>' + respcode + '</h1></body></html>'
+                respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1></body></html>"
 
             util.debug("sc", "Return error html %s: %s" % (respcode, respbody))
             start_response(respcode, 
-                           [('Content-Type', 'text/html'), 
-                            ('Date', datestr)
+                           [("Content-Type", "text/html"), 
+                            ("Date", datestr)
                             ],
 #                           sys.exc_info() # TODO: Always provide exc_info when beginning an error response?
                            ) 

@@ -1,0 +1,10 @@
+glob:*.pyc
+glob:*.confc
+glob:build
+glob:WsgiDAV.egg-info/
+glob:docs/api
+glob:*.shelve
+glob:wsgidav.conf
+glob:dist
+glob:*.orig
+glob:.settings

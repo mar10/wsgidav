@@ -3,10 +3,10 @@ WsgiDAV Developers Guide
 ========================
 
 :Authors: - Ho Chun Wei, fuzzybr80(at)gmail.com (original PyFileServer)
-          - Martin Wendt
+          - Martin Wendt (WsgiDAV)
 :Project: WsgiDAV, http://wsgidav.googlecode.com/
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
-:Abstract: This document gives a brief introduction to the WsgiDAV application package.
+:Abstract: This document gives a brief introduction to the WsgiDAV application package (targeted to developers).
 
 
 .. contents:: Table Of Contents
@@ -36,15 +36,17 @@ WSGI application stack::
                     |
                   error_printer.ErrorPrinter (middleware)
                     |
-                  httpauthentication.HTTPAuthenticator (middleware)
+                  http_authenticator.HTTPAuthenticator (middleware)
                     |           \- Uses a domain controller object 
                     |
                   dir_browser.WsgiDavDirBrowser (middleware, optional)
                     |
-                  requestresolver.RequestResolver (middleware)
+                  request_resolver.RequestResolver (middleware)
                     |
-                    *-> requestserver.RequestServer (application)
+                    *-> request_server.RequestServer (application)
                                 \- Uses a DAVProvider object 
+                                    \- Uses a lock manager object 
+                                       and  a property  manager object 
 
 See the following sections for details.
 
@@ -59,6 +61,7 @@ Main module, that handles the HTTP requests. This object is passed to the WSGI
 server and represents our WsgiDAV application to the outside.
  
 On init:
+
     Use the configuration dictionary to initialize lock manager, property manager,
     domain controller. 
 
@@ -69,11 +72,9 @@ On init:
       
 For every request:
 
-    Note: The OPTIONS method for the '*' path is handled directly.
-
     Find the registered DAV provider for the current request.   
     
-    Add or modify info in the WSGI ``eniron``:
+    Add or modify info in the WSGI ``environ``:
     
         environ["SCRIPT_NAME"]
             Mount-point of the current share.            
@@ -89,6 +90,7 @@ For every request:
 
     Log the HTTP request, then pass the request to the first middleware.
 
+    Note: The OPTIONS method for the '*' path is handled directly.
 
 
 Middleware ``debug_filter.WsgiDavDebugFilter``
@@ -96,11 +98,13 @@ Middleware ``debug_filter.WsgiDavDebugFilter``
 Optional middleware for debugging. 
 
 On init:
+
     Define HTTP methods and litmus tests, that should turn on the verbose mode
     (currently hard coded).
               
 For every request:
-    Increase value of ``eniron['verbose']``, if the request should be debugged.
+
+    Increase value of ``environ['verbose']``, if the request should be debugged.
     Also dump request and response headers and body.
     
     Then pass the request to the next middleware.  
@@ -119,7 +123,7 @@ For every request:
     Internal exceptions are converted to HTTP_INTERNAL_ERRORs.  
 
 
-Middleware ``httpauthentication.HTTPAuthenticator``
+Middleware ``http_authenticator.HTTPAuthenticator``
 ---------------------------------------------------
 Uses a domain controller to establish HTTP authentication.
 
@@ -141,22 +145,26 @@ Middleware ``dir_browser.WsgiDavDirBrowser``
 Handles GET requests on collections to display a HTML directory listing.
 
 On init:
+
     -
     
 For every request:
+
     If path maps to a collection: 
         Render collection members as directory (HTML table).  
 
 
-Middleware ``requestresolver.RequestResolver``
-----------------------------------------------
+Middleware ``request_resolver.RequestResolver``
+-----------------------------------------------
 Find the mapped DAV-Provider, create a new RequestServer instance, and dispatch 
 the request.
  
 On init:
+
     Store URL-to-DAV-Provider mapping.
               
 For every request:
+
     Setup ``environ["SCRIPT_NAME"]`` to request realm and and 
     ``environ["PATH_INFO"]`` to resource path.
     
@@ -166,19 +174,20 @@ For every request:
     Note: The OPTIONS method for '*' is handled directly.
 
 
-Application ``requestserver.RequestServer``
--------------------------------------------
+Application ``request_server.RequestServer``
+--------------------------------------------
 Handles one single WebDAV request.
  
 On init:
+
     Store a reference to the DAV-Provider object.
               
 For every request:
+
     Handle one single WebDAV method (PROPFIND, PROPPATCH, LOCK, ...) using a 
     DAV-Provider instance. Then return the response body or raise an DAVError.
     
     Note: this object only handles one single request.  
-
 
 
 API documentation
@@ -197,23 +206,23 @@ All DAV providers must implement a common interface. This is usually done by
 deriving from the abstract base class ``dav_provider.DAVProvider``.
 
 WsgiDAV comes with a DAV provider for file systems, called 
-``fs_dav_provider.FilesystemProvider``. That is why WsgiDAV a WebDAV file
+``fs_dav_provider.FilesystemProvider``. That is why WsgiDAV is a WebDAV file
 server out-of-the-box. 
 
 There are also a few other modules that may serve as examples on how to plug-in
 your own custom DAV providers: 
 
-ReadOnlyFilesystemProvider
+fs_dav_provider.ReadOnlyFilesystemProvider
     Similar to ``FilesystemProvider``, but raise HTTP_FORBIDDEN on write access
     attempts.
 
-DummyDAVProvider
+addons.dummy_dav_provider.DummyDAVProvider
     TODO
 
-VirtualResourceProvider
+addons.virtual_dav_provider.VirtualResourceProvider
     TODO
 
-SimpleMySQLResourceAbstractionLayer
+addons.mysql_dav_provider.MySQLBrowserProvider
     TODO
 
 
@@ -222,10 +231,16 @@ Property Managers
 DAV providers may use a property manager to support persistence for *dead 
 properties*.  
 
-WsgiDAV comes with a default implementation based in shelve, called 
-``property_manager.PropertyManager``.
+WsgiDAV comes with two default implementations, one based on a in-memory 
+dictionary, and a persistent one based in shelve::
 
-However, this may be replaced by a custom version, as long as the required
+    property_manager.PropertyManager
+    property_manager.ShelvePropertyManager
+
+``PropertyManager`` is used by default, but ``ShelvePropertyManager`` can be 
+enabled by uncommenting two lines in the configuration file.
+
+In addition, this may be replaced by a custom version, as long as the required
 interface is implemented.
   
 
@@ -234,10 +249,16 @@ Lock Managers
 DAV providers may use a lock manager to support exclusive and shared write 
 locking.  
 
-WsgiDAV comes with a default implementation based in shelve, called 
-``lock_manager.LockManager``.
+WsgiDAV comes with two default implementations, one based on a in-memory 
+dictionary, and a persistent one based in shelve::
 
-However, this may be replaced by a custom version, as long as the required
+    lock_manager.LockManager
+    lock_manager.ShelveLockManager
+
+``LockManager`` is used by default, but ``ShelveLockManager`` can be 
+enabled by uncommenting two lines in the configuration file.
+
+In addition, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
 
@@ -252,7 +273,7 @@ the config file.
 However, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
-``wsgidav.addons.windowsdomaincontroller`` is an example for such an extension.   
+``wsgidav.addons.nt_domain_controller`` is an example for such an extension.   
 
 
 Other objects
@@ -341,7 +362,7 @@ You will find this terms / naming conventions in the source:
   URL (after the mount path was popped). 
   The share path is the common URL prefix of this URL.
   
-  TODO: do we need to distinguish between server mount points ('mount path') and
+  TODO: do we need to ditinguish between server mount points ('mount path') and
   WsgiDAV mount points ('share path')? 
     
   Constructed like
@@ -401,7 +422,7 @@ You will find this terms / naming conventions in the source:
 
 
 *reference URL*:
-  Quoted, ISO-8859-1 encoded byte string.
+  Quoted, UTF-8 encoded byte string.
 
   This is basically the same as an URL, that was build from the *preferred path*. 
   But this deals with 'virtual locations' as well.
@@ -430,7 +451,7 @@ You will find this terms / naming conventions in the source:
 
 
 *href*:
-  **Quoted**,  ISO-8859-1 encoded byte string.
+  **Quoted**,  UTF-8 encoded byte string.
   
   Used in XML responses. We are using the path-absolute option. i.e. starting 
   with '/'.  (See http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3)
@@ -439,4 +460,13 @@ You will find this terms / naming conventions in the source:
       href = quote(mountPath + preferredPath)
   Example:
       "/dav/public/my%20nice%20doc.txt"
+
+      
+*filePath*:
+  Unicode
+  
+  Used by fs_dav_provider when serving files from the file system.
+  (At least on Vista) os.path.exists(filePath) returns False, if a file name contains 
+  special characters, even if it is correctly UTF-8 encoded.
+  So we convert to unicode.
   

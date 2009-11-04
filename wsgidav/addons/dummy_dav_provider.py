@@ -20,7 +20,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 from wsgidav.dav_provider import DAVProvider
 
@@ -121,16 +121,16 @@ class DummyDAVProvider(DAVProvider):
         return super(DummyDAVProvider, self).getResourceInfo(path)
     
 
-    def getPropertyNames(self, path, mode="allprop"):
+    def getPropertyNames(self, davres, mode="allprop"):
         """Return list of supported property names in Clark Notation.
         
         @param mode: 'allprop': common properties, that should be send on 'allprop' requests. 
                      'propname': all available properties.
         """
-        return super(DummyDAVProvider, self).getPropertyNames(path, mode)
+        return super(DummyDAVProvider, self).getPropertyNames(davres, mode)
 
 
-    def getProperties(self, path, mode, nameList=None, namesOnly=False):
+    def getProperties(self, davres, mode, nameList=None, namesOnly=False):
         """Return properties as list of 2-tuples (name, value).
 
         <name> is the property name in Clark notation.
@@ -146,11 +146,11 @@ class DummyDAVProvider(DAVProvider):
         @param nameList: list of property names in Clark Notation (only for mode 'named')
         @param namesOnly: return None for <value>  
         """
-        return super(DummyDAVProvider, self).getProperties(path, mode, nameList, namesOnly)
+        return super(DummyDAVProvider, self).getProperties(davres, mode, nameList, namesOnly)
 
 
-    def getPropertyValue(self, path, name):
-        return super(DummyDAVProvider, self).getPropertyValue(path, name)
+    def getPropertyValue(self, path, propname, davres=None):
+        return super(DummyDAVProvider, self).getPropertyValue(path, propname, davres)
 
 
     def setPropertyValue(self, path, name, value, dryRun=False):
@@ -200,7 +200,7 @@ class DummyDAVProvider(DAVProvider):
 
     #---------------------------------------------------------------------------
      
-    def getSupportedLivePropertyNames(self, path):
+    def getSupportedLivePropertyNames(self, davres):
         """Return list of supported live properties in Clark Notation.
 
         Do NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
@@ -208,7 +208,7 @@ class DummyDAVProvider(DAVProvider):
         return NotImplementedError()  # Provider must override this
 
 
-    def getLivePropertyValue(self, path, name):
+    def getLivePropertyValue(self, davres, propname):
         """Set list of supported live properties in Clark Notation.
         
         Raise HTTP_NOT_FOUND if property is not supported.

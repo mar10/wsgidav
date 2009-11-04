@@ -5,21 +5,17 @@
 Implementation of a domain controller that allows users to authenticate against 
 a Windows NT domain or a local computer (used by HTTPAuthenticator).
 
-+-------------------------------------------------------------------------------+
-| The following documentation was taken over from PyFileServer and is outdated! |
-+-------------------------------------------------------------------------------+
-
 Purpose
 -------
 
 Usage::
    
-   from wsgidav.addons.windowsdomaincontroller import SimpleWindowsDomainController
-   domaincontroller = SimpleWindowsDomainController(presetdomain = None, presetserver = None)
+   from wsgidav.addons.nt_domain_controller import NTDomainController
+   domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
    
 where: 
 
-+ domaincontroller object corresponds to that in ``PyFileServer.conf`` or
++ domaincontroller object corresponds to that in ``wsgidav.conf`` or
   as input into ``wsgidav.http_authenticator.HTTPAuthenticator``.
 
 + presetdomain allows the admin to specify a domain to be used (instead of any domain that
@@ -51,7 +47,7 @@ Testability and caveats
 
 **Digest Authentication**
    Digest authentication requires the password to be retrieve from the system to compute
-   the correct digest for comparison. This is sofar impossible (and indeed would be a 
+   the correct digest for comparison. This is so far impossible (and indeed would be a 
    big security loophole if it was allowed), so digest authentication WILL not work
    with this class. 
    
@@ -77,20 +73,26 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-
-__docformat__ = 'reStructuredText'
-
+from wsgidav import util
 
 import win32net
 import win32security
-import win32api
+#import win32api
 import win32netcon
 
-class SimpleWindowsDomainController(object):
+__docformat__ = "reStructuredText"
+_logger = util.getModuleLogger(__name__)
+
+
+class NTDomainController(object):
       
     def __init__(self, presetdomain = None, presetserver = None):
         self._presetdomain = presetdomain
         self._presetserver = presetserver
+
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
     def getDomainRealm(self, inputURL, environ):
@@ -112,13 +114,15 @@ class SimpleWindowsDomainController(object):
         dcname = self._getDomainControllerName(domain)
         
         try: 
-            userdata = win32net.NetUserGetInfo(dcname,user,1)
+            userdata = win32net.NetUserGetInfo(dcname, user, 1)
         except:
-            userdata = dict()
-        if 'password' in userdata:
-            if userdata['password'] != None:
-                return userdata['password']
-        return None
+            _logger.exception("NetUserGetInfo")
+            userdata = {}
+#        if "password" in userdata:
+#            if userdata["password"] != None:
+#                return userdata["password"]
+#        return None
+        return userdata.get("password")
 
       
     def authDomainUser(self, realmname, username, password, environ):
@@ -141,6 +145,7 @@ class SimpleWindowsDomainController(object):
 
         return (domain, username)
 
+
     def _getDomainControllerName(self, domain):
         if self._presetserver != None:
             return self._presetserver
@@ -153,22 +158,29 @@ class SimpleWindowsDomainController(object):
         
         return pdc
 
+
     def _isUser(self, username, domain, server):
-        resume = 'init'
-        userslist = []
+        resume = "init"
         while resume:
-            if resume == 'init': resume = 0
+            if resume == "init":
+                resume = 0
             try:
-                users, total, resume = win32net.NetUserEnum(server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0)
-                userslist += users
+                users, _total, resume = win32net.NetUserEnum(server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0)
+                # Make sure, we compare unicode
+                un = username.decode("utf8").lower()
                 for userinfo in users:
-                    if username.lower() == str(userinfo['name']).lower():
+                    uiname = userinfo.get("name")
+                    assert uiname
+                    assert isinstance(uiname, unicode)
+                    if un == userinfo["name"].lower():
                         return True
-            except win32net.error, err:
-                #print err
+            except win32net.error, e:
+                _logger.exception("NetUserEnum: %s" % e)
                 return False
+        _logger.info("User '%s' not found on server '%s'" % (username, server))
         return False
         
+
     def _authUser(self, username, password, domain, server):
         if not self._isUser(username, domain, server):
             return False
@@ -176,10 +188,12 @@ class SimpleWindowsDomainController(object):
         try:
             htoken = win32security.LogonUser(username, domain, password, win32security.LOGON32_LOGON_NETWORK, win32security.LOGON32_PROVIDER_DEFAULT)
         except win32security.error, err:
-            #print err
+            _logger.warning("LogonUser failed for user '%s': %s" % (username, err))
             return False
         else:
             if htoken: 
                 htoken.Close() #guarantee's cleanup
+                _logger.debug("User '%s' logged on." % username)
                 return True
+            _logger.warning("Logon failed for user '%s'." % username)
             return False    

@@ -1,6 +1,6 @@
 """
 Running WsgiDAV
-====================
+===============
 
 WsgiDAV comes bundled with a simple WSGI webserver.
 
@@ -57,6 +57,7 @@ It includes code from the following sources:
 flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618> under public domain. 
 
 """
+from wsgidav.version import __version__
 import socket
 
 
@@ -69,6 +70,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+_logger = util.getModuleLogger(__name__)
 
 SERVER_ERROR = """\
 <html>
@@ -85,7 +87,7 @@ SERVER_ERROR = """\
 
 class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     
-    _SUPPORTED_METHODS = ['HEAD','GET','PUT','POST','OPTIONS','TRACE','DELETE','PROPFIND','PROPPATCH','MKCOL','COPY','MOVE','LOCK','UNLOCK']
+    _SUPPORTED_METHODS = ["HEAD","GET","PUT","POST","OPTIONS","TRACE","DELETE","PROPFIND","PROPPATCH","MKCOL","COPY","MOVE","LOCK","UNLOCK"]
     
     def log_message (self, *args):
         pass
@@ -95,7 +97,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         
     def getApp (self):
         # We want fragments to be returned as part of <path> 
-        _protocol, _host, path, _parameters, query, _fragment = urlparse.urlparse ('http://dummyhost%s' % self.path, 
+        _protocol, _host, path, _parameters, query, _fragment = urlparse.urlparse ("http://dummyhost%s" % self.path, 
                                                                                    allow_fragments=False)
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
@@ -103,9 +105,9 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 # We found the application to use - work out the scriptName and pathInfo
                 pathInfo = path [len (appPath):]
                 if (len (pathInfo) > 0):
-                    if (not pathInfo.startswith ('/')):
-                        pathInfo = '/' + pathInfo
-                if (appPath.endswith ('/')):
+                    if (not pathInfo.startswith ("/")):
+                        pathInfo = "/" + pathInfo
+                if (appPath.endswith ("/")):
                     scriptName = appPath[:-1]
                 else:
                     scriptName = appPath
@@ -121,40 +123,45 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def do_method(self):
         app, scriptName, pathInfo, query = self.getApp ()
         if (not app):
-            self.send_error (404, 'Application not found.')
+            self.send_error (404, "Application not found.")
             return
         self.runWSGIApp (app, scriptName, pathInfo, query)
 
     def __getattr__(self, name):
-        if len(name)>3 and name[0:3] == 'do_' and name[3:] in self._SUPPORTED_METHODS:
+        if len(name)>3 and name[0:3] == "do_" and name[3:] in self._SUPPORTED_METHODS:
             return self.handlerFunctionClosure(name)
         else:
-            self.send_error (501, 'Method Not Implemented.')
+            self.send_error (501, "Method Not Implemented.")
             return
 
     def runWSGIApp (self, application, scriptName, pathInfo, query):
         logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
         
-        env = {'wsgi.version': (1,0)
-                ,'wsgi.url_scheme': 'http'
-                ,'wsgi.input': self.rfile
-                ,'wsgi.errors': sys.stderr
-                ,'wsgi.multithread': 1
-                ,'wsgi.multiprocess': 0
-                ,'wsgi.run_once': 0
-                ,'REQUEST_METHOD': self.command
-                ,'SCRIPT_NAME': scriptName
-                ,'PATH_INFO': pathInfo
-                ,'QUERY_STRING': query
-                ,'CONTENT_TYPE': self.headers.get ('Content-Type', '')
-                ,'CONTENT_LENGTH': self.headers.get ('Content-Length', '')
-                ,'REMOTE_ADDR': self.client_address[0]
-                ,'SERVER_NAME': self.server.server_address [0]
-                ,'SERVER_PORT': str (self.server.server_address [1])
-                ,'SERVER_PROTOCOL': self.request_version
-                }
+        if self.command == "PUT":
+            pass # breakpoint
+        
+        env = {"wsgi.version": (1, 0),
+               "wsgi.url_scheme": "http",
+               "wsgi.input": self.rfile,
+               "wsgi.errors": sys.stderr,
+               "wsgi.multithread": 1,
+               "wsgi.multiprocess": 0,
+               "wsgi.run_once": 0,
+               "REQUEST_METHOD": self.command,
+               "SCRIPT_NAME": scriptName,
+               "PATH_INFO": pathInfo,
+               "QUERY_STRING": query,
+               "CONTENT_TYPE": self.headers.get("Content-Type", ""),
+               "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
+               "REMOTE_ADDR": self.client_address[0],
+               "SERVER_NAME": self.server.server_address[0],
+               "SERVER_PORT": str(self.server.server_address[1]),
+               "SERVER_PROTOCOL": self.request_version,
+               }
         for httpHeader, httpValue in self.headers.items():
-            env ['HTTP_%s' % httpHeader.replace ('-', '_').upper()] = httpValue
+            if not httpHeader in ("Content-Type", "Content-Length"):
+                env ["HTTP_%s" % httpHeader.replace ("-", "_").upper()] = httpValue
+#        print env["REQUEST_METHOD"], env.get("HTTP_AUTHORIZATION")
 
         # Setup the state
         self.wsgiSentHeaders = 0
@@ -162,25 +169,25 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 
         try:
             # We have there environment, now invoke the application
-            util.debug("sc", "runWSGIApp application()...")
+            _logger.debug("runWSGIApp application()...")
             result = application (env, self.wsgiStartResponse)
             try:
                 for data in result:
                     if data:
                         self.wsgiWriteData (data)
                     else:
-                        util.debug("sc", "runWSGIApp empty data")
+                        _logger.debug("runWSGIApp empty data")
             finally:
-                util.debug("sc", "runWSGIApp finally.")
-                if hasattr(result, 'close'):
+                _logger.debug("runWSGIApp finally.")
+                if hasattr(result, "close"):
                     result.close()
         except:
-            util.debug("sc", "runWSGIApp caught exception...")
+            _logger.debug("runWSGIApp caught exception...")
             errorMsg = StringIO()
             traceback.print_exc(file=errorMsg)
             logging.error (errorMsg.getvalue())
             if not self.wsgiSentHeaders:
-                self.wsgiStartResponse('500 Server Error', [('Content-type', 'text/html')])
+                self.wsgiStartResponse("500 Server Error", [("Content-type", "text/html")])
             self.wsgiWriteData(SERVER_ERROR)
         
         if (not self.wsgiSentHeaders):
@@ -189,7 +196,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
     def wsgiStartResponse (self, response_status, response_headers, exc_info=None):
-        util.debug("sc", "wsgiStartResponse(%s, %s, %s)" % (response_status, response_headers, exc_info))
+        _logger.debug("wsgiStartResponse(%s, %s, %s)" % (response_status, response_headers, exc_info))
         if (self.wsgiSentHeaders):
             raise Exception ("Headers already sent and start_response called again!")
         # Should really take a copy to avoid changes in the application....
@@ -200,16 +207,16 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         if (not self.wsgiSentHeaders):
             status, headers = self.wsgiHeaders
             # Need to send header prior to data
-            statusCode = status [:status.find (' ')]
-            statusMsg = status [status.find (' ') + 1:]
-            util.debug("sc", "wsgiWriteData: send headers '%s', %s" % (status, headers))
+            statusCode = status [:status.find (" ")]
+            statusMsg = status [status.find (" ") + 1:]
+            _logger.debug("wsgiWriteData: send headers '%s', %s" % (status, headers))
             self.send_response (int (statusCode), statusMsg)
             for header, value in headers:
                 self.send_header (header, value)
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        util.debug("sc", "wsgiWriteData: '%s...', len=%s" % (data[:10], len(data)))
+        _logger.debug("wsgiWriteData: '%s...', len=%s" % (data[:10], len(data)))
         self.wfile.write (data)
 
 class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
@@ -224,16 +231,16 @@ class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 
 def serve(conf, app):
-    host = conf.get('host', 'localhost')
-    port = int(conf.get('port', 8080)) 
-    server = ExtServer((host, port), {'': app})
-    if conf.get('verbose') >= 1:
+    host = conf.get("host", "localhost")
+    port = int(conf.get("port", 8080)) 
+    server = ExtServer((host, port), {"": app})
+    if conf.get("verbose") >= 1:
         if host in ("", "0.0.0.0"):
-            print "WsgiDAV serving at %s, port %s (local IP is %s)..." % (host, port, socket.gethostbyname(socket.gethostname()))
+            print "WsgiDAV %s serving at %s, port %s (local IP is %s)..." % (__version__, host, port, socket.gethostbyname(socket.gethostname()))
         else:
-            print "WsgiDAV serving at %s, port %s..." % (host, port)
+            print "WsgiDAV %s serving at %s, port %s..." % (__version__, host, port)
     server.serve_forever()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise RuntimeError("Use run_server.py")

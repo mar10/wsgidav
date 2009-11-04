@@ -17,7 +17,7 @@ from wsgidav import util
 import sys
 import threading
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 
 class WsgiDavDebugFilter(object):
@@ -25,7 +25,7 @@ class WsgiDavDebugFilter(object):
     def __init__(self, application):
 
         self._application = application
-
+        self.out = sys.stderr
         self.passedLitmus = {}
         
         self._dumpheaders = [
@@ -63,6 +63,7 @@ class WsgiDavDebugFilter(object):
 #                             "basic: 9",
 #                             "basic: 14",
 #                             "props: 16",
+                             "props: 18",
 #                             "locks: 9",
 #                             "locks: 12",
 #                             "locks: 13",
@@ -85,8 +86,8 @@ class WsgiDavDebugFilter(object):
     def __call__(self, environ, start_response):
         """"""
         # TODO: pass srvcfg with constructor instead?
-        srvcfg = environ['wsgidav.config']
-        verbose = srvcfg.get('verbose', 2)
+        srvcfg = environ["wsgidav.config"]
+        verbose = srvcfg.get("verbose", 2)
         debugBreak = False
         dumpRequest = False
         dumpResponse = False
@@ -105,7 +106,7 @@ class WsgiDavDebugFilter(object):
         # Turn on max. debugging for selected litmus tests
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 2:
-            print >> environ['wsgi.errors'], "----\nRunning litmus test '%s'..." % litmusTag
+            print >> self.out, "----\nRunning litmus test '%s'..." % litmusTag
             for litmusSubstring in self._debuglitmus:
                 if litmusSubstring in litmusTag:
                     verbose = 3
@@ -115,7 +116,7 @@ class WsgiDavDebugFilter(object):
                     break
             for litmusSubstring in self._break_after_litmus:
                 if litmusSubstring in self.passedLitmus and litmusSubstring not in litmusTag:
-                    print >> environ['wsgi.errors'], " *** break after litmus %s" % litmusTag
+                    print >> self.out, " *** break after litmus %s" % litmusTag
                     sys.exit(-1)
                 if litmusSubstring in litmusTag:
                     self.passedLitmus[litmusSubstring] = True
@@ -128,11 +129,11 @@ class WsgiDavDebugFilter(object):
             dumpResponse = True
 
         if dumpRequest:      
-            print >> environ['wsgi.errors'], "<======== Request from <%s> %s" % (threading._get_ident(), threading.currentThread())
+            print >> self.out, "<======== Request from <%s> %s" % (threading._get_ident(), threading.currentThread())
             for k, v in environ.items():
                 if k == k.upper():
-                    print >> environ['wsgi.errors'], "%20s: »%s«" % (k, v)
-            print >> environ['wsgi.errors'], "\n"
+                    print >> self.out, "%20s: »%s«" % (k, v)
+            print >> self.out, "\n"
         elif verbose >= 2:
             # Dump selected headers
             printedHeader = False
@@ -140,13 +141,13 @@ class WsgiDavDebugFilter(object):
                 if k in self._dumpheaders:
                     if not printedHeader:
                         printedHeader = True
-                        print >> environ['wsgi.errors'], "<======== Request from <%s> %s" % (threading._get_ident(), threading.currentThread())
-                    print >> environ['wsgi.errors'], "%20s: »%s«" % (k, v)
+                        print >> self.out, "<======== Request from <%s> %s" % (threading._get_ident(), threading.currentThread())
+                    print >> self.out, "%20s: »%s«" % (k, v)
 
         # Set debug options to environment
-        environ['wsgidav.verbose'] = verbose
-        environ['wsgidav.debug_methods'] = self._debugmethods
-        environ['wsgidav.debug_break'] = debugBreak
+        environ["wsgidav.verbose"] = verbose
+        environ["wsgidav.debug_methods"] = self._debugmethods
+        environ["wsgidav.debug_break"] = debugBreak
 
         # TODO: add timings and byte/request conters 
          
@@ -158,19 +159,19 @@ class WsgiDavDebugFilter(object):
                 util.log("DebugFilter got exception arg", exc_info)
 #                raise exc_info
             if dumpResponse:
-                print >> environ['wsgi.errors'], "=========> Response from <%s> %s" % (threading._get_ident(), threading.currentThread())
+                print >> self.out, "=========> Response from <%s> %s" % (threading._get_ident(), threading.currentThread())
 
-                print >> environ['wsgi.errors'], 'Response code:', respcode
+                print >> self.out, "Response code:", respcode
                 headersdict = dict(headers)
                 for envitem in headersdict.keys():
-                    print >> environ['wsgi.errors'], "\t", envitem, ":\t", repr(headersdict[envitem]) 
-                print >> environ['wsgi.errors'], "\n"
+                    print >> self.out, "\t", envitem, ":\t", repr(headersdict[envitem]) 
+                print >> self.out, "\n"
             return start_response(respcode, headers, exc_info)
 
         for v in iter(self._application(environ, start_response_wrapper)):
-            util.debug("sc", "debug_filter: yield response chunk (%s bytes)" % len(v))
-            if dumpResponse and environ['REQUEST_METHOD'] != 'GET':
-                print >> environ['wsgi.errors'], v
+#            util.log("debug_filter: yield response chunk (%s bytes)" % len(v))
+            if dumpResponse and environ["REQUEST_METHOD"] != "GET":
+                print >> self.out, v
             yield v
 
         return 

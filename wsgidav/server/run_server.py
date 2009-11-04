@@ -40,6 +40,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 from optparse import OptionParser
 from pprint import pprint
 from inspect import isfunction
+from wsgidav.wsgidav_app import DEFAULT_CONFIG
 import traceback
 import sys
 import os
@@ -54,36 +55,6 @@ __docformat__ = "reStructuredText"
 
 # Use this config file, if no --config_file option is specified
 DEFAULT_CONFIG_FILE = "wsgidav.conf"
-
-# Use these settings, if config file does not define them (or is totally missing)  
-DEFAULT_CONFIG = {
-    "provider_mapping": {},
-    "user_mapping": {},
-#    "host": "127.0.0.1",
-#    "port": 80, 
-    "propsmanager": None,                    
-    "propsfile": None, 
-    "locksmanager": None,  # None: use lock_manager.LockManager                   
-    "locksfile": None, # Used as default for 
-    "domaincontroller": None,
-
-    # HTTP Authentication Options
-    "acceptbasic": True,    # Allow basic authentication, True or False
-    "acceptdigest": True,   # Allow digest authentication, True or False
-    "defaultdigest": True,  # True (default digest) or False (default basic)
-    
-    # Verbose Output
-    "verbose": 2,        # 0 - no output (excepting application exceptions)         
-                         # 1 - show single line request summaries (for HTTP logging)
-                         # 2 - show additional events
-                         # 3 - show full request/response header info (HTTP Logging)
-                         #     request body and GET response bodies not shown
-    
-    
-    # Organizational Information - printed as a footer on html output
-    "response_trailer": None,
-}
-
 
 
 def _initCommandLineOptions():
@@ -118,14 +89,14 @@ See http://wsgidav.googlecode.com for additional information."""
                           description=None, #description,
                           add_help_option=True,
 #                          prog="wsgidav",
-                          epilog=epilog
+#                          epilog=epilog # TODO: Not available on Python 2.4?
                           )    
  
     parser.add_option("-p", "--port", 
                       dest="port",
                       type="int",
                       default=8080,
-                      help='port to serve on (default: %default)')
+                      help="port to serve on (default: %default)")
     parser.add_option("-H", "--host", # '-h' conflicts with --help  
                       dest="host",
                       default="localhost",
@@ -146,7 +117,7 @@ See http://wsgidav.googlecode.com for additional information."""
     
     parser.add_option("-c", "--config",
                       dest="config_file", 
-                      help="Configuration file (default: %default).")
+                      help="Configuration file (default: %s in current directory)." % DEFAULT_CONFIG_FILE)
 
    
     (options, args) = parser.parse_args()
@@ -159,13 +130,13 @@ See http://wsgidav.googlecode.com for additional information."""
         defPath = os.path.abspath(DEFAULT_CONFIG_FILE)
         if os.path.exists(defPath):
             if options.verbose >= 2:
-                print "Using default config file: %s" % defPath
+                print "Using default configuration file: %s" % defPath
             options.config_file = defPath
     else:
         # If --config was specified convert to absolute path and assert it exists
         options.config_file = os.path.abspath(options.config_file)
         if not os.path.exists(options.config_file):
-            parser.error("Invalid config file specified: %s" % options.config_file)
+            parser.error("Could not open specified configuration file: %s" % options.config_file)
 
     # Convert options object to dictionary
     cmdLineOpts = options.__dict__.copy()
@@ -199,9 +170,9 @@ def _readConfigFile(config_file, verbose):
         if verbose >= 1:
             traceback.print_exc() 
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value) #@UndefinedVariable
-        exceptiontext = ''
+        exceptiontext = ""
         for einfo in exceptioninfo:
-            exceptiontext += einfo + '\n'   
+            exceptiontext += einfo + "\n"   
         raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
     
     return conf
@@ -231,11 +202,12 @@ def _initConfig():
         config["port"] = cmdLineOpts.get("port")
     if cmdLineOpts.get("host"):
         config["host"] = cmdLineOpts.get("host")
-    if cmdLineOpts.get("verbose"):
+    if cmdLineOpts.get("verbose") is not None:
         config["verbose"] = cmdLineOpts.get("verbose")
 
     if cmdLineOpts.get("root_path"):
-        config["provider_mapping"]["/"] = FilesystemProvider(cmdLineOpts.get("root_path"))
+        root_path = os.path.abspath(cmdLineOpts.get("root_path"))
+        config["provider_mapping"]["/"] = FilesystemProvider(root_path)
     
     if cmdLineOpts["verbose"] >= 3:
         print "Configuration(%s):" % cmdLineOpts["config_file"]
@@ -244,7 +216,7 @@ def _initConfig():
     if not config["provider_mapping"]:
         print >>sys.stderr, "ERROR: No DAV provider defined. Try --help option."
         sys.exit(-1)
-#        raise RuntimeWarning("No At least one DAV provider must be specified by a --root option, or in a configuration file.")
+#        raise RuntimeWarning("At least one DAV provider must be specified by a --root option, or in a configuration file.")
     return config
 
 
@@ -258,7 +230,7 @@ def _runPaste(app, config):
     try:
         from paste import httpserver
         if config["verbose"] >= 2:
-            print "Running paste.httpserver..."
+            print "Running WsgiDAV %s on paste.httpserver..." % __version__
         # See http://pythonpaste.org/modules/httpserver.html for more options
         httpserver.serve(app, 
                          host=config["host"], 
@@ -282,7 +254,7 @@ def _runCherryPy(app, config):
         # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
         from cherrypy import wsgiserver
         if config["verbose"] >= 2:
-            print "wsgiserver.CherryPyWSGIServer..."
+            print "Running WsgiDAV %s on wsgiserver.CherryPyWSGIServer..." % __version__
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,
@@ -303,7 +275,7 @@ def _runSimpleServer(app, config):
         # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
         from wsgiref.simple_server import make_server
         if config["verbose"] >= 2:
-            print "Running wsgiref.simple_server (single threaded)..."
+            print "Running WsgiDAV %s on wsgiref.simple_server (single threaded)..." % __version__
         httpd = make_server(config["host"], config["port"], app)
 #        print "Serving HTTP on port 8000..."
         httpd.serve_forever()
@@ -317,11 +289,11 @@ def _runSimpleServer(app, config):
 
 
 def _runBuiltIn(app, config):
-    """Run WsgiDAV using ext_wsgiutils_server from the WsgiDAV package."""
+    """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     try:
         import ext_wsgiutils_server
         if config["verbose"] >= 2:
-            print "Running wsgidav.ext_wsgiutils_server..."
+            print "Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__
         ext_wsgiutils_server.serve(config, app)
     except ImportError, e:
         if config["verbose"] >= 1:
@@ -330,40 +302,37 @@ def _runBuiltIn(app, config):
     return True
 
 
+SUPPORTED_SERVERS = {"paste": _runPaste,
+                     "cherrypy": _runCherryPy,
+                     "wsgiref": _runSimpleServer,
+                     "wsgidav": _runBuiltIn,
+                     }
 
 
-def run():    
+def run():
     config = _initConfig()
-    
     
 #    from paste import pyconfig
 #    config = pyconfig.Config()
 #    config.load(opts.config_file)
-
 #    from paste.deploy import loadapp
 #    app = loadapp('config:/path/to/config.ini')
 #    app = loadapp("config:wsgidav.conf")
-
-    app = WsgiDAVApp(config)
-    
 #    from wsgidav.wsgiapp import make_app
 #    global_conf = {}
 #    app = make_app(global_conf)
 
+    app = WsgiDAVApp(config)
+    
+    # Try running WsgiDAV inside the following external servers:
     res = False
-
-#    if not res:
-#        res = _runCherryPy(app, config) 
-
-#    if not res:
-#        res = _runPaste(app, config)
-
-    # wsgiref.simple_server is single threaded 
-#    if not res:
-#        res = _runSimpleServer(app, config)
-
-    if not res:
-        res = _runBuiltIn(app, config)
+    for e in config["ext_servers"]:
+        fn = SUPPORTED_SERVERS.get(e)
+        if fn is None:
+            print "Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys()))
+        elif fn(app, config):
+            res = True
+            break
     
     if not res:
         print "No supported WSGI server installed."   

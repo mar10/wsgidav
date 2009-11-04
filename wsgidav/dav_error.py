@@ -12,7 +12,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 import sys
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 #===============================================================================
 # List of HTTP Response Codes. 
@@ -36,7 +36,6 @@ HTTP_MOVED = 301
 HTTP_FOUND = 302
 HTTP_SEE_OTHER = 303
 HTTP_NOT_MODIFIED = 304
-
 HTTP_USE_PROXY = 305
 HTTP_TEMP_REDIRECT = 307
 HTTP_BAD_REQUEST = 400
@@ -76,6 +75,7 @@ HTTP_NOT_EXTENDED = 510
 # sent as the error response code. 
 # Otherwise only the numeric code itself is sent.
 #===============================================================================
+# TODO: paste.httpserver may raise exceptions, if a status code is not followed by a description, so should define all of them.
 ERROR_DESCRIPTIONS = {
     HTTP_OK: "200 OK",
     HTTP_CREATED: "201 Created",
@@ -85,7 +85,7 @@ ERROR_DESCRIPTIONS = {
     HTTP_FORBIDDEN: "403 Forbidden",
     HTTP_METHOD_NOT_ALLOWED: "405 Method Not Allowed",
     HTTP_NOT_FOUND: "404 Not Found",
-    HTTP_CONFLICT: '409 Conflict',
+    HTTP_CONFLICT: "409 Conflict",
     HTTP_PRECONDITION_FAILED: "412 Precondition Failed",
     HTTP_RANGE_NOT_SATISFIABLE: "416 Range Not Satisfiable",
     HTTP_MEDIATYPE_NOT_SUPPORTED: "415 Media Type Not Supported",
@@ -93,6 +93,7 @@ ERROR_DESCRIPTIONS = {
     HTTP_FAILED_DEPENDENCY: "424 Failed Dependency",
     HTTP_INTERNAL_ERROR: "500 Internal Server Error",
     HTTP_NOT_IMPLEMENTED: "501 Not Implemented",
+    HTTP_BAD_GATEWAY: "502 Bad Gateway",
     }
 
 #===============================================================================
@@ -105,7 +106,7 @@ ERROR_RESPONSES = {
     HTTP_BAD_REQUEST: "An invalid request was specified",
     HTTP_NOT_FOUND: "The specified resource was not found",
     HTTP_FORBIDDEN: "Access denied to the specified resource",
-    HTTP_INTERNAL_ERROR: "An internal server error occured",
+    HTTP_INTERNAL_ERROR: "An internal server error occurred",
     HTTP_NOT_IMPLEMENTED: "Not Implemented",
     }
 
@@ -170,6 +171,9 @@ class DAVError(Exception):
 #        return repr(self.value)
         return "DAVError(%s)" % self.getUserInfo()
     
+    def __str__(self): # Required for 2.4
+        return self.__repr__()
+
     def getUserInfo(self):
         """Return readable string."""
         if self.value in ERROR_DESCRIPTIONS:

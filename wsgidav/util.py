@@ -4,8 +4,8 @@
 util
 ====
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Miscellaneous support functions for WsgiDAV.
@@ -15,16 +15,19 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 from urllib import quote
-from lxml import etree
-from lxml.etree import SubElement
 from dav_error import DAVError, getHttpStatusString, HTTP_BAD_REQUEST
 from pprint import pprint
 from wsgidav.dav_error import HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED
+import locale
+import urllib
+import logging
 import re
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 import os
 import calendar
-import threading
 import sys
 import time
 import stat
@@ -34,30 +37,42 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-__docformat__ = 'reStructuredText'
+# Import XML support
+useLxml = False
+try:
+    from lxml import etree
+    useLxml = True
+except ImportError:
+    try:    
+        # Try xml module (Python 2.5 or later) 
+        from xml.etree import ElementTree as etree
+        print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
+    except ImportError:
+        try:
+            # Try elementtree (http://effbot.org/zone/element-index.htm) 
+            from elementtree import ElementTree as etree
+        except ImportError:
+            print "ERROR: Could not import lxml, xml, nor elementtree. Consider installing lxml from http://codespeak.net/lxml/ or update to Python 2.5 or later."
+            raise
+
+__docformat__ = "reStructuredText"
+
+BASE_LOGGER_NAME = "wsgidav"
+_logger = logging.getLogger(BASE_LOGGER_NAME)
+
 
 #===============================================================================
-# Debugging
+# String handling
 #===============================================================================
-def traceCall(msg=None):
-    """Return name of calling function."""
-    if __debug__:
-        f_code = sys._getframe(2).f_code
-        if msg is None:
-            msg = ": %s"
-        else: msg = ""
-        print "%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg)
-
-
-def isVerboseMode(environ):
-    if environ['wsgidav.verbose'] >= 1 and environ["REQUEST_METHOD"] in environ.get('wsgidav.debug_methods', []):
-        return True
-    return False
-
 
 def getRfc1123Time(secs=None):   
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
-    return time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(secs))
+    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
+
+
+def getLogTime(secs=None):   
+    """Return <secs> in log time format (pass secs=None for current date)."""
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(secs))
 
 
 def parseTimeString(timestring):
@@ -101,31 +116,188 @@ def _parsegmtime(timestring):
     return None
 
 
-def log(msg, var=None):
-    out = sys.stderr
-    tid = threading._get_ident() #threading.currentThread()
-    print >>out, "<%s> %s" % (tid, msg)
-    if var:
-        pprint(var, out, indent=4)
+#===============================================================================
+# Logging
+#===============================================================================
+
+def initLogging(verbose=2, enable_loggers=[]):
+    """Initialize base logger named 'wsgidav'.
+
+    The base logger is filtered by the *verbose* configuration option.
+    Log entries will have a time stamp and thread id.
     
+    :Parameters:
+        verbose : int
+            Verbosity configuration (0..3) 
+        enable_loggers : string list
+            List of module logger names, that will be switched to DEBUG level.
+         
+    Module loggers
+    ~~~~~~~~~~~~~~
+    Module loggers (e.g 'wsgidav.lock_manager') are named loggers, that can be
+    independently switched to DEBUG mode.
     
-def debug(cat, msg):
-    """Print debug msessage to console (type filtered).
+    Except for verbosity, they will will inherit settings from the base logger.
+
+    They will suppress DEBUG level messages, unless they are enabled by passing 
+    their name to util.initLogging().
+
+    If enabled, module loggers will print DEBUG messages, even if verbose == 2.   
     
-    This is only a hack during early develpment: we can spread log calls and
-    use temporarily disable it by hard coding the filter condition here. 
-    cat: 'pp' Paste Prune
-         'sc' "Socket closed" exception
+    Example initialize and use a module logger, that will generate output, 
+    if enabled (and verbose >= 2):
+        
+    .. python::
+        _logger = util.getModuleLogger(__name__)
+        [..]
+        _logger.debug("foo: '%s'" % s)
+
+    This logger would be enabled by passing its name to initLoggiong():
+    
+    .. python::
+        enable_loggers = ["lock_manager",
+                          "property_manager",
+                      ]
+        util.initLogging(2, enable_loggers)
+
+    
+    Log level matrix
+    ~~~~~~~~~~~~~~~~
+    =======  ===========  ====================== =======================
+    verbose                         Log level 
+    -------  -----------------------------------------------------------
+      n      base logger  module logger(enabled)  module logger(disabled)
+    =======  ===========  ====================== =======================
+      0        ERROR        ERROR                   ERROR
+      1        WARN         WARN                    WARN
+      2        INFO         DEBUG                   INFO
+      3        DEBUG        DEBUG                   INFO
+    =======  ===========  ====================== =======================
     """
-    assert cat in ("pp", "sc")
-    tid = threading._get_ident() #threading.currentThread()
-    if cat in ("pp", "NOTsc"):
-        print >>sys.stderr, "<%s>[%s] %s" % (tid, cat, msg)
+
+    formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",
+                                  "%H:%M:%S")
+    
+    # Define handlers
+    consoleHandler = logging.StreamHandler(sys.stderr)
+    consoleHandler.setFormatter(formatter)
+    consoleHandler.setLevel(logging.DEBUG)
+
+    # Add the handlers to the base logger
+    logger = logging.getLogger(BASE_LOGGER_NAME)
+
+    if verbose >= 3: # --debug
+        logger.setLevel(logging.DEBUG)
+    elif verbose >= 2: # --verbose
+        logger.setLevel(logging.INFO)
+    elif verbose >= 1: # standard 
+        logger.setLevel(logging.WARN)
+        consoleHandler.setLevel(logging.WARN)
+    else: # --quiet
+        logger.setLevel(logging.ERROR)
+        consoleHandler.setLevel(logging.ERROR)
+
+    # Don't call the root's handlers after our custom handlers
+    logger.propagate = False
+    
+    # Remove previous handlers
+    for hdlr in logger.handlers[:]:  # Must iterate an array copy
+        try:
+            hdlr.flush()
+            hdlr.close()
+        except:
+            pass
+        logger.removeHandler(hdlr)
+
+    logger.addHandler(consoleHandler)
+
+    if verbose >= 2:
+        for e in enable_loggers:
+            if not e.startswith(BASE_LOGGER_NAME + "."):
+                e = BASE_LOGGER_NAME + "." + e
+            l = logging.getLogger(e.strip())
+#            if verbose >= 2:
+#                log("Logger(%s).setLevel(DEBUG)" % e.strip())
+            l.setLevel(logging.DEBUG)        
+
+
+  
+def getModuleLogger(moduleName, defaultToVerbose=False):
+    """Create a module logger, that can be en/disabled by configuration.
+    
+    @see: unit.initLogging
+    """
+#    _logger.debug("getModuleLogger(%s)" % moduleName)
+    if not moduleName.startswith(BASE_LOGGER_NAME + "."):
+        moduleName = BASE_LOGGER_NAME + "." + moduleName
+#    assert not "." in moduleName, "Only pass the module name, without leading '%s.'." % BASE_LOGGER_NAME
+#    logger = logging.getLogger("%s.%s" % (BASE_LOGGER_NAME, moduleName))
+    logger = logging.getLogger(moduleName)
+    if logger.level == logging.NOTSET and not defaultToVerbose:
+        logger.setLevel(logging.INFO)  # Disable debug messages by default
+    return logger
+
+
+def log(msg, var=None):
+    """Shortcut for logging.getLogger('wsgidav').info(msg)
+
+    This message will only display, if verbose >= 2. 
+    """
+    _logger.info(msg)
+    if var and logging.INFO >= _logger.getEffectiveLevel():
+        pprint(var, sys.stderr, indent=4)
+    
+
+def debug(module, msg, var=None):
+    """Shortcut for logging.getLogger('wsgidav.MODULE').debug(msg)
+    
+    This message will only display, if the module logger was enabled and 
+    verbose >= 2.
+    If module is None, the base logger is used, so the message is only displayed
+    if verbose >= 3. 
+    """
+    if module:
+        logger = logging.getLogger(BASE_LOGGER_NAME+"."+module)
+        # Disable debug messages for module loggers by default
+        if logger.level == logging.NOTSET:
+            logger.setLevel(logging.INFO)
+    else:
+        logger = _logger
+    logger.debug(msg)
+    if var and logging.DEBUG >= logger.getEffectiveLevel():
+        pprint(var, sys.stderr, indent=4)
 
         
+def traceCall(msg=None):
+    """Return name of calling function."""
+    if __debug__:
+        f_code = sys._getframe(2).f_code
+        if msg is None:
+            msg = ": %s"
+        else: msg = ""
+        print "%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg)
+
+
+def isVerboseMode(environ):
+    if environ["wsgidav.verbose"] >= 1 and environ["REQUEST_METHOD"] in environ.get("wsgidav.debug_methods", []):
+        return True
+    return False
+
+
 #===============================================================================
-# WSGI, strings and URLs
+# Strings
 #===============================================================================
+
+def lstripstr(s, prefix, ignoreCase=False):
+    if ignoreCase:
+        if not s.lower().startswith(prefix.lower()):
+            return s
+    else:
+        if not s.startswith(prefix):
+            return s
+    return s[len(prefix):]
+
+     
 def saveSplit(s, sep, maxsplit):
     """Split string, always returning n-tuple (filled with None if necessary)."""
     tok = s.split(sep, maxsplit)
@@ -148,65 +320,149 @@ def splitNamespace(clarkName):
     return ("", clarkName)
 
 
-def getContentLength(environ):
-    """Return CONTENT_LENGTH in a safe way (defaults to 0)."""
+def toUnicode(s):
+    """Convert a binary string to Unicode using UTF-8 (fallback to latin-1)."""
+    if not isinstance(s, str):
+        return s
     try:
-        return max(0, long(environ.get('CONTENT_LENGTH', 0)))
+        u = s.decode("utf8")
+#        log("toUnicode(%r) = '%r'" % (s, u))
+    except:
+        log("toUnicode(%r) *** UTF-8 failed. Trying latin-1 " % s)
+        u = s.decode("latin-1")
+    return u
+
+
+def stringRepr(s):
+    """Return a string as hex dump."""
+    if isinstance(s, str):
+        res = "'%s': " % s
+        for b in s:
+            res += "%02x " % ord(b)
+        return res
+    return "%s" % s
+
+
+
+def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, appendBytes=True):
+    """Convert bytes into human-readable representation."""
+    magsuffix = ""
+    bytesuffix = ""
+    
+    if partition:
+        magnitude = 0
+        if base1024:
+            while number >= 1024:
+                magnitude += 1
+                number = number >> 10
+        else:
+            while number >= 1000:
+                magnitude += 1
+                number /= 1000.0
+        # TODO: use "9 KB" instead of "9K Bytes"?
+        # TODO use 'kibi' for base 1024?
+        # http://en.wikipedia.org/wiki/Kibi-#IEC_standard_prefixes
+        magsuffix = ["", "K", "M", "G", "T", "P"][magnitude]
+        
+    if appendBytes: 
+        if number == 1:
+            bytesuffix = " Byte"
+        else:
+            bytesuffix = " Bytes"
+
+    if thousandsSep and (number >= 1000 or magsuffix):
+        locale.setlocale(locale.LC_ALL, "")
+        # TODO: make precision configurable
+        snum = locale.format("%d", number, thousandsSep)
+    else:
+        snum = str(number)
+
+    return "%s%s%s" % (snum, magsuffix, bytesuffix)
+    
+    
+
+#===============================================================================
+# WSGI
+#===============================================================================
+def getContentLength(environ):
+    """Return a positive CONTENT_LENGTH in a safe way (return 0 otherwise)."""
+    # TODO: http://www.wsgi.org/wsgi/WSGI_2.0
+    try:
+        return max(0, long(environ.get("CONTENT_LENGTH", 0)))
     except ValueError:
         return 0
 
 
-def getRealm(environ):
-    return getUriRealm(environ["SCRIPT_NAME"] + environ["PATH_INFO"])
+#===============================================================================
+# URLs
+#===============================================================================
 
-
-def getUri(environ):
-    return environ["PATH_INFO"]
-
-
-def getUriRealm(uri):
-    """Return realm, i.e. first part of URI with a leading '/'."""
-    if uri.strip() in ("", "/"):
-        return "/"
-    return uri.strip("/").split("/")[0]
+#def getUriRealm(uri):
+#    """Return realm, i.e. first part of URI with a leading '/'."""
+#    if uri.strip() in ("", "/"):
+#        return "/"
+#    return uri.strip("/").split("/")[0]
 
 
 def getUriName(uri):
-    """Return local name, i.e. last part of URI."""
+    """Return local name, i.e. last segment of URI."""
     return uri.strip("/").split("/")[-1]
     
 
 def getUriParent(uri):
-    """Return URI of parent collection."""
+    """Return URI of parent collection with trailing '/', or None, if URI is top-level.
+    
+    This function simply strips the last segment. It does not test, if the
+    target is a 'collection', or even exists.
+    """
     if not uri or uri.strip() == "/":
         return None
     return uri.rstrip("/").rsplit("/", 1)[0] + "/"
+
+
+def isChildUri(parentUri, childUri):
+    """Return True, if childUri is a child of parentUri.
+    
+    This function accounts for the fact that '/a/b/c' and 'a/b/c/' are
+    children of '/a/b' (and also of '/a/b/').
+    Note that '/a/b/cd' is NOT a child of 'a/b/c'. 
+    """
+    return parentUri and childUri and childUri.rstrip("/").startswith(parentUri.rstrip("/")+"/")
+
+
+def isEqualOrChildUri(parentUri, childUri):
+    """Return True, if childUri is a child of parentUri or maps to the same resource.
+    
+    Similar to <util.isChildUri>_ ,  but this method also returns True, if parent
+    equals child. ('/a/b' is considered identical with '/a/b/').
+    """
+    return parentUri and childUri and (childUri.rstrip("/")+"/").startswith(parentUri.rstrip("/")+"/")
 
 
 def makeCompleteUrl(environ, localUri=None):
     """URL reconstruction according to PEP 333.
     @see http://www.python.org/dev/peps/pep-0333/#id33
     """
-    url = environ['wsgi.url_scheme']+'://'
+    url = environ["wsgi.url_scheme"]+"://"
     
-    if environ.get('HTTP_HOST'):
-        url += environ['HTTP_HOST']
+    if environ.get("HTTP_HOST"):
+        url += environ["HTTP_HOST"]
     else:
-        url += environ['SERVER_NAME']
+        url += environ["SERVER_NAME"]
     
-        if environ['wsgi.url_scheme'] == 'https':
-            if environ['SERVER_PORT'] != '443':
-                url += ':' + environ['SERVER_PORT']
+        if environ["wsgi.url_scheme"] == "https":
+            if environ["SERVER_PORT"] != "443":
+                url += ":" + environ["SERVER_PORT"]
         else:
-            if environ['SERVER_PORT'] != '80':
-                url += ':' + environ['SERVER_PORT']
+            if environ["SERVER_PORT"] != "80":
+                url += ":" + environ["SERVER_PORT"]
     
-    url += quote(environ.get('SCRIPT_NAME',''))
+    url += quote(environ.get("SCRIPT_NAME",""))
 
     if localUri is None:
-        url += quote(environ.get('PATH_INFO',''))
-        if environ.get('QUERY_STRING'):
-            url += '?' + environ['QUERY_STRING']
+        url += quote(environ.get("PATH_INFO",""))
+        if environ.get("QUERY_STRING"):
+            url += "?" + environ["QUERY_STRING"]
     else:
         url += localUri # TODO: quote?
     return url
@@ -216,8 +472,37 @@ def makeCompleteUrl(environ, localUri=None):
 # XML
 #===============================================================================
 
+def xmlToString(element, encoding="UTF-8", pretty_print=False):
+    """Wrapper for etree.tostring, that takes care of unsupported pretty_print option."""
+    assert encoding == "UTF-8" # TODO: remove this
+    if useLxml:
+        return etree.tostring(element, encoding=encoding, pretty_print=pretty_print)
+    return etree.tostring(element, encoding)
+
+
+def makeMultistatusEL():
+    """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
+    if useLxml:
+        return etree.Element("{DAV:}multistatus", nsmap={"D": "DAV:"})
+    return etree.Element("{DAV:}multistatus")
+
+
+def makePropEL():
+    """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
+    if useLxml:
+        return etree.Element("{DAV:}prop", nsmap={"D": "DAV:"})
+    return etree.Element("{DAV:}prop")
+
+
+def makeSubElement(parent, tag, nsmap=None):
+    """Wrapper for etree.SubElement, that takes care of unsupported nsmap option."""
+    if useLxml:
+        return etree.SubElement(parent, tag, nsmap=nsmap)
+    return etree.SubElement(parent, tag)
+
+
 def parseXmlBody(environ, allowEmpty=False):
-    """Read request body XML into an lxml.etree.Element.
+    """Read request body XML into an etree.Element.
     
     Return None, if no request body was sent.
     Raise HTTP_BAD_REQUEST, if something else went wrong.
@@ -239,7 +524,8 @@ def parseXmlBody(environ, allowEmpty=False):
     At least it locked, when I tried it with a request that had a missing 
     content-type and no body.
     
-    Current approach: if CONTENT_LENGTH is  
+    Current approach: if CONTENT_LENGTH is
+    
     - valid and >0:
       read body (exactly <CONTENT_LENGTH> bytes) and parse the result.  
     - 0: 
@@ -285,7 +571,7 @@ def parseXmlBody(environ, allowEmpty=False):
     except Exception, e:
         raise DAVError(HTTP_BAD_REQUEST, "Invalid XML format.", srcexception=e)   
     
-    if environ['wsgidav.verbose'] >= 1 and environ["REQUEST_METHOD"] in environ.get('wsgidav.debug_methods', []):
+    if environ["wsgidav.verbose"] >= 1 and environ["REQUEST_METHOD"] in environ.get("wsgidav.debug_methods", []):
         print "XML request for %s:\n%s" % (environ["REQUEST_METHOD"], etree.tostring(rootEL, pretty_print=True))
     return rootEL
     
@@ -301,7 +587,7 @@ def elementContentAsString(element):
         return element.text or ""  # Make sure, None is returned as '' 
     stream = StringIO()
     for childnode in element:
-        print >>stream, etree.tostring(childnode, pretty_print=False)
+        print >>stream, xmlToString(childnode, pretty_print=False)
     s = stream.getvalue()
     stream.close()
     return s
@@ -309,15 +595,16 @@ def elementContentAsString(element):
 
 def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # Send response
-    start_response('207 Multistatus', [("Content-Type", "application/xml"), 
+    start_response("207 Multistatus", [("Content-Type", "application/xml"), 
                                        ("Date", getRfc1123Time()),
                                        ])
-    # Hotfix for Windows XP: PPROPFIND XML response is not recognized, when 
-    # pretty_print = True!
-#    pretty_print = True
+    # Hotfix for Windows XP 
+    # PROPFIND XML response is not recognized, when pretty_print = True!
+    # (Vista and others would accept this). 
+#    log(xmlToString(multistatusEL, pretty_print=True))
     pretty_print = False
-    return ["<?xml version='1.0' ?>",
-            etree.tostring(multistatusEL, pretty_print=pretty_print) ]
+    return ["<?xml version='1.0' encoding='UTF-8' ?>",
+            xmlToString(multistatusEL, pretty_print=pretty_print) ]
         
             
 def sendSimpleResponse(environ, start_response, status):
@@ -334,10 +621,10 @@ def addPropertyResponse(multistatusEL, href, propList):
     <prop> node depends on the value type: 
       - str or unicode: add element with this content
       - None: add an empty element
-      - lxml.etree.Element: add XML element as child 
+      - etree.Element: add XML element as child 
       - DAVError: add an empty element to an own <propstatus> for this status code
     
-    @param multistatusEL: lxml.etree.Element
+    @param multistatusEL: etree.Element
     @param href: global URL of the resource, e.g. 'http://server:port/path'.
     @param propList: list of 2-tuples (name, value) 
     """
@@ -365,26 +652,34 @@ def addPropertyResponse(multistatusEL, href, propList):
         propDict.setdefault(status, []).append( (name, value) )
 
     # <response>
-    responseEL = SubElement(multistatusEL, "{DAV:}response", 
-                            nsmap=nsMap) 
-    SubElement(responseEL, "{DAV:}href").text = href
+#    responseEL = etree.SubElement(multistatusEL, "{DAV:}response", 
+#                            nsmap=nsMap) 
+    responseEL = makeSubElement(multistatusEL, "{DAV:}response", 
+                                nsmap=nsMap) 
+    
+#    log("href value:%s" % (stringRepr(href)))
+#    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
+    etree.SubElement(responseEL, "{DAV:}href").text = href
+#    etree.SubElement(responseEL, "{DAV:}href").text = urllib.quote(href, safe="/" + "!*'()," + "$-_|.")
+    
     
     # One <propstat> per status code
     for status in propDict:
-        propstatEL = SubElement(responseEL, "{DAV:}propstat")
+        propstatEL = etree.SubElement(responseEL, "{DAV:}propstat")
         # List of <prop>
-        propEL = SubElement(propstatEL, "{DAV:}prop")
+        propEL = etree.SubElement(propstatEL, "{DAV:}prop")
         for name, value in propDict[status]:
             if value is None:
-                SubElement(propEL, name)
+                etree.SubElement(propEL, name)
             elif isinstance(value, etree._Element):
                 propEL.append(value)
             else:
                 # value must be string or unicode
-#                log("%s value:%s" % (name, value))
-                SubElement(propEL, name).text = value
+#                log("%s value:%s" % (name, stringRepr(value)))
+#                etree.SubElement(propEL, name).text = value
+                etree.SubElement(propEL, name).text = toUnicode(value)
         # <status>
-        SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
+        etree.SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
     
     
 #===============================================================================
@@ -396,18 +691,28 @@ def getETag(filePath):
     http://www.webdav.org/specs/rfc4918.html#etag
     
     Returns the following as entity tags::
+    
         Non-file - md5(pathname)
         Win32 - md5(pathname)-lastmodifiedtime-filesize
         Others - inode-lastmodifiedtime-filesize
     """
-    if not os.path.isfile(filePath):
-        return md5.new(filePath).hexdigest()   
-    if sys.platform == 'win32':
-        statresults = os.stat(filePath)
-        return md5.new(filePath).hexdigest() + '-' + str(statresults[stat.ST_MTIME]) + '-' + str(statresults[stat.ST_SIZE])
+    # (At least on Vista) os.path.exists returns False, if a file name contains 
+    # special characters, even if it is correctly UTF-8 encoded.
+    # So we convert to unicode. On the other hand, md5() needs a byte string.
+    if isinstance(filePath, unicode):
+        unicodeFilePath = filePath
+        filePath = filePath.encode("utf8")
     else:
-        statresults = os.stat(filePath)
-        return str(statresults[stat.ST_INO]) + '-' + str(statresults[stat.ST_MTIME]) + '-' + str(statresults[stat.ST_SIZE])
+        unicodeFilePath = toUnicode(filePath)
+        
+    if not os.path.isfile(unicodeFilePath):
+        return md5(filePath).hexdigest()   
+    if sys.platform == "win32":
+        statresults = os.stat(unicodeFilePath)
+        return md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
+    else:
+        statresults = os.stat(unicodeFilePath)
+        return str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
 
 
 #===============================================================================
@@ -420,12 +725,13 @@ reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
 
 def obtainContentRanges(rangetext, filesize):
     """
-   returns tuple
-   list: content ranges as values to their parsed components in the tuple 
-   (seek_position/abs position of first byte, 
-    abs position of last byte, 
-    num_of_bytes_to_read)
-   value: total length for Content-Length
+   returns tuple (list, value)
+
+   list
+       content ranges as values to their parsed components in the tuple
+       (seek_position/abs position of first byte, abs position of last byte, num_of_bytes_to_read)
+   value
+       total length for Content-Length
    """
     listReturn = []
     seqRanges = rangetext.split(",")
@@ -436,7 +742,7 @@ def obtainContentRanges(rangetext, filesize):
             if mObj:
 #                print mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3)  
                 firstpos = long(mObj.group(2))
-                if mObj.group(3) == '':
+                if mObj.group(3) == "":
                     lastpos = filesize - 1
                 else:
                     lastpos = long(mObj.group(3))
@@ -482,7 +788,7 @@ def obtainContentRanges(rangetext, filesize):
 # If Headers
 #===============================================================================
 
-def evaluateHTTPConditionals(dav, path, lastmodified, entitytag, environ, isnewfile=False):
+def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
     
     If-Match     
@@ -514,47 +820,53 @@ def evaluateHTTPConditionals(dav, path, lastmodified, entitytag, environ, isnewf
     # status of 304 (Not Modified) unless doing so is consistent with all of the conditional header fields in 
     # the request.
 
-    if 'HTTP_IF_MATCH' in environ and dav.isInfoTypeSupported(path, "etag"):
-        if isnewfile:
-            raise DAVError(HTTP_PRECONDITION_FAILED)
-        else:
-            ifmatchlist = environ['HTTP_IF_MATCH'].split(",")
-            for ifmatchtag in ifmatchlist:
-                ifmatchtag = ifmatchtag.strip(" \"\t")
-                if ifmatchtag == entitytag or ifmatchtag == '*':
-                    break   
-                raise DAVError(HTTP_PRECONDITION_FAILED,
-                               "If-Match header condition failed")
+    if "HTTP_IF_MATCH" in environ and res.supportEtag(): #dav.isInfoTypeSupported(path, "etag"):
+        ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
+        for ifmatchtag in ifmatchlist:
+            ifmatchtag = ifmatchtag.strip(" \"\t")
+            if ifmatchtag == entitytag or ifmatchtag == "*":
+                break   
+            raise DAVError(HTTP_PRECONDITION_FAILED,
+                           "If-Match header condition failed")
+
+    # TODO: after the refactoring
+    ifModifiedSinceFailed = False
+    if "HTTP_IF_MODIFIED_SINCE" in environ and res.supportModified(): #dav.isInfoTypeSupported(path, "modified"):
+        ifmodtime = parseTimeString(environ["HTTP_IF_MODIFIED_SINCE"])
+        if ifmodtime and ifmodtime > lastmodified:
+            ifModifiedSinceFailed = True
 
     # If-None-Match 
     # If none of the entity tags match, then the server MAY perform the requested method as if the 
     # If-None-Match header field did not exist, but MUST also ignore any If-Modified-Since header field
     # (s) in the request. That is, if no entity tags match, then the server MUST NOT return a 304 (Not Modified) 
     # response.
-    ignoreifmodifiedsince = False         
-    if 'HTTP_IF_NONE_MATCH' in environ and dav.isInfoTypeSupported(path, "etag"):         
-        if isnewfile:
-            ignoreifmodifiedsince = True
-        else:
-            ifmatchlist = environ['HTTP_IF_NONE_MATCH'].split(",")
-            for ifmatchtag in ifmatchlist:
-                ifmatchtag = ifmatchtag.strip(" \"\t")
-                if ifmatchtag == entitytag or ifmatchtag == '*':
-                    raise DAVError(HTTP_PRECONDITION_FAILED,
-                                   "If-None-Match header condition failed")
-            ignoreifmodifiedsince = True
+    ignoreIfModifiedSince = False         
+    if "HTTP_IF_NONE_MATCH" in environ and res.supportEtag(): #dav.isInfoTypeSupported(path, "etag"):         
+        ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
+        for ifmatchtag in ifmatchlist:
+            ifmatchtag = ifmatchtag.strip(" \"\t")
+            if ifmatchtag == entitytag or ifmatchtag == "*":
+                # ETag matched. If it's a GET request and we don't have an 
+                # conflicting If-Modified header, we return NOT_MODIFIED
+                if environ["REQUEST_METHOD"] in ("GET", "HEAD") and not ifModifiedSinceFailed:
+                    raise DAVError(HTTP_NOT_MODIFIED,
+                                   "If-None-Match header failed")
+                raise DAVError(HTTP_PRECONDITION_FAILED,
+                               "If-None-Match header condition failed")
+        ignoreIfModifiedSince = True
 
-    if not isnewfile and 'HTTP_IF_UNMODIFIED_SINCE' in environ and dav.isInfoTypeSupported(path, "modified"):
-        ifunmodtime = parseTimeString(environ['HTTP_IF_UNMODIFIED_SINCE'])
+    if "HTTP_IF_UNMODIFIED_SINCE" in environ and res.supportModified(): #dav.isInfoTypeSupported(path, "modified"):
+        ifunmodtime = parseTimeString(environ["HTTP_IF_UNMODIFIED_SINCE"])
         if ifunmodtime and ifunmodtime <= lastmodified:
             raise DAVError(HTTP_PRECONDITION_FAILED,
                            "If-Unmodified-Since header condition failed")
 
-    if not isnewfile and 'HTTP_IF_MODIFIED_SINCE' in environ and not ignoreifmodifiedsince and dav.isInfoTypeSupported(path, "modified"):
-        ifmodtime = parseTimeString(environ['HTTP_IF_MODIFIED_SINCE'])
-        if ifmodtime and ifmodtime > lastmodified:
-            raise DAVError(HTTP_NOT_MODIFIED,
-                           "If-Modified-Since header condition failed")
+    if ifModifiedSinceFailed and not ignoreIfModifiedSince:
+        raise DAVError(HTTP_NOT_MODIFIED,
+                       "If-Modified-Since header condition failed")
+
+    return
 
 
 
@@ -566,7 +878,7 @@ reIfTagListContents = re.compile(r'(\S+)')
 
 
 def parseIfHeaderDict(environ):
-    """Parse HTTP_IF header into a dictionary and lists, and cache result.
+    """Parse HTTP_IF header into a dictionary and lists, and cache the result.
     
     @see http://www.webdav.org/specs/rfc2518.html#HEADER_If
     """
@@ -574,32 +886,32 @@ def parseIfHeaderDict(environ):
         return
 
     if not "HTTP_IF" in environ:
-        environ['wsgidav.conditions.if'] = None
-        environ['wsgidav.ifLockTokenList'] = []
+        environ["wsgidav.conditions.if"] = None
+        environ["wsgidav.ifLockTokenList"] = []
         return
     
     iftext = environ["HTTP_IF"].strip()
-    if not iftext.startswith('<'):
-        iftext = '<*>' + iftext   
+    if not iftext.startswith("<"):
+        iftext = "<*>" + iftext   
 
     ifDict = dict([])
     ifLockList = []
     
-    resource1 = '*'
+    resource1 = "*"
     for (tmpURLVar, URLVar, _tmpContentVar, contentVar) in reIfSeparator.findall(iftext):
-        if tmpURLVar != '':
+        if tmpURLVar != "":
             resource1 = URLVar         
         else:
             listTagContents = []
             testflag = True
             for listitem in reIfTagListContents.findall(contentVar):            
-                if listitem.upper() != 'NOT':
-                    if listitem.startswith('['):
-                        listTagContents.append((testflag,'entity',listitem.strip('\"[]')))   
+                if listitem.upper() != "NOT":
+                    if listitem.startswith("["):
+                        listTagContents.append((testflag,"entity",listitem.strip('\"[]')))   
                     else:
-                        listTagContents.append((testflag,'locktoken',listitem.strip('<>')))            
+                        listTagContents.append((testflag,"locktoken",listitem.strip("<>")))            
                         ifLockList.append(listitem.strip("<>"))
-                testflag = listitem.upper() != 'NOT'
+                testflag = listitem.upper() != "NOT"
 
             if resource1 in ifDict:
                 listTag = ifDict[resource1]
@@ -608,60 +920,34 @@ def parseIfHeaderDict(environ):
                 ifDict[resource1] = listTag
             listTag.append(listTagContents)
 
-    environ['wsgidav.conditions.if'] = ifDict
-    environ['wsgidav.ifLockTokenList'] = ifLockList
+    environ["wsgidav.conditions.if"] = ifDict
+    environ["wsgidav.ifLockTokenList"] = ifLockList
+    debug("if", "parseIfHeaderDict", ifDict)
     return
 
 
-#def _lookForLockTokenInSubDict(locktoken, listTest):
-#    for listTestConds in listTest:
-#        for (testflag, checkstyle, checkvalue) in listTestConds:
-#            if checkstyle == 'locktoken' and testflag:
-#                if locktoken == checkvalue:  
-#                    return True
-#    return False   
-
-
-
-
-#def testForLockTokenInIfHeaderDict(dictIf, locktoken, fullurl, headurl):
-#    if '*' in dictIf:
-#        if _lookForLockTokenInSubDict(locktoken, dictIf['*']):
-#            return True
-#
-#    if fullurl in dictIf:
-#        if _lookForLockTokenInSubDict(locktoken, dictIf[fullurl]):
-#            return True
-#
-#    if headurl in dictIf:
-#        if _lookForLockTokenInSubDict(locktoken, dictIf[headurl]):
-#            return True
-
-
-
-
-def testIfHeaderDict(dav, path, dictIf, fullurl, locktokenlist, entitytag):
-    
-    log("testIfHeaderDict(%s, %s, %s, %s)" % (path, fullurl, locktokenlist, entitytag),
-        dictIf)
+def testIfHeaderDict(res, dictIf, fullurl, locktokenlist, entitytag):
+    debug("if", "testIfHeaderDict(%s, %s, %s)" % (fullurl, locktokenlist, entitytag),
+          dictIf)
 
     if fullurl in dictIf:
         listTest = dictIf[fullurl]
-    elif '*' in dictIf:
-        listTest = dictIf['*']
+    elif "*" in dictIf:
+        listTest = dictIf["*"]
     else:
         return True   
 
-    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
+#    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
+    supportEntityTag = res.supportEtag()
     for listTestConds in listTest:
         matchfailed = False
 
         for (testflag, checkstyle, checkvalue) in listTestConds:
-            if checkstyle == 'entity' and supportEntityTag:
+            if checkstyle == "entity" and supportEntityTag:
                 testresult = entitytag == checkvalue  
-            elif checkstyle == 'entity':
+            elif checkstyle == "entity":
                 testresult = testflag
-            elif checkstyle == 'locktoken':
+            elif checkstyle == "locktoken":
                 testresult = checkvalue in locktokenlist
             else: # unknown
                 testresult = True
@@ -671,14 +957,41 @@ def testIfHeaderDict(dav, path, dictIf, fullurl, locktokenlist, entitytag):
                 break
         if not matchfailed:
             return True
+    debug("if", "  -> FAILED")
     return False
+
+testIfHeaderDict.__test__ = False # Tell nose to ignore this function
 
 #===============================================================================
 # TEST
 #===============================================================================
-if __name__ == "__main__":
-    #n = etree.XML("<a><b/></a><c/>")
-    n = etree.XML("abc")
-    print etree.tostring(n)
+def testLogging():
+    enable_loggers = ["test",
+                      ]
+    initLogging(0, enable_loggers)
     
+    _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+    _enabledLogger = getModuleLogger("test")  
+    _disabledLogger = getModuleLogger("test2")
+    
+    _baseLogger.debug("_baseLogger.debug")  
+    _baseLogger.info("_baseLogger.info")  
+    _baseLogger.warning("_baseLogger.warning")  
+    _baseLogger.error("_baseLogger.error")  
+    print >>sys.stderr, ""
+
+    _enabledLogger.debug("_enabledLogger.debug")  
+    _enabledLogger.info("_enabledLogger.info")  
+    _enabledLogger.warning("_enabledLogger.warning")  
+    _enabledLogger.error("_enabledLogger.error")  
+    print >>sys.stderr, ""
+    
+    _disabledLogger.debug("_disabledLogger.debug")  
+    _disabledLogger.info("_disabledLogger.info")  
+    _disabledLogger.warning("_disabledLogger.warning")  
+    _disabledLogger.error("_disabledLogger.error")  
+
+    
+if __name__ == "__main__":
+    testLogging()
     pass

@@ -1,27 +1,32 @@
 
 class PropertyManagerInterface(object):
+    """
+    +----------------------------------------------------------------------+
+    | TODO: document this interface                                        |
+    | For now, see wsgidav.lock_manager instead                            |
+    +----------------------------------------------------------------------+ 
 
-   """
-   +-------------------------------------------------------------------------------+
-   | The following documentation was taken over from PyFileServer and is outdated! |
-   | See wsgidav.property_manager instead                                          |
-   +-------------------------------------------------------------------------------+
-   This class is an interface for a PropertyManager. Implementations for the 
-   property manager in WsgiDAV include::
+    This class is an interface for a PropertyManager.
+    Implementations of a property manager in WsgiDAV include::
       
-      wsgidav.property_manager.PropertyManager
+        <wsgidav.property_manager.PropertyManager>_
+        wsgidav.property_manager.ShelvePropertyManager
       
-   All methods must be implemented.
+    All methods must be implemented.
    
-   The url variables in methods refers to the relative URL of a resource. e.g. the 
-   resource http://server/share1/dir1/dir2/file3.txt would have a url of 
-   '/share1/dir1/dir2/file3.txt'
+    The url variable in methods refers to the relative URL of a resource. e.g. the 
+    resource http://server/share1/dir1/dir2/file3.txt would have a url of 
+    '/share1/dir1/dir2/file3.txt'
+      
+      
+    All methods must be implemented.
    
-   """
-
-   """
+    The url variables in methods refers to the relative URL of a resource. e.g. the 
+    resource http://server/share1/dir1/dir2/file3.txt would have a url of 
+    '/share1/dir1/dir2/file3.txt'
+   
    Properties and WsgiDAV
-   ---------------------------
+   ----------------------
    Properties of a resource refers to the attributes of the resource. A property
    is referenced by the property name and the property namespace. We usually
    refer to the property as ``{property namespace}property name`` 
@@ -63,40 +68,3 @@ class PropertyManagerInterface(object):
       ``wsgidav.property_manager``
    
    """
-
-   def getProperties(self, normurl):
-      """
-      return a list of properties for url specified by normurl
-      
-      return list is a list of tuples (a, b) where a is the property namespace
-      and b the property name
-      """
-   
-   def getProperty(self, normurl, propname, propns):
-      """
-      return the value of the property for url specified by normurl where
-      propertyname is propname and property namespace is propns
-      """
-   
-   def writeProperty(self, normurl, propname, propns, propertyvalue):
-      """
-      write propertyvalue as value of the property for url specified by 
-      normurl where propertyname is propname and property namespace is propns
-      """
-   
-   def removeProperty(self, normurl, propname, propns):
-      """
-      delete the property for url specified by normurl where
-      propertyname is propname and property namespace is propns
-      """
-   
-   def removeProperties(self, normurl):
-      """
-      delete all properties from url specified by normurl
-      """
-         
-   def copyProperties(self, origurl, desturl):
-      """
-      copy all properties from url specified by origurl to url specified by desturl
-      """
-      

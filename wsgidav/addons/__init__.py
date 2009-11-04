@@ -1,3 +1,3 @@
-#__all__ = ['windowsdomaincontroller', 
+#__all__ = ['nt_domain_controller', 
 #           'simplemysqlabstractionlayer',
 #           ]

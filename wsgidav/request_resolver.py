@@ -1,6 +1,6 @@
 """
 request_resolver
-===============
+================
 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
@@ -8,6 +8,8 @@ request_resolver
 
 WSGI middleware that finds the registered mapped DAV-Provider, creates a new 
 RequestServer instance, and dispatches the request.
+
+
 
 +-------------------------------------------------------------------------------+
 | The following documentation was taken over from PyFileServer and is outdated! |
@@ -95,13 +97,10 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 import util
-#import urllib
 from dav_error import DAVError, HTTP_NOT_FOUND
 from request_server import RequestServer
-#from threading import local
-#_tls = local() # Thread local storage dict
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 # NOTE (Martin Wendt, 2009-05):
 # The following remarks were made by Ian Bicking when reviewing PyFileServer in 2005.
@@ -168,7 +167,7 @@ class RequestResolver(object):
         # Hotfix for WinXP / Vista: check for '/' also
         if environ["REQUEST_METHOD"] == "OPTIONS" and path in ("/", "*"):
             # Answer HTTP 'OPTIONS' method on server-level.
-            # From RFC 2616
+            # From RFC 2616:
             # If the Request-URI is an asterisk ("*"), the OPTIONS request is 
             # intended to apply to the server in general rather than to a specific 
             # resource. Since a server's communication options typically depend on 
@@ -176,13 +175,13 @@ class RequestResolver(object):
             # type of method; it does nothing beyond allowing the client to test the 
             # capabilities of the server. For example, this can be used to test a 
             # proxy for HTTP/1.1 compliance (or lack thereof). 
-            start_response('200 OK', [('Content-Type', 'text/html'),
-                                      ('Content-Length', '0'),
-                                      ('DAV', '1,2'),
-                                      ('Server', 'DAV/2'),
-                                      ('Date', util.getRfc1123Time()),
+            start_response("200 OK", [("Content-Type", "text/html"),
+                                      ("Content-Length", "0"),
+                                      ("DAV", "1,2"),
+                                      ("Server", "DAV/2"),
+                                      ("Date", util.getRfc1123Time()),
                                       ])        
-#            return ['']  
+#            return [""]  
             yield [ "" ]
             return
    
@@ -192,16 +191,13 @@ class RequestResolver(object):
                            "Could not find resource provider for '%s'" % path)
         # Let the appropriate resource provider for the realm handle the request
         
-        # **************************
-        # ************************** only to make sure we have no __del__
-        # **************************
-        # **************************
         app = RequestServer(provider)
-        environ["wsgidav.request_server"] = app # Keep it alive for the whole request lifetime
+#        environ["wsgidav.request_server"] = app # Keep it alive for the whole request lifetime
 #        _tls.app = app # TODO: try to avoid Server socket closed
         for v in app(environ, start_response):
             util.debug("sc", "RequestResolver: yield start")
             yield v
+            util.log("Response", v)
             util.debug("sc", "RequestResolver: yield end")
         return
 #        return app(environ, start_response)

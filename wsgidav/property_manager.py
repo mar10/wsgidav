@@ -6,7 +6,8 @@ property_manager
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
-A low performance property manager implementation using shelve.
+Implements two property managers: one in-memory (dict-based), and one 
+persistent low performance variant using shelve.
 
 This module consists of a number of miscellaneous functions for the dead 
 properties features of WebDAV.
@@ -67,7 +68,10 @@ Dead properties
    ``wsgidav.property_manager``.
 """
 from wsgidav import util
-import traceback
+import os
+import sys
+import shelve
+from rw_lock import ReadWriteLock
 
 # TODO: comment's from Ian Bicking (2005)
 #@@: Use of shelve means this is only really useful in a threaded environment.
@@ -80,41 +84,64 @@ import traceback
 # in a parallel directory structure to the files you are describing.
 # Pickle is expedient, but later you could use something more readable
 # (pickles aren't particularly readable)
-import sys
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
-import shelve
-import threading
+_logger = util.getModuleLogger(__name__)
 
 
     
+#===============================================================================
+# PropertyManager
+#===============================================================================
 class PropertyManager(object):
     """
-    A low performance property manager implementation using shelve
+    An in-memory property manager implementation using a dictionary.
+    
+    This is obviously not persistent, but should be enough in some cases.
+    For a persistent implementation, see property_manager.ShelvePropertyManager().
     """
-    def __init__(self, persiststore):
-        self._loaded = False      
+    def __init__(self):
         self._dict = None
-        self._init_lock = threading.RLock()
-        self._write_lock = threading.RLock()
-        self._persiststorepath = persiststore
+        self._loaded = False      
+        self._lock = ReadWriteLock()
         self._verbose = 2
 
 
-    def _performInitialization(self):
-        self._init_lock.acquire(True)
+    def __repr__(self):
+        return "PropertyManager"
+
+
+    def __del__(self):
+        if __debug__ and self._verbose >= 2:
+            self._check()         
+        self._close()
+
+
+    def _lazyOpen(self):
+        _logger.debug("_lazyOpen()")
+        self._lock.acquireWrite()
         try:
-            if self._loaded:       # test again within the critical section
-                return True
-            self._dict = shelve.open(self._persiststorepath)
+            self._dict = {}
             self._loaded = True
-            if self._verbose >= 2:
-                self._dump("After shelve.open()")
         finally:
-            self._init_lock.release()         
+            self._lock.release()         
 
 
+    def _sync(self):
+        pass
+
+    
+    def _close(self):
+        _logger.debug("_close()")
+        self._lock.acquireWrite()
+        try:
+            self._dict = None
+            self._loaded = False
+        finally:
+            self._lock.release()         
+
+    
     def _check(self, msg=""):
         try:
             if not self._loaded:
@@ -124,27 +151,24 @@ class PropertyManager(object):
 #                print "  -> %s" % self._dict[k]
             for k, v in self._dict.items():
                 _ = "%s, %s" % (k, v)
-            self._log("PropertyManager checks ok " + msg)
+            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
             return True
         except Exception:
-            traceback.print_exc()
+            _logger.exception("%s _check: ERROR %s" % (self.__class__.__name__, msg))
+#            traceback.print_exc()
 #            raise
 #            sys.exit(-1)
             return False
-
-    def _log(self, msg):
-        if self._verbose >= 2:
-            util.log(msg)
 
 
     def _dump(self, msg="", out=None):
         if out is None:
             out = sys.stdout
-        print >>out, "PropertyManager(%s): %s" % (self._persiststorepath, msg)
+        print >>out, "%s(%s): %s" % (self.__class__.__name__, self.__repr__(), msg)
         if not self._loaded:
-            self._performInitialization()
+            self._lazyOpen()
             if self._verbose >= 2:
-                return # Already dumped in _performInitialization
+                return # Already dumped in _lazyOpen
         try:
             for k, v in self._dict.items():
                 print >>out, "    ", k
@@ -154,107 +178,180 @@ class PropertyManager(object):
                     except Exception, e:
                         print >>out, "        %s: ERROR %s" % (k2, e)
         except Exception, e:
-            print >>sys.stderr, "PropertyManager._dump()  ERROR: %s" % e
-            
+            print >>sys.stderr, "PropertyManager._dump()  ERROR: %s" % e            
 
 
     def getProperties(self, normurl):
-        if not self._loaded:
-            self._performInitialization()        
-        returnlist = []
-        if normurl in self._dict:
-            for propdata in self._dict[normurl].keys():
-                returnlist.append(propdata)
-        return returnlist
+        _logger.debug("getProperties(%s)" % normurl)
+        self._lock.acquireRead()
+        try:
+            if not self._loaded:
+                self._lazyOpen()        
+            returnlist = []
+            if normurl in self._dict:
+                for propdata in self._dict[normurl].keys():
+                    returnlist.append(propdata)
+            return returnlist
+        finally:
+            self._lock.release()
 
 
     def getProperty(self, normurl, propname):
-        if not self._loaded:
-            self._performInitialization()
-        if normurl not in self._dict:
-            return None
-        # TODO: sometimes we get exceptions here: (catch or otherwise make more robust?)
+        _logger.debug("getProperty(%s, %s)" % (normurl, propname))
+        self._lock.acquireRead()
         try:
-            resourceprops = self._dict[normurl]
-        except Exception, e:
-            util.log("getProperty(%s, %s) failed : %s" % (normurl, propname, e))
-            raise
-        return resourceprops.get(propname)
+            if not self._loaded:
+                self._lazyOpen()
+            if normurl not in self._dict:
+                return None
+            # TODO: sometimes we get exceptions here: (catch or otherwise make more robust?)
+            try:
+                resourceprops = self._dict[normurl]
+            except Exception, e:
+                _logger.exception("getProperty(%s, %s) failed : %s" % (normurl, propname, e))
+                raise
+            return resourceprops.get(propname)
+        finally:
+            self._lock.release()
 
 
     def writeProperty(self, normurl, propname, propertyvalue, dryRun=False):
-        self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+#        self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+        assert normurl and normurl.startswith("/")
+        assert propname #and propname.startswith("{")
+        assert propertyvalue is not None
+        
+        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
         
-        propertyname = propname
-        self._write_lock.acquire(True)
+        self._lock.acquireWrite()
         try:
             if not self._loaded:
-                self._performInitialization()
+                self._lazyOpen()
             if normurl in self._dict:
                 locatordict = self._dict[normurl] 
             else:
-                locatordict = dict([])    
-            locatordict[propertyname] = propertyvalue
+                locatordict = {} #dict([])    
+            locatordict[propname] = propertyvalue
+            # This re-assignment is important, so Shelve realizes the change:
             self._dict[normurl] = locatordict
-            self._dict.sync()
+            self._sync()
+            if __debug__ and self._verbose >= 2:
+                self._check()         
         finally:
-            self._write_lock.release()
-        self._check()         
+            self._lock.release()
+
 
     def removeProperty(self, normurl, propname, dryRun=False):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
-        self._log("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
+        _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return  
-        propertyname = propname
-        self._write_lock.acquire(True)
+        self._lock.acquireWrite()
         try:
             if not self._loaded:
-                self._performInitialization()
+                self._lazyOpen()
             if normurl in self._dict:      
                 locatordict = self._dict[normurl] 
-                if propertyname in locatordict:
-                    del locatordict[propertyname]
+                if propname in locatordict:
+                    del locatordict[propname]
+                    # This re-assignment is important, so Shelve realizes the change:
                     self._dict[normurl] = locatordict
-                    self._dict.sync()
+                    self._sync()
+            if __debug__ and self._verbose >= 2:
+                self._check()         
         finally:
-            self._write_lock.release()         
-        self._check()         
+            self._lock.release()         
+
 
     def removeProperties(self, normurl):
-        self._write_lock.acquire(True)
-        self._log("removeProperties(%s)" % normurl)
+        _logger.debug("removeProperties(%s)" % normurl)
+        self._lock.acquireWrite()
         try:
             if not self._loaded:
-                self._performInitialization()
+                self._lazyOpen()
             if normurl in self._dict:      
                 del self._dict[normurl] 
+                self._sync()
         finally:
-            self._write_lock.release()         
+            self._lock.release()         
 
-    def copyProperties(self, origurl, desturl):
-        self._write_lock.acquire(True)
-        self._log("copyProperties(%s, %s)" % (origurl, desturl))
-        self._check()         
+
+    def copyProperties(self, srcurl, desturl):
+        _logger.debug("copyProperties(%s, %s)" % (srcurl, desturl))
+        self._lock.acquireWrite()
         try:
+            if __debug__ and self._verbose >= 2:
+                self._check()         
             if not self._loaded:
-                self._performInitialization()
-            if origurl in self._dict:      
-                self._dict[desturl] = self._dict[origurl].copy() 
+                self._lazyOpen()
+            if srcurl in self._dict:      
+                self._dict[desturl] = self._dict[srcurl].copy() 
+                self._sync()
+            if __debug__ and self._verbose >= 2:
+                self._check("after copy")         
         finally:
-            self._write_lock.release()         
-        self._check("after copy")         
+            self._lock.release()         
+
+
+#===============================================================================
+# ShelvePropertyManager
+#===============================================================================
+
+class ShelvePropertyManager(PropertyManager):
+    """
+    A low performance property manager implementation using shelve
+    """
+    def __init__(self, storagePath):
+        self._storagePath = os.path.abspath(storagePath)
+        super(ShelvePropertyManager, self).__init__()
+
 
     def __repr__(self):
-        return repr(self._dict)
+        return "ShelvePropertyManager(%s)" % self._storagePath
+        
 
-    def __del__(self):
-        self._check()         
-        if self._loaded:
-            self._dict.close()
-        self._check()         
+    def _lazyOpen(self):
+        _logger.debug("_lazyOpen(%s)" % self._storagePath)
+        self._lock.acquireWrite()
+        try:
+            # Test again within the critical section
+            if self._loaded:
+                return True
+            # Open with writeback=False, which is faster, but we have to be 
+            # careful to re-assign values to _dict after modifying them
+            self._dict = shelve.open(self._storagePath, 
+                                     writeback=False)
+            self._loaded = True
+            if __debug__ and self._verbose >= 2:
+                self._check("After shelve.open()")
+                self._dump("After shelve.open()")
+        finally:
+            self._lock.release()         
+
+
+    def _sync(self):
+        """Write persistent dictionary to disc."""
+        _logger.debug("_sync()")
+        self._lock.acquireWrite() # TODO: read access is enough?
+        try:
+            if self._loaded:
+                self._dict.sync()
+        finally:
+            self._lock.release()         
+
+
+    def _close(self):
+        _logger.debug("_close()")
+        self._lock.acquireWrite()
+        try:
+            if self._loaded:
+                self._dict.close()
+                self._dict = None
+                self._loaded = False
+        finally:
+            self._lock.release()         
