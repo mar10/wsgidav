@@ -119,6 +119,10 @@ See http://wsgidav.googlecode.com for additional information."""
                       dest="config_file", 
                       help="Configuration file (default: %s in current directory)." % DEFAULT_CONFIG_FILE)
 
+    parser.add_option("", "--reload",
+                      action="store_true", dest="reload", 
+                      help="Restart server when source files are changed. Used by run_reloading_server. (Requires paste.reloader.)")
+
    
     (options, args) = parser.parse_args()
 
@@ -217,6 +221,15 @@ def _initConfig():
         print >>sys.stderr, "ERROR: No DAV provider defined. Try --help option."
         sys.exit(-1)
 #        raise RuntimeWarning("At least one DAV provider must be specified by a --root option, or in a configuration file.")
+
+    if cmdLineOpts.get("reload"):
+        print >>sys.stderr, "Installing paste.reloader."
+        from paste import reloader  #@UnresolvedImport
+        reloader.install()
+        if config_file:
+            # Add config file changes
+            reloader.watch_file(config_file)
+        
     return config
 
 
@@ -231,8 +244,9 @@ def _runPaste(app, config):
         from paste import httpserver
         if config["verbose"] >= 2:
             print "Running WsgiDAV %s on paste.httpserver..." % __version__
+
         # See http://pythonpaste.org/modules/httpserver.html for more options
-        httpserver.serve(app, 
+        httpserver.serve(app,
                          host=config["host"], 
                          port=config["port"],
                          server_version="WsgiDAV/%s" % __version__,
@@ -312,16 +326,6 @@ SUPPORTED_SERVERS = {"paste": _runPaste,
 def run():
     config = _initConfig()
     
-#    from paste import pyconfig
-#    config = pyconfig.Config()
-#    config.load(opts.config_file)
-#    from paste.deploy import loadapp
-#    app = loadapp('config:/path/to/config.ini')
-#    app = loadapp("config:wsgidav.conf")
-#    from wsgidav.wsgiapp import make_app
-#    global_conf = {}
-#    app = make_app(global_conf)
-
     app = WsgiDAVApp(config)
     
     # Try running WsgiDAV inside the following external servers:
@@ -336,6 +340,7 @@ def run():
     
     if not res:
         print "No supported WSGI server installed."   
+
     
 if __name__ == "__main__":
     run()
