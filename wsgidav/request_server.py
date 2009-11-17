@@ -17,7 +17,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 """
 from pprint import pprint
 from urlparse import urlparse
-from wsgidav.dav_provider import DAVResource
+#from wsgidav.dav_provider import DAVResource
 import socket
 import util
 import urllib
@@ -174,7 +174,7 @@ class RequestServer(object):
         @see util.evaluateHTTPConditionals
         """
         dav = self._davProvider
-#        davres = DAVResource(dav, path)
+#        davres = dav.getResourceInst(path)
         # TODO: bail out, if not davres.exists()?
 
         # Add parsed If header to environ
@@ -229,7 +229,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         # RFC: By default, the PROPFIND method without a Depth header MUST act as if a "Depth: infinity" header was included.
         environ.setdefault("HTTP_DEPTH", "infinity")
@@ -295,7 +295,7 @@ class RequestServer(object):
             if respath == path:
                 res = davres
             else:
-                res = DAVResource(dav, respath)
+                res = dav.getResourceInst(respath)
 
             if propFindMode == "allprop": 
                 propList = dav.getProperties(res, mode="allprop")
@@ -327,7 +327,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         # Only accept Depth: 0 (but assume this, if omitted)
         environ.setdefault("HTTP_DEPTH", "0")
@@ -434,7 +434,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         # Do not understand ANY request body entities
         if util.getContentLength(environ) != 0:
@@ -478,7 +478,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         # Do not understand ANY request body entities
         if util.getContentLength(environ) != 0:
@@ -522,7 +522,7 @@ class RequestServer(object):
                 if childPath == path:
                     childRes = davres
                 else:
-                    childRes = DAVResource(dav, childPath)
+                    childRes = dav.getResourceInst(childPath)
 
                 self._evaluateIfHeaders(childRes, environ)
 #                self._checkWritePermission(childPath, environ["HTTP_DEPTH"], environ)
@@ -570,7 +570,7 @@ class RequestServer(object):
         # much better with other WSGI components
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
         parentPath = dav.getParent(path)
         
         if davres.isCollection():
@@ -680,7 +680,7 @@ class RequestServer(object):
         """
         dav = self._davProvider
         srcPath = environ["PATH_INFO"]
-        srcRes = DAVResource(dav, srcPath)
+        srcRes = dav.getResourceInst(srcPath)
 
         propMan = dav.propManager
 
@@ -745,7 +745,7 @@ class RequestServer(object):
                        "Inter-realm copy/move is not supported.")
 
         destPath = destPath[len(dav.mountPath + dav.sharePath):]
-        destRes = DAVResource(dav, destPath)
+        destRes = dav.getResourceInst(destPath)
         
         # destPath is now relative to current mount/share starting with '/'
 #        util.log("COPY  -> destPath='%s'" % destPath)
@@ -831,7 +831,7 @@ class RequestServer(object):
                 if s == srcPath:
                     sRes = srcRes
                 else:
-                    sRes = DAVResource(dav, s)
+                    sRes = dav.getResourceInst(s)
                     
                 self._evaluateIfHeaders(sRes, environ)
                 
@@ -903,7 +903,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
         lockMan = dav.lockManager
         refUrl = dav.getRefUrl(path)
         
@@ -1070,7 +1070,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         lockMan = dav.lockManager
         if lockMan is None:
@@ -1110,7 +1110,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         headers = [("Content-Type", "text/html"),
                    ("Content-Length", "0"),
@@ -1214,7 +1214,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         dav = self._davProvider
-        davres = DAVResource(dav, path)
+        davres = dav.getResourceInst(path)
 
         if util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,

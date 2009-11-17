@@ -79,18 +79,65 @@ _livePropNames = ["{DAV:}creationdate",
 # DAVResource 
 #===============================================================================
 class DAVResource(object):
-    """Helper class that represents a single DAV resource instance.
-    
-    This class reads resource information on initialization, so querying 
+    """Represents a single DAV resource instance.
+
+    This class caches resource information on initialization, so querying 
     multiple live properties can be handled more efficiently.
 
-    See also DAVProvider.getInfoDict().
+    Instances of this class are created through the DAVProvider::
+        
+        davres = davprovider.getResourceInst(path)
+        if davres.exists() and davres.isCollection():
+            print davres.name()
+            
+    This default implementation expects that a dictionary is passed to the 
+    constructor, containing the resource attributes:
+    
+        name:
+            (str) name of resource / collection
+        displayName:
+            (str) display name of resource / collection
+        displayType:
+            (str) type of resource for display, e.g. 'Directory', 'DOC File', ... 
+        isCollection:
+            (bool) 
+        modified:
+            (int) last modification date (in seconds, compatible with time module)
+        created: 
+            (int) creation date (in seconds, compatible with time module)
+    
+    and additionally for simple resources (i.e. isCollection == False):
+        contentType:
+            (str) MIME type of content
+        contentLength: 
+            (int) resource size in bytes
+        supportRanges:
+            (bool)
+        etag:
+            (string)
+    
+    Single dictionary items are set to None, if they are not available, or
+    not supported.   
+    
+    infoDict may be None, to create an DAVResource that does not exist (i.e. 
+    is not mapped to an URL).
+
+    typeList MAY be passed, to specify a list of requested information types.
+    The implementation MAY uses this list to avoid expensive calculation of
+    unwanted information types.
+
+    Note, that custom DAVProviders may choose different implementations and
+    return custom DAVResource objects as well. 
+    Only make sure, that your DAVResource object implements this interface.  
+
+    See also DAVProvider.getResourceInst().
     """
-    def __init__(self, davProvider, path, typeList=None):
+    def __init__(self, davProvider, path, infoDict, typeList):
         self.provider = davProvider
         self.path = path
-        self._dict = davProvider.getInfoDict(path, typeList) or {}
+        self._dict = infoDict
         self._exists = bool(self._dict)
+        self._typeList = typeList 
     def __repr__(self):
         return "%s(%s): %s" % (self.__class__.__name__, self.path, self._dict)
     def exists(self):
@@ -123,6 +170,26 @@ class DAVResource(object):
         return self._dict.get("modified") is not None
     def supportContentLength(self):
         return self._dict.get("contentLength") is not None
+    def supportedLivePropertyNames(self):
+        """Return list of supported live properties in Clark Notation.
+
+        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
+        """
+        propmap = {"created": "{DAV:}creationdate",
+                   "contentType": "{DAV:}getcontenttype",
+                   "isCollection": "{DAV:}resourcetype",
+                   "modified": "{DAV:}getlastmodified",
+                   "displayName": "{DAV:}displayname",
+                   "etag": "{DAV:}getetag",
+                   }
+        if not self.isCollection():
+            propmap["contentLength"] = "{DAV:}getcontentlength"
+            
+        appProps = []
+        for k, v in propmap.items(): 
+            if k in self._dict:
+                appProps.append(v)
+        return appProps
 
 
 #===============================================================================
@@ -199,6 +266,7 @@ class DAVProvider(object):
             return "/"
         assert path.startswith("/")
         # Append '/' for collections
+        # TODO: we should avoid calling isCollection() her, since this may be expensive.
         if not path.endswith("/") and self.isCollection(path):
             path += "/"
         # TODO: handle case-sensitivity, depending on OS 
@@ -217,7 +285,7 @@ class DAVProvider(object):
         This is basically the same as getPreferredPath, but deals with 
         'virtual locations' as well.
         
-        e.g. '/a/b' == '/A/b' == '/bykey/123' == '/byguid/as532'
+        e.g. '/a/b' == '/A/b' == '/bykey/123' == '/byguid/abc532'
         
         getRefUrl() returns the same value for all these URLs, so it can be
         used as a key for locking and persistence storage. 
@@ -341,59 +409,28 @@ class DAVProvider(object):
         return list(self.iter(path, collections=True, resources=True, depthFirst=False, depth="1", addSelf=False))
         
         
-    def getInfoDict(self, path, typeList=None):
-        """Return an info dictionary for path.
+    def getResourceInst(self, path, typeList=None):
+        """Return a DAVResource object for path.
 
         This function is mainly used to query live properties for a resource.
-        Also display information should be provided here, that can be used to 
-        render HTML directories. 
-        
         The assumption is, that it is more efficient to query all infos in one
         call, rather than have single calls for every info type. 
 
-        ``getInfoDict()`` is called indirectly by the ``DAVResource`` constructor.
         It should be called only once per request and resource::
             
-            davres = DAVResource(davprovider, path)
+            davres = davprovider.getResourceInst(path)
             [..]
             if davres.exists():
                 print davres.contentType()
         
-        Return None, if <path> does not exist.
+        If <path> does not exist, the resulting DAVResource object will return 
+        False for davres.exists().
         
-        Otherwise return a dictionary with these items:
-            name:
-                (str) name of resource / collection
-            displayName:
-                (str) display name of resource / collection
-            displayType:
-                (str) type of resource for display, e.g. 'Directory', 'DOC File', ... 
-            isCollection:
-                (bool) 
-            modified:
-                (int) last modification date (in seconds, compatible with time module)
-            created: 
-                (int) creation date (in seconds, compatible with time module)
-        
-        and additionally for simple resources (i.e. isCollection == False):
-            contentType:
-                (str) MIME type of content
-            contentLength: 
-                (int) resource size in bytes
-            supportRanges:
-                (bool)
-            etag:
-                (string)
-        
-        Single dictionary items are set to None, if they are not available, or
-        not supported.   
-
         typeList MAY be passed, to specify a list of requested information types.
         The implementation MAY uses this list to avoid expensive calculation of
         unwanted information types.
 
-        A caller may pass an empty array for typeList, if he only wants to check 
-        for the existence of path.
+        See DAVResource for details.
 
         This method must be implemented.
         """
@@ -434,7 +471,7 @@ class DAVProvider(object):
 
         This default implementation returns a combination of:
         
-        - self.getSupportedLivePropertyNames()
+        - davres.supportedLivePropertyNames()
         - {DAV:}lockdiscovery and {DAV:}supportedlock, if a lock manager is 
           present
         - a list of dead properties, if a property manager is present
@@ -444,7 +481,8 @@ class DAVProvider(object):
             raise ValueError("Invalid mode '%s'." % mode)
 
         # use a copy
-        propNameList = self.getSupportedLivePropertyNames(davres) [:]
+#        propNameList = self.getSupportedLivePropertyNames(davres) [:]
+        propNameList = davres.supportedLivePropertyNames()
 
         if self.lockManager:
             if not "{DAV:}lockdiscovery" in propNameList:
@@ -456,6 +494,7 @@ class DAVProvider(object):
             refUrl = self.getRefUrl(davres.path)
             for deadProp in self.propManager.getProperties(refUrl):
                 propNameList.append(deadProp)
+                
         return propNameList
 
 
@@ -652,28 +691,28 @@ class DAVProvider(object):
             self.propManager.removeProperties(self.getRefUrl(path))
 
 
-    def getSupportedLivePropertyNames(self, davres):
-        """Return list of supported live properties in Clark Notation.
-
-        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
-        
-        This default implementation uses self.getInfoDict() to figure it out.
-        """
-        propmap = {"created": "{DAV:}creationdate",
-                   "contentType": "{DAV:}getcontenttype",
-                   "isCollection": "{DAV:}resourcetype",
-                   "modified": "{DAV:}getlastmodified",
-                   "displayName": "{DAV:}displayname",
-                   "etag": "{DAV:}getetag",
-                   }
-        if not davres.isCollection():
-            propmap["contentLength"] = "{DAV:}getcontentlength"
-            
-        appProps = []
-        for k, v in propmap.items(): 
-            if k in davres._dict:
-                appProps.append(v)
-        return appProps
+#    def getSupportedLivePropertyNames(self, davres):
+#        """Return list of supported live properties in Clark Notation.
+#
+#        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
+#        
+#        This default implementation uses self.getInfoDict() to figure it out.
+#        """
+#        propmap = {"created": "{DAV:}creationdate",
+#                   "contentType": "{DAV:}getcontenttype",
+#                   "isCollection": "{DAV:}resourcetype",
+#                   "modified": "{DAV:}getlastmodified",
+#                   "displayName": "{DAV:}displayname",
+#                   "etag": "{DAV:}getetag",
+#                   }
+#        if not davres.isCollection():
+#            propmap["contentLength"] = "{DAV:}getcontentlength"
+#            
+#        appProps = []
+#        for k, v in propmap.items(): 
+#            if k in davres._dict:
+#                appProps.append(v)
+#        return appProps
 
 
     def getLivePropertyValue(self, davres, propname):

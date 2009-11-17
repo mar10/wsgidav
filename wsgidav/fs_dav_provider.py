@@ -19,9 +19,9 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
+
 __docformat__ = "reStructuredText"
 
-from dav_provider import DAVProvider
 
 import util
 import os
@@ -30,6 +30,7 @@ import shutil
 import stat
 
 from dav_error import DAVError, HTTP_FORBIDDEN
+from dav_provider import DAVProvider, DAVResource
 
 
 _logger = util.getModuleLogger(__name__)
@@ -94,24 +95,24 @@ class ReadOnlyFilesystemProvider(DAVProvider):
         return nameList
         
 
-    def getInfoDict(self, path, typeList=None):
+    def getResourceInst(self, path, typeList=None):
         """Return info dictionary for path.
 
-        See DAVProvider.getInfoDict()
+        See DAVProvider.getResourceInst()
         """
         fp = self._locToFilePath(path)
 #        print >>sys.stderr, "getInfoDict(%s)" % (path, )
         
         if not os.path.exists(fp):
-            return None
-        # Early out,if typeList is [] (i.e. test for resource existence only)
-        if not (typeList or typeList is None):
-            return {} 
+            # Return non-existing davresource
+            return DAVResource(self, path, None, typeList)
+        
         statresults = os.stat(fp)
         isCollection = os.path.isdir(fp)
         # The file system may have non-files (e.g. links)
         isFile = os.path.isfile(fp)
-        name = util.getUriName(self.getPreferredPath(path))
+#        name = util.getUriName(self.getPreferredPath(path))
+        name = util.getUriName(path)
         
 #       TODO: this line in: browser doesn't work, but DAVEx does
 #        name = name.decode("utf8")
@@ -147,7 +148,8 @@ class ReadOnlyFilesystemProvider(DAVProvider):
                 dict["contentLength"] = statresults[stat.ST_SIZE]
                 dict["supportRanges"] = True
 
-        return dict
+        davres = DAVResource(self, path, dict, typeList)
+        return davres
 
     
     def exists(self, path):
@@ -216,43 +218,42 @@ class FilesystemProvider(ReadOnlyFilesystemProvider):
     def __init__(self, rootFolderPath):
         super(FilesystemProvider, self).__init__(rootFolderPath)
 
+
     def createEmptyResource(self, path):
         fp = self._locToFilePath(path)
         f = open(fp, "w")
         f.close()
+
     
     def createCollection(self, path):
         fp = self._locToFilePath(path)
         os.mkdir(fp)
+
     
     def deleteCollection(self, path):
         fp = self._locToFilePath(path)
         os.rmdir(fp)
 
+
     def openResourceForWrite(self, path, contenttype=None):
         fp = self._locToFilePath(path)
-#        if contenttype is None:
-#            istext = False
-#        else:
-#            istext = contenttype.startswith("text")
-#        if istext:
-#            return file(fp, "w", BUFFER_SIZE)
-#        else:
-#            return file(fp, "wb", BUFFER_SIZE)
         mode = "wb"
         if contenttype and contenttype.startswith("text"):
             mode = "w"
         _logger.debug("openResourceForWrite: %s, %s" % (fp, mode))
         return file(fp, mode, BUFFER_SIZE)
+
     
     def deleteResource(self, path):
         fp = self._locToFilePath(path)
         os.unlink(fp)
+
     
     def copyResource(self, path, destrespath):
         fpSrc = self._locToFilePath(path)
         fpDest = self._locToFilePath(destrespath)
         shutil.copy2(fpSrc, fpDest)
+
     
 #    def setLivePropertyValue(self, path, name, value, dryRun=False):
 #        # {DAV:} live properties are mostly read-only.

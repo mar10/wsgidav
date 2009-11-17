@@ -65,7 +65,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 .. _abstractionlayerinterface : interfaces/abstractionlayerinterface.py
 """
-from wsgidav.dav_provider import DAVProvider
+from wsgidav.dav_provider import DAVProvider, DAVResource
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 from wsgidav import util
 import MySQLdb
@@ -310,33 +310,17 @@ class MySQLBrowserProvider(DAVProvider):
         return retlist
         
 
-#    def getSupportedInfoTypes(self, path):
-#        """Return a list of supported information types.
-#        
-#        See DAVProvider.getSupportedInfoTypes()
-#        """
-#        infoTypes = ["created", 
-#                     "contentType",
-#                     "etag", 
-#                     "isCollection",
-#                     "displayName", 
-#                     ]
-##        if not self.isCollection(path): 
-##            pass
-#
-#        return infoTypes
-
-    
-    def getInfoDict(self, path, typeList=None):
+    def getResourceInst(self, path, typeList=None):
         """Return info dictionary for path.
         
-        See DAVProvider.getInfoDict()
+        See getResourceInst()
         """
         # TODO: calling exists() makes directory browsing VERY slow.
         #       At least compared to PyFileServer, which simply used string 
         #       functions to get displayType and displayRemarks  
         if not self.exists(path):
-            return None
+            # Return non-existing davresource
+            return DAVResource(self, path, None, typeList)
         tableName, primKey = self._splitPath(path)
 
         displayType = "Unknown" 
@@ -365,12 +349,6 @@ class MySQLBrowserProvider(DAVProvider):
 #        name = util.getUriName(self.getPreferredPath(path))
         name = util.getUriName(path)
 
-#        supportedInfoTypes = ["created", 
-#                              "contentType",
-#                              "etag", 
-#                              "isCollection",
-#                              "displayName", 
-#                              ]
         dict = {"contentLength": None,
                 "contentType": contentType,
                 "name": name,
@@ -381,13 +359,13 @@ class MySQLBrowserProvider(DAVProvider):
                 "etag": md5.new(path).hexdigest(),
                 "supportRanges": False,
                 "isCollection": isCollection, 
-#                "supportedInfoTypes": supportedInfoTypes,
                 }
         # Some resource-only infos: 
         if not isCollection:
             dict["modified"] = time.time()
 #        _logger.debug("---> getInfoDict, nc=%s" % self.connectCount)
-        return dict
+        davres = DAVResource(self, path, dict, typeList)
+        return davres
     
 
     def exists(self, path):

@@ -15,7 +15,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
-from wsgidav.dav_provider import DAVResource
+#from wsgidav.dav_provider import DAVResource
 import sys
 import urllib
 import util
@@ -100,26 +100,25 @@ class WsgiDavDirBrowser(object):
 
         for name in dav.getMemberNames(path):
             childPath = path.rstrip("/") + "/" + name
-            res = DAVResource(dav, childPath)
-            infoDict = res._dict
-            if not infoDict:
-                print >>sys.stderr, "WARNING: WsgiDavDirBrowser could not getInfoDict for '%s'" % childPath
+            res = dav.getResourceInst(childPath)
+
+            if not res.exists():
+                print >>sys.stderr, "WARNING: WsgiDavDirBrowser could not get resource instance for '%s'" % childPath
                 continue
 
-            if infoDict["modified"] is not None:
-                infoDict["strModified"] = util.getRfc1123Time(infoDict["modified"])
-            else:
-                infoDict["strModified"] = ""
-                
-            if infoDict["contentLength"] is not None and not infoDict["isCollection"]:
-#                infoDict["strSize"] = "%s Bytes" % infoDict["contentLength"]
-                infoDict["strSize"] = util.byteNumberString(infoDict["contentLength"])
-            else:
-                infoDict["strSize"] = ""
-                
-            infoDict["url"] = dav.getHref(path).rstrip("/") + "/" + urllib.quote(name)
-            if infoDict["isCollection"]:
+            infoDict = {"url": dav.getHref(path).rstrip("/") + "/" + urllib.quote(name),
+                        "displayName": res.displayName(),
+                        "displayType": res.displayType(),
+                        "strModified": "",
+                        "strSize": "",
+                        }
+            if res.isCollection():
                 infoDict["url"] = infoDict["url"] + "/"
+            if res.modified() is not None:
+                infoDict["strModified"] = util.getRfc1123Time(res.modified())
+            if res.contentLength() is not None and not res.isCollection():
+                infoDict["strSize"] = util.byteNumberString(res.contentLength())
+                
  
             o_list.append("""\
             <tr><td><a href="%(url)s">%(displayName)s</a></td>
