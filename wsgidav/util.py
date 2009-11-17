@@ -14,7 +14,6 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-from urllib import quote
 from dav_error import DAVError, getHttpStatusString, HTTP_BAD_REQUEST
 from pprint import pprint
 from wsgidav.dav_error import HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED
@@ -457,10 +456,10 @@ def makeCompleteUrl(environ, localUri=None):
             if environ["SERVER_PORT"] != "80":
                 url += ":" + environ["SERVER_PORT"]
     
-    url += quote(environ.get("SCRIPT_NAME",""))
+    url += urllib.quote(environ.get("SCRIPT_NAME",""))
 
     if localUri is None:
-        url += quote(environ.get("PATH_INFO",""))
+        url += urllib.quote(environ.get("PATH_INFO",""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:

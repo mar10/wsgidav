@@ -80,8 +80,8 @@ If no config file is found, a default FilesystemProvider is used."""
 #paste.httpserver, wsgiref.simple_server) or uses our built-in
 #ext_wsgiutils_server.py."""
 
-    epilog = """Licensed under LGPL.
-See http://wsgidav.googlecode.com for additional information."""
+#    epilog = """Licensed under LGPL.
+#See http://wsgidav.googlecode.com for additional information."""
             
     parser = OptionParser(usage=usage, 
                           version=__version__,
@@ -229,6 +229,8 @@ def _initConfig():
         if config_file:
             # Add config file changes
             reloader.watch_file(config_file)
+#        import pydevd
+#        pydevd.settrace()
         
     return config
 

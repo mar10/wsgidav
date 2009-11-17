@@ -1,6 +1,8 @@
 Thanks
 ======
 
+Ho Chun Wei, original PyFileServer Project:
+
 * Ian Bicking <ianb(at)colorstudy.com>: For mentoring this project
 
 * Julian Reschke <julian.reschke(at)gmx.de>: For your valuable help in 

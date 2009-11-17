@@ -3,7 +3,7 @@
 """Unit tests for wsgidav.util"""
 
 from unittest import TestCase, TestSuite, TextTestRunner
-from wsgidav.util import *
+from wsgidav.util import * #@UnusedWildImport
 
 class BasicTest(TestCase):                          
     """Test ."""
