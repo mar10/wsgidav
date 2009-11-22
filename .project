@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>wsgidav_dev</name>
+	<name>wsgidav</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.python.pydev.pythonNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>todo_wsgidav.txt</name>
+			<type>1</type>
+			<locationURI>DROPBOX/todo_wsgidav.txt</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
