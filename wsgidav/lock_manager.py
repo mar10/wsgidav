@@ -506,7 +506,7 @@ class LockManager(object):
             self._lock.release()               
 
 
-    def checkAccessPermission(self, resourceAL, url, tokenList, accesstype, accessdepth, user):
+    def checkAccessPermission(self, url, tokenList, accesstype, accessdepth, user):
         """Check, if <user> can modify <url>, otherwise return a list of conflicting locks.
         
         If an empty list is returned, the write access is allowed (concerning locks).

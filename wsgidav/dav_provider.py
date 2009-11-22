@@ -6,6 +6,45 @@ dav_provider
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
+This module implements DAVResource and DAVProvider objects.
+
+DAVResource
+-----------
+Represents an existing (i.e. mapped) WebDAV resource or collection.
+A DAVResource object is created by a call the DAVProvider::
+
+    res = provider.getResourceInst(path)
+    if res is None:
+        raise DAVError(HTTP_NOT_FOUND)
+
+The resource then may be used to query different attributes like ``res.name()``,
+``res.isCollection()``, ``res.contentLength()``, and ``res.supportEtag()``. 
+
+It also implements operations, that require an *existing* resource, like:
+``getPreferredPath()``, ``createCollection()``, or ``getPropertyValue()``.
+
+Usage::
+
+    res = provider.getResourceInst(path)
+    if res is not None:
+        print res.getName()
+
+
+DAVProvider
+-----------
+A DAV provider represents a shared WebDAV system.
+
+There is only one provider instance per share, which is created during 
+server start-up. After that, the dispatcher (``request_resolver.RequestResolver``) 
+parses the request URL and adds it to the WSGI environment, so it 
+can be accessed like this::
+
+    provider = environ["wsgidav.provider"]
+
+The main purpose of the provider is to create DAVResource objects for URLs.
+
+
+
 Abstract base class for DAV resource providers.
 
 This module serves these purposes:
@@ -45,6 +84,7 @@ lockmMnager
    See lock_manager.LockManager for a sample implementation
    using shelve.
 """
+import os
 __docformat__ = "reStructuredText"
 
 import sys
@@ -79,7 +119,7 @@ _livePropNames = ["{DAV:}creationdate",
 # DAVResource 
 #===============================================================================
 class DAVResource(object):
-    """Represents a single DAV resource instance.
+    """Represents a single existing DAV resource instance.
 
     This class caches resource information on initialization, so querying 
     multiple live properties can be handled more efficiently.
@@ -132,64 +172,582 @@ class DAVResource(object):
 
     See also DAVProvider.getResourceInst().
     """
-    def __init__(self, davProvider, path, infoDict, typeList):
-        self.provider = davProvider
+    def __init__(self, provider, path, typeList):
+        assert path=="" or path.startswith("/")
+        self.provider = provider
         self.path = path
-        self._dict = infoDict
-        self._exists = bool(self._dict)
-        self._typeList = typeList 
+        self.typeList = typeList 
+    
     def __repr__(self):
-        return "%s(%s): %s" % (self.__class__.__name__, self.path, self._dict)
-    def exists(self):
-        return self._exists
-    def isCollection(self):
-        return self._exists and self._dict["isCollection"]
-    def isResource(self):
-        return self._exists and not self._dict["isCollection"]
-    def contentLength(self):
-        return self._dict.get("contentLength")
-    def contentType(self):
-        return self._dict.get("contentType")
-    def created(self):
-        return self._dict.get("created")
-    def displayName(self):
-        return self._dict.get("displayName")
-    def displayType(self):
-        return self._dict.get("displayType")
-    def etag(self):
-        return self._dict.get("etag")
-    def modified(self):
-        return self._dict.get("modified")
-    def name(self):
-        return self._dict.get("name")
-    def supportRanges(self):
-        return self._dict.get("supportRanges")
-    def supportEtag(self):
-        return self._dict.get("etag") is not None
-    def supportModified(self):
-        return self._dict.get("modified") is not None
-    def supportContentLength(self):
-        return self._dict.get("contentLength") is not None
-    def supportedLivePropertyNames(self):
-        """Return list of supported live properties in Clark Notation.
+        return "%s(%s): %s" % (self.__class__.__name__, self.path)
 
-        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
+    def contentLength(self):
+        return None
+    def contentType(self):
+        return None
+    def created(self):
+        return None
+    def displayName(self):
+        return self.name()
+    def displayType(self):
+        raise NotImplementedError()
+    def etag(self):
+        return None
+    def isCollection(self):
+        raise NotImplementedError()
+    def modified(self):
+        return None
+    def name(self):
+        return os.path.basename(self.path)
+    def supportRanges(self):
+        return False
+    def supportEtag(self):
+        return self.etag() is not None
+    def supportModified(self):
+        return self.modified() is not None
+    def supportContentLength(self):
+        return self.contentLength() is not None
+    
+    
+    def getPreferredPath(self):
+        """Return preferred mapping for a resource mapping.
+        
+        Different URLs may map to the same resource, e.g.:
+            '/a/b' == '/A/b' == '/a/b/'
+        getPreferredPath() returns the same value for all these variants, e.g.:
+            '/a/b/'   (assuming resource names considered case insensitive)
+
+        @param path: a UTF-8 encoded, unquoted byte string.
+        @return: a UTF-8 encoded, unquoted byte string.
         """
-        propmap = {"created": "{DAV:}creationdate",
-                   "contentType": "{DAV:}getcontenttype",
-                   "isCollection": "{DAV:}resourcetype",
-                   "modified": "{DAV:}getlastmodified",
-                   "displayName": "{DAV:}displayname",
-                   "etag": "{DAV:}getetag",
-                   }
-        if not self.isCollection():
-            propmap["contentLength"] = "{DAV:}getcontentlength"
+        if self.path in ("", "/"):
+            return "/"
+        # Append '/' for collections
+        if self.isCollection() and not self.path.endswith("/"):
+            return self.path + "/"
+        # TODO: handle case-sensitivity, depending on OS 
+        # (FileSystemProvider could do this with os.path:
+        # (?) on unix we can assume that the path already matches exactly the case of filepath
+        #     on windows we could use path.lower() or get the real case from the file system
+        return self.path
+
+    
+    def getRefUrl(self):
+        """Return the quoted, absolute, unique URL of a resource, relative to appRoot.
+        
+        Byte string, UTF-8 encoded, quoted.
+        Starts with a '/'. Collections also have a trailing '/'.
+        
+        This is basically the same as getPreferredPath, but deals with 
+        'virtual locations' as well.
+        
+        e.g. '/a/b' == '/A/b' == '/bykey/123' == '/byguid/abc532'
+        
+        getRefUrl() returns the same value for all these URLs, so it can be
+        used as a key for locking and persistence storage. 
+
+        DAV providers that allow virtual-mappings must override this method.
+
+        See also comments in DEVELOPERS.txt glossary.
+        """
+        return urllib.quote(self.provider.sharePath + self.getPreferredPath())
+
+    
+#    def getRefKey(self):
+#        """Return an unambigous identifier string for a resource.
+#        
+#        Since it is always unique for one resource, <refKey> is used as key for 
+#        the lock- and property storage dictionaries.
+#        
+#        This default implementation calls getRefUrl(), and strips a possible 
+#        trailing '/'.
+#        """
+#        refKey = self.getRefUrl(path)
+#        if refKey == "/":
+#            return refKey
+#        return refKey.rstrip("/")
+
+    
+    def getHref(self):
+        """Convert path to a URL that can be passed to XML responses.
+        
+        Byte string, UTF-8 encoded, quoted.
+
+        @see http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3
+        We are using the path-absolute option. i.e. starting with '/'. 
+        URI ; See section 3.2.1 of [RFC2068]
+        """
+        # Nautilus chokes, if href encodes '(' as '%28'
+        # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
+        safe = "/" + "!*'()," + "$-_|."
+        return urllib.quote(self.provider.mountPath + self.provider.sharePath + self.getPreferredPath(), safe=safe)
+
+
+    def getParent(self):
+        """Return parent DAVResource or None.
+        
+        There is NO checking, if the parent is really a mapped collection.
+         
+        """
+        # TODO: check all calls to this: maybe we should return DavResource.exist=False instead of None
+        parentpath = util.getUriParent(self.path)
+        if not parentpath:
+            return None
+        return self.provider.getResourceInst(parentpath)
+
+
+    def getMemberNames(self):
+        """Return list of (direct) collection member names (UTF-8 byte strings).
+        
+        Every provider must override this method.
+        """
+        raise NotImplementedError()
+
+
+    def getDescendants(self, collections=True, resources=True, 
+                       depthFirst=False, depth="infinity", addSelf=False):
+        """Return a list DAVResource objects of a collection (children, grand-children, ...).
+
+        This default implementation calls getMemberNames() and 
+        provider.getResourceInst() recursively.
+        
+        :Parameters:
+            depthFirst : bool
+                use <False>, to list containers before content.
+                (e.g. when moving / copying branches.)
+                Use <True>, to list content before containers. 
+                (e.g. when deleting branches.)
+            depth : string
+                '0' | '1' | 'infinity'
+        """
+        assert depth in ("0", "1", "infinity")
+        res = []
+        if addSelf and not depthFirst:
+            res.append(self)
+        if depth != "0" and self.isCollection():
+            pathPrefix = self.path.rstrip("/") + "/"
+            for e in self.getMemberNames():
+                child = self.provider.getResourceInst(pathPrefix + e)
+                want = (collections and child.isCollection()) or (resources and not child.isCollection())
+                if want and not depthFirst: 
+                    res.append(child)
+                if child.isCollection() and depth == "infinity":
+#                    for e in child.getDescendants(collections, resources, depthFirst, depth, addSelf=False):
+#                        yield e
+                    res.extend(self.getDescendants(collections, resources, depthFirst, depth, addSelf=False))
+                if want and depthFirst: 
+                    res.append(child)
+        if addSelf and depthFirst:
+            res.append(self)
+        return res
+
+        
+    def getDirInfo(self):
+        """Return list of dictionaries describing direct collection members.
+        
+        This method is called by dir_browser middleware, and may be used to
+        provide the directory listing info in a efficient way.
+        """
+        assert self.isCollection()
+        raise NotImplementedError()
+
+
+    # --- Properties -----------------------------------------------------------
+     
+    def getPropertyNames(self, mode="allprop"):
+        """Return list of supported property names in Clark Notation.
+        
+        @param mode: 'allprop': common properties, that should be sent on 'allprop' requests. 
+                     'propname': all available properties.
+
+        This default implementation returns a combination of:
+        
+        - davres.supportedLivePropertyNames()
+        - {DAV:}lockdiscovery and {DAV:}supportedlock, if a lock manager is 
+          present
+        - a list of dead properties, if a property manager is present
+        """
+        # TODO: currently, we assume that allprop == propname
+        if not mode in ("allprop", "propname"):
+            raise ValueError("Invalid mode '%s'." % mode)
+
+        ## Live properties
+#        propNameList = self.supportedLivePropertyNames()
+        propNameList = []
+        if self.created() is not None:
+            propNameList.append("{DAV:}creationdate")
+        if self.contentType() is not None:
+            propNameList.append("{DAV:}getcontenttype")
+        if self.isCollection() is not None:
+            propNameList.append("{DAV:}resourcetype")
+        if self.modified() is not None:
+            propNameList.append("{DAV:}getlastmodified")
+        if self.displayName() is not None:
+            propNameList.append("{DAV:}displayname")
+        if self.etag() is not None:
+            propNameList.append("{DAV:}getetag")
             
-        appProps = []
-        for k, v in propmap.items(): 
-            if k in self._dict:
-                appProps.append(v)
-        return appProps
+        if not self.isCollection():
+            # TODO: maybe XP requires getcontentlength always(??)
+            assert self.contentLength() is not None
+            if self.contentLength() is not None:
+                propNameList.append("{DAV:}getcontentlength")
+            
+        ## Locking properties 
+        if self.provider.lockManager:
+            if not "{DAV:}lockdiscovery" in propNameList:
+                propNameList.append("{DAV:}lockdiscovery")
+            if not "{DAV:}supportedlock" in propNameList:
+                propNameList.append("{DAV:}supportedlock")
+
+        ## Dead properties
+        if self.provider.propManager:
+            refUrl = self.getRefUrl()
+            for deadProp in self.provider.propManager.getProperties(refUrl):
+                propNameList.append(deadProp)
+                
+        return propNameList
+
+
+    def getProperties(self, mode, nameList=None, namesOnly=False):
+        """Return properties as list of 2-tuples (name, value).
+
+        name 
+            is the property name in Clark notation.
+        value 
+            may have different types, depending on the status: 
+            - string or unicode: for standard property values.
+            - etree.Element: for complex values.
+            - DAVError in case of errors.
+            - None: if namesOnly was passed.
+
+        @param path: 
+        @param mode: "allprop", "propname", or "named"
+        @param nameList: list of property names in Clark Notation (only for mode 'named')
+        @param namesOnly: return None for <value>
+        @param davres: pass a DAVResource to access cached info  
+        """
+        if not mode in ("allprop", "propname", "named"):
+            raise ValueError("Invalid mode '%s'." % mode)
+
+        if mode in ("allprop", "propname"):
+            # TODO: allprop can have nameList, when <include> option is implemented
+            assert nameList is None
+            nameList = self.getPropertyNames(mode)
+        else:
+            assert nameList is not None
+
+        propList = []
+        for name in nameList:
+            try:
+                if namesOnly:
+                    propList.append( (name, None) )
+                else:
+                    value = self.getPropertyValue(name)
+                    propList.append( (name, value) )
+            except DAVError, e:
+                propList.append( (name, e) )
+            except Exception, e:
+                propList.append( (name, asDAVError(e)) )
+                if self.verbose >= 2:
+                    traceback.print_exc(10, sys.stderr)  
+                    
+        return propList
+
+
+    def getPropertyValue(self, propname):
+        """Return the value of a property.
+        
+        propname:
+            the property name in Clark notation.
+        return value:
+            may have different types, depending on the status:
+             
+            - string or unicode: for standard property values.
+            - lxml.etree.Element: for complex values.
+            
+            If the property is not available, a DAVError is raised.
+            
+        This default implementation handles ``{DAV:}lockdiscovery`` and
+        ``{DAV:}supportedlock`` using the associated lock manager.
+        
+        All other *live* properties (i.e. propname starts with ``{DAV:}``) are 
+        delegated to the self.xxx() getters.
+        
+        Finally, other properties are considered *dead*, and are handled  by 
+        the associated property manager. 
+        """
+        refUrl = self.getRefUrl()
+        lm = self.provider.lockManager     
+        if lm and propname == "{DAV:}lockdiscovery":
+            # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
+            activelocklist = lm.getUrlLockList(refUrl)
+            lockdiscoveryEL = etree.Element(propname)
+            for lock in activelocklist:
+                activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
+
+                locktypeEL = etree.SubElement(activelockEL, "{DAV:}locktype")
+                etree.SubElement(locktypeEL, "{DAV:}%s" % lock["type"])
+
+                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lockscope")
+                etree.SubElement(lockscopeEL, "{DAV:}%s" % lock["scope"])
+                
+                etree.SubElement(activelockEL, "{DAV:}depth").text = lock["depth"]
+                # lock["owner"] is an XML string
+                ownerEL = etree.XML(lock["owner"])
+                activelockEL.append(ownerEL)
+                
+                timeout = lock["timeout"]
+                if timeout < 0:
+                    timeout =  "Infinite"
+                else:
+                    timeout = "Second-" + str(long(timeout - time.time())) 
+                etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
+                
+                locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
+                etree.SubElement(locktokenEL, "{DAV:}href").text = lock["token"]
+
+                # TODO: this is ugly: 
+                #       res.getPropertyValue("{DAV:}lockdiscovery")
+                #       
+#                lockRoot = self.getHref(self.provider.refUrlToPath(lock["root"]))
+                lockPath = self.provider.refUrlToPath(lock["root"])
+                lockRes = self.provider.getResourceInst(lockPath)
+                lockHref = lockRes.getHref()
+                print "lockedRoot: %s -> href=%s" % (lockPath, lockHref)
+
+                lockrootEL = etree.SubElement(activelockEL, "{DAV:}lockroot")
+                etree.SubElement(lockrootEL, "{DAV:}href").text = lockHref
+
+            return lockdiscoveryEL            
+
+        elif lm and propname == "{DAV:}supportedlock":
+            # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
+            # TODO: the lockmanager should decide about it's features
+            supportedlockEL = etree.Element(propname)
+
+            lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
+            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
+            etree.SubElement(lockscopeEL, "{DAV:}exclusive")
+            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
+            etree.SubElement(locktypeEL, "{DAV:}write")
+
+            lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
+            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
+            etree.SubElement(lockscopeEL, "{DAV:}shared")
+            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
+            etree.SubElement(locktypeEL, "{DAV:}write")
+            
+            return supportedlockEL
+
+        elif propname.startswith("{DAV:}"):
+            # Standard live property (raises HTTP_NOT_FOUND if not supported)
+            if propname == "{DAV:}creationdate" and self.created() is not None:
+                return util.getRfc1123Time(self.created())
+            elif propname == "{DAV:}getcontenttype" and self.contentType() is not None:
+                return self.contentType()
+            elif propname == "{DAV:}resourcetype":
+                if self.isCollection():
+                    resourcetypeEL = etree.Element(propname)
+                    etree.SubElement(resourcetypeEL, "{DAV:}collection")
+                    return resourcetypeEL            
+                return ""   
+            elif propname == "{DAV:}getlastmodified" and self.modified() is not None:
+                return util.getRfc1123Time(self.modified())
+            elif propname == "{DAV:}getcontentlength" and self.contentLength() is not None:
+                return str(self.contentLength())
+            elif propname == "{DAV:}getetag" and self.etag() is not None:
+                return self.etag()
+            elif propname == "{DAV:}displayname" and self.displayName() is not None:
+                return self.displayName()
+    
+            # Unsupported No persistence available, or property not found
+            raise DAVError(HTTP_NOT_FOUND)               
+        
+        # Dead property
+        pm = self.provider.propManager
+        if pm:
+            value = pm.getProperty(refUrl, propname)
+            if value is not None:
+                return etree.XML(value) 
+
+        # No persistence available, or property not found
+        raise DAVError(HTTP_NOT_FOUND)               
+    
+
+    def setPropertyValue(self, propname, value, dryRun=False):
+        """Set or remove property value.
+        
+        value == None means 'remove property'.
+        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
+        Removing a non-existing prop is NOT an error. 
+        
+        When dryRun is True, this function should raise errors, as in a real
+        run, but MUST NOT change any data.
+                 
+        @param path:
+        @param propname: property name in Clark Notation
+        @param value: value == None means 'remove property'.
+        @param dryRun: boolean
+        """
+        assert value is None or isinstance(value, (etree._Element))
+
+        if self.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
+            raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
+                           preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
+
+        if propname.startswith("{DAV:}"):
+            # raises DAVError(HTTP_FORBIDDEN) if read-only, or not supported
+            return self.setLivePropertyValue(propname, value, dryRun)
+
+        # Dead property
+        pm = self.provider.propManager
+        if pm:
+            # TODO: do we write all proprties?
+            refUrl = self.getRefUrl()
+            if value is None:
+                return pm.removeProperty(refUrl, propname)
+            else:
+                value = etree.tostring(value)
+                return pm.writeProperty(refUrl, propname, value, dryRun)             
+
+        raise DAVError(HTTP_FORBIDDEN)  # TODO: Chun used HTTP_CONFLICT 
+
+
+    def removeAllProperties(self):
+        """Remove all associated dead properties."""
+        if self.provider.propManager:
+            self.provider.propManager.removeProperties(self.getRefUrl())
+
+
+
+
+    def setLivePropertyValue(self, propname, value, dryRun=False):
+        """Set or remove a live property value.
+        
+        value == None means 'remove property'.
+        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
+
+        When dryRun is True, this function should raise errors, as in a real
+        run, but MUST NOT change any data.
+                 
+        This function MUST NOT handle {DAV:}lockdiscovery and {DAV:}supportedlock,
+        since this is done by the calling .setPropertyValue() function.
+
+        This will usually be forbidden, since live properties cannot be
+        removed.
+
+        @param path:
+        @param propname: property name in Clark Notation
+        @param value: value == None means 'remove property'.
+        @param dryRun: boolean
+        
+        This default implementation raises DAVError(HTTP_FORBIDDEN), since 
+        {DAV:} live properties are mostly read-only, .
+        
+        TODO: RFC 3253 states that {DAV:}displayname 'SHOULD NOT be protected' 
+        so we could implement {DAV:}displayname as RW, if propMan is available
+        Maybe in a 'create-on-write' way.        
+        """
+        raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
+                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
+    
+    
+    # --- Locking --------------------------------------------------------------
+
+    def isLocked(self):
+        """Return True, if URI is locked.
+        
+        This does NOT check, if path exists.
+        """
+        if self.provider.lockManager is None:
+            return False
+        return self.provider.lockManager.isUrlLocked(self.getRefUrl())
+
+
+    def removeAllLocks(self):
+        if self.provider.lockManager:
+            self.provider.lockManager.removeAllLocksFromUrl(self.getRefUrl())
+
+
+    # --- Read / write ---------------------------------------------------------
+    
+    def createEmptyResource(self, name):
+        """Create an empty (length-0) resource.
+        
+        This default implementation simply raises HTTP_FORBIDDEN.
+        
+        The caller must make sure that <path> does not yet exist, and the parent
+        is not locked.
+        This method MUST be implemented by all providers that support locking
+        and write access."""
+        assert self.isCollection()
+        raise DAVError(HTTP_FORBIDDEN)               
+    
+
+    def createCollection(self, name):
+        """Create a new collection as member of self.
+        
+        This default implementation raises HTTP_FORBIDDEN.
+        
+        The caller must make sure that <path> does not yet exist, and the parent
+        is not locked.
+        This method MUST be implemented by all providers that support write 
+        access."""
+        assert self.isCollection()
+        raise DAVError(HTTP_FORBIDDEN)               
+
+
+    def openResourceForRead(self):
+        """Open content as a stream for reading.
+         
+        This method MUST be implemented by all providers."""
+        assert self.isResource()
+        raise NotImplementedError()
+    
+
+    def openResourceForWrite(self, contenttype=None):
+        """Open content as a stream for writing.
+         
+        This method MUST be implemented by all providers that support write 
+        access."""
+        assert self.isResource()
+        raise DAVError(HTTP_FORBIDDEN)               
+
+    
+    def delete(self):
+        """Remove this resource or collection (non-recursive).
+        
+        The caller is responsible for checking locking and permissions.
+        If this is a collection, he must make sure, all children have already 
+        been deleted. 
+        Afterwards, he must take care of removing locks and properties.
+         
+        This method MUST be implemented by all providers that support write 
+        access."""
+        raise DAVError(HTTP_FORBIDDEN)               
+
+    
+#    def remove(self):
+#        """Remove the resource and associated locks and properties.
+#        
+#        This default implementation calls self.deleteResource(path), followed by 
+#        .removeAllProperties(path) and .removeAllLocks(path).
+#        Errors are raised on failure. 
+#
+#        This function should NOT be implemented in a recursive way.
+#        Instead, the caller is responsible to call remove() for all child 
+#        resources before.
+#        The caller is also responsible for checking of locks and permissions. 
+#        """
+#        self.deleteResource()
+#        self.removeAllProperties()
+#        self.removeAllLocks()
+#
+#
+#    def copy(self, destPath):
+#        raise DAVError(HTTP_FORBIDDEN)               
+
 
 
 #===============================================================================
@@ -212,7 +770,9 @@ class DAVProvider(object):
         self.lockManager = None
         self.propManager = None 
         self.verbose = 2
-        self.caseSensitiveUrls = True
+
+        self._count_getResourceInst = 0
+#        self.caseSensitiveUrls = True
 
     
     def __repr__(self):
@@ -248,167 +808,18 @@ class DAVProvider(object):
 
 
     def setPropManager(self, propManager):
+#        assert isinstance(lockManager, PropManager)
         self.propManager = propManager
 
         
-    def getPreferredPath(self, path):
-        """Return preferred mapping for a resource mapping.
-        
-        Different URLs may map to the same resource, e.g.:
-            '/a/b' == '/A/b' == '/a/b/'
-        getPreferredPath() returns the same value for all these variants, e.g.:
-            '/a/b/'   (assuming resource names considered case insensitive)
-
-        @param path: a UTF-8 encoded, unquoted byte string.
-        @return: a UTF-8 encoded, unquoted byte string.
-        """
-        if path in ("", "/"):
-            return "/"
-        assert path.startswith("/")
-        # Append '/' for collections
-        # TODO: we should avoid calling isCollection() her, since this may be expensive.
-        if not path.endswith("/") and self.isCollection(path):
-            path += "/"
-        # TODO: handle case-sensitivity, depending on OS 
-        # (FileSystemProvider could do this with os.path:
-        # (?) on unix we can assume that the path already matches exactly the case of filepath
-        #     on windows we could use path.lower() or get the real case from the file system
-        return path
-        
-
-    def getRefUrl(self, path):
-        """Return the quoted, absolute, unique URL of a resource, relative to appRoot.
-        
-        Byte string, UTF-8 encoded, quoted.
-        Starts with a '/'. Collections also have a trailing '/'.
-        
-        This is basically the same as getPreferredPath, but deals with 
-        'virtual locations' as well.
-        
-        e.g. '/a/b' == '/A/b' == '/bykey/123' == '/byguid/abc532'
-        
-        getRefUrl() returns the same value for all these URLs, so it can be
-        used as a key for locking and persistence storage. 
-
-        DAV providers that allow virtual-mappings must override this method.
-
-        See also comments in DEVELOPERS.txt glossary.
-        """
-        return urllib.quote(self.sharePath + self.getPreferredPath(path))
-
-
-#    def getRefKey(self, path):
-#        """Return an unambigous identifier string for a resource.
-#        
-#        Since it is always unique for one resource, <refKey> is used as key for 
-#        the lock- and property storage dictionaries.
-#        
-#        This default implementation calls getRefUrl(), and strips a possible 
-#        trailing '/'.
-#        """
-#        refKey = self.getRefUrl(path)
-#        if refKey == "/":
-#            return refKey
-#        return refKey.rstrip("/")
-
-
-    def getHref(self, path):
-        """Convert path to a URL that can be passed to XML responses.
-        
-        Byte string, UTF-8 encoded, quoted.
-
-        @see http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3
-        We are using the path-absolute option. i.e. starting with '/'. 
-        URI ; See section 3.2.1 of [RFC2068]
-        """
-        # Nautilus chokes, if href encodes '(' as '%28'
-        # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
-        safe = "/" + "!*'()," + "$-_|."
-        return urllib.quote(self.mountPath + self.sharePath + self.getPreferredPath(path), safe=safe)
-
-
     def refUrlToPath(self, refUrl):
-        """Convert a refUrl to a path, by stripping the mount prefix.
+        """Convert a refUrl to a path, by stripping the share prefix.
         
         Used to calculate the <path> from a storage key by inverting getRefUrl().
         """
         return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
 
-    def getParent(self, path):
-        """Return URL of parent collection (with a trailing '/') or None.
-        
-        Note: there is no checking, if the parent is really a mapped collection. 
-        """
-        if not path or path == "/":
-            return None
-        parentUrl = path.rstrip("/").rsplit("/", 1)[0]
-        return parentUrl + "/"
-
-
-    def getMemberNames(self, path):
-        """Return list of (direct) collection member names (UTF-8 byte strings).
-        
-        Every provider must override this method.
-        """
-        raise NotImplementedError()
-
-
-    def iter(self, path, 
-            collections=True, resources=True, 
-            depthFirst=False,
-            depth="infinity",
-            addSelf=True):
-        """Return iterator of child path's.
-        
-        This default implementation calls getMemberNames() recursively.
-        
-        :Parameters:
-            depthFirst : bool
-                use <False>, to list containers before content.
-                (e.g. when moving / copying branches.)
-                Use <True>, to list content before containers. 
-                (e.g. when deleting branches.)
-            depth : string
-                '0' | '1' | 'infinity'
-        """
-        assert depth in ("0", "1", "infinity")
-
-        if addSelf and not depthFirst:
-            yield path
-        if depth != "0" and self.isCollection(path):
-            for e in self.getMemberNames(path):
-                childUri = path.rstrip("/") + "/" + e
-                isColl = self.isCollection(childUri)
-                if isColl:
-                    childUri += "/"
-                want = (collections and isColl) or (resources and not isColl)
-                if want and not depthFirst: 
-                    yield childUri
-                if isColl and depth == "infinity":
-                    for e in self.iter(childUri, collections, resources, depthFirst, depth, False):
-                        yield e
-                if want and depthFirst: 
-                    yield childUri
-        if addSelf and depthFirst:
-            yield path
-
-
-    def getDescendants(self, 
-            path, 
-            collections=True, resources=True, 
-            depthFirst=False,
-            depth="infinity",
-            addSelf=False):
-        """Return a list member path's of a collection (children, grand-children, ...)."""
-        return list(self.iter(path, collections, resources, depthFirst, depth, addSelf))
-        
-        
-    def getChildren(self, path): 
-        """Return a list of internal member path's of a collection (direct children only)."""
-        return list(self.iter(path, collections=True, resources=True, depthFirst=False, depth="1", addSelf=False))
-        
-        
     def getResourceInst(self, path, typeList=None):
         """Return a DAVResource object for path.
 
@@ -419,12 +830,10 @@ class DAVProvider(object):
         It should be called only once per request and resource::
             
             davres = davprovider.getResourceInst(path)
-            [..]
-            if davres.exists():
+            if davres:
                 print davres.contentType()
         
-        If <path> does not exist, the resulting DAVResource object will return 
-        False for davres.exists().
+        If <path> does not exist, None is returned.
         
         typeList MAY be passed, to specify a list of requested information types.
         The implementation MAY uses this list to avoid expensive calculation of
@@ -432,7 +841,7 @@ class DAVProvider(object):
 
         See DAVResource for details.
 
-        This method must be implemented.
+        This method MUST be implemented.
         """
         raise NotImplementedError()
 
@@ -440,417 +849,48 @@ class DAVProvider(object):
     def exists(self, path):
         """Return True, if path maps to an existing resource.
 
-        This method must be implemented."""
-        raise NotImplementedError()
+        This method should only be used, if no other information is queried
+        for <path>. Otherwise a DAVResource should be created first.
+        
+        This method SHOULD be overridden by a more efficient implementation."""
+        return self.getResourceInst(path, []) is not None
 
 
     def isCollection(self, path):
         """Return True, if path maps to a collection resource.
 
-        This method must be implemented."""
-        raise NotImplementedError()
-
-
-    def isResource(self, path):
-        """Return True, if path maps to a simple resource.
-
-        The default implementation returns True for existing non-collections.
+        This method should only be used, if no other information is queried
+        for <path>. Otherwise a DAVResource should be created first.
         
-        This method could be overwritten with a more efficient variant. 
-        """
-        return self.exists(path) and not self.isCollection(path)
-    
-    
-    # --- Properties -----------------------------------------------------------
-     
-    def getPropertyNames(self, davres, mode="allprop"):
-        """Return list of supported property names in Clark Notation.
-        
-        @param mode: 'allprop': common properties, that should be sent on 'allprop' requests. 
-                     'propname': all available properties.
-
-        This default implementation returns a combination of:
-        
-        - davres.supportedLivePropertyNames()
-        - {DAV:}lockdiscovery and {DAV:}supportedlock, if a lock manager is 
-          present
-        - a list of dead properties, if a property manager is present
-        """
-        # TODO: currently, we assume that allprop == propname
-        if not mode in ("allprop", "propname"):
-            raise ValueError("Invalid mode '%s'." % mode)
-
-        # use a copy
-#        propNameList = self.getSupportedLivePropertyNames(davres) [:]
-        propNameList = davres.supportedLivePropertyNames()
-
-        if self.lockManager:
-            if not "{DAV:}lockdiscovery" in propNameList:
-                propNameList.append("{DAV:}lockdiscovery")
-            if not "{DAV:}supportedlock" in propNameList:
-                propNameList.append("{DAV:}supportedlock")
-        
-        if self.propManager:
-            refUrl = self.getRefUrl(davres.path)
-            for deadProp in self.propManager.getProperties(refUrl):
-                propNameList.append(deadProp)
-                
-        return propNameList
+        This method SHOULD be overridden by a more efficient implementation."""
+        res = self.getResourceInst(path, ["isCollection"])
+        return res and res.isCollection()
 
 
-    def getProperties(self, davres, mode, nameList=None, namesOnly=False):
-        """Return properties as list of 2-tuples (name, value).
-
-        name 
-            is the property name in Clark notation.
-        value 
-            may have different types, depending on the status: 
-            - string or unicode: for standard property values.
-            - etree.Element: for complex values.
-            - DAVError in case of errors.
-            - None: if namesOnly was passed.
-
-        @param path: 
-        @param mode: "allprop", "propname", or "named"
-        @param nameList: list of property names in Clark Notation (only for mode 'named')
-        @param namesOnly: return None for <value>
-        @param davres: pass a DAVResource to access cached info  
-        """
-        if not mode in ("allprop", "propname", "named"):
-            raise ValueError("Invalid mode '%s'." % mode)
-
-        if mode in ("allprop", "propname"):
-            # TODO: allprop can have nameList, when <include> option is implemented
-            assert nameList is None
-            nameList = self.getPropertyNames(davres, mode)
-        else:
-            assert nameList is not None
-
-        propList = []
-        for name in nameList:
-            try:
-                if namesOnly:
-                    propList.append( (name, None) )
-                else:
-                    value = self.getPropertyValue(davres.path, name, davres)
-                    propList.append( (name, value) )
-            except DAVError, e:
-                propList.append( (name, e) )
-            except Exception, e:
-                propList.append( (name, asDAVError(e)) )
-                if self.verbose >= 2:
-                    traceback.print_exc(10, sys.stderr)  
-                    
-        return propList
-
-
-    def getPropertyValue(self, path, propname, davres=None):
-        """Return the value of a property.
-        
-        path:
-            resource path.
-        propname:
-            is the property name in Clark notation.
-        davres:
-            DAVResource instance. Contains cached resource information.
-            Manadatory for live properties, but may be omitted for 
-            '{DAV:}lockdiscovery' or dead properties.
-        return value:
-            may have different types, depending on the status:
-             
-            - string or unicode: for standard property values.
-            - lxml.etree.Element: for complex values.
-            
-            If the property is not available, a DAVError is raised.
-            
-        This default implementation handles ``{DAV:}lockdiscovery`` and
-        ``{DAV:}supportedlock`` using the associated lock manager.
-        
-        All other *live* properties (i.e. propname starts with ``{DAV:}``) are 
-        delegated to self.getLivePropertyValue()
-        
-        Finally, other properties are considered *dead*, and are handled  using 
-        the associated property manager. 
-        """
-        refUrl = self.getRefUrl(path)
-
-#        print "getPropertyValue(%s, %s)" % (path, propname)
-        
-        if self.lockManager and propname == "{DAV:}lockdiscovery":
-            # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
-            lm = self.lockManager     
-            activelocklist = lm.getUrlLockList(refUrl)
-            lockdiscoveryEL = etree.Element(propname)
-            for lock in activelocklist:
-                activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
-
-                locktypeEL = etree.SubElement(activelockEL, "{DAV:}locktype")
-                etree.SubElement(locktypeEL, "{DAV:}%s" % lock["type"])
-
-                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lockscope")
-                etree.SubElement(lockscopeEL, "{DAV:}%s" % lock["scope"])
-                
-                etree.SubElement(activelockEL, "{DAV:}depth").text = lock["depth"]
-                # lock["owner"] is an XML string
-                ownerEL = etree.XML(lock["owner"])
-                activelockEL.append(ownerEL)
-                
-                timeout = lock["timeout"]
-                if timeout < 0:
-                    timeout =  "Infinite"
-                else:
-                    timeout = "Second-" + str(long(timeout - time.time())) 
-                etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
-                
-                locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
-                etree.SubElement(locktokenEL, "{DAV:}href").text = lock["token"]
-
-                lockRoot = self.getHref(self.refUrlToPath(lock["root"]))
-                lockrootEL = etree.SubElement(activelockEL, "{DAV:}lockroot")
-                etree.SubElement(lockrootEL, "{DAV:}href").text = lockRoot
-
-            return lockdiscoveryEL            
-
-        elif self.lockManager and propname == "{DAV:}supportedlock":
-            # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
-            # TODO: the lockmanager should decide about it's features
-            supportedlockEL = etree.Element(propname)
-
-            lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
-            etree.SubElement(lockscopeEL, "{DAV:}exclusive")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
-            etree.SubElement(locktypeEL, "{DAV:}write")
-
-            lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
-            etree.SubElement(lockscopeEL, "{DAV:}shared")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
-            etree.SubElement(locktypeEL, "{DAV:}write")
-            
-            return supportedlockEL
-
-        elif propname.startswith("{DAV:}"):
-            assert davres is not None, "Must pass DAVResource for querying live properties"
-            # Standard live property (raises HTTP_NOT_FOUND if not supported)
-            return self.getLivePropertyValue(davres, propname)
-        
-        # Dead property
-        if self.propManager:
-            refUrl = self.getRefUrl(path)
-            value = self.propManager.getProperty(refUrl, propname)
-            if value is not None:
-#                return value 
-                return etree.XML(value) 
-
-        # No persistence available, or property not found
-        raise DAVError(HTTP_NOT_FOUND)               
-    
-
-    def setPropertyValue(self, path, propname, value, dryRun=False):
-        """Set or remove property value.
-        
-        value == None means 'remove property'.
-        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
-        Removing a non-existing prop is NOT an error. 
-        
-        When dryRun is True, this function should raise errors, as in a real
-        run, but MUST NOT change any data.
-                 
-        @param path:
-        @param propname: property name in Clark Notation
-        @param value: value == None means 'remove property'.
-        @param dryRun: boolean
-        """
-#        if value is not None and not isinstance(value, (unicode, str, etree._Element)):
-        if value is not None and not isinstance(value, (etree._Element)):
-            raise ValueError() 
-        if self.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
-            raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
-                           preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
-        if propname.startswith("{DAV:}"):
-            # raises DAVError(HTTP_FORBIDDEN) if read-only, or not supported
-            return self.setLivePropertyValue(path, propname, value, dryRun)
-        # Dead property
-        if self.propManager:
-            # TODO: do we write all proprties?
-            # TODO: accept etree._Element
-            refUrl = self.getRefUrl(path)
-            if value is None:
-                return self.propManager.removeProperty(refUrl, propname)
-            else:
-                value = etree.tostring(value)
-                return self.propManager.writeProperty(refUrl, propname, value, dryRun)             
-
-        raise DAVError(HTTP_FORBIDDEN)  # TODO: Chun used HTTP_CONFLICT 
-
-
-    def removeAllProperties(self, path):
-        """Remove all associated dead properties."""
-        if self.propManager:
-            self.propManager.removeProperties(self.getRefUrl(path))
-
-
-#    def getSupportedLivePropertyNames(self, davres):
-#        """Return list of supported live properties in Clark Notation.
-#
-#        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
+#    def removeAtomic(self, pathOrRes):
+#        """Remove the resource and associated locks and properties.
 #        
-#        This default implementation uses self.getInfoDict() to figure it out.
+#        This default implementation calls self.deleteResource(path), followed by 
+#        .removeAllProperties(path) and .removeAllLocks(path).
+#        Errors are raised on failure. 
+#
+#        This function should NOT be implemented in a recursive way.
+#        Instead, the caller is responsible to call remove() for all child 
+#        resources before.
+#        The caller is also responsible for checking of locks and permissions. 
 #        """
-#        propmap = {"created": "{DAV:}creationdate",
-#                   "contentType": "{DAV:}getcontenttype",
-#                   "isCollection": "{DAV:}resourcetype",
-#                   "modified": "{DAV:}getlastmodified",
-#                   "displayName": "{DAV:}displayname",
-#                   "etag": "{DAV:}getetag",
-#                   }
-#        if not davres.isCollection():
-#            propmap["contentLength"] = "{DAV:}getcontentlength"
-#            
-#        appProps = []
-#        for k, v in propmap.items(): 
-#            if k in davres._dict:
-#                appProps.append(v)
-#        return appProps
+#        if isinstance(pathOrRes, str):
+#            pathOrRes = self.getResourceInst(pathOrRes)
+#        pathOrRes.deleteResource()
+#        pathOrRes.removeAllProperties()
+#        pathOrRes.removeAllLocks()
 
 
-    def getLivePropertyValue(self, davres, propname):
-        """Return list of supported live properties in Clark Notation.
-
-        SHOULD NOT add {DAV:}lockdiscovery and {DAV:}supportedlock.
-        
-        This default implementation uses self.getInfoDict() to figure it out.
-        """
-        if not davres.exists():
-            raise DAVError(HTTP_NOT_FOUND)
-
-        if propname == "{DAV:}creationdate":
-            return util.getRfc1123Time(davres.created())
-
-        elif propname == "{DAV:}getcontenttype":
-            return davres.contentType()
-        
-        elif propname == "{DAV:}resourcetype":
-            if davres.isCollection():
-                resourcetypeEL = etree.Element(propname)
-                etree.SubElement(resourcetypeEL, "{DAV:}collection")
-                return resourcetypeEL            
-            return ""   
-        
-        elif propname == "{DAV:}getlastmodified":
-            return util.getRfc1123Time(davres.modified())
-        
-        elif propname == "{DAV:}getcontentlength":
-            if davres.contentLength() is not None:
-                return str(davres.contentLength())
-        
-        elif propname == "{DAV:}getetag":
-            return davres.etag()
-
-        elif propname == "{DAV:}displayname":
-            return davres.displayName()
-
-        # No persistence available, or property not found
-        raise DAVError(HTTP_NOT_FOUND)               
-
-
-    def setLivePropertyValue(self, path, propname, value, dryRun=False):
-        """Set or remove a live property value.
-        
-        value == None means 'remove property'.
-        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
-
-        When dryRun is True, this function should raise errors, as in a real
-        run, but MUST NOT change any data.
-                 
-        This function MUST NOT handle {DAV:}lockdiscovery and {DAV:}supportedlock,
-        since this is done by the calling .setPropertyValue() function.
-
-        This will usually be forbidden, since live properties cannot be
-        removed.
-
-        @param path:
-        @param propname: property name in Clark Notation
-        @param value: value == None means 'remove property'.
-        @param dryRun: boolean
-        
-        This default implementation raises DAVError(HTTP_FORBIDDEN), since 
-        {DAV:} live properties are mostly read-only, .
-        
-        TODO: RFC 3253 states that {DAV:}displayname 'SHOULD NOT be protected' 
-        so we could implement {DAV:}displayname as RW, if propMan is available
-        Maybe in a 'create-on-write' way.        
-        """
-        raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
-                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
-    
-    
-    # --- Locking --------------------------------------------------------------
-
-    def isLocked(self, path):
-        """Return True, if URI is locked.
-        
-        This does NOT check, if path exists.
-        """
-        if self.lockManager is None:
-            return False
-        return self.lockManager.isUrlLocked(self.getRefUrl(path))
-
-
-    def removeAllLocks(self, path):
-        if self.lockManager:
-            self.lockManager.removeAllLocksFromUrl(self.getRefUrl(path))
-
-
-    # --- Read / write ---------------------------------------------------------
-    
-    def createEmptyResource(self, path):
-        """Create an empty (length-0) resource.
-        
-        This default implementation simply raises HTTP_FORBIDDEN.
-        
-        This method must be implemented by all providers that support locking."""
-        raise DAVError(HTTP_FORBIDDEN)               
-    
-
-    def createCollection(self, path):
-        """Create a new collection.
-        
-        This default implementation raises HTTP_FORBIDDEN.
-        
-        The caller must make sure that <path> does not yet exist, and the parent
-        is not locked."""
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def openResourceForRead(self, path, davres=None):
-        """Every provider must override this method."""
-        raise NotImplementedError()
-    
-
-    def openResourceForWrite(self, path, contenttype=None):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def deleteCollection(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def deleteResource(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def copyResource(self, srcLoc, destLoc):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-
-    def remove(self, path):
+    def copyAtomic(self, srcPath, destPath):
         """Remove the resource and associated locks and properties.
         
-        This default implementation calls self.deleteResource(lco) or 
-        .deleteCollection(path), followed by .removeAllProperties(path) and 
-        .removeAllLocks(path)
+        This default implementation calls self.deleteResource(path), followed by 
+        .removeAllProperties(path) and .removeAllLocks(path).
         Errors are raised on failure. 
 
         This function should NOT be implemented in a recursive way.
@@ -858,18 +898,10 @@ class DAVProvider(object):
         resources before.
         The caller is also responsible for checking of locks and permissions. 
         """
-        if self.isCollection(path):
-            self.deleteCollection(path)
-        elif self.isResource(path):
-            self.deleteResource(path)
-        self.removeAllProperties(path)
-        self.removeAllLocks(path)
+        self.deleteResource()
+        self.removeAllProperties()
+        self.removeAllLocks()
 
 
-#    def copyFlat(self, srcUrl, destUrl, withProperties):
-#        if self.isCollection(path):
-#            self.deleteCollection(path)
-#        elif self.isResource(path):
-#            self.deleteResource(path)
-#        self.removeAllProperties(path)
-#        self.removeAllLocks(path)
+    def copy(self, destPath):
+        raise DAVError(HTTP_FORBIDDEN)               

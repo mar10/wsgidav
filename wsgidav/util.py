@@ -787,7 +787,7 @@ def obtainContentRanges(rangetext, filesize):
 # If Headers
 #===============================================================================
 
-def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
+def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
     
     If-Match     
@@ -811,6 +811,8 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
         Only send the response if the entity has not been modified since a 
         specific time.
     """
+    if not davres:
+        return
     ## Conditions
 
     # An HTTP/1.1 origin server, upon receiving a conditional request that includes both a Last-Modified date
@@ -818,8 +820,8 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
     # in an If-Match, If-None-Match, or If-Range header field) as cache validators, MUST NOT return a response 
     # status of 304 (Not Modified) unless doing so is consistent with all of the conditional header fields in 
     # the request.
-
-    if "HTTP_IF_MATCH" in environ and res.supportEtag(): #dav.isInfoTypeSupported(path, "etag"):
+    
+    if "HTTP_IF_MATCH" in environ and davres.supportEtag(): 
         ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
             ifmatchtag = ifmatchtag.strip(" \"\t")
@@ -830,7 +832,7 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
 
     # TODO: after the refactoring
     ifModifiedSinceFailed = False
-    if "HTTP_IF_MODIFIED_SINCE" in environ and res.supportModified(): #dav.isInfoTypeSupported(path, "modified"):
+    if "HTTP_IF_MODIFIED_SINCE" in environ and davres.supportModified(): 
         ifmodtime = parseTimeString(environ["HTTP_IF_MODIFIED_SINCE"])
         if ifmodtime and ifmodtime > lastmodified:
             ifModifiedSinceFailed = True
@@ -841,7 +843,7 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
     # (s) in the request. That is, if no entity tags match, then the server MUST NOT return a 304 (Not Modified) 
     # response.
     ignoreIfModifiedSince = False         
-    if "HTTP_IF_NONE_MATCH" in environ and res.supportEtag(): #dav.isInfoTypeSupported(path, "etag"):         
+    if "HTTP_IF_NONE_MATCH" in environ and davres.supportEtag():          
         ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
             ifmatchtag = ifmatchtag.strip(" \"\t")
@@ -855,7 +857,7 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
                                "If-None-Match header condition failed")
         ignoreIfModifiedSince = True
 
-    if "HTTP_IF_UNMODIFIED_SINCE" in environ and res.supportModified(): #dav.isInfoTypeSupported(path, "modified"):
+    if "HTTP_IF_UNMODIFIED_SINCE" in environ and davres.supportModified(): 
         ifunmodtime = parseTimeString(environ["HTTP_IF_UNMODIFIED_SINCE"])
         if ifunmodtime and ifunmodtime <= lastmodified:
             raise DAVError(HTTP_PRECONDITION_FAILED,
@@ -925,7 +927,7 @@ def parseIfHeaderDict(environ):
     return
 
 
-def testIfHeaderDict(res, dictIf, fullurl, locktokenlist, entitytag):
+def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
     debug("if", "testIfHeaderDict(%s, %s, %s)" % (fullurl, locktokenlist, entitytag),
           dictIf)
 
@@ -937,7 +939,7 @@ def testIfHeaderDict(res, dictIf, fullurl, locktokenlist, entitytag):
         return True   
 
 #    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
-    supportEntityTag = res.supportEtag()
+    supportEntityTag = davres.supportEtag()
     for listTestConds in listTest:
         matchfailed = False
 
