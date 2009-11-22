@@ -150,11 +150,10 @@ _resourceData = [
      "status": "published",
      "description": "Long text describing it", 
      "resPathList": [os.path.join(FILE_FOLDER, "My URS.doc"),
-                     os.path.join(FILE_FOLDER, "My URS.doc"),
                      ],
      },
-     
     ]
+
 
 def _getResListByAttr(attrName, attrVal):
     """"""
@@ -174,8 +173,6 @@ def _getResByKey(key):
         if data["key"] == key:
             return data
     return None
-
-
     
 
 
@@ -326,7 +323,7 @@ class VirtualArtifact(_VirtualResource):
 class VirtualResFile(_VirtualResource):
     """Represents an existing file, that is a member of a VirtualResource."""
     def __init__(self, provider, path, data, filePath):
-        assert os.path.exists(filePath)
+#        assert os.path.exists(filePath)
         self.provider = provider
         self.path = path
         self._data = data

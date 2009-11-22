@@ -6,11 +6,12 @@ run_reloading_server
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
-Wrapper for run_server, that restarts the server when source code is modified.
+Wrapper for ``run_server``, that restarts the server when source code is 
+modified.
 """
-import subprocess
+import os
 import sys
-from subprocess import call, Popen 
+from subprocess import Popen 
 
 def run():
     args = sys.argv[1:]
@@ -20,8 +21,9 @@ def run():
     print "run_reloading_server", args 
 
     try:
+        serverpath = os.path.join(os.path.dirname(__file__), "run_server.py")
         while True:
-            p = Popen(["python", "run_server.py", "-v"] + args, 
+            p = Popen(["python", serverpath] + args, 
 #                      stdin=sys.stdin, 
 #                      stdout=subprocess.PIPE, 
 #                      stderr=subprocess.PIPE, 
@@ -38,13 +40,8 @@ def run():
             else:
                 print "run_server returned %s: terminating." % p.returncode
                 break
-            
     except Exception, e:
         raise e
-#    while 3 == call(["python", "run_server.py"] + args):
-#        print "run_server returned 3: restarting..."
-    
-    
     
     
 if __name__ == "__main__":

@@ -102,105 +102,138 @@ from dav_error import DAVError, \
 
 _logger = util.getModuleLogger(__name__)
 
-_livePropNames = ["{DAV:}creationdate", 
-                  "{DAV:}displayname", 
-                  "{DAV:}getcontenttype",
-                  "{DAV:}resourcetype",
-                  "{DAV:}getlastmodified", 
-                  "{DAV:}getcontentlength", 
-                  "{DAV:}getetag", 
-                  "{DAV:}getcontentlanguage", 
-                  "{DAV:}source", 
-                  "{DAV:}lockdiscovery", 
-                  "{DAV:}supportedlock"]
+#_livePropNames = ["{DAV:}creationdate", 
+#                  "{DAV:}displayname", 
+#                  "{DAV:}getcontenttype",
+#                  "{DAV:}resourcetype",
+#                  "{DAV:}getlastmodified", 
+#                  "{DAV:}getcontentlength", 
+#                  "{DAV:}getetag", 
+#                  "{DAV:}getcontentlanguage", 
+#                  "{DAV:}source", 
+#                  "{DAV:}lockdiscovery", 
+#                  "{DAV:}supportedlock"]
 
 
 #===============================================================================
 # DAVResource 
 #===============================================================================
 class DAVResource(object):
-    """Represents a single existing DAV resource instance.
-
-    This class caches resource information on initialization, so querying 
-    multiple live properties can be handled more efficiently.
+    """Represents a single existing DAV resource or collection instance.
 
     Instances of this class are created through the DAVProvider::
         
-        davres = davprovider.getResourceInst(path)
-        if davres.exists() and davres.isCollection():
-            print davres.name()
+        res = provider.getResourceInst(path)
+        if res and res.isCollection():
+            print res.name()
             
-    This default implementation expects that a dictionary is passed to the 
-    constructor, containing the resource attributes:
+    In the example above res will be ``None``, if the path cannot be mapped to
+    an existing resource.
+    Accessing ``res.isCollection()`` and ``res.path`` are 'cheap' operations.
     
-        name:
-            (str) name of resource / collection
-        displayName:
-            (str) display name of resource / collection
-        displayType:
-            (str) type of resource for display, e.g. 'Directory', 'DOC File', ... 
-        isCollection:
-            (bool) 
-        modified:
-            (int) last modification date (in seconds, compatible with time module)
-        created: 
-            (int) creation date (in seconds, compatible with time module)
+    Querying other attributes is considered 'expensive' and delayed until the
+    first access. 
+
+    This default implementation expects that ``self._init()`` is implemented, in 
+    order to use this methods::
+        
+        contentLength()
+        contentType()
+        created()
+        displayName()
+        displayType()
+        etag()
+        isCollection()
+        modified()
+        name()
+        supportRanges()
+        supportEtag()
+        supportModified()
+        supportContentLength()
     
-    and additionally for simple resources (i.e. isCollection == False):
-        contentType:
-            (str) MIME type of content
-        contentLength: 
-            (int) resource size in bytes
-        supportRanges:
-            (bool)
-        etag:
-            (string)
-    
-    Single dictionary items are set to None, if they are not available, or
+    These functions return ``None``, if the property is not available, or
     not supported.   
     
-    infoDict may be None, to create an DAVResource that does not exist (i.e. 
-    is not mapped to an URL).
-
-    typeList MAY be passed, to specify a list of requested information types.
-    The implementation MAY uses this list to avoid expensive calculation of
-    unwanted information types.
-
     Note, that custom DAVProviders may choose different implementations and
     return custom DAVResource objects as well. 
     Only make sure, that your DAVResource object implements this interface.  
 
     See also DAVProvider.getResourceInst().
     """
-    def __init__(self, provider, path, typeList):
+    def __init__(self, provider, path, isCollection):
         assert path=="" or path.startswith("/")
         self.provider = provider
         self.path = path
-        self.typeList = typeList 
+        self._isCollection = isCollection
+        self._dict = None
+    
     
     def __repr__(self):
-        return "%s(%s): %s" % (self.__class__.__name__, self.path)
+        return "%s(%s): %s" % (self.__class__.__name__, self.path, self._dict)
 
+
+    def _init(self):
+        """Read resource information into a dictionary, for caching.
+        
+        This default implementation expects that a dictionary is passed to the 
+        constructor, containing the resource attributes:
+        
+            created: 
+                (int) creation date (in seconds, compatible with time module)
+            displayName:
+                (str, utf8) display name of resource / collection
+            displayType:
+                (str, utf8) type of resource for display, e.g. 'Directory', 
+                'DOC File', ... 
+            isCollection:
+                (bool) 
+            modified:
+                (int) last modification date (in seconds, compatible with time 
+                module)
+            name:
+                (str, utf8) name of resource / collection
+        
+        and additionally for simple resources (i.e. isCollection == False):
+            contentType:
+                (str) MIME type of content
+            contentLength: 
+                (int) resource size in bytes
+            etag:
+                (str)
+        
+        Single dictionary items are set to None, if they are not available, or
+        not supported.   
+        
+        Every provider MUST override this method, if following default getters 
+        are used.
+        """
+        raise NotImplementedError()
+
+    
+    def getInfo(self, info):
+        if self._dict is None:
+            self._init()
+        return self._dict.get(info)
     def contentLength(self):
-        return None
+        return self.getInfo("contentLength")
     def contentType(self):
-        return None
+        return self.getInfo("contentType")
     def created(self):
-        return None
+        return self.getInfo("created")
     def displayName(self):
-        return self.name()
+        return self.getInfo("displayName")
     def displayType(self):
-        raise NotImplementedError()
+        return self.getInfo("displayType")
     def etag(self):
-        return None
+        return self.getInfo("etag")
     def isCollection(self):
-        raise NotImplementedError()
+        return self._isCollection
     def modified(self):
-        return None
+        return self.getInfo("modified")
     def name(self):
-        return os.path.basename(self.path)
+        return self.getInfo("name")
     def supportRanges(self):
-        return False
+        return self.getInfo("supportRanges") is True
     def supportEtag(self):
         return self.etag() is not None
     def supportModified(self):
@@ -280,7 +313,8 @@ class DAVResource(object):
         # Nautilus chokes, if href encodes '(' as '%28'
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
-        return urllib.quote(self.provider.mountPath + self.provider.sharePath + self.getPreferredPath(), safe=safe)
+        return urllib.quote(self.provider.mountPath + self.provider.sharePath 
+                            + self.getPreferredPath(), safe=safe)
 
 
     def getParent(self):
@@ -299,7 +333,7 @@ class DAVResource(object):
     def getMemberNames(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
         
-        Every provider must override this method.
+        Every provider MUST override this method.
         """
         raise NotImplementedError()
 
@@ -759,11 +793,6 @@ class DAVProvider(object):
     
     There will be only one DAVProvider instance per share (not per request).
     """
-    
-    
-    """Available info types, that a DAV Provider MAY support.
-       See DAVProvider.getInfoDict() for details."""
-
     def __init__(self):
         self.mountPath = ""
         self.sharePath = None 
@@ -820,8 +849,8 @@ class DAVProvider(object):
         return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
 
-    def getResourceInst(self, path, typeList=None):
-        """Return a DAVResource object for path.
+    def getResourceInst(self, path):
+        """Return a DAVResource object for a path.
 
         This function is mainly used to query live properties for a resource.
         The assumption is, that it is more efficient to query all infos in one
@@ -829,16 +858,12 @@ class DAVProvider(object):
 
         It should be called only once per request and resource::
             
-            davres = davprovider.getResourceInst(path)
-            if davres:
-                print davres.contentType()
+            res = provider.getResourceInst(path)
+            if res and not res.isCollection():
+                print res.contentType()
         
         If <path> does not exist, None is returned.
         
-        typeList MAY be passed, to specify a list of requested information types.
-        The implementation MAY uses this list to avoid expensive calculation of
-        unwanted information types.
-
         See DAVResource for details.
 
         This method MUST be implemented.
@@ -853,7 +878,7 @@ class DAVProvider(object):
         for <path>. Otherwise a DAVResource should be created first.
         
         This method SHOULD be overridden by a more efficient implementation."""
-        return self.getResourceInst(path, []) is not None
+        return self.getResourceInst(path) is not None
 
 
     def isCollection(self, path):
@@ -861,9 +886,8 @@ class DAVProvider(object):
 
         This method should only be used, if no other information is queried
         for <path>. Otherwise a DAVResource should be created first.
-        
-        This method SHOULD be overridden by a more efficient implementation."""
-        res = self.getResourceInst(path, ["isCollection"])
+        """
+        res = self.getResourceInst(path)
         return res and res.isCollection()
 
 

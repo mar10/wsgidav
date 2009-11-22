@@ -15,7 +15,6 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
-#from wsgidav.dav_provider import DAVResource
 import sys
 import urllib
 import util
@@ -70,9 +69,8 @@ class WsgiDavDirBrowser(object):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#rfc.section.9.4
         """
-        path = environ["PATH_INFO"]
-
-        # (Dispatcher already made sure, that path is an existing collection)
+        assert davres.isCollection()
+        
         displaypath = urllib.unquote(davres.getHref())
         trailer = environ.get("wsgidav.config", {}).get("response_trailer")
         
@@ -89,22 +87,16 @@ class WsgiDavDirBrowser(object):
     a.symlink { font-style: italic; }
 </style>""")        
         o_list.append("</head><body>")
-        o_list.append("<H1>%s</H1>" % displaypath)
+        o_list.append("<h1>%s</h1>" % displaypath)
         o_list.append("<hr/><table>")
 
-        if path in ("", "/"):
+        if davres.path in ("", "/"):
             o_list.append("<tr><td colspan='4'>Top level share</td></tr>")
         else:
             parentUrl = util.getUriParent(davres.getHref())
             o_list.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
 
         for res in davres.getDescendants(depth="1", addSelf=False):
-#            childPath = path.rstrip("/") + "/" + name
-#            res = dav.getResourceInst(childPath)
-
-#            if not res.exists():
-#                print >>sys.stderr, "WARNING: WsgiDavDirBrowser could not get resource instance for '%s'" % res
-#                continue
 
             infoDict = {"url": res.getHref(),
                         "displayName": res.displayName(),
@@ -112,13 +104,11 @@ class WsgiDavDirBrowser(object):
                         "strModified": "",
                         "strSize": "",
                         }
-#            if res.isCollection():
-#                infoDict["url"] = infoDict["url"] + "/"
+
             if res.modified() is not None:
                 infoDict["strModified"] = util.getRfc1123Time(res.modified())
             if res.contentLength() is not None and not res.isCollection():
                 infoDict["strSize"] = util.byteNumberString(res.contentLength())
-                
  
             o_list.append("""\
             <tr><td><a href="%(url)s">%(displayName)s</a></td>
@@ -129,14 +119,14 @@ class WsgiDavDirBrowser(object):
         o_list.append("</table>\n")
 
         if "http_authenticator.username" in environ:
-            o_list.append("<p>Authenticated user: '%s', realm: '%s'.</p>" % (environ.get("http_authenticator.username"),
-                                                                             environ.get("http_authenticator.realm")))
+            o_list.append("<p>Authenticated user: '%s', realm: '%s'.</p>" 
+                          % (environ.get("http_authenticator.username"),
+                             environ.get("http_authenticator.realm")))
 
         if trailer:
             o_list.append("%s\n" % trailer)
         o_list.append("<hr/>\n<a href='http://wsgidav.googlecode.com/'>WsgiDAV server</a> - %s\n" % util.getRfc1123Time())
         o_list.append("</body></html>")
-
 
         start_response("200 OK", [("Content-Type", "text/html"), 
                                   ("Date", util.getRfc1123Time()),

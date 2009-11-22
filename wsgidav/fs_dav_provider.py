@@ -45,36 +45,28 @@ class FileResource(DAVResource):
     """Represents a single existing DAV resource instance.
 
 
-    See also DAVResource and ReadOnlyFilesystemProvider.
+    See also DAVResource and FilesystemProvider.
     """
-    def __init__(self, provider, path, typeList):
-        assert path=="" or path.startswith("/")
-        self.provider = provider
-        self.path = path
-        self.typeList = typeList
-        
-        self._filePath = self._locToFilePath(path)
+    def __init__(self, provider, path, isCollection, filePath):
+        super(FileResource, self).__init__(provider, path, isCollection)
+        self._filePath = filePath
 
+
+    def _init(self):
         # TODO: recalc self.path from <self._filePath>, to fix correct file system case
         #       On windows this would lead to correct URLs
-        
         if not os.path.exists(self._filePath):
-            raise RuntimeError("Path must exist: %s" % path)
+            raise RuntimeError("Path must exist: %s" % self._filePath)
         
         statresults = os.stat(self._filePath)
-        isCollection = os.path.isdir(self._filePath)
         # The file system may have non-files (e.g. links)
         isFile = os.path.isfile(self._filePath)
-#        name = util.getUriName(self.getPreferredPath(path))
-#        name = util.getUriName(path)
-        name = os.path.basename(self._filePath)
-        
-#       TODO: this line in: browser doesn't work, but DAVEx does
-#        name = name.decode("utf8")
-#        util.log("getInfoDict(%s): name='%s'" % (path, name))
 
+        name = os.path.basename(self._filePath)
+        name = name.encode("utf8")
+        
         displayType = "File"
-        if isCollection:
+        if self.isCollection():
             displayType = "Directory"
         elif not isFile:
             displayType = "Unknown"
@@ -82,51 +74,25 @@ class FileResource(DAVResource):
         self._dict = {
             "contentLength": None,
             "contentType": "text/html", # TODO: should be None?
-            "name": name,
+            "created": statresults[stat.ST_CTIME],
             "displayName": name,
             "displayType": displayType,
-            "modified": statresults[stat.ST_MTIME],
-            "created": statresults[stat.ST_CTIME],
             "etag": util.getETag(self._filePath), # TODO: should be resource-only?
-            "isCollection": isCollection, 
+#            "isCollection": self._isCollection, 
+            "modified": statresults[stat.ST_MTIME],
+            "name": name,
+            "supportRanges": not self.isCollection(), # Support ranges for files.
             }
         # Some resource-only infos: 
         if isFile:
-            # Guess MIME type (if requested)
-            if typeList is None or "contentType" in typeList:
-                (mimetype, _mimeencoding) = mimetypes.guess_type(path) # TODO: use strict=False?  
-                if not mimetype:
-                    mimetype = "application/octet-stream" 
-                dict["contentType"] = mimetype
+            (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
+            if not mimetype:
+                mimetype = "application/octet-stream" 
+            self._dict["contentType"] = mimetype
 
-            dict["contentLength"] = statresults[stat.ST_SIZE]
+            self._dict["contentLength"] = statresults[stat.ST_SIZE]
         return
 
-    
-    def __repr__(self):
-        return "%s(%s): %s" % (self.__class__.__name__, self.path, self._dict)
-
-    def contentLength(self):
-        return self._dict.get("contentLength")
-    def contentType(self):
-        return self._dict.get("contentType")
-    def created(self):
-        return self._dict.get("created")
-    def displayName(self):
-        return self._dict.get("displayName")
-    def displayType(self):
-        return self._dict.get("displayType")
-    def etag(self):
-        return self._dict.get("etag")
-    def isCollection(self):
-        return self._dict["isCollection"]
-    def modified(self):
-        return self._dict.get("modified")
-    def name(self):
-        return self._dict.get("name")
-    def supportRanges(self):
-        return True
-    
     
     def getMemberNames(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
@@ -141,15 +107,14 @@ class FileResource(DAVResource):
         # If we don't request unicode, for example Vista may return a '?' 
         # instead of a special character. The name would then be unusable to
         # build a URL that references this resource.
-        
-#        fp = unicode(fp)
+
         nameList = []
-        # Note: self._filePath is unicode, so listdir returns unicode also
+        # self._filePath is unicode, so os.listdir returns unicode also
+        assert isinstance(self._filePath, unicode) 
         for name in os.listdir(self._filePath):
-#            print "%r" % name
+            # TODO: skip non files (links and mount points)
             assert isinstance(name, unicode)
             name = name.encode("utf8")
-#            print "-> %r" % name
             nameList.append(name)
         return nameList
 
@@ -188,25 +153,25 @@ class FileResource(DAVResource):
         """Open content as a stream for reading.
          
         This method MUST be implemented by all providers."""
-        assert self.isResource()
-        fp = self._dict["filePath"]
-        mime = self._dict.get("contentType")
-
+        assert not self.isCollection()
+        mime = self.contentType()
         if mime.startswith("text"):
-            return file(fp, "r", BUFFER_SIZE)
-        else:
-            return file(fp, "rb", BUFFER_SIZE)
-    
-
-    
+            return file(self._filePath, "r", BUFFER_SIZE)
+        return file(self._filePath, "rb", BUFFER_SIZE)
+   
 
     def openResourceForWrite(self, contenttype=None):
         """Open content as a stream for writing.
          
         This method MUST be implemented by all providers that support write 
         access."""
-        assert self.isResource()
-        raise DAVError(HTTP_FORBIDDEN)               
+        assert not self.isCollection()
+#        raise DAVError(HTTP_FORBIDDEN)               
+        mode = "wb"
+        if contenttype and contenttype.startswith("text"):
+            mode = "w"
+        _logger.debug("openResourceForWrite: %s, %s" % (self._filePath, mode))
+        return file(self._filePath, mode, BUFFER_SIZE)
 
     
     def delete(self):
@@ -286,7 +251,7 @@ class ReadOnlyFilesystemProvider(DAVProvider):
         fp = self._locToFilePath(path)
         if not os.path.exists(fp):
             return None
-        return FileResource(self, path, typeList)
+        return FileResource(self, path, os.path.isdir(fp), fp)
 
     
     def exists(self, path):
@@ -327,13 +292,13 @@ class FilesystemProvider(ReadOnlyFilesystemProvider):
         os.rmdir(fp)
 
 
-    def openResourceForWrite(self, path, contenttype=None):
-        fp = self._locToFilePath(path)
-        mode = "wb"
-        if contenttype and contenttype.startswith("text"):
-            mode = "w"
-        _logger.debug("openResourceForWrite: %s, %s" % (fp, mode))
-        return file(fp, mode, BUFFER_SIZE)
+#    def openResourceForWrite(self, path, contenttype=None):
+#        fp = self._locToFilePath(path)
+#        mode = "wb"
+#        if contenttype and contenttype.startswith("text"):
+#            mode = "w"
+#        _logger.debug("openResourceForWrite: %s, %s" % (fp, mode))
+#        return file(fp, mode, BUFFER_SIZE)
 
     
     def deleteResource(self, path):
