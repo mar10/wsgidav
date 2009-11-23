@@ -11,8 +11,8 @@ cli.cli()
 
 # Open results in browser
 #print os.getcwd()
-apidocsPath = os.path.abspath("../../wsgidav-dev-wiki/apidocs")
-logUrl = os.path.abspath("../../wsgidav-dev-wiki/apidocs/epydoc-log.html")
+apidocsPath = os.path.abspath("../../wsgidav-docs/apidocs")
+logUrl = os.path.abspath("../../wsgidav-docs/apidocs/epydoc-log.html")
 
 webbrowser.open(os.path.join(apidocsPath, "epydoc-log.html"))
 webbrowser.open(os.path.join(apidocsPath, "..", "DEVELOPERS.html"))

@@ -2,8 +2,8 @@
 fs_dav_provider
 ===============
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Implementation of a DAV provider that serves resource from a file system.
@@ -19,6 +19,8 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
+#from urllib2 import url
+#import urllib2
 
 __docformat__ = "reStructuredText"
 
@@ -50,6 +52,10 @@ class FileResource(DAVResource):
     def __init__(self, provider, path, isCollection, filePath):
         super(FileResource, self).__init__(provider, path, isCollection)
         self._filePath = filePath
+        # Setting the name from the file path should fix the case on Windows
+        self._name = os.path.basename(self._filePath)
+        self._name = self._name.encode("utf8")
+        
 
 
     def _init(self):
@@ -62,9 +68,6 @@ class FileResource(DAVResource):
         # The file system may have non-files (e.g. links)
         isFile = os.path.isfile(self._filePath)
 
-        name = os.path.basename(self._filePath)
-        name = name.encode("utf8")
-        
         displayType = "File"
         if self.isCollection():
             displayType = "Directory"
@@ -72,16 +75,15 @@ class FileResource(DAVResource):
             displayType = "Unknown"
         
         self._dict = {
-            "contentLength": None,
+            "contentLength": None, # TODO: remove?
             "contentType": "text/html", # TODO: should be None?
             "created": statresults[stat.ST_CTIME],
-            "displayName": name,
+            "displayName": self._name,
             "displayType": displayType,
             "etag": util.getETag(self._filePath), # TODO: should be resource-only?
 #            "isCollection": self._isCollection, 
             "modified": statresults[stat.ST_MTIME],
-            "name": name,
-            "supportRanges": not self.isCollection(), # Support ranges for files.
+#            "name": name,
             }
         # Some resource-only infos: 
         if isFile:
@@ -91,6 +93,7 @@ class FileResource(DAVResource):
             self._dict["contentType"] = mimetype
 
             self._dict["contentLength"] = statresults[stat.ST_SIZE]
+            self._dict["supportRanges"] = True
         return
 
     
@@ -99,21 +102,23 @@ class FileResource(DAVResource):
         
         Every provider must override this method.
         """
-        # TODO: iso_8859_1 doesn't know EURO sign
         # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result 
         # will be a list of Unicode objects. 
-        # Undecodable filenames will still be returned as string objects
-        
+        # Undecodable filenames will still be returned as string objects    
         # If we don't request unicode, for example Vista may return a '?' 
         # instead of a special character. The name would then be unusable to
-        # build a URL that references this resource.
+        # build a distinct URL that references this resource.
 
         nameList = []
-        # self._filePath is unicode, so os.listdir returns unicode also
+        # self._filePath is unicode, so os.listdir returns unicode as well
         assert isinstance(self._filePath, unicode) 
         for name in os.listdir(self._filePath):
-            # TODO: skip non files (links and mount points)
             assert isinstance(name, unicode)
+            # Skip non files (links and mount points)
+            fp = os.path.join(self._filePath, name)
+            if not os.path.isdir(fp) and not os.path.isfile(fp):
+                _logger.debug("Skipping non-file %s" % fp)
+                continue
             name = name.encode("utf8")
             nameList.append(name)
         return nameList
@@ -133,20 +138,25 @@ class FileResource(DAVResource):
         This method MUST be implemented by all providers that support locking
         and write access."""
         assert self.isCollection()
-        raise DAVError(HTTP_FORBIDDEN)               
+        assert not "/" in name
+#        raise DAVError(HTTP_FORBIDDEN)               
+        path = util.joinUri(self.path, name) 
+        fp = self.provider._locToFilePath(path)
+        f = open(fp, "w")
+        f.close()
     
 
     def createCollection(self, name):
         """Create a new collection as member of self.
         
-        This default implementation raises HTTP_FORBIDDEN.
-        
-        The caller must make sure that <path> does not yet exist, and the parent
-        is not locked.
-        This method MUST be implemented by all providers that support write 
-        access."""
+        See DAVResource.createCollection
+        """
         assert self.isCollection()
-        raise DAVError(HTTP_FORBIDDEN)               
+        assert not "/" in name
+#        raise DAVError(HTTP_FORBIDDEN)               
+        path = util.joinUri(self.path, name) 
+        fp = self.provider._locToFilePath(path)
+        os.mkdir(fp)
 
 
     def openResourceForRead(self):
@@ -227,17 +237,12 @@ class ReadOnlyFilesystemProvider(DAVProvider):
 
     def _locToFilePath(self, path):
         """Convert resource path to a unicode absolute file path."""
-        # TODO: cache results
-#        print "_locToFilePath(%s)..." % (path)
         assert self.rootFolderPath is not None
         pathInfoParts = path.strip("/").split("/")
         
         r = os.path.abspath(os.path.join(self.rootFolderPath, *pathInfoParts))
         if not r.startswith(self.rootFolderPath):
             raise RuntimeError("Security exception: tried to access file outside root.")
-#        if not isinstance(r, unicode):
-#            util.log("_locToFilePath(%s): %r" % (path, r))
-#            r = r.decode("utf8")
         r = util.toUnicode(r)
 #        print "_locToFilePath(%s): %s" % (path, r)
         return r  
@@ -254,16 +259,6 @@ class ReadOnlyFilesystemProvider(DAVProvider):
         return FileResource(self, path, os.path.isdir(fp), fp)
 
     
-    def exists(self, path):
-        fp = self._locToFilePath(path)
-        return os.path.exists(fp)
-    
-
-    def isCollection(self, path):
-        fp = self._locToFilePath(path)
-        return os.path.isdir(fp)
-
-    
 
 
 #===============================================================================
@@ -276,15 +271,15 @@ class FilesystemProvider(ReadOnlyFilesystemProvider):
         super(FilesystemProvider, self).__init__(rootFolderPath)
 
 
-    def createEmptyResource(self, path):
-        fp = self._locToFilePath(path)
-        f = open(fp, "w")
-        f.close()
+#    def createEmptyResource(self, path):
+#        fp = self._locToFilePath(path)
+#        f = open(fp, "w")
+#        f.close()
 
     
-    def createCollection(self, path):
-        fp = self._locToFilePath(path)
-        os.mkdir(fp)
+#    def createCollection(self, path):
+#        fp = self._locToFilePath(path)
+#        os.mkdir(fp)
 
     
     def deleteCollection(self, path):

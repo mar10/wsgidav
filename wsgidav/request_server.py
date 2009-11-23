@@ -4,8 +4,8 @@
 request_server
 ==============
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 
@@ -150,6 +150,7 @@ class RequestServer(object):
 
         # If any conflict was detected, raise one of them
         for _lock, e in conflictList:
+#            _logger.debug("_checkWritePermission %s failed: %s" % (res, conflictList))
             raise e
         return
 
@@ -665,12 +666,13 @@ class RequestServer(object):
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_COPY
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_MOVE
         """
-        provider = self._davProvider
         srcPath = environ["PATH_INFO"]
+        provider = self._davProvider
         srcRes = provider.getResourceInst(srcPath)
-
         propMan = provider.propManager
 
+        # --- Check source -----------------------------------------------------
+        
         if srcRes is None:
             self._fail(HTTP_NOT_FOUND)         
         if "HTTP_DESTINATION" not in environ:
@@ -686,8 +688,7 @@ class RequestServer(object):
 #            self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
 #                       "The server does not handle any body content.")
         
-        isCollection = srcRes.isCollection()
-        if isCollection:
+        if srcRes.isCollection():
             # The COPY method on a collection without a Depth header MUST act as 
             # if a Depth header with value "infinity" was included. 
             # A client may submit a Depth header on a COPY on a collection with 
@@ -695,28 +696,31 @@ class RequestServer(object):
             if not environ.setdefault("HTTP_DEPTH", "infinity") in ("0", "infinity"):
                 self._fail(HTTP_BAD_REQUEST, "Invalid Depth header for collection.")
         else:
-            # It's an existing resource, only accept Depth 0
+            # It's an existing resource: only accept Depth 0
             
-            # TODO: correct logic? ( litmus 'copymove: 3 (copy_simple)' seems to 
-            # send 'infinity' for a simple resource)
+            # HOTFIX: litmus 'copymove: 3 (copy_simple)' seems to send 
+            # 'infinity' for a simple resource, so we accept that
             if environ.get("HTTP_DEPTH") == "infinity":
+                _logger.debug("Overriding Depth 'infinity' to '0' for resource")
                 environ["HTTP_DEPTH"] = "0"
             
             if environ.setdefault("HTTP_DEPTH", "0") != "0":
                 self._fail(HTTP_BAD_REQUEST, "Invalid Depth header for resource.")
 
-        ## Get destination path and check for cross-realm access
-        # TODO: We could turn a copy across realms into a PUT (reusing the credentials we have)
-
-        # Destination header may be quoted (e.g. DAV Explorer sends unquoted, Windows quoted)
+        # --- Get destination path and check for cross-realm access ------------
+        
+        # Destination header may be quoted (e.g. DAV Explorer sends unquoted, 
+        # Windows quoted)
         destinationHeader = urllib.unquote(environ["HTTP_DESTINATION"])
         
+        # Return fragments as part of <path>
+        # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING: DELETE removed collection resource withRequest-URI including fragment; unsafe
         destScheme, destNetloc, destPath, \
         _destParams, _destQuery, _destFrag = urlparse(destinationHeader, 
-                                                      allow_fragments=False) # Return fragments as part of <path>
+                                                      allow_fragments=False) 
 
 #        util.log("COPY: destPath='%s'" % destPath)
-        if isCollection:
+        if srcRes.isCollection():
             destPath = destPath.rstrip("/") + "/"
         
         if destScheme and destScheme.lower() != environ["wsgi.url_scheme"].lower():
@@ -734,24 +738,24 @@ class RequestServer(object):
         destPath = destPath[len(provider.mountPath + provider.sharePath):]
         assert destPath.startswith("/")
 
-        destRes = provider.getResourceInst(destPath)
-        destExists = destRes is not None
-        
         # destPath is now relative to current mount/share starting with '/'
 #        util.log("COPY  -> destPath='%s'" % destPath)
+
+        destRes = provider.getResourceInst(destPath)
+        destExists = destRes is not None
 
         destParentRes = provider.getResourceInst(util.getUriParent(destPath))
         
         if not destParentRes or not destParentRes.isCollection():
-            self._fail(HTTP_CONFLICT, "Parent must be a collection.")
+            self._fail(HTTP_CONFLICT, "Destination parent must be a collection.")
 
         self._evaluateIfHeaders(srcRes, environ)
         self._evaluateIfHeaders(destRes, environ)
         if isMove:
+            # TODO: should we check for PARENT permissions instead?
             self._checkWritePermission(srcRes, "infinity", environ)
-#            self._checkWritePermission(srcParentRes, "infinity", environ) # TODO: really?
+        # TODO: should we check for PARENT permissions instead?
         self._checkWritePermission(destRes, environ["HTTP_DEPTH"], environ)
-#        self._checkWritePermission(destParentRes, environ["HTTP_DEPTH"], environ) # TODO: really?
 
         if srcPath == destPath:
             self._fail(HTTP_FORBIDDEN, "Cannot copy/move source onto itself")
@@ -762,22 +766,24 @@ class RequestServer(object):
             self._fail(HTTP_PRECONDITION_FAILED,
                        "Target already exists and Overwrite is set to false")
 
+        # --- Cleanup destination before copy/move -----------------------------
 
         srcRootLen = len(srcPath)
         destRootLen = len(destPath)
         
         srcList = srcRes.getDescendants(addSelf=True)
-        srcPathList = [ s.path for s in srcList ]
 
-        # --- Cleanup target collection ----------------------------------------
-        # TODO: double-check this: This must be bullet proof, otherwise unwanted files may be deleted
-        if destExists and environ["HTTP_DEPTH"] == "infinity":
-            # TODO: we don't delete destination collection members when depth==0, OK? 
-            if isMove:
+        # TODO: Should we only delete dest files for Depth: 'infinity'? 
+#        if destExists and environ["HTTP_DEPTH"] == "infinity":
+        if destExists:
+            # TODO: if 
+            mustDeleteDest = ( destRes.isCollection() != srcRes.isCollection() ) 
+            if isMove or mustDeleteDest:
                 # MOVE:
-                # If a resource exists at the destination and the Overwrite header is "T", 
-                # then prior to performing the move, the server MUST perform a 
-                # DELETE with "Depth: infinity" on the destination resource. 
+                # If a resource exists at the destination and the Overwrite 
+                # header is "T", then prior to performing the move, the server 
+                # MUST perform a DELETE with "Depth: infinity" on the 
+                # destination resource. 
                 destList = destRes.getDescendants(depthFirst=True, addSelf=True)
                 for dRes in destList:
                     if environ["wsgidav.verbose"] >= 2:
@@ -785,12 +791,13 @@ class RequestServer(object):
                     dRes.remove()
             else:
                 # COPY:
-                # Remove destination files, that are not part of source, because source 
-                # and dest collections must not be merged (9.8.4).
+                # Remove destination files, that are not part of source, because 
+                # source and dest collections must not be merged (9.8.4).
                 # This is not the same as deleting the complete dest collection 
                 # before copying, because that would also discard the history of 
                 # existing resources.
                 destList = destRes.getDescendants(depthFirst=True, addSelf=False)
+                srcPathList = [ s.path for s in srcList ]
                 for dRes in destList:
                     relUrl = dRes.path[destRootLen:]
                     sp = srcPath + relUrl
@@ -800,20 +807,20 @@ class RequestServer(object):
                         dRes.remove()
         
         # --- Copy/move from source to dest ------------------------------------ 
+        
         dictError = {}
         for sRes in srcList:
             relUrl = sRes.path[srcRootLen:]
-#            dRes = provider.getResourceInst(destPath + relUrl)
             dPath = destPath + relUrl
             
             # Skip, if there was already an error while processing the parent
             parentError = False
             for errUrl in dictError.keys():
-                if dPath.startswith(errUrl):  # TODO: util.isChildUri(parent, child)
+                if util.isEqualOrChildUri(errUrl, dPath):
                     parentError = True
                     break
             if parentError:
-                _logger.debug("Copy: skipping '%s', because of parent error" % dRes)
+                _logger.debug("Copy: skipping '%s', because of parent error" % dPath)
                 continue
             
             try:
@@ -836,12 +843,12 @@ class RequestServer(object):
                 else:   
                     if environ["wsgidav.verbose"] >= 2:
                         _logger.debug("Copy '%s' -> '%s'" % (sRes, dRes))
-                    # AL can delete/write or do an in-place overwrite
+                    # provider can delete/write or do an in-place overwrite
                     sRes.copyResource(dPath)
 
                 if propMan:
                     refS = sRes.getRefUrl()
-                    refD = dRes.getRefUrl()
+                    refD = dRes.getRefUrl() # FIXME: dRes is undefined (may be just created)
                     propMan.copyProperties(refS, refD)     
 
             except Exception, e:
@@ -857,7 +864,8 @@ class RequestServer(object):
                 # TODO: try/except:
                 sRes.remove()
 
-        # Return error response
+        # --- Return response --------------------------------------------------
+         
         if len(dictError) == 1 and destPath in dictError:
             return util.sendSimpleResponse(environ, start_response, dictError[destPath])
         elif len(dictError) > 0:

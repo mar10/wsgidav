@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 """
 :Author: Martin Wendt
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
@@ -144,7 +145,7 @@ _resourceData = [
                      ],
      },
     {"key": "3", 
-     "title": "My doc 3", 
+     "title": u"My doc (euro:\u20AC, uuml:ü€)".encode("utf8"), 
      "orga": "marketing", 
      "tags": ["nice"],
      "status": "published",
@@ -185,6 +186,11 @@ class _VirtualResource(DAVResource):
     def __init__(self):
         pass
 
+    def isCollection(self):
+        raise NotImplementedError()
+    def name(self):
+        return util.getUriName(self.path)
+
     def contentLength(self):
         return None
     def contentType(self):
@@ -197,12 +203,8 @@ class _VirtualResource(DAVResource):
         raise NotImplementedError()
     def etag(self):
         return None
-    def isCollection(self):
-        raise NotImplementedError()
     def modified(self):
         return None
-    def name(self):
-        return util.getUriName(self.path)
     def supportRanges(self):
         return False
 
@@ -358,8 +360,7 @@ class VirtualResFile(_VirtualResource):
         mime = self.contentType()
         if mime.startswith("text"):
             return file(self.filePath, "r", BUFFER_SIZE)
-        else:
-            return file(self.filePath, "rb", BUFFER_SIZE)
+        return file(self.filePath, "rb", BUFFER_SIZE)
 
 
         

@@ -84,7 +84,6 @@ lockmMnager
    See lock_manager.LockManager for a sample implementation
    using shelve.
 """
-import os
 __docformat__ = "reStructuredText"
 
 import sys
@@ -129,13 +128,18 @@ class DAVResource(object):
             
     In the example above res will be ``None``, if the path cannot be mapped to
     an existing resource.
-    Accessing ``res.isCollection()`` and ``res.path`` are 'cheap' operations.
+    The following attributes and methods are considered 'cheap':: 
+    
+        res.path
+        res.provider
+        res.isCollection()
+        res.name()
     
     Querying other attributes is considered 'expensive' and delayed until the
     first access. 
 
     This default implementation expects that ``self._init()`` is implemented, in 
-    order to use this methods::
+    order to use these getter methods::
         
         contentLength()
         contentType()
@@ -143,9 +147,7 @@ class DAVResource(object):
         displayName()
         displayType()
         etag()
-        isCollection()
         modified()
-        name()
         supportRanges()
         supportEtag()
         supportModified()
@@ -155,8 +157,9 @@ class DAVResource(object):
     not supported.   
     
     Note, that custom DAVProviders may choose different implementations and
-    return custom DAVResource objects as well. 
-    Only make sure, that your DAVResource object implements this interface.  
+    return custom DAVResource objects, that do not use ``self._init()`` to
+    cache properties. Only make sure, that your DAVResource object implements 
+    the getters.  
 
     See also DAVProvider.getResourceInst().
     """
@@ -165,19 +168,21 @@ class DAVResource(object):
         self.provider = provider
         self.path = path
         self._isCollection = isCollection
+        self._name = util.getUriName(self.path)
         self._dict = None
     
     
     def __repr__(self):
-        return "%s(%s): %s" % (self.__class__.__name__, self.path, self._dict)
+        d = None
+        if hasattr(self, "_dict"):
+            d = self._dict
+        return "%s(%s): %s" % (self.__class__.__name__, self.path, d)
 
 
     def _init(self):
-        """Read resource information into a dictionary, for caching.
+        """Read resource information into self._dict, for cached access.
         
-        This default implementation expects that a dictionary is passed to the 
-        constructor, containing the resource attributes:
-        
+        These items should be set:       
             created: 
                 (int) creation date (in seconds, compatible with time module)
             displayName:
@@ -185,19 +190,17 @@ class DAVResource(object):
             displayType:
                 (str, utf8) type of resource for display, e.g. 'Directory', 
                 'DOC File', ... 
-            isCollection:
-                (bool) 
             modified:
                 (int) last modification date (in seconds, compatible with time 
                 module)
-            name:
-                (str, utf8) name of resource / collection
+            supportRanges:
+                (bool) True, if resource supports HTTP_RANGE
         
         and additionally for simple resources (i.e. isCollection == False):
-            contentType:
-                (str) MIME type of content
             contentLength: 
                 (int) resource size in bytes
+            contentType:
+                (str) MIME type of content
             etag:
                 (str)
         
@@ -210,10 +213,16 @@ class DAVResource(object):
         raise NotImplementedError()
 
     
+    def isCollection(self):
+        return self._isCollection
+    def name(self):
+        return self._name
+
+    
     def getInfo(self, info):
         if self._dict is None:
             self._init()
-        return self._dict.get(info)
+        return self._dict.get(info)       
     def contentLength(self):
         return self.getInfo("contentLength")
     def contentType(self):
@@ -226,12 +235,8 @@ class DAVResource(object):
         return self.getInfo("displayType")
     def etag(self):
         return self.getInfo("etag")
-    def isCollection(self):
-        return self._isCollection
     def modified(self):
         return self.getInfo("modified")
-    def name(self):
-        return self.getInfo("name")
     def supportRanges(self):
         return self.getInfo("supportRanges") is True
     def supportEtag(self):

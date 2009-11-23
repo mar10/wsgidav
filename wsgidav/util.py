@@ -402,6 +402,14 @@ def getContentLength(environ):
 #        return "/"
 #    return uri.strip("/").split("/")[0]
 
+def joinUri(uri, *segments):
+    """Append segments to URI.
+    
+    Example: joinUri("/a/b", "c", "d")
+    """
+    sub = "/".join(segments)
+    return uri.rstrip("/") + "/" + sub
+
 
 def getUriName(uri):
     """Return local name, i.e. last segment of URI."""
