@@ -151,7 +151,7 @@ class PropertyManager(object):
 #                print "  -> %s" % self._dict[k]
             for k, v in self._dict.items():
                 _ = "%s, %s" % (k, v)
-            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
+#            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
             return True
         except Exception:
             _logger.exception("%s _check: ERROR %s" % (self.__class__.__name__, msg))

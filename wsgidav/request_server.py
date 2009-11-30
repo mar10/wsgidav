@@ -268,8 +268,10 @@ class RequestServer(object):
         if res is None:
             self._fail(HTTP_NOT_FOUND)
         
-        self._evaluateIfHeaders(res, environ)
+        if environ.get("wsgidav.debug_break"):
+            pass # break point
 
+        self._evaluateIfHeaders(res, environ)
 
         # Parse PROPFIND request
         requestEL = util.parseXmlBody(environ, allowEmpty=True)
@@ -725,7 +727,7 @@ class RequestServer(object):
         srcPath = environ["PATH_INFO"]
         provider = self._davProvider
         srcRes = provider.getResourceInst(srcPath)
-        propMan = provider.propManager
+#        propMan = provider.propManager
 
         # --- Check source -----------------------------------------------------
         
@@ -1041,7 +1043,7 @@ class RequestServer(object):
             start_response("200 OK", [("Content-Type","application/xml"),
                                       ("Date", util.getRfc1123Time()),
                                       ])
-            return ["<?xml version='1.0' encoding='UTF-8' ?>", 
+            return [#"<?xml version='1.0' encoding='UTF-8' ?>", 
                     util.xmlToString(propEL, pretty_print=True) 
                     ]
             
@@ -1122,7 +1124,7 @@ class RequestServer(object):
                                       ("Lock-Token", lockToken["token"]),
                                       ("Date", util.getRfc1123Time()),
                                       ])
-            return ["<?xml version='1.0' encoding='UTF-8' ?>", # TODO: required?
+            return [#"<?xml version='1.0' encoding='UTF-8' ?>", # TODO: required?
                     util.xmlToString(propEL, pretty_print=True) ]
 
         # --- Locking FAILED: return fault response 
@@ -1138,7 +1140,7 @@ class RequestServer(object):
             dictStatus[lockDict["root"]] = e
 
         if not res.getRefUrl() in dictStatus:
-            dictStatus[refUrl] = DAVError(HTTP_FAILED_DEPENDENCY)
+            dictStatus[res.getRefUrl()] = DAVError(HTTP_FAILED_DEPENDENCY)
 
         # Return multi-status fault response
         multistatusEL = util.makeMultistatusEL()

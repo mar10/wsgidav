@@ -19,6 +19,7 @@ from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIF
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
 
+
 import locale
 import urllib
 import logging
@@ -481,12 +482,28 @@ def makeCompleteUrl(environ, localUri=None):
 # XML
 #===============================================================================
 
+def stringToXML(text):
+    """Convert XML string into etree.Element."""
+    try:
+        return etree.XML(text)
+    except:
+        # TODO:
+        # litmus fails, when xml is used instead of lxml
+        # 18. propget............... FAIL (PROPFIND on `/temp/litmus/prop2': Could not read status line: connection was closed by server)
+        # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
+        raise
+
+
 def xmlToString(element, encoding="UTF-8", pretty_print=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print option."""
     assert encoding == "UTF-8" # TODO: remove this
     if useLxml:
-        return etree.tostring(element, encoding=encoding, pretty_print=pretty_print)
-    return etree.tostring(element, encoding)
+        xml = etree.tostring(element, encoding=encoding, 
+                             xml_declaration=True, pretty_print=pretty_print)
+    else:
+        xml = etree.tostring(element, encoding)
+    assert xml.startswith("<?xml ") 
+    return xml
 
 
 def makeMultistatusEL():
@@ -614,7 +631,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
         xml = xmlToString(multistatusEL, pretty_print=True) 
         log(xml)
     pretty_print = False
-    return ["<?xml version='1.0' encoding='UTF-8' ?>",
+    return [#"<?xml version='1.0' encoding='UTF-8' ?>",
             xmlToString(multistatusEL, pretty_print=pretty_print) ]
         
             

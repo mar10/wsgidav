@@ -216,7 +216,9 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        _logger.debug("wsgiWriteData: '%s...', len=%s" % (data[:10], len(data)))
+#        _logger.debug("wsgiWriteData: '%s...', len=%s" % (data[:100], len(data)))
+#        if "<?" in data and "\n" in data:
+#            traceback.print_stack()
         self.wfile.write (data)
 
 class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
@@ -236,7 +238,8 @@ def serve(conf, app):
     server = ExtServer((host, port), {"": app})
     if conf.get("verbose") >= 1:
         if host in ("", "0.0.0.0"):
-            print "WsgiDAV %s serving at %s, port %s (local IP is %s)..." % (__version__, host, port, socket.gethostbyname(socket.gethostname()))
+            (hostname, aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
+            print "WsgiDAV %s serving at %s, port %s (host='%s' %s)..." % (__version__, host, port, hostname, ipaddrlist)
         else:
             print "WsgiDAV %s serving at %s, port %s..." % (__version__, host, port)
     server.serve_forever()

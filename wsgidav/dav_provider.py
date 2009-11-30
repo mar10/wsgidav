@@ -377,14 +377,13 @@ class DAVResource(object):
             res.append(self)
         if depth != "0" and self.isCollection():
             pathPrefix = self.path.rstrip("/") + "/"
-            for e in self.getMemberNames():
-                child = self.provider.getResourceInst(pathPrefix + e)
+            for name in self.getMemberNames():
+                child = self.provider.getResourceInst(pathPrefix + name)
+                assert child, "Could not read resource inst '%s'" % (pathPrefix + name)
                 want = (collections and child.isCollection()) or (resources and not child.isCollection())
                 if want and not depthFirst: 
                     res.append(child)
                 if child.isCollection() and depth == "infinity":
-#                    for e in child.getDescendants(collections, resources, depthFirst, depth, addSelf=False):
-#                        yield e
                     res.extend(child.getDescendants(collections, resources, depthFirst, depth, addSelf=False))
                 if want and depthFirst: 
                     res.append(child)
@@ -500,7 +499,7 @@ class DAVResource(object):
                 propList.append( (name, e) )
             except Exception, e:
                 propList.append( (name, asDAVError(e)) )
-                if self.verbose >= 2:
+                if self.provider.verbose >= 2:
                     traceback.print_exc(10, sys.stderr)  
                     
         return propList
@@ -545,7 +544,9 @@ class DAVResource(object):
                 
                 etree.SubElement(activelockEL, "{DAV:}depth").text = lock["depth"]
                 # lock["owner"] is an XML string
-                ownerEL = etree.XML(lock["owner"])
+#                ownerEL = etree.XML(lock["owner"])
+                ownerEL = util.stringToXML(lock["owner"])
+
                 activelockEL.append(ownerEL)
                 
                 timeout = lock["timeout"]
@@ -619,8 +620,10 @@ class DAVResource(object):
         pm = self.provider.propManager
         if pm:
             value = pm.getProperty(refUrl, propname)
+            print >>sys.stderr, "value:", value 
             if value is not None:
-                return etree.XML(value) 
+#                return etree.XML(value)
+                return util.stringToXML(value) 
 
         # No persistence available, or property not found
         raise DAVError(HTTP_NOT_FOUND)               
