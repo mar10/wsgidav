@@ -105,6 +105,9 @@ class RequestServer(object):
         if environ.get("HTTP_OVERWRITE") is not None: 
             environ["HTTP_OVERWRITE"] = environ["HTTP_OVERWRITE"].upper() 
 
+        if "HTTP_EXPECT" in environ:
+            pass
+        
         # Dispatch HTTP request methods to 'doMETHOD()' handlers
         method = getattr(self, "do%s" % requestmethod, None)
         if not method:
@@ -194,13 +197,14 @@ class RequestServer(object):
         @see http://www.webdav.org/specs/rfc2518.html#HEADER_If
         @see util.evaluateHTTPConditionals
         """
-        # Bail out, if res doeas not exist
-        if res is None:
-            return
-
         # Add parsed If header to environ
         if "wsgidav.conditions.if" not in environ:
             util.parseIfHeaderDict(environ)
+
+        # Bail out, if res does not exist
+        if res is None:
+            return
+
         ifDict = environ["wsgidav.conditions.if"]
 
         # Raise HTTP_PRECONDITION_FAILED or HTTP_NOT_MODIFIED, if standard 
@@ -656,17 +660,17 @@ class RequestServer(object):
                     l = int(environ["wsgi.input"].readline(), 16)
                     
             elif contentlength == 0:
+                # TODO: review this
                 # XP and Vista MiniRedir submit PUT with Content-Length 0, 
                 # before LOCK and the real PUT. So we have to accept this. 
-                # TODO: review this
                 _logger.info("PUT: Content-Length == 0. Creating empty file...")
                 
             elif contentlength < 0:
+                # TODO: review this
                 # If CONTENT_LENGTH is invalid, we may try to workaround this
                 # by reading until the end of the stream. This may block however!
                 # The iterator produced small chnunks of varying size, but not
                 # sure, if we always get everything before it times out.
-                # TODO: review this
                 _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
                 nb = 0
                 try:
@@ -683,6 +687,8 @@ class RequestServer(object):
                 while contentremain > 0:
                     n = min(contentremain, BLOCK_SIZE)
                     readbuffer = environ["wsgi.input"].read(n)
+                    # This happens with litmus expect-100 test:
+                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
                     fileobj.write(readbuffer)
                     contentremain -= len(readbuffer)
                      
@@ -878,7 +884,7 @@ class RequestServer(object):
                 # header is "T", then prior to performing the move, the server 
                 # MUST perform a DELETE with "Depth: infinity" on the 
                 # destination resource.
-                _logger.debug("Remove dest before move: '%s'" % dRes)
+                _logger.debug("Remove dest before move: '%s'" % destRes)
                 destRes.delete()
                 destRes = None
             else:
@@ -941,7 +947,7 @@ class RequestServer(object):
 #                    refS = sRes.getRefUrl()
 #                    refD = dRes.getRefUrl() # FIXME: dRes is undefined (may be just created)
 #                    propMan.copyProperties(refS, refD)     
-                sRes.copy(dPath, recursive=False)
+                sRes.copy(dPath)
             except Exception, e:
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source 
@@ -992,7 +998,6 @@ class RequestServer(object):
         self._evaluateIfHeaders(res, environ)
 
 #        resourceExists = res.exists()
-        refUrl = res.getRefUrl()
         timeoutsecs = lock_manager.readTimeoutValueHeader(environ.get("HTTP_TIMEOUT", ""))
         submittedTokenList = environ["wsgidav.ifLockTokenList"]
 
@@ -1014,7 +1019,7 @@ class RequestServer(object):
             if len(submittedTokenList) != 1:
                 self._fail(HTTP_BAD_REQUEST, 
                            "Expected a lock token (only one lock may be refreshed at a time).")
-            elif not lockMan.isUrlLockedByToken(refUrl, submittedTokenList[0]):
+            elif not lockMan.isUrlLockedByToken(res.getRefUrl(), submittedTokenList[0]):
                 self._fail(HTTP_BAD_REQUEST, "Lock token does not match URL.")
             # TODO: test, if token is owned by user
 
@@ -1076,21 +1081,25 @@ class RequestServer(object):
         if not locktype:
             self._fail(HTTP_BAD_REQUEST, "Missing or invalid locktype.") 
         
+        # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.4    
+        # Locking unmapped URLs: must create an empty resource
+        createdNewResource = False
+        if res is None:
+            parentRes = provider.getResourceInst(util.getUriParent(path))
+            if not parentRes.isCollection():
+                self._fail(HTTP_CONFLICT, "LOCK-0 parent must be a collection")
+            res = parentRes.createEmptyResource(util.getUriName(path)) 
+            createdNewResource = True
+
         # --- Check, if path is already locked ---------------------------
-#        print "LOCK.ac", refUrl
 
         # TODO: lock.acquire should be easier to test for 'success' 
         
-        lockResultList = lockMan.acquire(refUrl, 
+        lockResultList = lockMan.acquire(res.getRefUrl(), 
                                          locktype, lockscope, lockdepth, lockowner, timeoutsecs, 
                                          environ["wsgidav.username"], 
                                          submittedTokenList)
 
-        resourceExists = (res is not None)
-        # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.4    
-        # Locking unmapped URLs: must create an empty resource
-        if not resourceExists:
-            res = provider.createEmptyResource(util.getUriName(path)) 
 
         if environ.get("wsgidav.debug_break"):
             pass # break point
@@ -1106,7 +1115,7 @@ class RequestServer(object):
             propEL.append(lockdiscoveryEL)
                
             respcode = "200 OK"
-            if not resourceExists:
+            if createdNewResource:
                 respcode = "201 Created"
     
             start_response(respcode, [("Content-Type", "application/xml"),
@@ -1117,16 +1126,19 @@ class RequestServer(object):
                     util.xmlToString(propEL, pretty_print=True) ]
 
         # --- Locking FAILED: return fault response 
-        if len(lockResultList) == 1 and lockResultList[0][0]["root"] == refUrl:
+        if len(lockResultList) == 1 and lockResultList[0][0]["root"] == res.getRefUrl():
             # If there is only one error for the root URL, send as simple error response
             return util.sendSimpleResponse(environ, start_response, lockResultList[0][1]) 
          
         dictStatus = {}
-        if not refUrl in lockResultList:  # FIXME: in doesn't work here
-            dictStatus[refUrl] = DAVError(HTTP_FAILED_DEPENDENCY)
+#        if not refUrl in lockResultList:  # FIXME: in doesn't work here
+#            dictStatus[refUrl] = DAVError(HTTP_FAILED_DEPENDENCY)
 
         for lockDict, e in lockResultList:
             dictStatus[lockDict["root"]] = e
+
+        if not res.getRefUrl() in dictStatus:
+            dictStatus[refUrl] = DAVError(HTTP_FAILED_DEPENDENCY)
 
         # Return multi-status fault response
         multistatusEL = util.makeMultistatusEL()
@@ -1156,7 +1168,7 @@ class RequestServer(object):
 
         lockMan = provider.lockManager
         if lockMan is None:
-            self._fail(HTTP_NOT_IMPLEMENTED, "This realm does not support locking.")
+            self._fail(HTTP_NOT_IMPLEMENTED, "This share does not support locking.")
         elif util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                        "The server does not handle any body content.")

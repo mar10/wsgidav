@@ -283,7 +283,7 @@ class WsgiDAVApp(object):
         assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
         # PATH_INFO starts with '/'
         assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
-        
+
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):
             # Log request
@@ -303,6 +303,8 @@ class WsgiDAVApp(object):
                     extra.append("overwrite=%s" % environ.get("HTTP_OVERWRITE"))
                 if "HTTP_DESTINATION" in environ:
                     extra.append('dest="%s"' % environ.get("HTTP_DESTINATION"))
+#                if "HTTP_EXPECT" in environ:
+#                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
                 if self._verbose >= 1:

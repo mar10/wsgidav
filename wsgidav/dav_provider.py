@@ -643,7 +643,7 @@ class DAVResource(object):
         """
         assert value is None or isinstance(value, (etree._Element))
 
-        if self.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
+        if self.provider.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
             raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
                            preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
 
@@ -838,7 +838,36 @@ class DAVResource(object):
         raise DAVError(HTTP_FORBIDDEN)               
 
 
-    def copy(self, destPath, recursive):
+    def copy(self, destPath):
+        """Copy this resource to destPath (non-recursive).
+        
+        Preconditions (to be ensured by caller):
+        
+          - there must not be any conflicting locks on destination
+          - overwriting is only allowed (i.e. destPath exists), when source and 
+            dest both are non-collections and a Overwrite='T' was passed 
+          - destPath must not be a child path of this resource
+
+        This function
+        
+          - MUST NOT copy collection members
+          - Overwrites non-collections content, if destination exists.
+          - MUST NOT copy locks
+          - SHOULD copy live properties, when appropriate.
+            E.g. displayname should be copied, but creationdate should be
+            reset if the target did not exist before.
+          - SHOULD copy dead properties
+          - raises HTTP_FORBIDDEN for read-only providers
+          - raises HTTP_INTERNAL_ERROR on error
+        
+        This method MUST be implemented by all providers that support write 
+        access.
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
+
+
+
+    def copyNative(self, destPath):
         """Copy this resource and all members to destPath.
         
         Preconditions (to be ensured by caller):

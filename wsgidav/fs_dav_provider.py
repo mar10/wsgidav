@@ -197,26 +197,32 @@ class FileResource(DAVResource):
         self.removeAllLocks(True)
             
 
-    def copy(self, destPath, recursive):
+    def copy(self, destPath):
         """See DAVResource.copy() """
-        fpDest = self._locToFilePath(destPath)
+        fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
-        assert not os.path.exists(fpDest)
         if self.isCollection():
-            if recursive:
-                assert False, "Not yet implemented"
-                shutil.copytree(self._filePath, fpDest, symlinks=False)
-            else:
-                os.makedirs(fpDest)
+#            assert not os.path.exists(fpDest)
+            if not os.path.exists(fpDest):
+                os.mkdir(fpDest)
+            try:
+                # may raise: [Error 5] Zugriff verweigert: u'C:\\temp\\litmus\\ccdest'
                 shutil.copystat(self._filePath, fpDest)
+            except Exception, e:
+                _logger.debug("Could not copy folder stats: %s" % e)
         else:
             shutil.copy2(self._filePath, fpDest)
+        # (Live properties are copied by copy2 or copystat)
+        # Copy dead properties
+        if self.provider.propManager:
+            destRes = self.provider.getResourceInst(destPath)
+            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
                
 
     def move(self, destPath):
         """See DAVResource.move() """
 #        raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self._locToFilePath(destPath)
+        fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
         shutil.move(self._filePath, fpDest)

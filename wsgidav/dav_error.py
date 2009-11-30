@@ -11,6 +11,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
+import traceback
 import datetime
 import cgi
 import sys
@@ -154,6 +155,8 @@ def asDAVError(e):
         return e
     elif isinstance(e, Exception):
         print >>sys.stderr, "asHTTPRequestException: %s" % e
+#        traceback.print_exception(type(e), e)
+        traceback.print_exc()
         return DAVError(HTTP_INTERNAL_ERROR, srcexception=e)
     else:
         return DAVError(HTTP_INTERNAL_ERROR, "%s" % e)
