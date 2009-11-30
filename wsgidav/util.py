@@ -14,9 +14,11 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-from dav_error import DAVError, getHttpStatusString, HTTP_BAD_REQUEST
 from pprint import pprint
-from wsgidav.dav_error import HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED
+from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
+    HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
+    HTTP_OK
+
 import locale
 import urllib
 import logging
@@ -607,19 +609,34 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
                                        ])
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
-    # (Vista and others would accept this). 
-#    log(xmlToString(multistatusEL, pretty_print=True))
+    # (Vista and others would accept this).
+    if __debug__: 
+        xml = xmlToString(multistatusEL, pretty_print=True) 
+        log(xml)
     pretty_print = False
     return ["<?xml version='1.0' encoding='UTF-8' ?>",
             xmlToString(multistatusEL, pretty_print=pretty_print) ]
         
             
 def sendSimpleResponse(environ, start_response, status):
+    """Start a WSGI response for a DAVError or status code.""" 
     s = getHttpStatusString(status)
-    start_response(s, [("Content-Length", "0"),
+    if status in (HTTP_CREATED, HTTP_NO_CONTENT):
+        # See paste.lint: these code don't have content
+        start_response(s, [("Content-Length", "0"),
+                           ("Date", getRfc1123Time()),
+                           ])
+        return [ "" ]
+    assert status == HTTP_OK or isinstance(status, DAVError)
+    html = status.getHtmlResponse()
+    if __debug__: 
+        log(html)
+    start_response(s, [("Content-Type", "text/html"),
+                       ("Content-Length", str(len(html))),
                        ("Date", getRfc1123Time()),
                        ])
-    return [ "" ]      
+    return [ html ]
+    
     
     
 def addPropertyResponse(multistatusEL, href, propList):

@@ -219,32 +219,44 @@ class DAVResource(object):
         return self._name
 
     
-    def getInfo(self, info):
+    def _getInfo(self, info):
         if self._dict is None:
             self._init()
         return self._dict.get(info)       
     def contentLength(self):
-        return self.getInfo("contentLength")
+        return self._getInfo("contentLength")
     def contentType(self):
-        return self.getInfo("contentType")
+        return self._getInfo("contentType")
     def created(self):
-        return self.getInfo("created")
+        return self._getInfo("created")
     def displayName(self):
-        return self.getInfo("displayName")
+        return self._getInfo("displayName")
     def displayType(self):
-        return self.getInfo("displayType")
+        return self._getInfo("displayType")
     def etag(self):
-        return self.getInfo("etag")
+        return self._getInfo("etag")
     def modified(self):
-        return self.getInfo("modified")
-    def supportRanges(self):
-        return self.getInfo("supportRanges") is True
+        return self._getInfo("modified")
+    def supportContentLength(self):
+        return self.contentLength() is not None
     def supportEtag(self):
         return self.etag() is not None
     def supportModified(self):
         return self.modified() is not None
-    def supportContentLength(self):
-        return self.contentLength() is not None
+    def supportNativeCopy(self):
+        return False
+    def supportNativeDelete(self):
+        return False
+    def supportNativeMove(self):
+        return False
+    def supportRanges(self):
+        return self._getInfo("supportRanges") is True
+    def supportRecursiveCopy(self):
+        return False
+    def supportRecursiveDelete(self):
+        return False
+    def supportRecursiveMove(self):
+        return False
     
     
     def getPreferredPath(self):
@@ -373,7 +385,7 @@ class DAVResource(object):
                 if child.isCollection() and depth == "infinity":
 #                    for e in child.getDescendants(collections, resources, depthFirst, depth, addSelf=False):
 #                        yield e
-                    res.extend(self.getDescendants(collections, resources, depthFirst, depth, addSelf=False))
+                    res.extend(child.getDescendants(collections, resources, depthFirst, depth, addSelf=False))
                 if want and depthFirst: 
                     res.append(child)
         if addSelf and depthFirst:
@@ -653,7 +665,7 @@ class DAVResource(object):
         raise DAVError(HTTP_FORBIDDEN)  # TODO: Chun used HTTP_CONFLICT 
 
 
-    def removeAllProperties(self):
+    def removeAllProperties(self, recursive):
         """Remove all associated dead properties."""
         if self.provider.propManager:
             self.provider.propManager.removeProperties(self.getRefUrl())
@@ -695,16 +707,13 @@ class DAVResource(object):
     # --- Locking --------------------------------------------------------------
 
     def isLocked(self):
-        """Return True, if URI is locked.
-        
-        This does NOT check, if path exists.
-        """
+        """Return True, if URI is locked."""
         if self.provider.lockManager is None:
             return False
         return self.provider.lockManager.isUrlLocked(self.getRefUrl())
 
 
-    def removeAllLocks(self):
+    def removeAllLocks(self, recursive):
         if self.provider.lockManager:
             self.provider.lockManager.removeAllLocksFromUrl(self.getRefUrl())
 
@@ -712,14 +721,22 @@ class DAVResource(object):
     # --- Read / write ---------------------------------------------------------
     
     def createEmptyResource(self, name):
-        """Create an empty (length-0) resource.
+        """Create and return an empty (length-0) resource as member of self.
         
+        Called for LOCK requests on unmapped URLs.
+        
+        Preconditions (to be ensured by caller):
+        
+          - this must be a collection
+          - <self.path + name> must not exist  
+          - there must be no conflicting locks
+
+        Returns a DAVResuource.
+        
+        This method MUST be implemented by all providers that support write 
+        access.
         This default implementation simply raises HTTP_FORBIDDEN.
-        
-        The caller must make sure that <path> does not yet exist, and the parent
-        is not locked.
-        This method MUST be implemented by all providers that support locking
-        and write access."""
+        """
         assert self.isCollection()
         raise DAVError(HTTP_FORBIDDEN)               
     
@@ -727,65 +744,135 @@ class DAVResource(object):
     def createCollection(self, name):
         """Create a new collection as member of self.
         
-        This default implementation raises HTTP_FORBIDDEN.
+        Preconditions (to be ensured by caller):
         
-        The caller must make sure that <path> does not yet exist, and the parent
-        is not locked.
+          - this must be a collection
+          - <self.path + name> must not exist  
+          - there must be no conflicting locks
+
         This method MUST be implemented by all providers that support write 
-        access."""
+        access.
+        This default implementation raises HTTP_FORBIDDEN.
+        """
         assert self.isCollection()
         raise DAVError(HTTP_FORBIDDEN)               
 
 
-    def openResourceForRead(self):
+    def getContent(self):
         """Open content as a stream for reading.
          
-        This method MUST be implemented by all providers."""
-        assert self.isResource()
+        This method MUST be implemented by all providers.
+        """
+        assert not self.isResource()
         raise NotImplementedError()
     
 
-    def openResourceForWrite(self, contenttype=None):
+    # TODO: rename to beginWrite() and add endWrite(success)
+    def openResourceForWrite(self, contentType=None):
         """Open content as a stream for writing.
          
         This method MUST be implemented by all providers that support write 
-        access."""
+        access.
+        """
         assert self.isResource()
         raise DAVError(HTTP_FORBIDDEN)               
 
     
     def delete(self):
-        """Remove this resource or collection (non-recursive).
+        """Remove this resource (recursive).
         
-        The caller is responsible for checking locking and permissions.
-        If this is a collection, he must make sure, all children have already 
-        been deleted. 
-        Afterwards, he must take care of removing locks and properties.
-         
+        Preconditions (to be ensured by caller):
+        
+          - there must not be any conflicting locks  
+
+        This function
+        
+          - removes this resource and all members
+          - removes associated locks
+          - removes associated dead properties
+          - raises HTTP_FORBIDDEN for read-only resources
+          - raises HTTP_INTERNAL_ERROR on error
+        
+        An implementation may choose to apply other semantics.
+        For example deleting '\by_tag\cool\myres' may simply remove the 'cool' 
+        tag from 'my_res'. 
+        In this case, the resource might still be available by other URLs, so 
+        locks and properties are not removed.
+
         This method MUST be implemented by all providers that support write 
-        access."""
+        access.
+        """
         raise DAVError(HTTP_FORBIDDEN)               
 
     
-#    def remove(self):
-#        """Remove the resource and associated locks and properties.
-#        
-#        This default implementation calls self.deleteResource(path), followed by 
-#        .removeAllProperties(path) and .removeAllLocks(path).
-#        Errors are raised on failure. 
-#
-#        This function should NOT be implemented in a recursive way.
-#        Instead, the caller is responsible to call remove() for all child 
-#        resources before.
-#        The caller is also responsible for checking of locks and permissions. 
-#        """
-#        self.deleteResource()
-#        self.removeAllProperties()
-#        self.removeAllLocks()
-#
-#
-#    def copy(self, destPath):
-#        raise DAVError(HTTP_FORBIDDEN)               
+    def move(self, destPath):
+        """Move this resource to destPath (recursive).
+        
+        Preconditions (to be ensured by caller):
+        
+          - there must not be any conflicting locks on source
+          - there must not be any conflicting locks on destination
+          - destPath must not exist 
+          - destPath must not be a member of this resource
+
+        This function
+        
+          - moves this resource and all members to destPath.
+          - MUST NOT move associated locks.
+            Instead, if the source (or children thereof) have locks, then
+            these locks should be removed.
+          - SHOULD maintain associated live properties, when applicable
+          - MUST maintain associated dead properties
+          - raises HTTP_FORBIDDEN for read-only resources
+          - raises HTTP_INTERNAL_ERROR on error
+        
+        An implementation may choose to apply other semantics.
+        For example copying '\by_tag\cool\myres' to '\by_tag\new\myres' may 
+        simply add a 'new' tag to 'my_res'. 
+
+        This method is only called, when self.supportRecursiveMove() returns 
+        True. Otherwise, the request server implements MOVE using delete/copy.
+        
+        This method MAY be implemented in order to improve performance.
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
+
+
+    def copy(self, destPath, recursive):
+        """Copy this resource and all members to destPath.
+        
+        Preconditions (to be ensured by caller):
+        
+          - there must not be any conflicting locks on destination
+          - overwriting is only allowed (i.e. destPath exists), when source and 
+            dest both are non-collections and a Overwrite='T' was passed 
+          - destPath must not be a child path of this resource
+
+        This function
+        
+          - copies this resource to destPath.
+            If source is a collection and ``recursive`` is True, then all 
+            members are copied as well.
+            If ``recursive`` is False, only the resource and it's properties
+            are copied
+          - MUST NOT copy locks
+          - SHOULD copy live properties, when appropriate.
+            E.g. displayname should be copied, but creationdate should be
+            reset if the target did not exist before.
+          - SHOULD copy dead properties
+          - raises HTTP_FORBIDDEN for read-only providers
+          - raises HTTP_INTERNAL_ERROR on error
+        
+        A depth-0 copy of collections can NOT be handled by this method.
+        
+        An implementation may choose to apply other semantics.
+        For example copying '\by_tag\cool\myres' to '\by_tag\new\myres' may 
+        simply add a 'new' tag to 'my_res'. 
+
+        This method MUST be implemented by all providers that support write 
+        access.
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
 
 
 
@@ -806,6 +893,7 @@ class DAVProvider(object):
         self.verbose = 2
 
         self._count_getResourceInst = 0
+        self._count_getResourceInstInit = 0
 #        self.caseSensitiveUrls = True
 
     
@@ -882,7 +970,8 @@ class DAVProvider(object):
         This method should only be used, if no other information is queried
         for <path>. Otherwise a DAVResource should be created first.
         
-        This method SHOULD be overridden by a more efficient implementation."""
+        This method SHOULD be overridden by a more efficient implementation.
+        """
         return self.getResourceInst(path) is not None
 
 
@@ -931,6 +1020,3 @@ class DAVProvider(object):
         self.removeAllProperties()
         self.removeAllLocks()
 
-
-    def copy(self, destPath):
-        raise DAVError(HTTP_FORBIDDEN)               

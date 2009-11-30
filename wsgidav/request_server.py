@@ -17,6 +17,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 """
 from pprint import pprint
 from urlparse import urlparse
+from wsgidav.dav_error import HTTP_OK
 import socket
 import util
 import urllib
@@ -129,6 +130,28 @@ class RequestServer(object):
         util.log("Raising DAVError %s" % e.getUserInfo())
         raise e
 
+
+    def _sendResponse(self, environ, start_response, rootRes, successCode, errorList):
+        """Send WSGI response (single or multi)."""
+        assert successCode in (HTTP_CREATED, HTTP_NO_CONTENT, HTTP_OK)
+        if not errorList:
+            # Status OK
+            return util.sendSimpleResponse(environ, start_response, successCode)
+        if len(errorList) == 1 and errorList[0][0] == rootRes.getHref():
+            # Only one error that occurred on the root resource
+            return util.sendSimpleResponse(environ, start_response, errorList[0][1])
+        
+        # Multiple errors, or error on one single child
+        multistatusEL = util.makeMultistatusEL()
+        
+        for refurl, e in errorList:
+            assert refurl.startswith("http:")
+            assert isinstance(e, DAVError)
+            responseEL = etree.SubElement(multistatusEL, "{DAV:}response") 
+            etree.SubElement(responseEL, "{DAV:}href").text = refurl
+            etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
+
+        return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
 
 
     def _checkWritePermission(self, res, depth, environ):
@@ -459,10 +482,11 @@ class RequestServer(object):
 
 
     
-    # TODO: implement POST? See RFC 9.5 'POST for collections'
-#    def doPOST(self, environ, start_response):
-#        # @see http://www.webdav.org/specs/rfc4918.html#METHOD_POST
-#        self._fail(processrequesterrorhandler.HTTP_METHOD_NOT_ALLOWED)         
+    def doPOST(self, environ, start_response):
+        """
+        @see http://www.webdav.org/specs/rfc4918.html#METHOD_POST
+        """
+        self._fail(HTTP_METHOD_NOT_ALLOWED)         
 
 
 
@@ -475,73 +499,98 @@ class RequestServer(object):
         provider = self._davProvider
         res = provider.getResourceInst(path)
 
-        # Do not understand ANY request body entities
+        # --- Check request preconditions --------------------------------------
+        
         if util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                        "The server does not handle any body content.")
-        
         if res is None:
             self._fail(HTTP_NOT_FOUND)         
 
         if res.isCollection(): 
             # Delete over collection
-            # "The DELETE method on a collection MUST act as if a "Depth: infinity" header was used on it. 
-            # A client MUST NOT submit a Depth header with a DELETE on a collection with any value but infinity."
+            # "The DELETE method on a collection MUST act as if a 
+            # 'Depth: infinity' header was used on it. A client MUST NOT submit 
+            # a Depth header with a DELETE on a collection with any value but 
+            # infinity."
             if environ.setdefault("HTTP_DEPTH", "infinity") != "infinity":
                 self._fail(HTTP_BAD_REQUEST,
                            "Only Depth: infinity is supported for collections.")         
         else:
-            # TODO: should we default to '0', or raise if no Depth is given?
             if environ.setdefault("HTTP_DEPTH", "0") != "0":
                 self._fail(HTTP_BAD_REQUEST,
-                           "Only Depth: 0 is supported for resources.")         
+                           "Only Depth: 0 is supported for non-collections.")         
 
         self._evaluateIfHeaders(res, environ)
         self._checkWritePermission(res, environ["HTTP_DEPTH"], environ)
 
+        # --- Let provider handle the request natively -------------------------
+        
+        # Errors in deletion; [(<ref-url>, <DAVError>), ... ]
+        errorList = []  
+
+        if res.supportNativeDelete():
+            try:
+                errorList = res.deleteNative()
+            except Exception, e:
+                errorList = [ (res.getHref(), asDAVError(e)) ]
+            return self._sendResponse(environ, start_response, 
+                                      res, HTTP_NO_CONTENT, errorList)
+        
+        # --- Let provider implement own recursion -----------------------------
+        
         # Get a list of all resources (parents after children, so we can remove 
         # them in that order)
-        childList = res.getDescendants(depthFirst=True, depth=environ["HTTP_DEPTH"], addSelf=True)
+        reverseChildList = res.getDescendants(depthFirst=True, 
+                                              depth=environ["HTTP_DEPTH"], 
+                                              addSelf=True)
 
-        dictError = {} # Errors in deletion; { <ref-url>: <DAVError>, ... } 
-        dictHidden = {}  # Hidden errors, ancestors of failed deletes {<path>: ""}
-        for childRes in childList:
-            if childRes.path in dictHidden:
-#                dictHidden[provider.getParent(childPath)] = ""
-                dictHidden[childRes.getParentPath()] = ""
-                continue            
-            try:
-                # 9.6.1.: Any headers included with delete must be applied in processing every resource to be deleted
-                self._evaluateIfHeaders(childRes, environ)
-#                self._checkWritePermission(childRes, environ["HTTP_DEPTH"], environ)
-                childRes.remove()
-                
-            except Exception, e:
-                dictError[childRes.getHref()] = asDAVError(e)
-                dictHidden[childRes.getParentPath()] = ""
-
-            else:
-                # Double-check, if deletion succeeded
-                if provider.exists(childRes.path) and childRes.getHref() not in dictError:
-                    dictError[childRes.getHref()] = DAVError(HTTP_INTERNAL_ERROR, 
-                                                             "Resource could not be deleted.")
-                    dictHidden[childRes.getParentPath()] = ""
-
-        # Send response
-        if len(dictError) == 1 and res.getHref() in dictError:
-            return util.sendSimpleResponse(environ, start_response, dictError[res.getHref()])
-        
-        elif len(dictError) > 0:
-            multistatusEL = util.makeMultistatusEL()
+        if res.supportRecursiveDelete():
+            hasConflicts = False
+            for childRes in reverseChildList:
+                try:
+                    self._evaluateIfHeaders(childRes, environ)
+                    self._checkWritePermission(childRes, "0", environ)
+                except:
+                    hasConflicts = True
+                    break
             
-            for refurl, e in dictError.items():
-                responseEL = etree.SubElement(multistatusEL, "{DAV:}response") 
-                etree.SubElement(responseEL, "{DAV:}href").text = refurl
-                etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
+            if not hasConflicts:
+                try:
+                    errorList = res.deleteRecursive()
+                except Exception, e:
+                    errorList.append( (res.getHref(), asDAVError(e)) )
+                return self._sendResponse(environ, start_response, 
+                                          res, HTTP_NO_CONTENT, errorList)
 
-            return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
-        # Status OK
-        return util.sendSimpleResponse(environ, start_response, HTTP_NO_CONTENT)
+        # --- Implement file-by-file processing --------------------------------
+        
+        # Hidden paths (ancestors of failed deletes) {<path>: True, ...}
+        ignoreDict = {}  
+        for childRes in reverseChildList:
+            if childRes.path in ignoreDict:
+                _logger.debug("Skipping %s (contains error child)" % childRes.path)
+                ignoreDict[util.getUriParent(childRes.path)] = ""
+                continue            
+
+            try:
+                # 9.6.1.: Any headers included with delete must be applied in 
+                #         processing every resource to be deleted
+                self._evaluateIfHeaders(childRes, environ)
+                self._checkWritePermission(childRes, environ["HTTP_DEPTH"], environ)
+                childRes.delete()
+                # Double-check, if deletion succeeded
+                if provider.exists(childRes.path):
+                    raise DAVError(HTTP_INTERNAL_ERROR, 
+                                   "Resource could not be deleted.")
+            except Exception, e:
+                errorList.append( (childRes.getHref(), asDAVError(e)) )
+                ignoreDict[util.getUriParent(childRes.path)] = True
+
+        # --- Send response ----------------------------------------------------
+
+        return self._sendResponse(environ, start_response, 
+                                  res, HTTP_NO_CONTENT, errorList)
 
 
 
@@ -579,6 +628,7 @@ class RequestServer(object):
 
         if isnewfile:
             self._checkWritePermission(parentRes, "0", environ)
+            res = parentRes.createEmptyResource(util.getUriName(path))
         else:
             self._checkWritePermission(res, "0", environ)
 
@@ -595,7 +645,7 @@ class RequestServer(object):
                        "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
         
         try:      
-            fileobj = res.openResourceForWrite(contenttype=environ.get("CONTENT_TYPE"))
+            fileobj = res.openResourceForWrite(contentType=environ.get("CONTENT_TYPE"))
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
                 l = int(environ["wsgi.input"].readline(), 16)
@@ -678,6 +728,7 @@ class RequestServer(object):
         if "HTTP_DESTINATION" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing required Destination header.")
         if not environ.setdefault("HTTP_OVERWRITE", "T") in ("T", "F"):
+            # Overwrite defaults to 'T'
             self._fail(HTTP_BAD_REQUEST, "Invalid Overwrite header.")
         if util.getContentLength(environ) != 0:
             # RFC 2518 defined support for <propertybehavior>.
@@ -701,11 +752,11 @@ class RequestServer(object):
             # HOTFIX: litmus 'copymove: 3 (copy_simple)' seems to send 
             # 'infinity' for a simple resource, so we accept that
             if environ.get("HTTP_DEPTH") == "infinity":
-                _logger.debug("Overriding Depth 'infinity' to '0' for resource")
+                _logger.debug("Overriding Depth 'infinity' to '0' for non-collection")
                 environ["HTTP_DEPTH"] = "0"
             
             if environ.setdefault("HTTP_DEPTH", "0") != "0":
-                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header for resource.")
+                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header for non-collection.")
 
         # --- Get destination path and check for cross-realm access ------------
         
@@ -731,7 +782,8 @@ class RequestServer(object):
             self._fail(HTTP_BAD_GATEWAY,
                        "Source and destination must have the same host name.")
         elif not destPath.startswith(provider.mountPath + provider.sharePath):
-            # Inter-realm copying not supported, since its not possible to authentication-wise
+            # Inter-realm copying not supported, since its not possible to 
+            # authentication-wise
             self._fail(HTTP_BAD_GATEWAY, 
                        "Inter-realm copy/move is not supported.")
 
@@ -739,7 +791,6 @@ class RequestServer(object):
         assert destPath.startswith("/")
 
         # destPath is now relative to current mount/share starting with '/'
-#        util.log("COPY  -> destPath='%s'" % destPath)
 
         destRes = provider.getResourceInst(destPath)
         destExists = destRes is not None
@@ -752,10 +803,8 @@ class RequestServer(object):
         self._evaluateIfHeaders(srcRes, environ)
         self._evaluateIfHeaders(destRes, environ)
         if isMove:
-            # TODO: should we check for PARENT permissions instead?
             self._checkWritePermission(srcRes, "infinity", environ)
-        # TODO: should we check for PARENT permissions instead?
-        self._checkWritePermission(destRes, environ["HTTP_DEPTH"], environ)
+        self._checkWritePermission(destRes, "infinity", environ)
 
         if srcPath == destPath:
             self._fail(HTTP_FORBIDDEN, "Cannot copy/move source onto itself")
@@ -764,31 +813,74 @@ class RequestServer(object):
 
         if destExists and environ["HTTP_OVERWRITE"] != "T":
             self._fail(HTTP_PRECONDITION_FAILED,
-                       "Target already exists and Overwrite is set to false")
+                       "Destination already exists and Overwrite is set to false")
 
+        # --- Let provider handle the request natively -------------------------
+        
+        # Errors in deletion; [(<ref-url>, <DAVError>), ... ]
+        errorList = []  
+        successCode = HTTP_CREATED
+        if destExists:
+            successCode = HTTP_NO_CONTENT
+
+        # TODO: add support for native handling
+#        if ( (isMove and srcRes.supportNativeMove()) 
+#             or (not isMove and srcRes.supportNativeCopy()) ):
+#            try:
+#                if isMove:
+#                    errorList = srcRes.moveNative()
+#                else:
+#                    errorList = srcRes.copyNative()
+#            except Exception, e:
+#                errorList = [ (srcRes.getHref(), asDAVError(e)) ]
+#            return self._sendResponse(environ, start_response, 
+#                                      srcRes, successCode, errorList)
+
+
+        # --- Let provider implement atomic move -------------------------------
+        
+        srcList = srcRes.getDescendants(addSelf=True)
+
+        if ( isMove and srcRes.supportRecursiveMove() and not destExists): 
+            # TODO: we may allow also destExists==True
+            hasConflicts = False
+            for s in srcList:
+                try:
+                    self._evaluateIfHeaders(s, environ)
+                except:
+                    hasConflicts = True
+                    break
+            
+            if not hasConflicts:
+                try:
+                    errorList = srcRes.move(destPath)
+                except Exception, e:
+                    errorList.append( (srcRes.getHref(), asDAVError(e)) )
+                return self._sendResponse(environ, start_response, 
+                                          srcRes, successCode, errorList)
+        
+        # Implement copy/move using delete/copy...
+        
         # --- Cleanup destination before copy/move -----------------------------
 
         srcRootLen = len(srcPath)
         destRootLen = len(destPath)
         
-        srcList = srcRes.getDescendants(addSelf=True)
 
         # TODO: Should we only delete dest files for Depth: 'infinity'? 
 #        if destExists and environ["HTTP_DEPTH"] == "infinity":
         if destExists:
-            # TODO: if 
-            mustDeleteDest = ( destRes.isCollection() != srcRes.isCollection() ) 
-            if isMove or mustDeleteDest:
+            if (isMove 
+                or not destRes.isCollection() 
+                or not srcRes.isCollection() ):
                 # MOVE:
                 # If a resource exists at the destination and the Overwrite 
                 # header is "T", then prior to performing the move, the server 
                 # MUST perform a DELETE with "Depth: infinity" on the 
-                # destination resource. 
-                destList = destRes.getDescendants(depthFirst=True, addSelf=True)
-                for dRes in destList:
-                    if environ["wsgidav.verbose"] >= 2:
-                        _logger.debug("Remove dest before move: '%s'" % dRes)
-                    dRes.remove()
+                # destination resource.
+                _logger.debug("Remove dest before move: '%s'" % dRes)
+                destRes.delete()
+                destRes = None
             else:
                 # COPY:
                 # Remove destination files, that are not part of source, because 
@@ -796,34 +888,35 @@ class RequestServer(object):
                 # This is not the same as deleting the complete dest collection 
                 # before copying, because that would also discard the history of 
                 # existing resources.
-                destList = destRes.getDescendants(depthFirst=True, addSelf=False)
+                reverseDestList = destRes.getDescendants(depthFirst=True, addSelf=False)
                 srcPathList = [ s.path for s in srcList ]
-                for dRes in destList:
+                for dRes in reverseDestList:
                     relUrl = dRes.path[destRootLen:]
                     sp = srcPath + relUrl
                     if not sp in srcPathList:
-                        if environ["wsgidav.verbose"] >= 2:
-                            _logger.debug("Remove unmatched dest before copy: '%s'" % dRes)
-                        dRes.remove()
+                        _logger.debug("Remove unmatched dest before copy: %s" % dRes)
+                        dRes.delete()
         
         # --- Copy/move from source to dest ------------------------------------ 
         
-        dictError = {}
+        # Hidden paths (paths of failed copy/moves) {<src_path>: True, ...}
+        ignoreDict = {}  
+        
         for sRes in srcList:
-            relUrl = sRes.path[srcRootLen:]
-            dPath = destPath + relUrl
-            
             # Skip, if there was already an error while processing the parent
             parentError = False
-            for errUrl in dictError.keys():
-                if util.isEqualOrChildUri(errUrl, dPath):
+            for ignorePath in ignoreDict.keys():
+                if util.isEqualOrChildUri(ignorePath, sRes.path):
                     parentError = True
                     break
             if parentError:
-                _logger.debug("Copy: skipping '%s', because of parent error" % dPath)
+                _logger.debug("Copy: skipping '%s', because of parent error" % sRes.path)
                 continue
             
             try:
+                relUrl = sRes.path[srcRootLen:]
+                dPath = destPath + relUrl
+                
                 self._evaluateIfHeaders(sRes, environ)
                 
                 # TODO: support  native MOVE in DAVProvider
@@ -833,57 +926,47 @@ class RequestServer(object):
                 # For example, the DAV:creationdate property value SHOULD remain 
                 # the same after a MOVE.
 
-                if sRes.isCollection():
-                    if not dRes.exists():
-                        if environ["wsgidav.verbose"] >= 2:
-                            _logger.debug("Create collection '%s'" % dPath)
-                        provider.createCollection(dPath)
-                    else:
-                        _logger.debug("Skipping existing collection '%s'" % dRes)
-                else:   
-                    if environ["wsgidav.verbose"] >= 2:
-                        _logger.debug("Copy '%s' -> '%s'" % (sRes, dRes))
-                    # provider can delete/write or do an in-place overwrite
-                    sRes.copyResource(dPath)
-
-                if propMan:
-                    refS = sRes.getRefUrl()
-                    refD = dRes.getRefUrl() # FIXME: dRes is undefined (may be just created)
-                    propMan.copyProperties(refS, refD)     
-
+#                if sRes.isCollection() and provider.isCollection(dPath):
+#                    if not dRes.exists():
+#                        _logger.debug("Create collection '%s'" % dPath)
+#                        provider.createCollection(dPath)
+#                    else:
+#                        _logger.debug("Skipping existing collection '%s'" % dRes)
+#                else:   
+#                    _logger.debug("Copy '%s' -> '%s'" % (sRes, dRes))
+#                    # provider can delete/write or do an in-place overwrite
+#                    sRes.copyResource(dPath)
+#
+#                if propMan:
+#                    refS = sRes.getRefUrl()
+#                    refD = dRes.getRefUrl() # FIXME: dRes is undefined (may be just created)
+#                    propMan.copyProperties(refS, refD)     
+                sRes.copy(dPath, recursive=False)
             except Exception, e:
-                dictError[dPath] = asDAVError(e)
+                ignoreDict[sRes.path] = True
+                # TODO: the error-href should be 'most appropriate of the source 
+                # and destination URLs'. So maybe this hlould be the destination
+                # href sometimes.
+                # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.8.5
+                errorList.append( (sRes.getHref(), asDAVError(e)) )
 
         if isMove:
             # MOVE: Remove source
             # TODO: this is what PyFileServer 0.2 implemented. 
             # We should add native move-support to DAVProvider instead. 
-            srcList = srcRes.getDescendants(depthFirst=True, addSelf=True)
-            for sRes in srcList:
+            reverseSrcList = srcRes.getDescendants(depthFirst=True, addSelf=True)
+            for sRes in reverseSrcList:
                 _logger.debug("Remove source after move '%s'" % sRes)
-                # TODO: try/except:
-                sRes.remove()
+                try:
+                    sRes.delete()
+                except Exception, e:
+                    errorList.append( (srcRes.getHref(), asDAVError(e)) )
+                
 
         # --- Return response --------------------------------------------------
          
-        if len(dictError) == 1 and destPath in dictError:
-            return util.sendSimpleResponse(environ, start_response, dictError[destPath])
-        elif len(dictError) > 0:
-            # Multi-value result should not contain 424 (Failed Dependency), 201 or 204 
-            multistatusEL = util.makeMultistatusEL()
-            
-            for url, e in dictError.items():
-                responseEL = etree.SubElement(multistatusEL, "{DAV:}response") 
-                href = self._davProvider.getResourceInst(url).getHref()
-                etree.SubElement(responseEL, "{DAV:}href").text = href
-                etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
-                # TODO: add e.strerror to <responsedescription>
-
-            return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
-        # Return OK
-        if destExists:
-            return util.sendSimpleResponse(environ, start_response, HTTP_NO_CONTENT)
-        return util.sendSimpleResponse(environ, start_response, HTTP_CREATED)
+        return self._sendResponse(environ, start_response, 
+                                  srcRes, successCode, errorList)
 
 
 
@@ -1007,7 +1090,7 @@ class RequestServer(object):
         # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.4    
         # Locking unmapped URLs: must create an empty resource
         if not resourceExists:
-            res = provider.createEmptyResource(path) 
+            res = provider.createEmptyResource(util.getUriName(path)) 
 
         if environ.get("wsgidav.debug_break"):
             pass # break point
@@ -1301,7 +1384,7 @@ class RequestServer(object):
             return
 #            return [ "" ]
 
-        fileobj = res.openResourceForRead()
+        fileobj = res.getContent()
 
         # TODO: use Filewrapper? 
 #        file_wrapper = environ.get("wsgi.file_wrapper", None)

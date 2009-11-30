@@ -255,7 +255,7 @@ class VirtualArtifact(_VirtualResource):
         self._name = name
 
     def contentLength(self):
-        return len(self.openResourceForRead().read())
+        return len(self.getContent().read())
     def contentType(self):
         if self._name.endswith(".txt"):
             return "text/plain"
@@ -271,7 +271,7 @@ class VirtualArtifact(_VirtualResource):
         refPath = "/by_key/%s/%s" % (self._data["key"], self._name)
         return urllib.quote(self.provider.sharePath + refPath)
  
-    def openResourceForRead(self):
+    def getContent(self):
         fileLinks = [ "<a href='%s'>%s</a>\n" % (os.path.basename(f), f) for f in self._data["resPathList"] ]
         dict = self._data.copy()
         dict["fileLinks"] = ", ".join(fileLinks)
@@ -356,7 +356,7 @@ class VirtualResFile(_VirtualResource):
         refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.filePath))
         return urllib.quote(self.provider.sharePath + refPath)
 
-    def openResourceForRead(self):
+    def getContent(self):
         mime = self.contentType()
         if mime.startswith("text"):
             return file(self.filePath, "r", BUFFER_SIZE)
@@ -379,7 +379,7 @@ class VirtualResourceProvider(DAVProvider):
         self.resourceData = _resourceData
         
 
-    def getResourceInst(self, path, typeList=None):
+    def getResourceInst(self, path):
         """Return a DAVResource object for path.
 
         Return _VirtualResource object for a path.
@@ -391,6 +391,8 @@ class VirtualResourceProvider(DAVProvider):
 
         See DAVProvider.getResourceInst()
         """
+        self._count_getResourceInst += 1
+        
         catType, cat, resName, contentSpec = util.saveSplit(path.strip("/"), "/", 3)
     
         _logger.info("getResourceInst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType, cat, resName))

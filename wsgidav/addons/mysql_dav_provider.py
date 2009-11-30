@@ -310,7 +310,7 @@ class MySQLBrowserProvider(DAVProvider):
         return retlist
         
 
-    def getResourceInst(self, path, typeList=None):
+    def getResourceInst(self, path):
         """Return info dictionary for path.
         
         See getResourceInst()
@@ -409,7 +409,7 @@ class MySQLBrowserProvider(DAVProvider):
         raise DAVError(HTTP_FORBIDDEN)               
 
 
-    def openResourceForRead(self, path, davres=None):
+    def getContent(self, path, davres=None):
         """
         path - path identifier for the resource
                 
@@ -458,7 +458,7 @@ class MySQLBrowserProvider(DAVProvider):
 
     
 
-    def openResourceForWrite(self, path, contenttype=None):
+    def openResourceForWrite(self, path, contentType=None):
         raise DAVError(HTTP_FORBIDDEN)               
     
     

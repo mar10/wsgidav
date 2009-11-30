@@ -31,7 +31,7 @@ import mimetypes
 import shutil
 import stat
 
-from dav_error import DAVError, HTTP_FORBIDDEN
+#from dav_error import DAVError, HTTP_FORBIDDEN
 from dav_provider import DAVProvider, DAVResource
 
 
@@ -61,6 +61,7 @@ class FileResource(DAVResource):
     def _init(self):
         # TODO: recalc self.path from <self._filePath>, to fix correct file system case
         #       On windows this would lead to correct URLs
+        self.provider._count_getResourceInstInit += 1
         if not os.path.exists(self._filePath):
             raise RuntimeError("Path must exist: %s" % self._filePath)
         
@@ -131,12 +132,8 @@ class FileResource(DAVResource):
     def createEmptyResource(self, name):
         """Create an empty (length-0) resource.
         
-        This default implementation simply raises HTTP_FORBIDDEN.
-        
-        The caller must make sure that <path> does not yet exist, and the parent
-        is not locked.
-        This method MUST be implemented by all providers that support locking
-        and write access."""
+        See DAVResource.createEmptyResource
+        """
         assert self.isCollection()
         assert not "/" in name
 #        raise DAVError(HTTP_FORBIDDEN)               
@@ -144,6 +141,7 @@ class FileResource(DAVResource):
         fp = self.provider._locToFilePath(path)
         f = open(fp, "w")
         f.close()
+        return self.provider.getResourceInst(path)
     
 
     def createCollection(self, name):
@@ -159,7 +157,7 @@ class FileResource(DAVResource):
         os.mkdir(fp)
 
 
-    def openResourceForRead(self):
+    def getContent(self):
         """Open content as a stream for reading.
          
         This method MUST be implemented by all providers."""
@@ -170,7 +168,7 @@ class FileResource(DAVResource):
         return file(self._filePath, "rb", BUFFER_SIZE)
    
 
-    def openResourceForWrite(self, contenttype=None):
+    def openResourceForWrite(self, contentType=None):
         """Open content as a stream for writing.
          
         This method MUST be implemented by all providers that support write 
@@ -178,57 +176,65 @@ class FileResource(DAVResource):
         assert not self.isCollection()
 #        raise DAVError(HTTP_FORBIDDEN)               
         mode = "wb"
-        if contenttype and contenttype.startswith("text"):
+        if contentType and contentType.startswith("text"):
             mode = "w"
         _logger.debug("openResourceForWrite: %s, %s" % (self._filePath, mode))
         return file(self._filePath, mode, BUFFER_SIZE)
 
     
     def delete(self):
-        """Remove this resource or collection (non-recursive).
+        """Remove this resource or collection (recursive).
         
-        The caller is responsible for checking locking and permissions.
-        If this is a collection, he must make sure, all children have already 
-        been deleted. 
-        Afterwards, he must take care of removing locks and properties.
-         
-        This method MUST be implemented by all providers that support write 
-        access."""
-        raise DAVError(HTTP_FORBIDDEN)               
+        See DAVResource.delete()
+        """
+#        raise DAVError(HTTP_FORBIDDEN)               
+        if self.isCollection():
+#            os.rmdir(self._filePath)
+            shutil.rmtree(self._filePath, ignore_errors=False)
+        else:
+            os.unlink(self._filePath)
+        self.removeAllProperties(True)
+        self.removeAllLocks(True)
+            
+
+    def copy(self, destPath, recursive):
+        """See DAVResource.copy() """
+        fpDest = self._locToFilePath(destPath)
+        assert not util.isEqualOrChildUri(self.path, destPath)
+        assert not os.path.exists(fpDest)
+        if self.isCollection():
+            if recursive:
+                assert False, "Not yet implemented"
+                shutil.copytree(self._filePath, fpDest, symlinks=False)
+            else:
+                os.makedirs(fpDest)
+                shutil.copystat(self._filePath, fpDest)
+        else:
+            shutil.copy2(self._filePath, fpDest)
+               
+
+    def move(self, destPath):
+        """See DAVResource.move() """
+#        raise DAVError(HTTP_FORBIDDEN)
+        fpDest = self._locToFilePath(destPath)
+        assert not util.isEqualOrChildUri(self.path, destPath)
+        assert not os.path.exists(fpDest)
+        shutil.move(self._filePath, fpDest)
+               
+
 
     
-#    def remove(self):
-#        """Remove the resource and associated locks and properties.
-#        
-#        This default implementation calls self.deleteResource(path), followed by 
-#        .removeAllProperties(path) and .removeAllLocks(path).
-#        Errors are raised on failure. 
-#
-#        This function should NOT be implemented in a recursive way.
-#        Instead, the caller is responsible to call remove() for all child 
-#        resources before.
-#        The caller is also responsible for checking of locks and permissions. 
-#        """
-#        self.deleteResource()
-#        self.removeAllProperties()
-#        self.removeAllLocks()
-#
-#
-#    def copy(self, destPath):
-#        raise DAVError(HTTP_FORBIDDEN)               
-
-
-
 #===============================================================================
-# ReadOnlyFilesystemProvider
+# FilesystemProvider
 #===============================================================================
-class ReadOnlyFilesystemProvider(DAVProvider):
+class FilesystemProvider(DAVProvider):
 
-    def __init__(self, rootFolderPath):
+    def __init__(self, rootFolderPath, readonly=False):
         if not rootFolderPath or not os.path.exists(rootFolderPath):
             raise ValueError("Invalid root path: %s" % rootFolderPath)
-        super(ReadOnlyFilesystemProvider, self).__init__()
+        super(FilesystemProvider, self).__init__()
         self.rootFolderPath = os.path.abspath(rootFolderPath)
+        self.readonly = readonly
 
         
     def __repr__(self):
@@ -248,11 +254,12 @@ class ReadOnlyFilesystemProvider(DAVProvider):
         return r  
 
     
-    def getResourceInst(self, path, typeList=None):
+    def getResourceInst(self, path):
         """Return info dictionary for path.
 
         See DAVProvider.getResourceInst()
         """
+        self._count_getResourceInst += 1
         fp = self._locToFilePath(path)
         if not os.path.exists(fp):
             return None
@@ -265,10 +272,10 @@ class ReadOnlyFilesystemProvider(DAVProvider):
 # FilesystemProvider
 #===============================================================================
 
-class FilesystemProvider(ReadOnlyFilesystemProvider):
-    
-    def __init__(self, rootFolderPath):
-        super(FilesystemProvider, self).__init__(rootFolderPath)
+#class FilesystemProvider(ReadOnlyFilesystemProvider):
+#    
+#    def __init__(self, rootFolderPath):
+#        super(FilesystemProvider, self).__init__(rootFolderPath)
 
 
 #    def createEmptyResource(self, path):
@@ -282,12 +289,12 @@ class FilesystemProvider(ReadOnlyFilesystemProvider):
 #        os.mkdir(fp)
 
     
-    def deleteCollection(self, path):
-        fp = self._locToFilePath(path)
-        os.rmdir(fp)
+#    def deleteCollection(self, path):
+#        fp = self._locToFilePath(path)
+#        os.rmdir(fp)
 
 
-#    def openResourceForWrite(self, path, contenttype=None):
+#    def openResourceForWrite(self, path, contentType=None):
 #        fp = self._locToFilePath(path)
 #        mode = "wb"
 #        if contenttype and contenttype.startswith("text"):
@@ -296,15 +303,15 @@ class FilesystemProvider(ReadOnlyFilesystemProvider):
 #        return file(fp, mode, BUFFER_SIZE)
 
     
-    def deleteResource(self, path):
-        fp = self._locToFilePath(path)
-        os.unlink(fp)
+#    def deleteResource(self, path):
+#        fp = self._locToFilePath(path)
+#        os.unlink(fp)
 
     
-    def copyResource(self, path, destrespath):
-        fpSrc = self._locToFilePath(path)
-        fpDest = self._locToFilePath(destrespath)
-        shutil.copy2(fpSrc, fpDest)
+#    def copyResource(self, path, destrespath):
+#        fpSrc = self._locToFilePath(path)
+#        fpDest = self._locToFilePath(destrespath)
+#        shutil.copy2(fpSrc, fpDest)
 
     
 #    def setLivePropertyValue(self, path, name, value, dryRun=False):
