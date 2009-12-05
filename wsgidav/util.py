@@ -19,7 +19,6 @@ from dav_error import DAVError, getHttpStatusString, HTTP_BAD_REQUEST
 from pprint import pprint
 from wsgidav.dav_error import HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED
 import locale
-import urllib
 import logging
 import re
 try:
@@ -31,6 +30,7 @@ import calendar
 import sys
 import time
 import stat
+from email.utils import formatdate
 
 try:
     from cStringIO import StringIO
@@ -67,7 +67,10 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 
 def getRfc1123Time(secs=None):   
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
-    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
+    # issue #20: time string must be locale independent
+#    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
+    return formatdate(timeval=secs, localtime=False, usegmt=True)
+
 
 
 def getLogTime(secs=None):   
