@@ -216,10 +216,17 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-#        _logger.debug("wsgiWriteData: '%s...', len=%s" % (data[:100], len(data)))
-#        if "<?" in data and "\n" in data:
-#            traceback.print_stack()
-        self.wfile.write (data)
+        try:
+            self.wfile.write (data)
+        except socket.error, e:
+            # Suppress stack trace when client aborts connection disgracefully:
+            # 10053: Software caused connection abort
+            # 10054: Connection reset by peer
+            if e[0] in (10053, 10054):
+                print >>sys.stderr, "*** Caught socket.error: ", e
+            else:  
+                raise
+
 
 class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def __init__ (self, serverAddress, wsgiApplications, serveFiles=1):
