@@ -238,7 +238,7 @@ def serve(conf, app):
     server = ExtServer((host, port), {"": app})
     if conf.get("verbose") >= 1:
         if host in ("", "0.0.0.0"):
-            (hostname, aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
+            (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
             print "WsgiDAV %s serving at %s, port %s (host='%s' %s)..." % (__version__, host, port, hostname, ipaddrlist)
         else:
             print "WsgiDAV %s serving at %s, port %s..." % (__version__, host, port)
