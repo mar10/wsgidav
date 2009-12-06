@@ -66,8 +66,10 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _abstractionlayerinterface : interfaces/abstractionlayerinterface.py
 """
 from wsgidav.dav_provider import DAVProvider, DAVResource
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+#from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 from wsgidav import util
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
+    PRECONDITION_CODE_ProtectedProperty
 import MySQLdb
 import md5
 import time
@@ -82,6 +84,201 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 
+class MySQLBrowserResource(DAVResource):
+    """Represents a single existing DAV resource instance.
+
+    See also DAVResource and MySQLBrowserProvider.
+    """
+    def __init__(self, provider, path, isCollection):
+        super(MySQLBrowserResource, self).__init__(provider, path, isCollection)
+
+    
+    def _init(self):
+        """Read resource information into self._dict, for cached access.
+        
+        See DAVResource._init()
+        """
+        # TODO: recalc self.path from <self._filePath>, to fix correct file system case
+        #       On windows this would lead to correct URLs
+        self.provider._count_getResourceInstInit += 1        
+        tableName, primKey = self.provider._splitPath(self.path)
+
+        displayType = "Unknown" 
+        displayRemarks = ""
+        contentType = "text/html"
+
+#        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
+        if tableName is None:
+            displayType = "Database" 
+        elif primKey is None: # "database" and table name
+            displayType = "Database Table"
+        else: 
+            contentType = "text/csv"
+            if primKey == "_ENTIRE_CONTENTS":
+                displayType = "Database Table Contents"
+                displayRemarks = "CSV Representation of Table Contents"
+            else:
+                displayType = "Database Record"
+                displayRemarks = "Attributes available as properties"
+
+        # Avoid calling isCollection, since it would call isExisting -> _initConnection 
+#        isCollection = self.isCollection(path)
+        isCollection = primKey is None
+        
+        self._dict = {"contentLength": None,
+                      "contentType": contentType,
+                      "created": time.time(),
+                      "displayName": self.name(),
+                      "displayType": displayType,
+                      "etag": md5.new(self.path).hexdigest(),
+                      "modified": None,
+                      "supportRanges": False,
+                      }
+        # Some resource-only infos: 
+        if not isCollection:
+            self._dict["modified"] = time.time()
+        _logger.debug("---> _init, nc=%s" % self.provider._count_initConnection)
+
+    
+    def getMemberNames(self):
+        """Return list of (direct) collection member names (UTF-8 byte strings).
+        
+        See DAVResource.getMemberNames()
+        """
+        conn = self.provider._initConnection()
+#        resdata = path.strip(":").split(":")
+        tableName, primKey = self.provider._splitPath(self.path)
+#        if len(resdata) == 1:
+        if tableName is None:
+            retlist = self.provider._listTables(conn)         
+#        elif len(resdata) == 2:
+        elif primKey is None:
+            pri_key = self.provider._findPrimaryKey(conn, tableName)
+            if pri_key is not None:
+                retlist = self.provider._listFields(conn, tableName, pri_key)      
+            else:
+                retlist = []
+            retlist[0:0] = ["_ENTIRE_CONTENTS"]
+        else:
+            retlist = []      
+        conn.close()
+        return retlist
+        
+
+    def getContent(self):
+        """Open content as a stream for reading.
+         
+        See DAVResource.getContent()
+        """
+        filestream = StringIO()
+
+#        resdata = path.strip(":").split(":")
+        tableName, primKey = self.provider._splitPath(self.path)
+#        if len(resdata) == 3:
+        if primKey is not None:
+#            table_name = resdata[1] 
+            conn = self.provider._initConnection()
+            listFields = self.provider._getFieldList(conn, tableName)
+            csvwriter = csv.DictWriter(filestream, listFields, extrasaction="ignore") 
+            dictFields = {}
+            for field_name in listFields:
+                dictFields[field_name] = field_name
+            csvwriter.writerow(dictFields)
+
+            if primKey == "_ENTIRE_CONTENTS":
+                cursor = conn.cursor (MySQLdb.cursors.DictCursor)            
+                cursor.execute ("SELECT * from " + self.provider._db + "." + tableName)
+                result_set = cursor.fetchall ()
+                for row in result_set:
+                    csvwriter.writerow(row)
+                cursor.close ()      
+            else:
+                row = self.provider._getRecordByPrimaryKey(conn, tableName, primKey)  
+                if row is not None:
+                    csvwriter.writerow(row)
+            conn.close()
+                
+        #this suffices for small dbs, but 
+        #for a production big database, I imagine you would have a FileMixin that
+        #does the retrieving and population even as the file object is being read 
+        filestream.seek(0)
+        return filestream 
+        
+
+    def getPropertyNames(self, mode="allprop"):
+        """Return list of supported property names in Clark Notation.
+        
+        Return supported live and dead properties. (See also DAVProvider.getPropertyNames().)
+        
+        In addition, all table field names are returned as properties.
+        """
+        # Let default implementation return supported live and dead properties
+        propNames = super(MySQLBrowserResource, self).getPropertyNames(mode)
+        # Add fieldnames as properties 
+#        resdata = path.strip(":").split(":")
+        tableName, primKey = self.provider._splitPath(self.path)
+        if primKey is not None:
+            conn = self.provider._initConnection()
+            fieldlist = self.provider._getFieldList(conn, tableName)
+            for fieldname in fieldlist:
+                propNames.append("{%s:}%s" % (tableName, fieldname))
+            conn.close()
+        return propNames
+
+
+    def getPropertyValue(self, propname):
+        """Return the value of a property.
+        
+        The base implementation handles:
+        
+        - ``{DAV:}lockdiscovery`` and ``{DAV:}supportedlock`` using the 
+          associated lock manager.
+        - All other *live* properties (i.e. name starts with ``{DAV:}``) are 
+          delegated to self.getLivePropertyValue()
+        - Finally, other properties are considered *dead*, and are handled  using 
+          the associated property manager, if one is present. 
+        """
+        # Return table field as property
+#        resdata = path.strip(":").split(":")
+        tableName, primKey = self.provider._splitPath(self.path)
+        if primKey is not None:
+            ns, localName = util.splitNamespace(propname)
+            if ns == (tableName + ":"):
+                conn = self.provider._initConnection()
+                fieldlist = self.provider._getFieldList(conn, tableName)
+                if localName in fieldlist:
+                    val = self.provider._getFieldByPrimaryKey(conn, tableName, primKey, localName)
+                    conn.close()
+                    return val
+                conn.close()
+        # else, let default implementation return supported live and dead properties
+        return super(MySQLBrowserResource, self).getPropertyValue(propname)
+    
+
+    def setPropertyValue(self, propname, value, dryRun=False):
+        """Set or remove property value.
+        
+        value == None means 'remove property'.
+        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
+        Removing a non-existing prop is NOT an error. 
+        
+        When dryRun is True, this function should raise errors, as in a real
+        run, but MUST NOT change any data.
+                 
+        This default implementation delegates {DAV:} properties to 
+        ``setLivePropertyValue()`` and stores everything else as dead property.
+        
+        @param path:
+        @param propname: property name in Clark Notation
+        @param value: value == None means 'remove property'.
+        @param dryRun: boolean
+        """
+        raise DAVError(HTTP_FORBIDDEN,  
+                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
+
+#===============================================================================
+# MySQLBrowserProvider
+#===============================================================================
 class MySQLBrowserProvider(DAVProvider):
     
     def __init__(self, host, user, passwd, db):
@@ -90,7 +287,7 @@ class MySQLBrowserProvider(DAVProvider):
         self._user = user
         self._passwd = passwd
         self._db = db
-        self.connectCount = 0
+        self._count_initConnection = 0
     
 
     def __repr__(self):
@@ -107,7 +304,7 @@ class MySQLBrowserProvider(DAVProvider):
 
 
     def _initConnection(self):
-        self.connectCount += 1
+        self._count_initConnection += 1
         return MySQLdb.connect(host=self._host,
                                user=self._user,
                                passwd=self._passwd,
@@ -283,32 +480,32 @@ class MySQLBrowserProvider(DAVProvider):
         return retlist
         
 
-    def getMemberNames(self, path):
-        """
-        path - path identifier for the resource
-
-        returns a list of names of resources contained in the collection resource
-        specified
-        """
-        conn = self._initConnection()
-#        resdata = path.strip(":").split(":")
-        tableName, primKey = self._splitPath(path)
-#        if len(resdata) == 1:
-        if tableName is None:
-            retlist = self._listTables(conn)         
-#        elif len(resdata) == 2:
-        elif primKey is None:
-            pri_key = self._findPrimaryKey(conn, tableName)
-            if pri_key is not None:
-                retlist = self._listFields(conn, tableName, pri_key)      
-            else:
-                retlist = []
-            retlist[0:0] = ["_ENTIRE_CONTENTS"]
-        else:
-            retlist = []      
-        conn.close()
-        return retlist
-        
+#    def getMemberNames(self, path):
+#        """
+#        path - path identifier for the resource
+#
+#        returns a list of names of resources contained in the collection resource
+#        specified
+#        """
+#        conn = self._initConnection()
+##        resdata = path.strip(":").split(":")
+#        tableName, primKey = self._splitPath(path)
+##        if len(resdata) == 1:
+#        if tableName is None:
+#            retlist = self._listTables(conn)         
+##        elif len(resdata) == 2:
+#        elif primKey is None:
+#            pri_key = self._findPrimaryKey(conn, tableName)
+#            if pri_key is not None:
+#                retlist = self._listFields(conn, tableName, pri_key)      
+#            else:
+#                retlist = []
+#            retlist[0:0] = ["_ENTIRE_CONTENTS"]
+#        else:
+#            retlist = []      
+#        conn.close()
+#        return retlist
+#        
 
     def getResourceInst(self, path):
         """Return info dictionary for path.
@@ -318,54 +515,12 @@ class MySQLBrowserProvider(DAVProvider):
         # TODO: calling exists() makes directory browsing VERY slow.
         #       At least compared to PyFileServer, which simply used string 
         #       functions to get displayType and displayRemarks  
+        self._count_getResourceInst += 1
         if not self.exists(path):
-            # Return non-existing davresource
-            return DAVResource(self, path, None, typeList)
-        tableName, primKey = self._splitPath(path)
-
-        displayType = "Unknown" 
-        displayRemarks = ""
-        contentType = "text/html"
-
-#        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
-        if tableName is None:
-            displayType = "Database" 
-        elif primKey is None: # "database" and table name
-            displayType = "Database Table"
-        else: 
-            contentType = "text/csv"
-            if primKey == "_ENTIRE_CONTENTS":
-                displayType = "Database Table Contents"
-                displayRemarks = "CSV Representation of Table Contents"
-            else:
-                displayType = "Database Record"
-                displayRemarks = "Attributes available as properties"
-
-        # Avoid calling isCollection, since it would call isExisting -> _initConnection 
-#        isCollection = self.isCollection(path)
-        isCollection = primKey is None
-        
-        # Avoid calling getPreferredPath, since it would call isCollection -> _initConnection 
-#        name = util.getUriName(self.getPreferredPath(path))
-        name = util.getUriName(path)
-
-        dict = {"contentLength": None,
-                "contentType": contentType,
-                "name": name,
-                "displayName": name,
-                "displayType": displayType,
-                "modified": None,
-                "created": time.time(),
-                "etag": md5.new(path).hexdigest(),
-                "supportRanges": False,
-                "isCollection": isCollection, 
-                }
-        # Some resource-only infos: 
-        if not isCollection:
-            dict["modified"] = time.time()
-#        _logger.debug("---> getInfoDict, nc=%s" % self.connectCount)
-        davres = DAVResource(self, path, dict, typeList)
-        return davres
+            return None
+        _tableName, primKey = self._splitPath(path)
+        isCollection = primKey is None 
+        return MySQLBrowserResource(self, path, isCollection)
     
 
     def exists(self, path):
@@ -392,129 +547,129 @@ class MySQLBrowserProvider(DAVProvider):
         return self.exists(path) and primKey is None 
     
 
-    def isResource(self, path):
-        _tableName, primKey = self._splitPath(path)
-        return self.exists(path) and primKey is not None 
+#    def isResource(self, path):
+#        _tableName, primKey = self._splitPath(path)
+#        return self.exists(path) and primKey is not None 
+#
+#            
+#    def createEmptyResource(self, path):
+#        raise DAVError(HTTP_FORBIDDEN)               
+#    
+#
+#    def createCollection(self, path):
+#        raise DAVError(HTTP_FORBIDDEN)               
+#    
+#
+#    def deleteCollection(self, path):
+#        raise DAVError(HTTP_FORBIDDEN)               
 
-            
-    def createEmptyResource(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
+
+#    def getContent(self, path, davres=None):
+#        """
+#        path - path identifier for the resource
+#                
+#        returns a file-like object / stream containing the contents of the
+#        resource specified.
+#
+#        The application will close() the stream.      
+#        """
+#        filestream = StringIO()
+#
+##        resdata = path.strip(":").split(":")
+#        tableName, primKey = self._splitPath(path)
+##        if len(resdata) == 3:
+#        if primKey is not None:
+##            table_name = resdata[1] 
+#            conn = self._initConnection()
+#            listFields = self._getFieldList(conn, tableName)
+#            csvwriter = csv.DictWriter(filestream, listFields, extrasaction="ignore") 
+#            dictFields = {}
+#            for field_name in listFields:
+#                dictFields[field_name] = field_name
+#            csvwriter.writerow(dictFields)
+#
+#            if primKey == "_ENTIRE_CONTENTS":
+#                cursor = conn.cursor (MySQLdb.cursors.DictCursor)            
+#                cursor.execute ("SELECT * from " + self._db + "." + tableName)
+#                result_set = cursor.fetchall ()
+#                for row in result_set:
+#                    csvwriter.writerow(row)
+#                cursor.close ()      
+#            else:
+#                row = self._getRecordByPrimaryKey(conn, tableName, primKey)  
+#                if row is not None:
+#                    csvwriter.writerow(row)
+#            conn.close()
+#                
+#        #this suffices for small dbs, but 
+#        #for a production big database, I imagine you would have a FileMixin that
+#        #does the retrieving and population even as the file object is being read 
+#        filestream.seek(0)
+#        return filestream 
+#        
+#        #filevalue = filestream.getvalue() 
+#        #filestream.close()
+#        #return StringIO.StringIO(filevalue)
+
     
 
-    def createCollection(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-    
-
-    def deleteCollection(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-
-    def getContent(self, path, davres=None):
-        """
-        path - path identifier for the resource
-                
-        returns a file-like object / stream containing the contents of the
-        resource specified.
-
-        The application will close() the stream.      
-        """
-        filestream = StringIO()
-
-#        resdata = path.strip(":").split(":")
-        tableName, primKey = self._splitPath(path)
-#        if len(resdata) == 3:
-        if primKey is not None:
-#            table_name = resdata[1] 
-            conn = self._initConnection()
-            listFields = self._getFieldList(conn, tableName)
-            csvwriter = csv.DictWriter(filestream, listFields, extrasaction="ignore") 
-            dictFields = {}
-            for field_name in listFields:
-                dictFields[field_name] = field_name
-            csvwriter.writerow(dictFields)
-
-            if primKey == "_ENTIRE_CONTENTS":
-                cursor = conn.cursor (MySQLdb.cursors.DictCursor)            
-                cursor.execute ("SELECT * from " + self._db + "." + tableName)
-                result_set = cursor.fetchall ()
-                for row in result_set:
-                    csvwriter.writerow(row)
-                cursor.close ()      
-            else:
-                row = self._getRecordByPrimaryKey(conn, tableName, primKey)  
-                if row is not None:
-                    csvwriter.writerow(row)
-            conn.close()
-                
-        #this suffices for small dbs, but 
-        #for a production big database, I imagine you would have a FileMixin that
-        #does the retrieving and population even as the file object is being read 
-        filestream.seek(0)
-        return filestream 
-        
-        #filevalue = filestream.getvalue() 
-        #filestream.close()
-        #return StringIO.StringIO(filevalue)
-
-    
-
-    def openResourceForWrite(self, path, contentType=None):
-        raise DAVError(HTTP_FORBIDDEN)               
-    
-    
-    def deleteResource(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-    
-    
-    def copyResource(self, path, destrespath):
-        raise DAVError(HTTP_FORBIDDEN)               
+#    def openResourceForWrite(self, path, contentType=None):
+#        raise DAVError(HTTP_FORBIDDEN)               
+#    
+#    
+#    def deleteResource(self, path):
+#        raise DAVError(HTTP_FORBIDDEN)               
+#    
+#    
+#    def copyResource(self, path, destrespath):
+#        raise DAVError(HTTP_FORBIDDEN)               
 
 
-    def getPropertyValue(self, path, propname, davres=None):
-        """Return the value of a property.
-        
-        The base implementation handles:
-        
-        - ``{DAV:}lockdiscovery`` and ``{DAV:}supportedlock`` using the 
-          associated lock manager.
-        - All other *live* properties (i.e. name starts with ``{DAV:}``) are 
-          delegated to self.getLivePropertyValue()
-        - Finally, other properties are considered *dead*, and are handled  using 
-          the associated property manager, if one is present. 
-        """
-        # Return table field as property
-#        resdata = path.strip(":").split(":")
-        tableName, primKey = self._splitPath(path)
-        if primKey is not None:
-            ns, localName = util.splitNamespace(propname)
-            if ns == tableName:
-                conn = self._initConnection()
-                fieldlist = self._getFieldList(conn, tableName)
-                if localName in fieldlist:
-                    val = self._getFieldByPrimaryKey(conn, tableName, primKey, localName)
-                    conn.close()
-                    return val
-                conn.close()
-        # else, let default implementation return supported live and dead properties
-        return super(MySQLBrowserProvider, self).getPropertyValue(path, propname, davres)
-    
-
-    def getPropertyNames(self, davres, mode="allprop"):
-        """Return list of supported property names in Clark Notation.
-        
-        Return supported live and dead properties. (See also DAVProvider.getPropertyNames().)
-        
-        In addition, all table field names are returned as properties.
-        """
-        # Let default implementation return supported live and dead properties
-        propNames = super(MySQLBrowserProvider, self).getPropertyNames(davres, mode)
-        # Add fieldnames as properties 
-#        resdata = path.strip(":").split(":")
-        tableName, primKey = self._splitPath(davres.path)
-        if primKey is not None:
-            conn = self._initConnection()
-            fieldlist = self._getFieldList(conn, tableName)
-            for fieldname in fieldlist:
-                propNames.append("{%s:}%s" % (tableName, fieldname))
-            conn.close()
-        return propNames
+#    def getPropertyValue(self, path, propname, davres=None):
+#        """Return the value of a property.
+#        
+#        The base implementation handles:
+#        
+#        - ``{DAV:}lockdiscovery`` and ``{DAV:}supportedlock`` using the 
+#          associated lock manager.
+#        - All other *live* properties (i.e. name starts with ``{DAV:}``) are 
+#          delegated to self.getLivePropertyValue()
+#        - Finally, other properties are considered *dead*, and are handled  using 
+#          the associated property manager, if one is present. 
+#        """
+#        # Return table field as property
+##        resdata = path.strip(":").split(":")
+#        tableName, primKey = self._splitPath(path)
+#        if primKey is not None:
+#            ns, localName = util.splitNamespace(propname)
+#            if ns == tableName:
+#                conn = self._initConnection()
+#                fieldlist = self._getFieldList(conn, tableName)
+#                if localName in fieldlist:
+#                    val = self._getFieldByPrimaryKey(conn, tableName, primKey, localName)
+#                    conn.close()
+#                    return val
+#                conn.close()
+#        # else, let default implementation return supported live and dead properties
+#        return super(MySQLBrowserProvider, self).getPropertyValue(path, propname, davres)
+#    
+#
+#    def getPropertyNames(self, davres, mode="allprop"):
+#        """Return list of supported property names in Clark Notation.
+#        
+#        Return supported live and dead properties. (See also DAVProvider.getPropertyNames().)
+#        
+#        In addition, all table field names are returned as properties.
+#        """
+#        # Let default implementation return supported live and dead properties
+#        propNames = super(MySQLBrowserProvider, self).getPropertyNames(davres, mode)
+#        # Add fieldnames as properties 
+##        resdata = path.strip(":").split(":")
+#        tableName, primKey = self._splitPath(davres.path)
+#        if primKey is not None:
+#            conn = self._initConnection()
+#            fieldlist = self._getFieldList(conn, tableName)
+#            for fieldname in fieldlist:
+#                propNames.append("{%s:}%s" % (tableName, fieldname))
+#            conn.close()
+#        return propNames

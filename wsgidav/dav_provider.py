@@ -251,8 +251,8 @@ class DAVResource(object):
         return False
     def supportRanges(self):
         return self._getInfo("supportRanges") is True
-    def supportRecursiveCopy(self):
-        return False
+#    def supportRecursiveCopy(self):
+#        return False
     def supportRecursiveDelete(self):
         return False
     def supportRecursiveMove(self):
@@ -439,7 +439,7 @@ class DAVResource(object):
             
         if not self.isCollection():
             # TODO: maybe XP requires getcontentlength always(??)
-            assert self.contentLength() is not None
+#            assert self.contentLength() is not None
             if self.contentLength() is not None:
                 propNameList.append("{DAV:}getcontentlength")
             
@@ -620,7 +620,6 @@ class DAVResource(object):
         pm = self.provider.propManager
         if pm:
             value = pm.getProperty(refUrl, propname)
-            print >>sys.stderr, "value:", value 
             if value is not None:
 #                return etree.XML(value)
                 return util.stringToXML(value) 
@@ -639,6 +638,9 @@ class DAVResource(object):
         When dryRun is True, this function should raise errors, as in a real
         run, but MUST NOT change any data.
                  
+        This default implementation delegates {DAV:} properties to 
+        ``setLivePropertyValue()`` and stores everything else as dead property.
+        
         @param path:
         @param propname: property name in Clark Notation
         @param value: value == None means 'remove property'.
@@ -646,11 +648,12 @@ class DAVResource(object):
         """
         assert value is None or isinstance(value, (etree._Element))
 
-        if self.provider.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
-            raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
+#        if self.provider.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
+        if propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
+            # Locking properties are always read-only
+            raise DAVError(HTTP_FORBIDDEN,  
                            preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
-
-        if propname.startswith("{DAV:}"):
+        elif propname.startswith("{DAV:}"):
             # raises DAVError(HTTP_FORBIDDEN) if read-only, or not supported
             return self.setLivePropertyValue(propname, value, dryRun)
 
@@ -763,6 +766,10 @@ class DAVResource(object):
 
     def getContent(self):
         """Open content as a stream for reading.
+
+        Returns a file-like object / stream containing the contents of the
+        resource specified.
+        The application will close() the stream.      
          
         This method MUST be implemented by all providers.
         """
@@ -870,41 +877,41 @@ class DAVResource(object):
 
 
 
-    def copyNative(self, destPath):
-        """Copy this resource and all members to destPath.
-        
-        Preconditions (to be ensured by caller):
-        
-          - there must not be any conflicting locks on destination
-          - overwriting is only allowed (i.e. destPath exists), when source and 
-            dest both are non-collections and a Overwrite='T' was passed 
-          - destPath must not be a child path of this resource
-
-        This function
-        
-          - copies this resource to destPath.
-            If source is a collection and ``recursive`` is True, then all 
-            members are copied as well.
-            If ``recursive`` is False, only the resource and it's properties
-            are copied
-          - MUST NOT copy locks
-          - SHOULD copy live properties, when appropriate.
-            E.g. displayname should be copied, but creationdate should be
-            reset if the target did not exist before.
-          - SHOULD copy dead properties
-          - raises HTTP_FORBIDDEN for read-only providers
-          - raises HTTP_INTERNAL_ERROR on error
-        
-        A depth-0 copy of collections can NOT be handled by this method.
-        
-        An implementation may choose to apply other semantics.
-        For example copying '\by_tag\cool\myres' to '\by_tag\new\myres' may 
-        simply add a 'new' tag to 'my_res'. 
-
-        This method MUST be implemented by all providers that support write 
-        access.
-        """
-        raise DAVError(HTTP_FORBIDDEN)               
+#    def copyNative(self, destPath):
+#        """Copy this resource and all members to destPath.
+#        
+#        Preconditions (to be ensured by caller):
+#        
+#          - there must not be any conflicting locks on destination
+#          - overwriting is only allowed (i.e. destPath exists), when source and 
+#            dest both are non-collections and a Overwrite='T' was passed 
+#          - destPath must not be a child path of this resource
+#
+#        This function
+#        
+#          - copies this resource to destPath.
+#            If source is a collection and ``recursive`` is True, then all 
+#            members are copied as well.
+#            If ``recursive`` is False, only the resource and it's properties
+#            are copied
+#          - MUST NOT copy locks
+#          - SHOULD copy live properties, when appropriate.
+#            E.g. displayname should be copied, but creationdate should be
+#            reset if the target did not exist before.
+#          - SHOULD copy dead properties
+#          - raises HTTP_FORBIDDEN for read-only providers
+#          - raises HTTP_INTERNAL_ERROR on error
+#        
+#        A depth-0 copy of collections can NOT be handled by this method.
+#        
+#        An implementation may choose to apply other semantics.
+#        For example copying '\by_tag\cool\myres' to '\by_tag\new\myres' may 
+#        simply add a 'new' tag to 'my_res'. 
+#
+#        This method MUST be implemented by all providers that support write 
+#        access.
+#        """
+#        raise DAVError(HTTP_FORBIDDEN)               
 
 
 

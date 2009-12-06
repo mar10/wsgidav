@@ -46,7 +46,6 @@ BUFFER_SIZE = 8192
 class FileResource(DAVResource):
     """Represents a single existing DAV resource instance.
 
-
     See also DAVResource and FilesystemProvider.
     """
     def __init__(self, provider, path, isCollection, filePath):
@@ -59,6 +58,10 @@ class FileResource(DAVResource):
 
 
     def _init(self):
+        """Read resource information into self._dict, for cached access.
+        
+        See DAVResource._init()
+        """
         # TODO: recalc self.path from <self._filePath>, to fix correct file system case
         #       On windows this would lead to correct URLs
         self.provider._count_getResourceInstInit += 1
@@ -101,7 +104,7 @@ class FileResource(DAVResource):
     def getMemberNames(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
         
-        Every provider must override this method.
+        See DAVResource.getMemberNames()
         """
         # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result 
         # will be a list of Unicode objects. 
@@ -132,7 +135,7 @@ class FileResource(DAVResource):
     def createEmptyResource(self, name):
         """Create an empty (length-0) resource.
         
-        See DAVResource.createEmptyResource
+        See DAVResource.createEmptyResource()
         """
         assert self.isCollection()
         assert not "/" in name
@@ -147,7 +150,7 @@ class FileResource(DAVResource):
     def createCollection(self, name):
         """Create a new collection as member of self.
         
-        See DAVResource.createCollection
+        See DAVResource.createCollection()
         """
         assert self.isCollection()
         assert not "/" in name
@@ -160,7 +163,8 @@ class FileResource(DAVResource):
     def getContent(self):
         """Open content as a stream for reading.
          
-        This method MUST be implemented by all providers."""
+        See DAVResource.getContent()
+        """
         assert not self.isCollection()
         mime = self.contentType()
         if mime.startswith("text"):
@@ -225,6 +229,8 @@ class FileResource(DAVResource):
         fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
+        _logger.debug("move(%s, %s)" % (self._filePath, fpDest))
+        print("move(%s, %s)" % (self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
                
 
