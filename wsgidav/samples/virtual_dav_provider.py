@@ -457,5 +457,3 @@ class VirtualResourceProvider(DAVProvider):
                  
         # Accessing /: return list of categories
         return VirtualResCollection(self, path, _browsableCategories)
-
-        return res

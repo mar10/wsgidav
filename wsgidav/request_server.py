@@ -50,34 +50,9 @@ BLOCK_SIZE = 8192
 
 
 
-# TODO: use this?
-#class _FileIter(object):
-##        From paste.fileapp.py
-#
-#    def __init__(self, file, block_size=None, size=None):
-#        self.file = file
-#        self.size = size
-#        self.block_size = block_size or BLOCK_SIZE
-#
-#    def __iter__(self):
-#        return self
-#
-#    def next(self):
-#        chunk_size = self.block_size
-#        if self.size is not None:
-#            if chunk_size > self.size:
-#                chunk_size = self.size
-#            self.size -= chunk_size
-#        data = self.file.read(chunk_size)
-#        if not data:
-#            raise StopIteration
-#        return data
-#
-#    def close(self):
-#        self.file.close()
-
-
-
+#===============================================================================
+# RequestServer
+#===============================================================================
 class RequestServer(object):
 
     def __init__(self, davProvider):
@@ -117,9 +92,7 @@ class RequestServer(object):
             pass # Set a break point here
             
         for v in method(environ, start_response):
-            util.debug("sc", "RequestServer: yield start")
             yield v
-            util.debug("sc", "RequestServer: yield end")
         return
 #        return method(environ, start_response)
 
@@ -605,11 +578,6 @@ class RequestServer(object):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_PUT
         """
-        # @@: As noted in request_resolver.py, this should just be using
-        # PATH_INFO, and the object should have path as an
-        # argument to the constructor.  This is a larger architectural
-        # issue, not fixed trivially, but it will make this interact
-        # much better with other WSGI components
         path = environ["PATH_INFO"]
         provider = self._davProvider
         res = provider.getResourceInst(path)
@@ -846,6 +814,12 @@ class RequestServer(object):
 
 
         # --- Let provider implement atomic move -------------------------------
+        # TODO: support  native MOVE in DAVProvider
+        # MOVE is frequently used by clients to rename a file without 
+        # changing its parent collection, so it's not appropriate to 
+        # reset all live properties that are set at resource creation. 
+        # For example, the DAV:creationdate property value SHOULD remain 
+        # the same after a MOVE.
         
         srcList = srcRes.getDescendants(addSelf=True)
 
@@ -874,9 +848,6 @@ class RequestServer(object):
         srcRootLen = len(srcPath)
         destRootLen = len(destPath)
         
-
-        # TODO: Should we only delete dest files for Depth: 'infinity'? 
-#        if destExists and environ["HTTP_DEPTH"] == "infinity":
         if destExists:
             if (isMove 
                 or not destRes.isCollection() 
@@ -926,29 +897,6 @@ class RequestServer(object):
                 dPath = destPath + relUrl
                 
                 self._evaluateIfHeaders(sRes, environ)
-                
-                # TODO: support  native MOVE in DAVProvider
-                # MOVE is frequently used by clients to rename a file without 
-                # changing its parent collection, so it's not appropriate to 
-                # reset all live properties that are set at resource creation. 
-                # For example, the DAV:creationdate property value SHOULD remain 
-                # the same after a MOVE.
-
-#                if sRes.isCollection() and provider.isCollection(dPath):
-#                    if not dRes.exists():
-#                        _logger.debug("Create collection '%s'" % dPath)
-#                        provider.createCollection(dPath)
-#                    else:
-#                        _logger.debug("Skipping existing collection '%s'" % dRes)
-#                else:   
-#                    _logger.debug("Copy '%s' -> '%s'" % (sRes, dRes))
-#                    # provider can delete/write or do an in-place overwrite
-#                    sRes.copyResource(dPath)
-#
-#                if propMan:
-#                    refS = sRes.getRefUrl()
-#                    refD = dRes.getRefUrl() # FIXME: dRes is undefined (may be just created)
-#                    propMan.copyProperties(refS, refD)     
                 sRes.copy(dPath)
             except Exception, e:
                 ignoreDict[sRes.path] = True
@@ -1079,7 +1027,7 @@ class RequestServer(object):
                 self._fail(HTTP_BAD_REQUEST, "Invalid node '%s'." % linode.tag)
 
         if not lockscope:
-            self._fail(HTTP_BAD_REQUEST, "Missing or invalid locksope.") 
+            self._fail(HTTP_BAD_REQUEST, "Missing or invalid lockscope.") 
         if not locktype:
             self._fail(HTTP_BAD_REQUEST, "Missing or invalid locktype.") 
         
@@ -1124,8 +1072,7 @@ class RequestServer(object):
                                       ("Lock-Token", lockToken["token"]),
                                       ("Date", util.getRfc1123Time()),
                                       ])
-            return [#"<?xml version='1.0' encoding='UTF-8' ?>", # TODO: required?
-                    util.xmlToString(propEL, pretty_print=True) ]
+            return [ util.xmlToString(propEL, pretty_print=True) ]
 
         # --- Locking FAILED: return fault response 
         if len(lockResultList) == 1 and lockResultList[0][0]["root"] == res.getRefUrl():
@@ -1133,8 +1080,6 @@ class RequestServer(object):
             return util.sendSimpleResponse(environ, start_response, lockResultList[0][1]) 
          
         dictStatus = {}
-#        if not refUrl in lockResultList:  # FIXME: in doesn't work here
-#            dictStatus[refUrl] = DAVError(HTTP_FAILED_DEPENDENCY)
 
         for lockDict, e in lockResultList:
             dictStatus[lockDict["root"]] = e
@@ -1244,7 +1189,7 @@ class RequestServer(object):
                 headers.append( ("Allow-Ranges", "bytes") )
         elif provider.isCollection(util.getUriParent(path)):
             # A new resource below an existing collection
-            # TODO: should we allow LOCK here? I think it is allowed to lock an non-existin gresource
+            # TODO: should we allow LOCK here? I think it is allowed to lock an non-existing resource
             headers.append( ("Allow", "OPTIONS PUT MKCOL") ) 
         else:
             self._fail(HTTP_NOT_FOUND)
@@ -1262,45 +1207,7 @@ class RequestServer(object):
     def doHEAD(self, environ, start_response):
         return self._sendResource(environ, start_response, isHeadMethod=True)
 
-#    def get(self, environ, start_response):
-#        """
-#        From paste.fileapp.py
-#        """
-#        is_head = environ["REQUEST_METHOD"].upper() == "HEAD"
-#        if "max-age=0" in CACHE_CONTROL(environ).lower():
-#            self.update(force=True) # RFC 2616 13.2.6
-#        else:
-#            self.update()
-#        if not self.content:
-#            if not os.path.exists(self.filename):
-#                exc = HTTPNotFound(
-#                    "The resource does not exist",
-#                    comment="No file at %r" % self.filename)
-#                return exc(environ, start_response)
-#            try:
-#                file = open(self.filename, "rb")
-#            except (IOError, OSError), e:
-#                exc = HTTPForbidden(
-#                    "You are not permitted to view this file (%s)" % e)
-#                return exc.wsgi_application(
-#                    environ, start_response)
-#        retval = DataApp.get(self, environ, start_response)
-#        if isinstance(retval, list):
-#            # cached content, exception, or not-modified
-#            if is_head:
-#                return [""]
-#            return retval
-#        (lower, content_length) = retval
-#        if is_head:
-#            return [""]
-#        file.seek(lower)
-#        file_wrapper = environ.get("wsgi.file_wrapper", None)
-#        if file_wrapper:
-#            return file_wrapper(file, BLOCK_SIZE)
-#        else:
-#            return _FileIter(file, size=content_length)
 
-    
     def _sendResource(self, environ, start_response, isHeadMethod):
         """
         If-Range     
@@ -1352,7 +1259,6 @@ class RequestServer(object):
             else:
                 # Use as entity tag
                 ifrange = ifrange.strip("\" ")
-#                if (not provider.isInfoTypeSupported(path, "etag")) or ifrange != entitytag:
                 if entitytag is None or ifrange != entitytag:
                     doignoreranges = True
 
@@ -1371,7 +1277,6 @@ class RequestServer(object):
             (rangestart, rangeend, rangelength) = listRanges[0]
         else:
             (rangestart, rangeend, rangelength) = (0L, filesize - 1, filesize)
-#            totallength = filesize
 
         ## Content Processing 
         mimetype = res.contentType()  #provider.getContentType(path)
@@ -1396,17 +1301,9 @@ class RequestServer(object):
         if isHeadMethod:
             yield ""
             return
-#            return [ "" ]
 
         fileobj = res.getContent()
 
-        # TODO: use Filewrapper? 
-#        file_wrapper = environ.get("wsgi.file_wrapper", None)
-#        if file_wrapper:
-#            return file_wrapper(fileobj, BLOCK_SIZE)
-#        else:
-#            return _FileIter(fileobj, size=rangelength)
-    
         if not doignoreranges:
             fileobj.seek(rangestart)
 
@@ -1416,15 +1313,11 @@ class RequestServer(object):
                 readbuffer = fileobj.read(BLOCK_SIZE)
             else:
                 readbuffer = fileobj.read(contentlengthremaining)
-            util.debug("sc", "GET yield start..., len=%s" % len(readbuffer))
             yield readbuffer
-            util.debug("sc", "GET yield end.")
             contentlengthremaining -= len(readbuffer)
             if len(readbuffer) == 0 or contentlengthremaining == 0:
                 break
-        util.debug("sc", "fileobj.close()...")
         fileobj.close()
-        util.debug("sc", "fileobj.close().")
         return
 
 

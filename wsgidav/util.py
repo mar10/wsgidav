@@ -498,7 +498,8 @@ def stringToXML(text):
 
 
 def xmlToString(element, encoding="UTF-8", pretty_print=False):
-    """Wrapper for etree.tostring, that takes care of unsupported pretty_print option."""
+    """Wrapper for etree.tostring, that takes care of unsupported pretty_print 
+    option and prepends an encoding header."""
     assert encoding == "UTF-8" # TODO: remove this
     if useLxml:
         xml = etree.tostring(element, encoding=encoding, 

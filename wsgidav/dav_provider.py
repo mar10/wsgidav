@@ -182,7 +182,7 @@ class DAVResource(object):
     def _init(self):
         """Read resource information into self._dict, for cached access.
         
-        These items should be set:       
+        These items are expected:       
             created: 
                 (int) creation date (in seconds, compatible with time module)
             displayName:
@@ -412,9 +412,11 @@ class DAVResource(object):
 
         This default implementation returns a combination of:
         
-        - davres.supportedLivePropertyNames()
+        - Standard live properties in the {DAV:} namespace, using the getter
+          methods.
         - {DAV:}lockdiscovery and {DAV:}supportedlock, if a lock manager is 
           present
+        - Result of getCustomLiveProperties()
         - a list of dead properties, if a property manager is present
         """
         # TODO: currently, we assume that allprop == propname
@@ -422,10 +424,12 @@ class DAVResource(object):
             raise ValueError("Invalid mode '%s'." % mode)
 
         ## Live properties
-#        propNameList = self.supportedLivePropertyNames()
         propNameList = []
         if self.created() is not None:
             propNameList.append("{DAV:}creationdate")
+        if self.contentLength() is not None:
+            assert not self.isCollection() 
+            propNameList.append("{DAV:}getcontentlength")
         if self.contentType() is not None:
             propNameList.append("{DAV:}getcontenttype")
         if self.isCollection() is not None:
@@ -436,12 +440,6 @@ class DAVResource(object):
             propNameList.append("{DAV:}displayname")
         if self.etag() is not None:
             propNameList.append("{DAV:}getetag")
-            
-        if not self.isCollection():
-            # TODO: maybe XP requires getcontentlength always(??)
-#            assert self.contentLength() is not None
-            if self.contentLength() is not None:
-                propNameList.append("{DAV:}getcontentlength")
             
         ## Locking properties 
         if self.provider.lockManager:
@@ -544,7 +542,6 @@ class DAVResource(object):
                 
                 etree.SubElement(activelockEL, "{DAV:}depth").text = lock["depth"]
                 # lock["owner"] is an XML string
-#                ownerEL = etree.XML(lock["owner"])
                 ownerEL = util.stringToXML(lock["owner"])
 
                 activelockEL.append(ownerEL)
@@ -566,7 +563,7 @@ class DAVResource(object):
                 lockPath = self.provider.refUrlToPath(lock["root"])
                 lockRes = self.provider.getResourceInst(lockPath)
                 lockHref = lockRes.getHref()
-                print "lockedRoot: %s -> href=%s" % (lockPath, lockHref)
+#                print "lockedRoot: %s -> href=%s" % (lockPath, lockHref)
 
                 lockrootEL = etree.SubElement(activelockEL, "{DAV:}lockroot")
                 etree.SubElement(lockrootEL, "{DAV:}href").text = lockHref
@@ -648,7 +645,6 @@ class DAVResource(object):
         """
         assert value is None or isinstance(value, (etree._Element))
 
-#        if self.provider.lockManager and propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
         if propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
             # Locking properties are always read-only
             raise DAVError(HTTP_FORBIDDEN,  
@@ -669,6 +665,8 @@ class DAVResource(object):
                 return pm.writeProperty(refUrl, propname, value, dryRun)             
 
         raise DAVError(HTTP_FORBIDDEN)  # TODO: Chun used HTTP_CONFLICT 
+
+
 
 
     def removeAllProperties(self, recursive):

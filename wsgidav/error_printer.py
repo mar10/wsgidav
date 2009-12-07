@@ -90,6 +90,7 @@ from dav_error import DAVError, getHttpStatusString, asDAVError,\
 import traceback
 import sys
 
+_logger = util.getModuleLogger(__name__)
 
 #===============================================================================
 # ErrorPrinter
@@ -108,36 +109,33 @@ class ErrorPrinter(object):
                 # Otherwise the we could not catch exceptions here. 
 #                return self._application(environ, start_response)
                 for v in self._application(environ, start_response):
-                    util.debug("sc", "ErrorPrinter: yield start")
                     yield v
-                    util.debug("sc", "ErrorPrinter: yield end")
 #            except GeneratorExit:
 #                # TODO: required?
 #                util.debug("sc", "GeneratorExit")
 #                raise
             except DAVError, e:
-                util.debug("sc", "re-raising %s" % e)
+                _logger.debug("re-raising %s" % e)
                 raise
             except Exception, e:
-                util.debug("sc", "re-raising 2 - %s" % e)
+                # Caught a non-DAVError 
                 if self._catch_all_exceptions:
                     # Catch all exceptions to return as 500 Internal Error
-#                    traceback.print_exc(10, sys.stderr) 
                     traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr) 
                     raise asDAVError(e)               
                 else:
                     util.log("ErrorPrinter: caught Exception")
-                    traceback.print_exc(10, sys.stderr) # TODO: inserted this for debugging 
+                    traceback.print_exc(10, sys.stderr) 
                     raise
         except DAVError, e:
-            util.debug("sc", "caught %s" % e)
+            _logger.debug("caught %s" % e)
             evalue = e.value
             respcode = getHttpStatusString(e)
             datestr = util.getRfc1123Time()
             
-            if evalue == HTTP_INTERNAL_ERROR:# and e.srcexception:
+            if evalue == HTTP_INTERNAL_ERROR:
                 print >>sys.stderr, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
-                traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr) # TODO: inserted this for debugging
+                traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
                 print >>sys.stderr, "e.srcexception:\n%s" % e.srcexception
 
             if evalue in ERROR_RESPONSES:                  
@@ -154,10 +152,9 @@ class ErrorPrinter(object):
                 respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1></body></html>"
 
             util.debug("sc", "Return error html %s: %s" % (respcode, respbody))
-            start_response(respcode, 
-                           [("Content-Type", "text/html"), 
-                            ("Date", datestr)
-                            ],
-#                           sys.exc_info() # TODO: Always provide exc_info when beginning an error response?
+            start_response(respcode, [("Content-Type", "text/html"), 
+                                      ("Date", datestr)
+                                      ],
+#                          sys.exc_info() # TODO: Always provide exc_info when beginning an error response?
                            ) 
             yield respbody
