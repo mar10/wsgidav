@@ -91,6 +91,7 @@ class MySQLBrowserResource(DAVResource):
     """
     def __init__(self, provider, path, isCollection):
         super(MySQLBrowserResource, self).__init__(provider, path, isCollection)
+        self._dict = None
 
     
     def _init(self):
@@ -128,7 +129,7 @@ class MySQLBrowserResource(DAVResource):
         self._dict = {"contentLength": None,
                       "contentType": contentType,
                       "created": time.time(),
-                      "displayName": self.name(),
+                      "displayName": self.name,
                       "displayType": displayType,
                       "etag": md5.new(self.path).hexdigest(),
                       "modified": None,
@@ -138,6 +139,30 @@ class MySQLBrowserResource(DAVResource):
         if not isCollection:
             self._dict["modified"] = time.time()
         _logger.debug("---> _init, nc=%s" % self.provider._count_initConnection)
+
+    
+    def _getInfo(self, info):
+        if self._dict is None:
+            self._init()
+        return self._dict.get(info)   
+
+    # Getter methods for standard live properties     
+    def getContentLanguage(self):
+        return None
+    def getContentLength(self):
+        return self._getInfo("contentLength")
+    def getContentType(self):
+        return self._getInfo("contentType")
+    def getCreationDate(self):
+        return self._getInfo("created")
+    def getDisplayName(self):
+        return self.name
+    def displayType(self):
+        return self._getInfo("displayType")
+    def getEtag(self):
+        return self._getInfo("etag")
+    def getLastModified(self):
+        return self._getInfo("modified")
 
     
     def getMemberNames(self):
@@ -199,7 +224,7 @@ class MySQLBrowserResource(DAVResource):
         return filestream 
         
 
-    def getPropertyNames(self, mode="allprop"):
+    def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
         
         Return supported live and dead properties. (See also DAVProvider.getPropertyNames().)
@@ -207,7 +232,7 @@ class MySQLBrowserResource(DAVResource):
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super(MySQLBrowserResource, self).getPropertyNames(mode)
+        propNames = super(MySQLBrowserResource, self).getPropertyNames(isAllProp)
         # Add fieldnames as properties 
         tableName, primKey = self.provider._splitPath(self.path)
         if primKey is not None:
@@ -250,20 +275,7 @@ class MySQLBrowserResource(DAVResource):
     def setPropertyValue(self, propname, value, dryRun=False):
         """Set or remove property value.
         
-        value == None means 'remove property'.
-        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
-        Removing a non-existing prop is NOT an error. 
-        
-        When dryRun is True, this function should raise errors, as in a real
-        run, but MUST NOT change any data.
-                 
-        This default implementation delegates {DAV:} properties to 
-        ``setLivePropertyValue()`` and stores everything else as dead property.
-        
-        @param path:
-        @param propname: property name in Clark Notation
-        @param value: value == None means 'remove property'.
-        @param dryRun: boolean
+        See DAVResource.setPropertyValue()
         """
         raise DAVError(HTTP_FORBIDDEN,  
                        preconditionCode=PRECONDITION_CODE_ProtectedProperty)  

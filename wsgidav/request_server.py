@@ -167,7 +167,7 @@ class RequestServer(object):
           - If:
             Raising HTTP_PRECONDITION_FAILED
 
-        @see http://www.webdav.org/specs/rfc2518.html#HEADER_If
+        @see http://www.webdav.org/specs/rfc4918.html#HEADER_If
         @see util.evaluateHTTPConditionals
         """
         # Add parsed If header to environ
@@ -184,10 +184,10 @@ class RequestServer(object):
         # HTTP condition fails
         lastmodified = -1 # nonvalid modified time
         entitytag = "[]" # Non-valid entity tag
-        if res.modified() is not None:
-            lastmodified = res.modified()            
-        if res.etag() is not None:
-            entitytag = res.etag()            
+        if res.getLastModified() is not None:
+            lastmodified = res.getLastModified()            
+        if res.getEtag() is not None:
+            entitytag = res.getEtag()            
 
         if ("HTTP_IF_MODIFIED_SINCE" in environ 
             or "HTTP_IF_UNMODIFIED_SINCE" in environ 
@@ -260,7 +260,8 @@ class RequestServer(object):
         propFindMode = None
         for pfnode in requestEL:
             if pfnode.tag == "{DAV:}allprop":
-                if propFindMode: # RFC: allprop and propname are mutually exclusive
+                if propFindMode: 
+                    # RFC: allprop and propname are mutually exclusive
                     self._fail(HTTP_BAD_REQUEST)
                 propFindMode = "allprop"  
             # TODO: implement <include> option
@@ -286,23 +287,19 @@ class RequestServer(object):
         if environ["wsgidav.verbose"] >= 3:
             pprint(reslist, indent=4)
         
-        # TODO: get additional namespace mapping from provider.getNamespaceMap()?
         multistatusEL = util.makeMultistatusEL()
         responsedescription = []
         
         for child in reslist:
 
             if propFindMode == "allprop": 
-                propList = child.getProperties(mode="allprop")
+                propList = child.getProperties("allprop")
             elif propFindMode == "propname":
-                propList = child.getProperties(mode="propname", namesOnly=True)
+                propList = child.getProperties("propname")
             else:
-                propList = child.getProperties(mode="named", nameList=propNameList)
+                propList = child.getProperties("named", nameList=propNameList)
 
             href = child.getHref()
-            # TODO: OK?:
-#            href = href.decode("iso_8859_1")  # Convert to unicode, because ASCII is not enough, and iso_8859_1 is not allowed for lxml
-
             util.addPropertyResponse(multistatusEL, href, propList)
 
         if responsedescription:
@@ -446,7 +443,7 @@ class RequestServer(object):
                        "MKCOL can only be executed on an unmapped URL.")         
 
         parentRes = provider.getResourceInst(util.getUriParent(path))
-        if not parentRes or not parentRes.isCollection():
+        if not parentRes or not parentRes.isCollection:
             self._fail(HTTP_CONFLICT, "Parent must be an existing collection.")          
 
         # TODO: should we check If headers here?
@@ -486,7 +483,7 @@ class RequestServer(object):
         if res is None:
             self._fail(HTTP_NOT_FOUND)         
 
-        if res.isCollection(): 
+        if res.isCollection: 
             # Delete over collection
             # "The DELETE method on a collection MUST act as if a 
             # 'Depth: infinity' header was used on it. A client MUST NOT submit 
@@ -593,9 +590,9 @@ class RequestServer(object):
             self._fail(HTTP_NOT_IMPLEMENTED,
                        "Content-range header is not supported.")
 
-        if res and res.isCollection():
+        if res and res.isCollection:
             self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
-        elif not parentRes.isCollection(): # TODO: allow parentRes==None?
+        elif not parentRes.isCollection: # TODO: allow parentRes==None?
             self._fail(HTTP_CONFLICT, "PUT parent must be a collection")
 
         self._evaluateIfHeaders(res, environ)
@@ -715,7 +712,7 @@ class RequestServer(object):
 #            self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
 #                       "The server does not handle any body content.")
         
-        if srcRes.isCollection():
+        if srcRes.isCollection:
             # The COPY method on a collection without a Depth header MUST act as 
             # if a Depth header with value "infinity" was included. 
             # A client may submit a Depth header on a COPY on a collection with 
@@ -747,7 +744,7 @@ class RequestServer(object):
                                                       allow_fragments=False) 
 
 #        util.log("COPY: destPath='%s'" % destPath)
-        if srcRes.isCollection():
+        if srcRes.isCollection:
             destPath = destPath.rstrip("/") + "/"
         
         if destScheme and destScheme.lower() != environ["wsgi.url_scheme"].lower():
@@ -773,7 +770,7 @@ class RequestServer(object):
 
         destParentRes = provider.getResourceInst(util.getUriParent(destPath))
         
-        if not destParentRes or not destParentRes.isCollection():
+        if not destParentRes or not destParentRes.isCollection:
             self._fail(HTTP_CONFLICT, "Destination parent must be a collection.")
 
         self._evaluateIfHeaders(srcRes, environ)
@@ -850,8 +847,8 @@ class RequestServer(object):
         
         if destExists:
             if (isMove 
-                or not destRes.isCollection() 
-                or not srcRes.isCollection() ):
+                or not destRes.isCollection 
+                or not srcRes.isCollection ):
                 # MOVE:
                 # If a resource exists at the destination and the Overwrite 
                 # header is "T", then prior to performing the move, the server 
@@ -1036,7 +1033,7 @@ class RequestServer(object):
         createdNewResource = False
         if res is None:
             parentRes = provider.getResourceInst(util.getUriParent(path))
-            if not parentRes.isCollection():
+            if not parentRes.isCollection:
                 self._fail(HTTP_CONFLICT, "LOCK-0 parent must be a collection")
             res = parentRes.createEmptyResource(util.getUriName(path)) 
             createdNewResource = True
@@ -1179,7 +1176,7 @@ class RequestServer(object):
 
         # TODO: should we have something like provider.isReadOnly() and then omit MKCOL PUT DELETE PROPPATCH COPY MOVE?
         # TODO: LOCK UNLOCK is only available, if lockmanager not None
-        if res.isCollection():
+        if res.isCollection:
             # Existing collection
             headers.append( ("Allow", "OPTIONS HEAD GET DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
         elif res.isResource():
@@ -1227,21 +1224,21 @@ class RequestServer(object):
             self._fail(HTTP_BAD_REQUEST, "Only Depth: 0 supported.") 
         elif res is None:
             self._fail(HTTP_NOT_FOUND)         
-        elif res.isCollection(): 
+        elif res.isCollection: 
             self._fail(HTTP_FORBIDDEN, 
                        "Directory browsing not supported (try the WsgiDavDirBrowser middleware).")         
 
         self._evaluateIfHeaders(res, environ)
 
-        filesize = res.contentLength()
+        filesize = res.getContentLength()
         if filesize is None: 
             filesize = -1 # flag logic to read until EOF
             
-        lastmodified = res.modified()            
+        lastmodified = res.getLastModified()            
         if lastmodified is None: 
             lastmodified = -1
          
-        entitytag = res.etag()         
+        entitytag = res.getEtag()         
         if entitytag is None:
             entitytag = "[]"
 
@@ -1279,7 +1276,7 @@ class RequestServer(object):
             (rangestart, rangeend, rangelength) = (0L, filesize - 1, filesize)
 
         ## Content Processing 
-        mimetype = res.contentType()  #provider.getContentType(path)
+        mimetype = res.getContentType()  #provider.getContentType(path)
 
         responseHeaders = []
         if res.supportContentLength():

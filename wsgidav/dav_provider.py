@@ -17,8 +17,8 @@ A DAVResource object is created by a call the DAVProvider::
     if res is None:
         raise DAVError(HTTP_NOT_FOUND)
 
-The resource then may be used to query different attributes like ``res.name()``,
-``res.isCollection()``, ``res.contentLength()``, and ``res.supportEtag()``. 
+The resource then may be used to query different attributes like ``res.name``,
+``res.isCollection``, ``res.getContentLength()``, and ``res.supportEtag()``. 
 
 It also implements operations, that require an *existing* resource, like:
 ``getPreferredPath()``, ``createCollection()``, or ``getPropertyValue()``.
@@ -84,8 +84,6 @@ lockmMnager
    See lock_manager.LockManager for a sample implementation
    using shelve.
 """
-__docformat__ = "reStructuredText"
-
 import sys
 import time
 import traceback
@@ -99,19 +97,22 @@ from dav_error import DAVError, \
     HTTP_NOT_FOUND, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty, asDAVError
 
+__docformat__ = "reStructuredText"
+
 _logger = util.getModuleLogger(__name__)
 
-#_livePropNames = ["{DAV:}creationdate", 
-#                  "{DAV:}displayname", 
-#                  "{DAV:}getcontenttype",
-#                  "{DAV:}resourcetype",
-#                  "{DAV:}getlastmodified", 
-#                  "{DAV:}getcontentlength", 
-#                  "{DAV:}getetag", 
-#                  "{DAV:}getcontentlanguage", 
-#                  "{DAV:}source", 
-#                  "{DAV:}lockdiscovery", 
-#                  "{DAV:}supportedlock"]
+_standardLivePropNames = ["{DAV:}creationdate", 
+                          "{DAV:}displayname", 
+                          "{DAV:}getcontenttype",
+                          "{DAV:}resourcetype",
+                          "{DAV:}getlastmodified", 
+                          "{DAV:}getcontentlength", 
+                          "{DAV:}getetag", 
+                          "{DAV:}getcontentlanguage", 
+#                          "{DAV:}source", # removed in rfc4918
+                          ] 
+_lockPropertyNames = ["{DAV:}lockdiscovery", 
+                      "{DAV:}supportedlock"]
 
 
 #===============================================================================
@@ -123,8 +124,8 @@ class DAVResource(object):
     Instances of this class are created through the DAVProvider::
         
         res = provider.getResourceInst(path)
-        if res and res.isCollection():
-            print res.name()
+        if res and res.isCollection:
+            print res.getDisplayName()
             
     In the example above res will be ``None``, if the path cannot be mapped to
     an existing resource.
@@ -132,23 +133,20 @@ class DAVResource(object):
     
         res.path
         res.provider
-        res.isCollection()
-        res.name()
+        res.name
+        res.isCollection
     
-    Querying other attributes is considered 'expensive' and delayed until the
-    first access. 
+    Querying other attributes is considered 'expensive' and may be delayed until 
+    the first access. 
 
-    This default implementation expects that ``self._init()`` is implemented, in 
-    order to use these getter methods::
-        
-        contentLength()
-        contentType()
-        created()
-        displayName()
-        displayType()
-        etag()
-        modified()
+        getContentLength()
+        getContentType()
+        getCreationDate()
+        getDisplayName()
+        getEtag()
+        getLastModified()
         supportRanges()
+        
         supportEtag()
         supportModified()
         supportContentLength()
@@ -167,90 +165,104 @@ class DAVResource(object):
         assert path=="" or path.startswith("/")
         self.provider = provider
         self.path = path
-        self._isCollection = isCollection
-        self._name = util.getUriName(self.path)
-        self._dict = None
+        self.isCollection = isCollection
+        self.name = util.getUriName(self.path)
     
     
     def __repr__(self):
-        d = None
-        if hasattr(self, "_dict"):
-            d = self._dict
-        return "%s(%s): %s" % (self.__class__.__name__, self.path, d)
+#        d = getattr(self, "_customLiveProps", None)
+        return "%s(%s): %s" % (self.__class__.__name__, self.isCollection, self.path)
 
 
-    def _init(self):
-        """Read resource information into self._dict, for cached access.
+    def getContentLanguage(self):
+        """Contains the Content-Language header returned by a GET without accept 
+        headers.
         
-        These items are expected:       
-            created: 
-                (int) creation date (in seconds, compatible with time module)
-            displayName:
-                (str, utf8) display name of resource / collection
-            displayType:
-                (str, utf8) type of resource for display, e.g. 'Directory', 
-                'DOC File', ... 
-            modified:
-                (int) last modification date (in seconds, compatible with time 
-                module)
-            supportRanges:
-                (bool) True, if resource supports HTTP_RANGE
+        The getcontentlanguage property MUST be defined on any DAV compliant 
+        resource that returns the Content-Language header on a GET.
+        """
+        return None
+    def getContentLength(self):
+        """Contains the Content-Length header returned by a GET without accept 
+        headers.
         
-        and additionally for simple resources (i.e. isCollection == False):
-            contentLength: 
-                (int) resource size in bytes
-            contentType:
-                (str) MIME type of content
-            etag:
-                (str)
+        The getcontentlength property MUST be defined on any DAV compliant 
+        resource that returns the Content-Length header in response to a GET.
+        """
+        return None
+    def getContentType(self):
+        """Contains the Content-Type header returned by a GET without accept 
+        headers.
         
-        Single dictionary items are set to None, if they are not available, or
-        not supported.   
+        This getcontenttype property MUST be defined on any DAV compliant 
+        resource that returns the Content-Type header in response to a GET.
+        See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getcontenttype
+        """
+        raise NotImplementedError()
+    def getCreationDate(self):
+        """Records the time and date the resource was created.
         
-        Every provider MUST override this method, if following default getters 
-        are used.
+        The creationdate property should be defined on all DAV compliant 
+        resources. If present, it contains a timestamp of the moment when the 
+        resource was created (i.e., the moment it had non-null state).
+        """
+        return None
+    def getDisplayName(self):
+        """Provides a name for the resource that is suitable for presentation to 
+        a user.
+        
+        The displayname property should be defined on all DAV compliant 
+        resources. If present, the property contains a description of the 
+        resource that is suitable for presentation to a user.
+        
+        """
+        return None
+    def getEtag(self):
+        """
+        See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getetag
+        """
+        return None
+    def getLastModified(self):
+        """Contains the Last-Modified header returned by a GET method without 
+        accept headers.
+
+        Return None, if this live property is not supported.
+
+        Note that the last-modified date on a resource may reflect changes in 
+        any part of the state of the resource, not necessarily just a change to 
+        the response to the GET method. For example, a change in a property may 
+        cause the last-modified date to change. The getlastmodified property 
+        MUST be defined on any DAV compliant resource that returns the 
+        Last-Modified header in response to a GET.
+        """
+        return None
+    
+    def displayType(self):
+        # TODO: remove this method
+        if self.isCollection:
+            return "Collection"
+        return "Non-Collection"
+
+    def supportRanges(self):
+        """Return True, if this non-resource supports Range on GET requests.
+
+        This method is only called for non-resources.
         """
         raise NotImplementedError()
 
-    
-    def isCollection(self):
-        return self._isCollection
-    def name(self):
-        return self._name
-
-    
-    def _getInfo(self, info):
-        if self._dict is None:
-            self._init()
-        return self._dict.get(info)       
-    def contentLength(self):
-        return self._getInfo("contentLength")
-    def contentType(self):
-        return self._getInfo("contentType")
-    def created(self):
-        return self._getInfo("created")
-    def displayName(self):
-        return self._getInfo("displayName")
-    def displayType(self):
-        return self._getInfo("displayType")
-    def etag(self):
-        return self._getInfo("etag")
-    def modified(self):
-        return self._getInfo("modified")
     def supportContentLength(self):
-        return self.contentLength() is not None
+        return self.getContentLength() is not None
     def supportEtag(self):
-        return self.etag() is not None
+        return self.getEtag() is not None
     def supportModified(self):
-        return self.modified() is not None
+        return self.getLastModified() is not None
+    
     def supportNativeCopy(self):
         return False
     def supportNativeDelete(self):
         return False
     def supportNativeMove(self):
         return False
-    def supportRanges(self):
-        return self._getInfo("supportRanges") is True
 #    def supportRecursiveCopy(self):
 #        return False
     def supportRecursiveDelete(self):
@@ -273,7 +285,7 @@ class DAVResource(object):
         if self.path in ("", "/"):
             return "/"
         # Append '/' for collections
-        if self.isCollection() and not self.path.endswith("/"):
+        if self.isCollection and not self.path.endswith("/"):
             return self.path + "/"
         # TODO: handle case-sensitivity, depending on OS 
         # (FileSystemProvider could do this with os.path:
@@ -375,15 +387,15 @@ class DAVResource(object):
         res = []
         if addSelf and not depthFirst:
             res.append(self)
-        if depth != "0" and self.isCollection():
+        if depth != "0" and self.isCollection:
             pathPrefix = self.path.rstrip("/") + "/"
             for name in self.getMemberNames():
                 child = self.provider.getResourceInst(pathPrefix + name)
                 assert child, "Could not read resource inst '%s'" % (pathPrefix + name)
-                want = (collections and child.isCollection()) or (resources and not child.isCollection())
+                want = (collections and child.isCollection) or (resources and not child.isCollection)
                 if want and not depthFirst: 
                     res.append(child)
-                if child.isCollection() and depth == "infinity":
+                if child.isCollection and depth == "infinity":
                     res.extend(child.getDescendants(collections, resources, depthFirst, depth, addSelf=False))
                 if want and depthFirst: 
                     res.append(child)
@@ -398,94 +410,94 @@ class DAVResource(object):
         This method is called by dir_browser middleware, and may be used to
         provide the directory listing info in a efficient way.
         """
-        assert self.isCollection()
+        assert self.isCollection
         raise NotImplementedError()
 
 
     # --- Properties -----------------------------------------------------------
      
-    def getPropertyNames(self, mode="allprop"):
+    def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
         
-        @param mode: 'allprop': common properties, that should be sent on 'allprop' requests. 
-                     'propname': all available properties.
-
+        Note that 'allprop', despite its name, which remains for 
+        backward-compatibility, does not return every property, but only dead 
+        properties and the live properties defined in RFC4918.
+        
         This default implementation returns a combination of:
         
-        - Standard live properties in the {DAV:} namespace, using the getter
-          methods.
+        - Supported standard live properties in the {DAV:} namespace, if the 
+          using related getter method returns not None.
         - {DAV:}lockdiscovery and {DAV:}supportedlock, if a lock manager is 
           present
-        - Result of getCustomLiveProperties()
-        - a list of dead properties, if a property manager is present
+        - If a property manager is present, then a list of dead properties is 
+          appended
+        
+        A resource provider may override this method, to add a list of 
+        supported custom live property names. 
         """
-        # TODO: currently, we assume that allprop == propname
-        if not mode in ("allprop", "propname"):
-            raise ValueError("Invalid mode '%s'." % mode)
-
         ## Live properties
         propNameList = []
-        if self.created() is not None:
+        
+        propNameList.append("{DAV:}resourcetype")
+        
+        if self.getCreationDate() is not None:
             propNameList.append("{DAV:}creationdate")
-        if self.contentLength() is not None:
-            assert not self.isCollection() 
+        if self.getContentLength() is not None:
+            assert not self.isCollection
             propNameList.append("{DAV:}getcontentlength")
-        if self.contentType() is not None:
+        if self.getContentType() is not None:
             propNameList.append("{DAV:}getcontenttype")
-        if self.isCollection() is not None:
-            propNameList.append("{DAV:}resourcetype")
-        if self.modified() is not None:
+        if self.getLastModified() is not None:
             propNameList.append("{DAV:}getlastmodified")
-        if self.displayName() is not None:
+        if self.getDisplayName() is not None:
             propNameList.append("{DAV:}displayname")
-        if self.etag() is not None:
+        if self.getEtag() is not None:
             propNameList.append("{DAV:}getetag")
             
         ## Locking properties 
         if self.provider.lockManager:
-            if not "{DAV:}lockdiscovery" in propNameList:
-                propNameList.append("{DAV:}lockdiscovery")
-            if not "{DAV:}supportedlock" in propNameList:
-                propNameList.append("{DAV:}supportedlock")
+            propNameList.extend(_lockPropertyNames)
 
         ## Dead properties
         if self.provider.propManager:
             refUrl = self.getRefUrl()
-            for deadProp in self.provider.propManager.getProperties(refUrl):
-                propNameList.append(deadProp)
+            propNameList.extend(self.provider.propManager.getProperties(refUrl))
                 
         return propNameList
 
 
-    def getProperties(self, mode, nameList=None, namesOnly=False):
+    def getProperties(self, mode, nameList=None):
         """Return properties as list of 2-tuples (name, value).
 
+        If mode is 'propname', then None is returned for the value.
+        
         name 
-            is the property name in Clark notation.
+            the property name in Clark notation.
         value 
             may have different types, depending on the status: 
             - string or unicode: for standard property values.
             - etree.Element: for complex values.
             - DAVError in case of errors.
-            - None: if namesOnly was passed.
+            - None: if mode == 'propname'.
 
-        @param path: 
         @param mode: "allprop", "propname", or "named"
-        @param nameList: list of property names in Clark Notation (only for mode 'named')
-        @param namesOnly: return None for <value>
-        @param davres: pass a DAVResource to access cached info  
+        @param nameList: list of property names in Clark Notation (required for mode 'named')
+        
+        This default implementation basically calls self.getPropertyNames() to 
+        get the list of names, then call self.getPropertyValue on each of them.
         """
-        if not mode in ("allprop", "propname", "named"):
-            raise ValueError("Invalid mode '%s'." % mode)
+        assert mode in ("allprop", "propname", "named")
 
         if mode in ("allprop", "propname"):
-            # TODO: allprop can have nameList, when <include> option is implemented
+            # TODO: 'allprop' could have nameList, when <include> option is 
+            # implemented
             assert nameList is None
-            nameList = self.getPropertyNames(mode)
+            nameList = self.getPropertyNames(mode == "allprop")
         else:
             assert nameList is not None
 
         propList = []
+        namesOnly = (mode == "propname")
         for name in nameList:
             try:
                 if namesOnly:
@@ -526,6 +538,8 @@ class DAVResource(object):
         the associated property manager. 
         """
         refUrl = self.getRefUrl()
+
+        # lock properties
         lm = self.provider.lockManager     
         if lm and propname == "{DAV:}lockdiscovery":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
@@ -591,24 +605,27 @@ class DAVResource(object):
 
         elif propname.startswith("{DAV:}"):
             # Standard live property (raises HTTP_NOT_FOUND if not supported)
-            if propname == "{DAV:}creationdate" and self.created() is not None:
-                return util.getRfc1123Time(self.created())
-            elif propname == "{DAV:}getcontenttype" and self.contentType() is not None:
-                return self.contentType()
+            if propname == "{DAV:}creationdate" and self.getCreationDate() is not None:
+                # Note: uses RFC3339 format (ISO 8601)
+                return util.getRfc3339Time(self.getCreationDate())
+            elif propname == "{DAV:}getcontenttype" and self.getContentType() is not None:
+                return self.getContentType()
             elif propname == "{DAV:}resourcetype":
-                if self.isCollection():
+                if self.isCollection:
                     resourcetypeEL = etree.Element(propname)
                     etree.SubElement(resourcetypeEL, "{DAV:}collection")
                     return resourcetypeEL            
                 return ""   
-            elif propname == "{DAV:}getlastmodified" and self.modified() is not None:
-                return util.getRfc1123Time(self.modified())
-            elif propname == "{DAV:}getcontentlength" and self.contentLength() is not None:
-                return str(self.contentLength())
-            elif propname == "{DAV:}getetag" and self.etag() is not None:
-                return self.etag()
-            elif propname == "{DAV:}displayname" and self.displayName() is not None:
-                return self.displayName()
+            elif propname == "{DAV:}getlastmodified" and self.getLastModified() is not None:
+                # Note: uses RFC1123 format
+                return util.getRfc1123Time(self.getLastModified())
+            elif propname == "{DAV:}getcontentlength" and self.getContentLength() is not None:
+                # Note: must be a numeric string
+                return str(self.getContentLength())
+            elif propname == "{DAV:}getetag" and self.getEtag() is not None:
+                return self.getEtag()
+            elif propname == "{DAV:}displayname" and self.getDisplayName() is not None:
+                return self.getDisplayName()
     
             # Unsupported No persistence available, or property not found
             raise DAVError(HTTP_NOT_FOUND)               
@@ -626,37 +643,39 @@ class DAVResource(object):
     
 
     def setPropertyValue(self, propname, value, dryRun=False):
-        """Set or remove property value.
+        """Set a property value or remove a property.
         
         value == None means 'remove property'.
         Raise HTTP_FORBIDDEN if property is read-only, or not supported.
-        Removing a non-existing prop is NOT an error. 
-        
+
         When dryRun is True, this function should raise errors, as in a real
         run, but MUST NOT change any data.
                  
-        This default implementation delegates {DAV:} properties to 
-        ``setLivePropertyValue()`` and stores everything else as dead property.
+        This default implementation 
         
-        @param path:
-        @param propname: property name in Clark Notation
-        @param value: value == None means 'remove property'.
-        @param dryRun: boolean
+        - raises HTTP_FORBIDDEN, if trying to modify a locking property
+        - raises HTTP_FORBIDDEN, if trying to modify a {DAV:} property 
+        - stores everything else as dead property, if a property manager is 
+          present.
+        - raises HTTP_FORBIDDEN, else 
+        
+        Removing a non-existing prop is NOT an error. 
+        
+        Note: RFC 4918 states that {DAV:}displayname 'SHOULD NOT be protected' 
+
+        A resource provider may override this method, to update supported custom 
+        live properties. 
         """
         assert value is None or isinstance(value, (etree._Element))
 
-        if propname in ("{DAV:}lockdiscovery", "{DAV:}supportedlock"):
+        if propname in _lockPropertyNames:
             # Locking properties are always read-only
             raise DAVError(HTTP_FORBIDDEN,  
                            preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
-        elif propname.startswith("{DAV:}"):
-            # raises DAVError(HTTP_FORBIDDEN) if read-only, or not supported
-            return self.setLivePropertyValue(propname, value, dryRun)
 
         # Dead property
         pm = self.provider.propManager
-        if pm:
-            # TODO: do we write all proprties?
+        if pm and not propname.startswith("{DAV:}"):
             refUrl = self.getRefUrl()
             if value is None:
                 return pm.removeProperty(refUrl, propname)
@@ -664,7 +683,7 @@ class DAVResource(object):
                 value = etree.tostring(value)
                 return pm.writeProperty(refUrl, propname, value, dryRun)             
 
-        raise DAVError(HTTP_FORBIDDEN)  # TODO: Chun used HTTP_CONFLICT 
+        raise DAVError(HTTP_FORBIDDEN) 
 
 
 
@@ -677,37 +696,6 @@ class DAVResource(object):
 
 
 
-    def setLivePropertyValue(self, propname, value, dryRun=False):
-        """Set or remove a live property value.
-        
-        value == None means 'remove property'.
-        Raise HTTP_FORBIDDEN if property is read-only, or not supported.
-
-        When dryRun is True, this function should raise errors, as in a real
-        run, but MUST NOT change any data.
-                 
-        This function MUST NOT handle {DAV:}lockdiscovery and {DAV:}supportedlock,
-        since this is done by the calling .setPropertyValue() function.
-
-        This will usually be forbidden, since live properties cannot be
-        removed.
-
-        @param path:
-        @param propname: property name in Clark Notation
-        @param value: value == None means 'remove property'.
-        @param dryRun: boolean
-        
-        This default implementation raises DAVError(HTTP_FORBIDDEN), since 
-        {DAV:} live properties are mostly read-only, .
-        
-        TODO: RFC 3253 states that {DAV:}displayname 'SHOULD NOT be protected' 
-        so we could implement {DAV:}displayname as RW, if propMan is available
-        Maybe in a 'create-on-write' way.        
-        """
-        raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
-                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
-    
-    
     # --- Locking --------------------------------------------------------------
 
     def isLocked(self):
@@ -741,7 +729,7 @@ class DAVResource(object):
         access.
         This default implementation simply raises HTTP_FORBIDDEN.
         """
-        assert self.isCollection()
+        assert self.isCollection
         raise DAVError(HTTP_FORBIDDEN)               
     
 
@@ -758,7 +746,7 @@ class DAVResource(object):
         access.
         This default implementation raises HTTP_FORBIDDEN.
         """
-        assert self.isCollection()
+        assert self.isCollection
         raise DAVError(HTTP_FORBIDDEN)               
 
 
@@ -830,6 +818,7 @@ class DAVResource(object):
             Instead, if the source (or children thereof) have locks, then
             these locks should be removed.
           - SHOULD maintain associated live properties, when applicable
+            See http://www.webdav.org/specs/rfc4918.html#dav.properties
           - MUST maintain associated dead properties
           - raises HTTP_FORBIDDEN for read-only resources
           - raises HTTP_INTERNAL_ERROR on error
@@ -864,6 +853,7 @@ class DAVResource(object):
           - SHOULD copy live properties, when appropriate.
             E.g. displayname should be copied, but creationdate should be
             reset if the target did not exist before.
+            See http://www.webdav.org/specs/rfc4918.html#dav.properties
           - SHOULD copy dead properties
           - raises HTTP_FORBIDDEN for read-only providers
           - raises HTTP_INTERNAL_ERROR on error
@@ -980,17 +970,13 @@ class DAVProvider(object):
 
 
     def getResourceInst(self, path):
-        """Return a DAVResource object for a path.
+        """Return a DAVResource object for path.
 
-        This function is mainly used to query live properties for a resource.
-        The assumption is, that it is more efficient to query all infos in one
-        call, rather than have single calls for every info type. 
-
-        It should be called only once per request and resource::
+        Should be called only once per request and resource::
             
             res = provider.getResourceInst(path)
-            if res and not res.isCollection():
-                print res.contentType()
+            if res and not res.isCollection:
+                print res.getContentType()
         
         If <path> does not exist, None is returned.
         
@@ -1019,7 +1005,7 @@ class DAVProvider(object):
         for <path>. Otherwise a DAVResource should be created first.
         """
         res = self.getResourceInst(path)
-        return res and res.isCollection()
+        return res and res.isCollection
 
 
 #    def removeAtomic(self, pathOrRes):

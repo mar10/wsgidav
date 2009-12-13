@@ -75,6 +75,15 @@ def getRfc1123Time(secs=None):
     return formatdate(timeval=secs, localtime=False, usegmt=True)
 
 
+def getRfc3339Time(secs=None):   
+    """Return <secs> in RFC 3339 date/time format (pass secs=None for current date).
+    
+    RFC 3339 is a subset of ISO 8601, used for '{DAV:}creationdate'. 
+    See http://tools.ietf.org/html/rfc3339
+    """
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(secs))
+
+
 def getLogTime(secs=None):   
     """Return <secs> in log time format (pass secs=None for current date)."""
     return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(secs))
@@ -94,8 +103,7 @@ def parseTimeString(timestring):
     result = _parsegmtime(timestring)
     if result:
         return calendar.timegm(result)
-    else:
-        return None
+    return None
 
 
 def _parsegmtime(timestring):
@@ -927,7 +935,7 @@ reIfTagListContents = re.compile(r'(\S+)')
 def parseIfHeaderDict(environ):
     """Parse HTTP_IF header into a dictionary and lists, and cache the result.
     
-    @see http://www.webdav.org/specs/rfc2518.html#HEADER_If
+    @see http://www.webdav.org/specs/rfc4918.html#HEADER_If
     """
     if "wsgidav.conditions.if" in environ:
         return

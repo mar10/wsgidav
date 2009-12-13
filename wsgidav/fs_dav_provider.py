@@ -19,11 +19,6 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-#from urllib2 import url
-#import urllib2
-
-__docformat__ = "reStructuredText"
-
 
 import util
 import os
@@ -34,6 +29,7 @@ import stat
 #from dav_error import DAVError, HTTP_FORBIDDEN
 from dav_provider import DAVProvider, DAVResource
 
+__docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
@@ -51,9 +47,10 @@ class FileResource(DAVResource):
     def __init__(self, provider, path, isCollection, filePath):
         super(FileResource, self).__init__(provider, path, isCollection)
         self._filePath = filePath
+        self._dict = None
         # Setting the name from the file path should fix the case on Windows
-        self._name = os.path.basename(self._filePath)
-        self._name = self._name.encode("utf8")
+        self.name = os.path.basename(self._filePath)
+        self.name = self.name.encode("utf8")
         
 
 
@@ -73,7 +70,7 @@ class FileResource(DAVResource):
         isFile = os.path.isfile(self._filePath)
 
         displayType = "File"
-        if self.isCollection():
+        if self.isCollection:
             displayType = "Directory"
         elif not isFile:
             displayType = "Unknown"
@@ -82,12 +79,9 @@ class FileResource(DAVResource):
             "contentLength": None, # TODO: remove?
             "contentType": "text/html", # TODO: should be None?
             "created": statresults[stat.ST_CTIME],
-            "displayName": self._name,
             "displayType": displayType,
             "etag": util.getETag(self._filePath), # TODO: should be resource-only?
-#            "isCollection": self._isCollection, 
             "modified": statresults[stat.ST_MTIME],
-#            "name": name,
             }
         # Some resource-only infos: 
         if isFile:
@@ -97,9 +91,34 @@ class FileResource(DAVResource):
             self._dict["contentType"] = mimetype
 
             self._dict["contentLength"] = statresults[stat.ST_SIZE]
-            self._dict["supportRanges"] = True
         return
 
+    
+    def _getInfo(self, info):
+        if self._dict is None:
+            self._init()
+        return self._dict.get(info)   
+
+    # Getter methods for standard live properties     
+    def getContentLanguage(self):
+        return None
+    def getContentLength(self):
+        return self._getInfo("contentLength")
+    def getContentType(self):
+        return self._getInfo("contentType")
+    def getCreationDate(self):
+        return self._getInfo("created")
+    def getDisplayName(self):
+        return self.name
+    def displayType(self):
+        return self._getInfo("displayType")
+    def getEtag(self):
+        return self._getInfo("etag")
+    def getLastModified(self):
+        return self._getInfo("modified")
+
+    def supportRanges(self):
+        return True
     
     def getMemberNames(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
@@ -129,6 +148,18 @@ class FileResource(DAVResource):
 
 
     # --- Properties -----------------------------------------------------------
+#    def setPropertyValue(self, propname, value, dryRun=False):
+#        """Set a property value or remove a property.
+#        
+#        See DAVResource.setPropertyValue(). 
+#        """
+#        # TODO: RFC 4918 states that {DAV:}displayname 'SHOULD NOT be protected' 
+#        # so we could implement {DAV:}displayname as RW, if propMan is available
+#        # Maybe in a 'create-on-write' way.   
+#        # http://www.webdav.org/specs/rfc4918.html#rfc.section.15.2     
+#        raise DAVError(HTTP_FORBIDDEN) 
+
+
      
     # --- Read / write ---------------------------------------------------------
     
@@ -137,7 +168,7 @@ class FileResource(DAVResource):
         
         See DAVResource.createEmptyResource()
         """
-        assert self.isCollection()
+        assert self.isCollection
         assert not "/" in name
 #        raise DAVError(HTTP_FORBIDDEN)               
         path = util.joinUri(self.path, name) 
@@ -152,7 +183,7 @@ class FileResource(DAVResource):
         
         See DAVResource.createCollection()
         """
-        assert self.isCollection()
+        assert self.isCollection
         assert not "/" in name
 #        raise DAVError(HTTP_FORBIDDEN)               
         path = util.joinUri(self.path, name) 
@@ -165,8 +196,8 @@ class FileResource(DAVResource):
          
         See DAVResource.getContent()
         """
-        assert not self.isCollection()
-        mime = self.contentType()
+        assert not self.isCollection
+        mime = self.getContentType()
         if mime.startswith("text"):
             return file(self._filePath, "r", BUFFER_SIZE)
         return file(self._filePath, "rb", BUFFER_SIZE)
@@ -177,7 +208,7 @@ class FileResource(DAVResource):
          
         This method MUST be implemented by all providers that support write 
         access."""
-        assert not self.isCollection()
+        assert not self.isCollection
 #        raise DAVError(HTTP_FORBIDDEN)               
         mode = "wb"
         if contentType and contentType.startswith("text"):
@@ -192,7 +223,7 @@ class FileResource(DAVResource):
         See DAVResource.delete()
         """
 #        raise DAVError(HTTP_FORBIDDEN)               
-        if self.isCollection():
+        if self.isCollection:
 #            os.rmdir(self._filePath)
             shutil.rmtree(self._filePath, ignore_errors=False)
         else:
@@ -205,7 +236,7 @@ class FileResource(DAVResource):
         """See DAVResource.copy() """
         fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
-        if self.isCollection():
+        if self.isCollection:
 #            assert not os.path.exists(fpDest)
             if not os.path.exists(fpDest):
                 os.mkdir(fpDest)
@@ -276,61 +307,3 @@ class FilesystemProvider(DAVProvider):
         if not os.path.exists(fp):
             return None
         return FileResource(self, path, os.path.isdir(fp), fp)
-
-    
-
-
-#===============================================================================
-# FilesystemProvider
-#===============================================================================
-
-#class FilesystemProvider(ReadOnlyFilesystemProvider):
-#    
-#    def __init__(self, rootFolderPath):
-#        super(FilesystemProvider, self).__init__(rootFolderPath)
-
-
-#    def createEmptyResource(self, path):
-#        fp = self._locToFilePath(path)
-#        f = open(fp, "w")
-#        f.close()
-
-    
-#    def createCollection(self, path):
-#        fp = self._locToFilePath(path)
-#        os.mkdir(fp)
-
-    
-#    def deleteCollection(self, path):
-#        fp = self._locToFilePath(path)
-#        os.rmdir(fp)
-
-
-#    def openResourceForWrite(self, path, contentType=None):
-#        fp = self._locToFilePath(path)
-#        mode = "wb"
-#        if contenttype and contenttype.startswith("text"):
-#            mode = "w"
-#        _logger.debug("openResourceForWrite: %s, %s" % (fp, mode))
-#        return file(fp, mode, BUFFER_SIZE)
-
-    
-#    def deleteResource(self, path):
-#        fp = self._locToFilePath(path)
-#        os.unlink(fp)
-
-    
-#    def copyResource(self, path, destrespath):
-#        fpSrc = self._locToFilePath(path)
-#        fpDest = self._locToFilePath(destrespath)
-#        shutil.copy2(fpSrc, fpDest)
-
-    
-#    def setLivePropertyValue(self, path, name, value, dryRun=False):
-#        # {DAV:} live properties are mostly read-only.
-#        # Especially supportedlock and lockdiscovery MUST NOT be set here
-#        # TODO: RFC 3253 states that {DAV:}displayname 'SHOULD NOT be protected' 
-#        # so we could implement {DAV:}displayname as RW, if propMan is available
-#        # Maybe in a 'create-on-write' way
-#        raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
-#                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  

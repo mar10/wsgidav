@@ -37,7 +37,7 @@ class WsgiDavDirBrowser(object):
         if environ["wsgidav.provider"]:
             davres = environ["wsgidav.provider"].getResourceInst(path)
 
-        if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection():
+        if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection:
 
             if util.getContentLength(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -69,7 +69,7 @@ class WsgiDavDirBrowser(object):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#rfc.section.9.4
         """
-        assert davres.isCollection()
+        assert davres.isCollection
         
         displaypath = urllib.unquote(davres.getHref())
         trailer = environ.get("wsgidav.config", {}).get("response_trailer")
@@ -99,16 +99,16 @@ class WsgiDavDirBrowser(object):
         for res in davres.getDescendants(depth="1", addSelf=False):
 
             infoDict = {"url": res.getHref(),
-                        "displayName": res.displayName(),
+                        "displayName": res.getDisplayName(),
                         "displayType": res.displayType(),
                         "strModified": "",
                         "strSize": "",
                         }
 
-            if res.modified() is not None:
-                infoDict["strModified"] = util.getRfc1123Time(res.modified())
-            if res.contentLength() is not None and not res.isCollection():
-                infoDict["strSize"] = util.byteNumberString(res.contentLength())
+            if res.getLastModified() is not None:
+                infoDict["strModified"] = util.getRfc1123Time(res.getLastModified())
+            if res.getContentLength() is not None and not res.isCollection:
+                infoDict["strSize"] = util.byteNumberString(res.getContentLength())
  
             o_list.append("""\
             <tr><td><a href="%(url)s">%(displayName)s</a></td>

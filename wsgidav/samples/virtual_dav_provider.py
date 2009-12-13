@@ -98,7 +98,8 @@ try:
 except ImportError:
     from StringIO import StringIO #@UnusedImport
 from wsgidav.dav_provider import DAVProvider, DAVResource
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
+    PRECONDITION_CODE_ProtectedProperty, HTTP_NOT_FOUND
 from wsgidav import util
 
 __docformat__ = "reStructuredText en"
@@ -183,40 +184,32 @@ def _getResByKey(key):
 #===============================================================================
 class _VirtualResource(DAVResource):
     """Abstract base class for all resources."""
-    def __init__(self):
-        pass
+    def __init__(self, provider, path, isCollection):
+        super(_VirtualResource, self).__init__(provider, path, isCollection)
 
-    def isCollection(self):
-        raise NotImplementedError()
-    def name(self):
-        return util.getUriName(self.path)
-
-    def contentLength(self):
+    def getContentLength(self):
         return None
-    def contentType(self):
+    def getContentType(self):
         return None
-    def created(self):
+    def getCreationDate(self):
         return None
-    def displayName(self):
-        return self.name()
+    def getDisplayName(self):
+        return self.name
     def displayType(self):
         raise NotImplementedError()
-    def etag(self):
+    def getEtag(self):
         return None
-    def modified(self):
+    def getLastModified(self):
         return None
     def supportRanges(self):
         return False
 
 
 class VirtualResCollection(_VirtualResource):
-    """Collection type resource, that contains a list of names."""
+    """Collection resource, that contains a list of names."""
     def __init__(self, provider, path, nameList):
-        self.provider = provider
-        self.path = path
+        _VirtualResource.__init__(self, provider, path, True)
         self._nameList = nameList
-    def isCollection(self):
-        return True
     def displayType(self):
         return "Category"
     def getMemberNames(self):
@@ -225,17 +218,21 @@ class VirtualResCollection(_VirtualResource):
 
 class VirtualResource(_VirtualResource):
     """A virtual 'resource', displayed as a collection of artifacts and files."""
+    _supportedProps = ["{virtres:}key",
+                       "{virtres:}title",
+                       "{virtres:}status",
+                       "{virtres:}orga",
+                       "{virtres:}tags",
+                       "{virtres:}description",
+                       ]
     def __init__(self, provider, path, data):
-        self.provider = provider
-        self.path = path
+        _VirtualResource.__init__(self, provider, path, True)
         self._data = data
         self._nameList = _artifactNames[:] # Use a copy
         for f in data["resPathList"]:
             self._nameList.append(os.path.basename(f))
     def displayType(self):
         return "Resource folder"
-    def isCollection(self):
-        return True
     
     def getRefUrl(self):
         refPath = "/by_key/%s" % self._data["key"] 
@@ -244,38 +241,92 @@ class VirtualResource(_VirtualResource):
     def getMemberNames(self):
         return self._nameList
 
+    def getPropertyNames(self, isAllProp):
+        """Return list of supported property names in Clark Notation.
+        
+        See DAVResource.getPropertyNames() 
+        """
+        # Let base class implementation add supported live and dead properties
+        propNameList = super(VirtualResource, self).getPropertyNames(isAllProp)
+        # Add custom live properties (report on 'allprop' and 'propnames')
+        propNameList.extend(VirtualResource._supportedProps)
+        return propNameList
+
+    def getPropertyValue(self, propname):
+        """Return the value of a property.
+        
+        See getPropertyValue()
+        """
+        # Supported custom live properties
+        if propname == "{virtres:}key":
+            return self._data["key"]
+        elif propname == "{virtres:}title":
+            return self._data["title"]
+        elif propname == "{virtres:}status":
+            return self._data["status"]
+        elif propname == "{virtres:}orga":
+            return self._data["orga"]
+        elif propname == "{virtres:}tags":
+            # 'tags' is a string list
+            return ",".join(self._data["tags"])
+        elif propname == "{virtres:}description":
+            return self._data["description"]
+        # Let base class implementation report live and dead properties
+        return super(VirtualResource, self).getPropertyValue(propname)
+    
+
+    def setPropertyValue(self, propname, value, dryRun=False):
+        """Set or remove property value.
+        
+        See DAVResource.setPropertyValue()
+        """
+        if value is None:
+            # We can never remove properties
+            raise DAVError(HTTP_FORBIDDEN)
+        if propname == "{virtres:}tags":
+            # value is of type etree.Element
+            self._data["tags"] = value.text.split(",")
+        elif propname == "{virtres:}description":
+            # value is of type etree.Element
+            self._data["description"] = value.text
+        elif propname in VirtualResource._supportedProps:
+            # Supported property, but read-only    
+            raise DAVError(HTTP_FORBIDDEN,  
+                           preconditionCode=PRECONDITION_CODE_ProtectedProperty)
+        else:
+            # Unsupported property    
+            raise DAVError(HTTP_FORBIDDEN)
+        # Write OK
+        return  
+              
+
 
 class VirtualArtifact(_VirtualResource):
     """A virtual file, containing resource descriptions."""
     def __init__(self, provider, path, data, name):
         assert name in _artifactNames
-        self.provider = provider
-        self.path = path
+        _VirtualResource.__init__(self, provider, path, False)
+        assert self.name == name
         self._data = data
-        self._name = name
 
-    def contentLength(self):
+    def getContentLength(self):
         return len(self.getContent().read())
-    def contentType(self):
-        if self._name.endswith(".txt"):
+    def getContentType(self):
+        if self.name.endswith(".txt"):
             return "text/plain"
         return "text/html"
     def displayType(self):
         return "Virtual info file"
-    def isCollection(self):
-        return False
-    def name(self):
-        return self._name
 
     def getRefUrl(self):
-        refPath = "/by_key/%s/%s" % (self._data["key"], self._name)
+        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
         return urllib.quote(self.provider.sharePath + refPath)
  
     def getContent(self):
         fileLinks = [ "<a href='%s'>%s</a>\n" % (os.path.basename(f), f) for f in self._data["resPathList"] ]
         dict = self._data.copy()
         dict["fileLinks"] = ", ".join(fileLinks)
-        if self._name == ".Info.html":
+        if self.name == ".Info.html":
             html = """\
             <html><head>
             <title>%(title)s</title>
@@ -304,7 +355,7 @@ class VirtualArtifact(_VirtualResource):
             </table>
             <p>This is a virtual WsgiDAV resource called '%(title)s'.</p>
             </body></html>""" % dict
-        elif self._name == ".Info.txt":
+        elif self.name == ".Info.txt":
             lines = [self._data["title"],
                      "=" * len(self._data["title"]),
                      self._data["description"],
@@ -315,7 +366,7 @@ class VirtualArtifact(_VirtualResource):
                      "Key:    %s" % self._data["key"],
                      ] 
             html = "\n".join(lines)
-        elif self._name == ".Description.txt":
+        elif self.name == ".Description.txt":
             html = self._data["description"]
         else:
             raise DAVError(HTTP_INTERNAL_ERROR, "Invalid artifact '%s'" % self._name)
@@ -326,29 +377,26 @@ class VirtualResFile(_VirtualResource):
     """Represents an existing file, that is a member of a VirtualResource."""
     def __init__(self, provider, path, data, filePath):
 #        assert os.path.exists(filePath)
-        self.provider = provider
-        self.path = path
+        _VirtualResource.__init__(self, provider, path, False)
         self._data = data
         self.filePath = filePath
 
-    def contentLength(self):
+    def getContentLength(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_SIZE]      
-    def contentType(self):
+    def getContentType(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
         (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath) 
         if not mimetype:
             mimetype = "application/octet-stream" 
         return mimetype
-    def created(self):
+    def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      
     def displayType(self):
         return "Content file"
-    def isCollection(self):
-        return False
-    def modified(self):
+    def getLastModified(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_MTIME]      
 
@@ -357,7 +405,7 @@ class VirtualResFile(_VirtualResource):
         return urllib.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
-        mime = self.contentType()
+        mime = self.getContentType()
         if mime.startswith("text"):
             return file(self.filePath, "r", BUFFER_SIZE)
         return file(self.filePath, "rb", BUFFER_SIZE)
@@ -380,9 +428,7 @@ class VirtualResourceProvider(DAVProvider):
         
 
     def getResourceInst(self, path):
-        """Return a DAVResource object for path.
-
-        Return _VirtualResource object for a path.
+        """Return _VirtualResource object for path.
         
         path is expected to be 
             categoryType/category/name/artifact
