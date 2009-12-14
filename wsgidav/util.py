@@ -21,7 +21,6 @@ from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIF
 
 
 import locale
-import urllib
 import logging
 import re
 try:
