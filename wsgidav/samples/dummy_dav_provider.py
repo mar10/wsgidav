@@ -100,7 +100,7 @@ class DummyDAVProvider(DAVProvider):
         return super(DummyDAVProvider, self).refUrlToPath(refUrl)
 
 
-    def getResourceInfo(self, path):
+    def getResourceInst(self, path):
         """Return info dictionary for path.
         
         The result may be used to display HTML directory pages to the user.
@@ -118,7 +118,7 @@ class DummyDAVProvider(DAVProvider):
         modified: modification date of resource (in seconds, compatible with time module)
         created: creation date of resource (in seconds, compatible with time module)
         """
-        return super(DummyDAVProvider, self).getResourceInfo(path)
+        return super(DummyDAVProvider, self).getResourceInst(path)
     
 
     def getPropertyNames(self, davres, mode="allprop"):

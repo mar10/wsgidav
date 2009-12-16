@@ -14,12 +14,13 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-from urllib import quote
-from dav_error import DAVError, getHttpStatusString, HTTP_BAD_REQUEST
 from pprint import pprint
-from wsgidav.dav_error import HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED
+from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
+    HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
+    HTTP_OK
+
+
 import locale
-import urllib
 import logging
 import re
 try:
@@ -31,6 +32,7 @@ import calendar
 import sys
 import time
 import stat
+from email.utils import formatdate
 
 try:
     from cStringIO import StringIO
@@ -67,7 +69,18 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 
 def getRfc1123Time(secs=None):   
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
-    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
+    # issue #20: time string must be locale independent
+#    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
+    return formatdate(timeval=secs, localtime=False, usegmt=True)
+
+
+def getRfc3339Time(secs=None):   
+    """Return <secs> in RFC 3339 date/time format (pass secs=None for current date).
+    
+    RFC 3339 is a subset of ISO 8601, used for '{DAV:}creationdate'. 
+    See http://tools.ietf.org/html/rfc3339
+    """
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(secs))
 
 
 def getLogTime(secs=None):   
@@ -89,8 +102,7 @@ def parseTimeString(timestring):
     result = _parsegmtime(timestring)
     if result:
         return calendar.timegm(result)
-    else:
-        return None
+    return None
 
 
 def _parsegmtime(timestring):
@@ -403,6 +415,14 @@ def getContentLength(environ):
 #        return "/"
 #    return uri.strip("/").split("/")[0]
 
+def joinUri(uri, *segments):
+    """Append segments to URI.
+    
+    Example: joinUri("/a/b", "c", "d")
+    """
+    sub = "/".join(segments)
+    return uri.rstrip("/") + "/" + sub
+
 
 def getUriName(uri):
     """Return local name, i.e. last segment of URI."""
@@ -457,10 +477,10 @@ def makeCompleteUrl(environ, localUri=None):
             if environ["SERVER_PORT"] != "80":
                 url += ":" + environ["SERVER_PORT"]
     
-    url += quote(environ.get("SCRIPT_NAME",""))
+    url += urllib.quote(environ.get("SCRIPT_NAME",""))
 
     if localUri is None:
-        url += quote(environ.get("PATH_INFO",""))
+        url += urllib.quote(environ.get("PATH_INFO",""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:
@@ -472,12 +492,29 @@ def makeCompleteUrl(environ, localUri=None):
 # XML
 #===============================================================================
 
+def stringToXML(text):
+    """Convert XML string into etree.Element."""
+    try:
+        return etree.XML(text)
+    except:
+        # TODO:
+        # litmus fails, when xml is used instead of lxml
+        # 18. propget............... FAIL (PROPFIND on `/temp/litmus/prop2': Could not read status line: connection was closed by server)
+        # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
+        raise
+
+
 def xmlToString(element, encoding="UTF-8", pretty_print=False):
-    """Wrapper for etree.tostring, that takes care of unsupported pretty_print option."""
+    """Wrapper for etree.tostring, that takes care of unsupported pretty_print 
+    option and prepends an encoding header."""
     assert encoding == "UTF-8" # TODO: remove this
     if useLxml:
-        return etree.tostring(element, encoding=encoding, pretty_print=pretty_print)
-    return etree.tostring(element, encoding)
+        xml = etree.tostring(element, encoding=encoding, 
+                             xml_declaration=True, pretty_print=pretty_print)
+    else:
+        xml = etree.tostring(element, encoding)
+    assert xml.startswith("<?xml ") 
+    return xml
 
 
 def makeMultistatusEL():
@@ -600,19 +637,34 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
                                        ])
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
-    # (Vista and others would accept this). 
-#    log(xmlToString(multistatusEL, pretty_print=True))
+    # (Vista and others would accept this).
+    if __debug__: 
+        xml = xmlToString(multistatusEL, pretty_print=True) 
+        log(xml)
     pretty_print = False
-    return ["<?xml version='1.0' encoding='UTF-8' ?>",
+    return [#"<?xml version='1.0' encoding='UTF-8' ?>",
             xmlToString(multistatusEL, pretty_print=pretty_print) ]
         
             
 def sendSimpleResponse(environ, start_response, status):
+    """Start a WSGI response for a DAVError or status code.""" 
     s = getHttpStatusString(status)
-    start_response(s, [("Content-Length", "0"),
+    if status in (HTTP_CREATED, HTTP_NO_CONTENT):
+        # See paste.lint: these code don't have content
+        start_response(s, [("Content-Length", "0"),
+                           ("Date", getRfc1123Time()),
+                           ])
+        return [ "" ]
+    assert status == HTTP_OK or isinstance(status, DAVError)
+    html = status.getHtmlResponse()
+    if __debug__: 
+        log(html)
+    start_response(s, [("Content-Type", "text/html"),
+                       ("Content-Length", str(len(html))),
                        ("Date", getRfc1123Time()),
                        ])
-    return [ "" ]      
+    return [ html ]
+    
     
     
 def addPropertyResponse(multistatusEL, href, propList):
@@ -788,7 +840,7 @@ def obtainContentRanges(rangetext, filesize):
 # If Headers
 #===============================================================================
 
-def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
+def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
     
     If-Match     
@@ -812,6 +864,8 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
         Only send the response if the entity has not been modified since a 
         specific time.
     """
+    if not davres:
+        return
     ## Conditions
 
     # An HTTP/1.1 origin server, upon receiving a conditional request that includes both a Last-Modified date
@@ -819,8 +873,8 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
     # in an If-Match, If-None-Match, or If-Range header field) as cache validators, MUST NOT return a response 
     # status of 304 (Not Modified) unless doing so is consistent with all of the conditional header fields in 
     # the request.
-
-    if "HTTP_IF_MATCH" in environ and res.supportEtag(): #dav.isInfoTypeSupported(path, "etag"):
+    
+    if "HTTP_IF_MATCH" in environ and davres.supportEtag(): 
         ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
             ifmatchtag = ifmatchtag.strip(" \"\t")
@@ -831,7 +885,7 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
 
     # TODO: after the refactoring
     ifModifiedSinceFailed = False
-    if "HTTP_IF_MODIFIED_SINCE" in environ and res.supportModified(): #dav.isInfoTypeSupported(path, "modified"):
+    if "HTTP_IF_MODIFIED_SINCE" in environ and davres.supportModified(): 
         ifmodtime = parseTimeString(environ["HTTP_IF_MODIFIED_SINCE"])
         if ifmodtime and ifmodtime > lastmodified:
             ifModifiedSinceFailed = True
@@ -842,7 +896,7 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
     # (s) in the request. That is, if no entity tags match, then the server MUST NOT return a 304 (Not Modified) 
     # response.
     ignoreIfModifiedSince = False         
-    if "HTTP_IF_NONE_MATCH" in environ and res.supportEtag(): #dav.isInfoTypeSupported(path, "etag"):         
+    if "HTTP_IF_NONE_MATCH" in environ and davres.supportEtag():          
         ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
             ifmatchtag = ifmatchtag.strip(" \"\t")
@@ -856,7 +910,7 @@ def evaluateHTTPConditionals(res, lastmodified, entitytag, environ):
                                "If-None-Match header condition failed")
         ignoreIfModifiedSince = True
 
-    if "HTTP_IF_UNMODIFIED_SINCE" in environ and res.supportModified(): #dav.isInfoTypeSupported(path, "modified"):
+    if "HTTP_IF_UNMODIFIED_SINCE" in environ and davres.supportModified(): 
         ifunmodtime = parseTimeString(environ["HTTP_IF_UNMODIFIED_SINCE"])
         if ifunmodtime and ifunmodtime <= lastmodified:
             raise DAVError(HTTP_PRECONDITION_FAILED,
@@ -880,7 +934,7 @@ reIfTagListContents = re.compile(r'(\S+)')
 def parseIfHeaderDict(environ):
     """Parse HTTP_IF header into a dictionary and lists, and cache the result.
     
-    @see http://www.webdav.org/specs/rfc2518.html#HEADER_If
+    @see http://www.webdav.org/specs/rfc4918.html#HEADER_If
     """
     if "wsgidav.conditions.if" in environ:
         return
@@ -926,7 +980,7 @@ def parseIfHeaderDict(environ):
     return
 
 
-def testIfHeaderDict(res, dictIf, fullurl, locktokenlist, entitytag):
+def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
     debug("if", "testIfHeaderDict(%s, %s, %s)" % (fullurl, locktokenlist, entitytag),
           dictIf)
 
@@ -938,7 +992,7 @@ def testIfHeaderDict(res, dictIf, fullurl, locktokenlist, entitytag):
         return True   
 
 #    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
-    supportEntityTag = res.supportEtag()
+    supportEntityTag = davres.supportEtag()
     for listTestConds in listTest:
         matchfailed = False
 

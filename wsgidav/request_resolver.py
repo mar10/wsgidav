@@ -181,23 +181,17 @@ class RequestResolver(object):
                                       ("Server", "DAV/2"),
                                       ("Date", util.getRfc1123Time()),
                                       ])        
-#            return [""]  
-            yield [ "" ]
+            yield ""
             return
    
         provider = environ["wsgidav.provider"]
         if provider is None:
             raise DAVError(HTTP_NOT_FOUND,
                            "Could not find resource provider for '%s'" % path)
+
         # Let the appropriate resource provider for the realm handle the request
-        
         app = RequestServer(provider)
-#        environ["wsgidav.request_server"] = app # Keep it alive for the whole request lifetime
-#        _tls.app = app # TODO: try to avoid Server socket closed
         for v in app(environ, start_response):
-            util.debug("sc", "RequestResolver: yield start")
             yield v
             util.log("Response", v)
-            util.debug("sc", "RequestResolver: yield end")
         return
-#        return app(environ, start_response)

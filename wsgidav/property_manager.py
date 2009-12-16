@@ -2,8 +2,8 @@
 property_manager
 ================
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Implements two property managers: one in-memory (dict-based), and one 
@@ -151,7 +151,7 @@ class PropertyManager(object):
 #                print "  -> %s" % self._dict[k]
             for k, v in self._dict.items():
                 _ = "%s, %s" % (k, v)
-            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
+#            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
             return True
         except Exception:
             _logger.exception("%s _check: ERROR %s" % (self.__class__.__name__, msg))

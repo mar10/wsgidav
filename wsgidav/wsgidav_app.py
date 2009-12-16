@@ -4,8 +4,8 @@
 wsgidav_app
 ===========
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 
@@ -283,7 +283,7 @@ class WsgiDAVApp(object):
         assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
         # PATH_INFO starts with '/'
         assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
-        
+
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):
             # Log request
@@ -295,14 +295,18 @@ class WsgiDAVApp(object):
                 if self._verbose >= 1:
                     threadInfo = "<%s> " % threading._get_ident()
                 extra = []
+                if "HTTP_DESTINATION" in environ:
+                    extra.append('dest="%s"' % environ.get("HTTP_DESTINATION"))
                 if environ.get("CONTENT_LENGTH", "") != "":
                     extra.append("length=%s" % environ.get("CONTENT_LENGTH"))
                 if "HTTP_DEPTH" in environ:
                     extra.append("depth=%s" % environ.get("HTTP_DEPTH"))
+                if "HTTP_RANGE" in environ:
+                    extra.append("range=%s" % environ.get("HTTP_RANGE"))
                 if "HTTP_OVERWRITE" in environ:
                     extra.append("overwrite=%s" % environ.get("HTTP_OVERWRITE"))
-                if "HTTP_DESTINATION" in environ:
-                    extra.append('dest="%s"' % environ.get("HTTP_DESTINATION"))
+#                if "HTTP_EXPECT" in environ:
+#                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
                 if self._verbose >= 1:

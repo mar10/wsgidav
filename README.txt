@@ -116,5 +116,3 @@ send a query to the mailing list.
 
 Project Page: WsgiDAV <http://wsgidav.googlecode.com/>
 
-Mailing List: pyfilesync-users@lists.berlios.de (subscribe 
- <http://lists.berlios.de/mailman/listinfo/pyfilesync-users>)

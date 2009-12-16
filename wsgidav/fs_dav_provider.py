@@ -2,8 +2,8 @@
 fs_dav_provider
 ===============
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Implementation of a DAV provider that serves resource from a file system.
@@ -19,9 +19,6 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-__docformat__ = "reStructuredText"
-
-from dav_provider import DAVProvider
 
 import util
 import os
@@ -29,8 +26,10 @@ import mimetypes
 import shutil
 import stat
 
-from dav_error import DAVError, HTTP_FORBIDDEN
+#from dav_error import DAVError, HTTP_FORBIDDEN
+from dav_provider import DAVProvider, DAVResource
 
+__docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
@@ -38,15 +37,247 @@ BUFFER_SIZE = 8192
 
     
 #===============================================================================
-# ReadOnlyFilesystemProvider
+# FileResource
 #===============================================================================
-class ReadOnlyFilesystemProvider(DAVProvider):
+class FileResource(DAVResource):
+    """Represents a single existing DAV resource instance.
 
-    def __init__(self, rootFolderPath):
+    See also DAVResource and FilesystemProvider.
+    """
+    def __init__(self, provider, path, isCollection, filePath):
+        super(FileResource, self).__init__(provider, path, isCollection)
+        self._filePath = filePath
+        self._dict = None
+        # Setting the name from the file path should fix the case on Windows
+        self.name = os.path.basename(self._filePath)
+        self.name = self.name.encode("utf8")
+        
+
+
+    def _init(self):
+        """Read resource information into self._dict, for cached access.
+        
+        See DAVResource._init()
+        """
+        # TODO: recalc self.path from <self._filePath>, to fix correct file system case
+        #       On windows this would lead to correct URLs
+        self.provider._count_getResourceInstInit += 1
+        if not os.path.exists(self._filePath):
+            raise RuntimeError("Path must exist: %s" % self._filePath)
+        
+        statresults = os.stat(self._filePath)
+        # The file system may have non-files (e.g. links)
+        isFile = os.path.isfile(self._filePath)
+
+        displayType = "File"
+        if self.isCollection:
+            displayType = "Directory"
+        elif not isFile:
+            displayType = "Unknown"
+        
+        self._dict = {
+            "contentLength": None, # TODO: remove?
+            "contentType": "text/html", # TODO: should be None?
+            "created": statresults[stat.ST_CTIME],
+            "displayType": displayType,
+            "etag": util.getETag(self._filePath), # TODO: should be resource-only?
+            "modified": statresults[stat.ST_MTIME],
+            }
+        # Some resource-only infos: 
+        if isFile:
+            (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
+            if not mimetype:
+                mimetype = "application/octet-stream" 
+            self._dict["contentType"] = mimetype
+
+            self._dict["contentLength"] = statresults[stat.ST_SIZE]
+        return
+
+    
+    def _getInfo(self, info):
+        if self._dict is None:
+            self._init()
+        return self._dict.get(info)   
+
+    # Getter methods for standard live properties     
+    def getContentLanguage(self):
+        return None
+    def getContentLength(self):
+        return self._getInfo("contentLength")
+    def getContentType(self):
+        return self._getInfo("contentType")
+    def getCreationDate(self):
+        return self._getInfo("created")
+    def getDisplayName(self):
+        return self.name
+    def displayType(self):
+        return self._getInfo("displayType")
+    def getEtag(self):
+        return self._getInfo("etag")
+    def getLastModified(self):
+        return self._getInfo("modified")
+
+    def supportRanges(self):
+        return True
+    
+    def getMemberNames(self):
+        """Return list of (direct) collection member names (UTF-8 byte strings).
+        
+        See DAVResource.getMemberNames()
+        """
+        # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result 
+        # will be a list of Unicode objects. 
+        # Undecodable filenames will still be returned as string objects    
+        # If we don't request unicode, for example Vista may return a '?' 
+        # instead of a special character. The name would then be unusable to
+        # build a distinct URL that references this resource.
+
+        nameList = []
+        # self._filePath is unicode, so os.listdir returns unicode as well
+        assert isinstance(self._filePath, unicode) 
+        for name in os.listdir(self._filePath):
+            assert isinstance(name, unicode)
+            # Skip non files (links and mount points)
+            fp = os.path.join(self._filePath, name)
+            if not os.path.isdir(fp) and not os.path.isfile(fp):
+                _logger.debug("Skipping non-file %s" % fp)
+                continue
+            name = name.encode("utf8")
+            nameList.append(name)
+        return nameList
+
+
+    # --- Properties -----------------------------------------------------------
+#    def setPropertyValue(self, propname, value, dryRun=False):
+#        """Set a property value or remove a property.
+#        
+#        See DAVResource.setPropertyValue(). 
+#        """
+#        # TODO: RFC 4918 states that {DAV:}displayname 'SHOULD NOT be protected' 
+#        # so we could implement {DAV:}displayname as RW, if propMan is available
+#        # Maybe in a 'create-on-write' way.   
+#        # http://www.webdav.org/specs/rfc4918.html#rfc.section.15.2     
+#        raise DAVError(HTTP_FORBIDDEN) 
+
+
+     
+    # --- Read / write ---------------------------------------------------------
+    
+    def createEmptyResource(self, name):
+        """Create an empty (length-0) resource.
+        
+        See DAVResource.createEmptyResource()
+        """
+        assert self.isCollection
+        assert not "/" in name
+#        raise DAVError(HTTP_FORBIDDEN)               
+        path = util.joinUri(self.path, name) 
+        fp = self.provider._locToFilePath(path)
+        f = open(fp, "w")
+        f.close()
+        return self.provider.getResourceInst(path)
+    
+
+    def createCollection(self, name):
+        """Create a new collection as member of self.
+        
+        See DAVResource.createCollection()
+        """
+        assert self.isCollection
+        assert not "/" in name
+#        raise DAVError(HTTP_FORBIDDEN)               
+        path = util.joinUri(self.path, name) 
+        fp = self.provider._locToFilePath(path)
+        os.mkdir(fp)
+
+
+    def getContent(self):
+        """Open content as a stream for reading.
+         
+        See DAVResource.getContent()
+        """
+        assert not self.isCollection
+        mime = self.getContentType()
+        if mime.startswith("text"):
+            return file(self._filePath, "r", BUFFER_SIZE)
+        return file(self._filePath, "rb", BUFFER_SIZE)
+   
+
+    def openResourceForWrite(self, contentType=None):
+        """Open content as a stream for writing.
+         
+        This method MUST be implemented by all providers that support write 
+        access."""
+        assert not self.isCollection
+#        raise DAVError(HTTP_FORBIDDEN)               
+        mode = "wb"
+        if contentType and contentType.startswith("text"):
+            mode = "w"
+        _logger.debug("openResourceForWrite: %s, %s" % (self._filePath, mode))
+        return file(self._filePath, mode, BUFFER_SIZE)
+
+    
+    def delete(self):
+        """Remove this resource or collection (recursive).
+        
+        See DAVResource.delete()
+        """
+#        raise DAVError(HTTP_FORBIDDEN)               
+        if self.isCollection:
+#            os.rmdir(self._filePath)
+            shutil.rmtree(self._filePath, ignore_errors=False)
+        else:
+            os.unlink(self._filePath)
+        self.removeAllProperties(True)
+        self.removeAllLocks(True)
+            
+
+    def copy(self, destPath):
+        """See DAVResource.copy() """
+        fpDest = self.provider._locToFilePath(destPath)
+        assert not util.isEqualOrChildUri(self.path, destPath)
+        if self.isCollection:
+#            assert not os.path.exists(fpDest)
+            if not os.path.exists(fpDest):
+                os.mkdir(fpDest)
+            try:
+                # may raise: [Error 5] Zugriff verweigert: u'C:\\temp\\litmus\\ccdest'
+                shutil.copystat(self._filePath, fpDest)
+            except Exception, e:
+                _logger.debug("Could not copy folder stats: %s" % e)
+        else:
+            shutil.copy2(self._filePath, fpDest)
+        # (Live properties are copied by copy2 or copystat)
+        # Copy dead properties
+        if self.provider.propManager:
+            destRes = self.provider.getResourceInst(destPath)
+            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+               
+
+    def move(self, destPath):
+        """See DAVResource.move() """
+#        raise DAVError(HTTP_FORBIDDEN)
+        fpDest = self.provider._locToFilePath(destPath)
+        assert not util.isEqualOrChildUri(self.path, destPath)
+        assert not os.path.exists(fpDest)
+        _logger.debug("move(%s, %s)" % (self._filePath, fpDest))
+        print("move(%s, %s)" % (self._filePath, fpDest))
+        shutil.move(self._filePath, fpDest)
+               
+
+
+    
+#===============================================================================
+# FilesystemProvider
+#===============================================================================
+class FilesystemProvider(DAVProvider):
+
+    def __init__(self, rootFolderPath, readonly=False):
         if not rootFolderPath or not os.path.exists(rootFolderPath):
             raise ValueError("Invalid root path: %s" % rootFolderPath)
-        super(ReadOnlyFilesystemProvider, self).__init__()
+        super(FilesystemProvider, self).__init__()
         self.rootFolderPath = os.path.abspath(rootFolderPath)
+        self.readonly = readonly
 
         
     def __repr__(self):
@@ -55,210 +286,24 @@ class ReadOnlyFilesystemProvider(DAVProvider):
 
     def _locToFilePath(self, path):
         """Convert resource path to a unicode absolute file path."""
-        # TODO: cache results
-#        print "_locToFilePath(%s)..." % (path)
         assert self.rootFolderPath is not None
         pathInfoParts = path.strip("/").split("/")
         
         r = os.path.abspath(os.path.join(self.rootFolderPath, *pathInfoParts))
         if not r.startswith(self.rootFolderPath):
             raise RuntimeError("Security exception: tried to access file outside root.")
-#        if not isinstance(r, unicode):
-#            util.log("_locToFilePath(%s): %r" % (path, r))
-#            r = r.decode("utf8")
         r = util.toUnicode(r)
 #        print "_locToFilePath(%s): %s" % (path, r)
         return r  
 
     
-    def getMemberNames(self, path):
-        """Return list of (direct) collection member names (UTF-8 byte strings)."""
-        fp = self._locToFilePath(path)
-
-        # TODO: iso_8859_1 doesn't know EURO sign
-        # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result 
-        # will be a list of Unicode objects. 
-        # Undecodable filenames will still be returned as string objects
-        
-        # If we don't request unicode, for example Vista may return a '?' 
-        # instead of a special character. The name would then be unusable to
-        # build a URL that references this resource.
-#        fp = unicode(fp)
-        nameList = []
-        for name in os.listdir(fp):
-#            print "%r" % name
-            assert isinstance(name, unicode)
-            name = name.encode("utf8")
-#            print "-> %r" % name
-            nameList.append(name)
-        return nameList
-        
-
-    def getInfoDict(self, path, typeList=None):
+    def getResourceInst(self, path):
         """Return info dictionary for path.
 
-        See DAVProvider.getInfoDict()
+        See DAVProvider.getResourceInst()
         """
+        self._count_getResourceInst += 1
         fp = self._locToFilePath(path)
-#        print >>sys.stderr, "getInfoDict(%s)" % (path, )
-        
         if not os.path.exists(fp):
             return None
-        # Early out,if typeList is [] (i.e. test for resource existence only)
-        if not (typeList or typeList is None):
-            return {} 
-        statresults = os.stat(fp)
-        isCollection = os.path.isdir(fp)
-        # The file system may have non-files (e.g. links)
-        isFile = os.path.isfile(fp)
-        name = util.getUriName(self.getPreferredPath(path))
-        
-#       TODO: this line in: browser doesn't work, but DAVEx does
-#        name = name.decode("utf8")
-#        util.log("getInfoDict(%s): name='%s'" % (path, name))
-
-        displayType = "File"
-        if isCollection:
-            displayType = "Directory"
-        elif not isFile:
-            displayType = "Unknown"
-        
-        dict = {"contentLength": None,
-                "contentType": "text/html", # TODO: should be None?
-                "name": name,
-                "displayName": name,
-                "displayType": displayType,
-                "modified": statresults[stat.ST_MTIME],
-                "created": statresults[stat.ST_CTIME],
-                "etag": util.getETag(fp), # TODO: should be resource-only?
-                "supportRanges": False,
-                "isCollection": isCollection, 
-                }
-        # Some resource-only infos: 
-        if not isCollection:
-            # Guess MIME type (if requested)
-            if (typeList is None or "contentType" in typeList) and isFile:
-                (mimetype, _mimeencoding) = mimetypes.guess_type(path) # TODO: use strict=False?  
-                if not mimetype:
-                    mimetype = "application/octet-stream" 
-                dict["contentType"] = mimetype
-                 
-            if isFile:
-                dict["contentLength"] = statresults[stat.ST_SIZE]
-                dict["supportRanges"] = True
-
-        return dict
-
-    
-    def exists(self, path):
-        fp = self._locToFilePath(path)
-        return os.path.exists(fp)
-    
-
-    def isCollection(self, path):
-        fp = self._locToFilePath(path)
-        return os.path.isdir(fp)
-
-
-    def isResource(self, path):
-        # TODO: does it make sense to treat non-files/non-collections as
-        #       existing, but neither isCollection nor isResource?
-        #       Maybe we should define existing as 'isCollection or isResource'
-        fp = self._locToFilePath(path)
-        return os.path.isfile(fp)
-
-
-    def createEmptyResource(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-    
-
-    def createCollection(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def deleteCollection(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-
-    def openResourceForRead(self, path, davres=None):
-        fp = self._locToFilePath(path)
-        if davres: 
-            mime = davres.contentType()
-        else:
-            mime = self.getInfoDict(path, ["contentType"]).get("contentType")
-
-        if mime.startswith("text"):
-            return file(fp, "r", BUFFER_SIZE)
-        else:
-            return file(fp, "rb", BUFFER_SIZE)
-    
-
-    def openResourceForWrite(self, path, contenttype=None):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def deleteResource(self, path):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-    def copyResource(self, path, destrespath):
-        raise DAVError(HTTP_FORBIDDEN)               
-
-    
-
-
-#===============================================================================
-# FilesystemProvider
-#===============================================================================
-
-class FilesystemProvider(ReadOnlyFilesystemProvider):
-    
-    def __init__(self, rootFolderPath):
-        super(FilesystemProvider, self).__init__(rootFolderPath)
-
-    def createEmptyResource(self, path):
-        fp = self._locToFilePath(path)
-        f = open(fp, "w")
-        f.close()
-    
-    def createCollection(self, path):
-        fp = self._locToFilePath(path)
-        os.mkdir(fp)
-    
-    def deleteCollection(self, path):
-        fp = self._locToFilePath(path)
-        os.rmdir(fp)
-
-    def openResourceForWrite(self, path, contenttype=None):
-        fp = self._locToFilePath(path)
-#        if contenttype is None:
-#            istext = False
-#        else:
-#            istext = contenttype.startswith("text")
-#        if istext:
-#            return file(fp, "w", BUFFER_SIZE)
-#        else:
-#            return file(fp, "wb", BUFFER_SIZE)
-        mode = "wb"
-        if contenttype and contenttype.startswith("text"):
-            mode = "w"
-        _logger.debug("openResourceForWrite: %s, %s" % (fp, mode))
-        return file(fp, mode, BUFFER_SIZE)
-    
-    def deleteResource(self, path):
-        fp = self._locToFilePath(path)
-        os.unlink(fp)
-    
-    def copyResource(self, path, destrespath):
-        fpSrc = self._locToFilePath(path)
-        fpDest = self._locToFilePath(destrespath)
-        shutil.copy2(fpSrc, fpDest)
-    
-#    def setLivePropertyValue(self, path, name, value, dryRun=False):
-#        # {DAV:} live properties are mostly read-only.
-#        # Especially supportedlock and lockdiscovery MUST NOT be set here
-#        # TODO: RFC 3253 states that {DAV:}displayname 'SHOULD NOT be protected' 
-#        # so we could implement {DAV:}displayname as RW, if propMan is available
-#        # Maybe in a 'create-on-write' way
-#        raise DAVError(HTTP_FORBIDDEN,  # TODO: Chun used HTTP_CONFLICT 
-#                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
+        return FileResource(self, path, os.path.isdir(fp), fp)
