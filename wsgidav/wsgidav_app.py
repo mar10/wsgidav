@@ -233,6 +233,10 @@ class WsgiDAVApp(object):
         # We unquote PATH_INFO here, although this should already be done by
         # the server.
         path = urllib.unquote(environ["PATH_INFO"])
+        # issue 22: Pylons sends root as u'/' 
+        if isinstance(path, unicode):
+            util.log("Got unicode PATH_INFO: %r" % path)
+            path = path.encode("utf8")
 
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
@@ -332,5 +336,5 @@ class WsgiDAVApp(object):
         for v in self._application(environ, _start_response_wrapper):
             util.debug("sc", "WsgiDAVApp: yield start")
             yield v
-            util.debug("sc", "WsgiDAVApp: yield end")
+
         return
