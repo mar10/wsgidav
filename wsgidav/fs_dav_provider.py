@@ -294,7 +294,11 @@ class FilesystemProvider(DAVProvider):
 
         
     def __repr__(self):
-        return "%s for path '%s'" % (self.__class__.__name__, self.rootFolderPath)
+        rw = "Read-Write"
+        if self.readonly:
+            rw = "Read-Only"
+        return "%s for path '%s' (%s)" % (self.__class__.__name__, 
+                                          self.rootFolderPath, rw)
 
 
     def _locToFilePath(self, path):

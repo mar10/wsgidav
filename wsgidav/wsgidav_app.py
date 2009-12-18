@@ -199,7 +199,7 @@ class WsgiDAVApp(object):
             for share, provider in self.providerMap.items():
                 hint = ""
                 if isDefaultDC and not user_mapping.get(share):
-                    hint = " Anonymous!"
+                    hint = " (anonymous)"
                 print "  Share '%s': %s%s" % (share, provider, hint)
 
         # If the default DC is used, emit a warning for anonymous realms
