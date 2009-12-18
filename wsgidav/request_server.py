@@ -108,7 +108,14 @@ class RequestServer(object):
 
 
     def _sendResponse(self, environ, start_response, rootRes, successCode, errorList):
-        """Send WSGI response (single or multi)."""
+        """Send WSGI response (single or multistatus).
+        
+        - If errorList is None or [], then <successCode> is send as response.
+        - If errorList contains a single error with a URL that matches rootRes,
+          then this error is returned.
+        - If errorList contains more than one error, then '207 Multistatus' is 
+          returned.
+        """
         assert successCode in (HTTP_CREATED, HTTP_NO_CONTENT, HTTP_OK)
         if not errorList:
             # Status OK
@@ -121,7 +128,8 @@ class RequestServer(object):
         multistatusEL = util.makeMultistatusEL()
         
         for refurl, e in errorList:
-            assert refurl.startswith("http:")
+#            assert refurl.startswith("http:")
+            assert refurl.startswith("/")
             assert isinstance(e, DAVError)
             responseEL = etree.SubElement(multistatusEL, "{DAV:}response") 
             etree.SubElement(responseEL, "{DAV:}href").text = refurl
@@ -493,25 +501,31 @@ class RequestServer(object):
                 self._fail(HTTP_BAD_REQUEST,
                            "Only Depth: infinity is supported for collections.")         
         else:
-            if environ.setdefault("HTTP_DEPTH", "0") != "0":
+            if not environ.setdefault("HTTP_DEPTH", "0") in ("0", "infinity"):
                 self._fail(HTTP_BAD_REQUEST,
-                           "Only Depth: 0 is supported for non-collections.")         
+                           "Only Depth: 0 or infinity are supported for non-collections.")         
 
         self._evaluateIfHeaders(res, environ)
         self._checkWritePermission(res, environ["HTTP_DEPTH"], environ)
 
         # --- Let provider handle the request natively -------------------------
         
-        # Errors in deletion; [(<ref-url>, <DAVError>), ... ]
+        # Errors in deletion; [ (<ref-url>, <DAVError>), ... ]
         errorList = []  
 
-        if res.supportNativeDelete():
-            try:
-                errorList = res.deleteNative()
-            except Exception, e:
-                errorList = [ (res.getHref(), asDAVError(e)) ]
+        try:
+            handled = res.handleDelete()
+            assert handled in (True, False) or type(handled) is list
+            if type(handled) is list:
+                errorList = handled
+                handled = True
+        except Exception, e:
+            errorList = [ (res.getHref(), asDAVError(e)) ]
+            handled = True
+        if handled:
             return self._sendResponse(environ, start_response, 
                                       res, HTTP_NO_CONTENT, errorList)
+            
         
         # --- Let provider implement own recursion -----------------------------
         
@@ -533,9 +547,9 @@ class RequestServer(object):
             
             if not hasConflicts:
                 try:
-                    errorList = res.deleteRecursive()
+                    errorList = res.delete()
                 except Exception, e:
-                    errorList.append( (res.getHref(), asDAVError(e)) )
+                    errorList = [ (res.getHref(), asDAVError(e)) ]
                 return self._sendResponse(environ, start_response, 
                                           res, HTTP_NO_CONTENT, errorList)
 
@@ -553,7 +567,7 @@ class RequestServer(object):
                 # 9.6.1.: Any headers included with delete must be applied in 
                 #         processing every resource to be deleted
                 self._evaluateIfHeaders(childRes, environ)
-                self._checkWritePermission(childRes, environ["HTTP_DEPTH"], environ)
+                self._checkWritePermission(childRes, "0", environ)
                 childRes.delete()
                 # Double-check, if deletion succeeded
                 if provider.exists(childRes.path):
@@ -692,7 +706,6 @@ class RequestServer(object):
         srcPath = environ["PATH_INFO"]
         provider = self._davProvider
         srcRes = provider.getResourceInst(srcPath)
-#        propMan = provider.propManager
 
         # --- Check source -----------------------------------------------------
         
@@ -707,29 +720,28 @@ class RequestServer(object):
             # RFC 2518 defined support for <propertybehavior>.
             # This was dropped with RFC 4918. 
             # Still clients may send it (e.g. DAVExplorer 0.9.1 File-Copy) sends 
-            # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive> </A:propertybehavior>
-            _logger.warning("Ignored copy/move  body: %s" % environ["wsgi.input"].read(util.getContentLength(environ)))
-#            self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
-#                       "The server does not handle any body content.")
+            # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
+            body = environ["wsgi.input"].read(util.getContentLength(environ))
+            _logger.info("Ignored copy/move  body: '%s'..." % body[:50])
         
         if srcRes.isCollection:
             # The COPY method on a collection without a Depth header MUST act as 
             # if a Depth header with value "infinity" was included. 
             # A client may submit a Depth header on a COPY on a collection with 
             # a value of "0" or "infinity". 
-            if not environ.setdefault("HTTP_DEPTH", "infinity") in ("0", "infinity"):
-                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header for collection.")
+            environ.setdefault("HTTP_DEPTH", "infinity")
+            if not environ["HTTP_DEPTH"] in ("0", "infinity"):
+                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header.")
+            if isMove and environ["HTTP_DEPTH"] != "infinity":
+                self._fail(HTTP_BAD_REQUEST, "Depth header for MOVE collection must be 'infinity'.")
         else:
-            # It's an existing resource: only accept Depth 0
-            
-            # HOTFIX: litmus 'copymove: 3 (copy_simple)' seems to send 
-            # 'infinity' for a simple resource, so we accept that
-            if environ.get("HTTP_DEPTH") == "infinity":
-                _logger.debug("Overriding Depth 'infinity' to '0' for non-collection")
-                environ["HTTP_DEPTH"] = "0"
-            
-            if environ.setdefault("HTTP_DEPTH", "0") != "0":
-                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header for non-collection.")
+            # It's an existing non-collection: assume Depth 0
+            # Note: litmus 'copymove: 3 (copy_simple)' sends 'infinity' for a 
+            # non-collection resource, so we accept that too
+            environ.setdefault("HTTP_DEPTH", "0")
+            if not environ["HTTP_DEPTH"] in ("0", "infinity"):
+                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header.")
+            environ["HTTP_DEPTH"] = "0"
 
         # --- Get destination path and check for cross-realm access ------------
         
@@ -743,7 +755,6 @@ class RequestServer(object):
         _destParams, _destQuery, _destFrag = urlparse(destinationHeader, 
                                                       allow_fragments=False) 
 
-#        util.log("COPY: destPath='%s'" % destPath)
         if srcRes.isCollection:
             destPath = destPath.rstrip("/") + "/"
         
@@ -790,57 +801,32 @@ class RequestServer(object):
 
         # --- Let provider handle the request natively -------------------------
         
-        # Errors in deletion; [(<ref-url>, <DAVError>), ... ]
+        # Errors in copy/move; [ (<ref-url>, <DAVError>), ... ]
         errorList = []  
         successCode = HTTP_CREATED
         if destExists:
             successCode = HTTP_NO_CONTENT
 
-        # TODO: add support for native handling
-#        if ( (isMove and srcRes.supportNativeMove()) 
-#             or (not isMove and srcRes.supportNativeCopy()) ):
-#            try:
-#                if isMove:
-#                    errorList = srcRes.moveNative()
-#                else:
-#                    errorList = srcRes.copyNative()
-#            except Exception, e:
-#                errorList = [ (srcRes.getHref(), asDAVError(e)) ]
-#            return self._sendResponse(environ, start_response, 
-#                                      srcRes, successCode, errorList)
+        try:
+            if isMove:
+                handled = srcRes.handleMove(destPath)
+            else:
+                isInfinity = environ["HTTP_DEPTH"] == "infinity"
+                handled = srcRes.handleCopy(destPath, isInfinity)
+            assert handled in (True, False) or type(handled) is list
+            if type(handled) is list:
+                errorList = handled
+                handled = True
+        except Exception, e:
+            errorList = [ (srcRes.getHref(), asDAVError(e)) ]
+            handled = True
+        if handled:
+            return self._sendResponse(environ, start_response, 
+                                      srcRes, HTTP_NO_CONTENT, errorList)
 
+        # --- Cleanup destination before copy/move ----------------------------- 
 
-        # --- Let provider implement atomic move -------------------------------
-        # TODO: support  native MOVE in DAVProvider
-        # MOVE is frequently used by clients to rename a file without 
-        # changing its parent collection, so it's not appropriate to 
-        # reset all live properties that are set at resource creation. 
-        # For example, the DAV:creationdate property value SHOULD remain 
-        # the same after a MOVE.
-        
         srcList = srcRes.getDescendants(addSelf=True)
-
-        if ( isMove and srcRes.supportRecursiveMove() and not destExists): 
-            # TODO: we may allow also destExists==True
-            hasConflicts = False
-            for s in srcList:
-                try:
-                    self._evaluateIfHeaders(s, environ)
-                except:
-                    hasConflicts = True
-                    break
-            
-            if not hasConflicts:
-                try:
-                    errorList = srcRes.move(destPath)
-                except Exception, e:
-                    errorList.append( (srcRes.getHref(), asDAVError(e)) )
-                return self._sendResponse(environ, start_response, 
-                                          srcRes, successCode, errorList)
-        
-        # Implement copy/move using delete/copy...
-        
-        # --- Cleanup destination before copy/move -----------------------------
 
         srcRootLen = len(srcPath)
         destRootLen = len(destPath)
@@ -858,7 +844,7 @@ class RequestServer(object):
                 destRes.delete()
                 destRes = None
             else:
-                # COPY:
+                # COPY collection over collection:
                 # Remove destination files, that are not part of source, because 
                 # source and dest collections must not be merged (9.8.4).
                 # This is not the same as deleting the complete dest collection 
@@ -866,14 +852,40 @@ class RequestServer(object):
                 # existing resources.
                 reverseDestList = destRes.getDescendants(depthFirst=True, addSelf=False)
                 srcPathList = [ s.path for s in srcList ]
+                _logger.debug("check srcPathList: %s" % srcPathList)
                 for dRes in reverseDestList:
+                    _logger.debug("check unmatched dest before copy: %s" % dRes)
                     relUrl = dRes.path[destRootLen:]
                     sp = srcPath + relUrl
                     if not sp in srcPathList:
                         _logger.debug("Remove unmatched dest before copy: %s" % dRes)
                         dRes.delete()
         
-        # --- Copy/move from source to dest ------------------------------------ 
+        # --- Let provider implement recursive move ----------------------------
+        # MOVE is frequently used by clients to rename a file without 
+        # changing its parent collection, so it's not appropriate to 
+        # reset all live properties that are set at resource creation. 
+        # For example, the DAV:creationdate property value SHOULD remain 
+        # the same after a MOVE.
+        
+        if isMove and srcRes.supportRecursiveMove(destPath): 
+            hasConflicts = False
+            for s in srcList:
+                try:
+                    self._evaluateIfHeaders(s, environ)
+                except:
+                    hasConflicts = True
+                    break
+            
+            if not hasConflicts:
+                try:
+                    errorList = srcRes.move(destPath)
+                except Exception, e:
+                    errorList = [ (srcRes.getHref(), asDAVError(e)) ]
+                return self._sendResponse(environ, start_response, 
+                                          srcRes, successCode, errorList)
+        
+        # --- Copy/move file-by-file using copy/delete ------------------------- 
         
         # Hidden paths (paths of failed copy/moves) {<src_path>: True, ...}
         ignoreDict = {}  
@@ -894,19 +906,18 @@ class RequestServer(object):
                 dPath = destPath + relUrl
                 
                 self._evaluateIfHeaders(sRes, environ)
-                sRes.copy(dPath)
+                sRes.copySingle(dPath)
             except Exception, e:
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source 
-                # and destination URLs'. So maybe this hlould be the destination
+                # and destination URLs'. So maybe this should be the destination
                 # href sometimes.
                 # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.8.5
                 errorList.append( (sRes.getHref(), asDAVError(e)) )
 
+        # MOVE: Remove source
         if isMove:
-            # MOVE: Remove source
-            # TODO: this is what PyFileServer 0.2 implemented. 
-            # We should add native move-support to DAVProvider instead. 
+            # TODO: use recursive delete, if supported
             reverseSrcList = srcRes.getDescendants(depthFirst=True, addSelf=True)
             for sRes in reverseSrcList:
                 _logger.debug("Remove source after move '%s'" % sRes)
@@ -915,7 +926,6 @@ class RequestServer(object):
                 except Exception, e:
                     errorList.append( (srcRes.getHref(), asDAVError(e)) )
                 
-
         # --- Return response --------------------------------------------------
          
         return self._sendResponse(environ, start_response, 
@@ -1038,15 +1048,15 @@ class RequestServer(object):
             res = parentRes.createEmptyResource(util.getUriName(path)) 
             createdNewResource = True
 
-        # --- Check, if path is already locked ---------------------------
+        # --- Check, if path is already locked ---------------------------------
 
         # TODO: lock.acquire should be easier to test for 'success' 
         
         lockResultList = lockMan.acquire(res.getRefUrl(), 
-                                         locktype, lockscope, lockdepth, lockowner, timeoutsecs, 
+                                         locktype, lockscope, lockdepth, 
+                                         lockowner, timeoutsecs, 
                                          environ["wsgidav.username"], 
                                          submittedTokenList)
-
 
         if environ.get("wsgidav.debug_break"):
             pass # break point

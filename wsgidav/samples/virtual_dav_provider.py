@@ -4,59 +4,84 @@
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Sample implementation of a DAV provider that provides a browsable, 
-multi-categorized resource tree (read-only).
+multi-categorized resource tree.
+
+Note that this is simply an example with no concrete real world benefit.
+But it demonstrates some techniques to customize WsgiDAV. 
 
 Compared to a published file system, we have these main differences:
 
-  1. The same resource may be referenced using different paths
-     One path is considered the real-path, all others are virtual-paths
-  2. A resource is served as a HTML file, that contains some data, as well as
-     a link to the real file content.
-  3. Some paths may be hidden, i.e. by_key is not browsable (but can be referenced)
-     TODO: is this WebDAV compliant? 
+#. A resource like ``My doc 1`` has several attributes like ``key``,  
+   ``orga``, ``tags``, ``status``, ``description``. 
+   Also there may be a list of attached files.
+#. These attributes are used to dynamically create a virtual hierarchy.
+   For example, if ``status`` is ``draft``, a collection 
+   ``<share>/by_status/draft/`` is created and the resource is mapped to 
+   ``<share>/by_status/draft/My doc 1``.
+#. The resource ``My doc 1`` is rendered as a collection, that contains 
+   some virtual descriptive files and the attached files.
+#. The same resource may be referenced using different paths
+   For example ``<share>/by_tag/cool/My doc 1``, 
+   ``<share>/by_tag/hot/My doc 1``, and ``<share>/by_key/1`` map to the same
+   resource. 
+   Only the latter is considered the *real-path*, all others are 
+   *virtual-paths*.
+#. The attributes are exposed as live properties, like "{virtres:}key",
+   "{virtres:}tags", and "{virtres:}description".
+   Some of them are even writable. Note that modifying an attribute may also 
+   change the dynamically created tree structure.
+   For example changing "{virtres:}status" from 'draft' to 'published' will 
+   make the resource appear as ``<share>/by_status/published/My doc 1``.
+#. This provider implements native delete/move/copy methods, to change the
+   semantics of these operations for the virtual '/by_tag/' collection.
+   For example issuing a DELETE on ``<share>/by_tag/cool/My doc 1`` will
+   simply remove the 'cool' tag from that resource.
+#. Some paths may be hidden, i.e. by_key is not browsable (but can be referenced)
+   TODO: is this WebDAV compliant? 
  
 The Layout is built like this::
 
-    <share>\
-        category1_name\
-            category1_key\
-                Resource title\
-                    Artifact name\
+    <share>/
+        category1_name/
+            category1_key/
+                Resource title/
+                    Artifact name/
 
 For example::
             
-    <share>\
-        by_tag\
-            cool\
-                My doc 1\
+    <share>/
+        by_tag/
+            cool/
+                My doc 1/
                     .Info.html
                     .Info.txt
                     .Description.txt
                     MySpec.pdf
                     MySpec.doc
-                My doc 2\
-            hot\
-                My doc 1\
-                My doc 2\
-            nice\
-                My doc 2\
+                My doc 2/
+            hot/
+                My doc 1/
+                My doc 2/
+            nice/
+                My doc 2/
                 My doc 3
-        by_orga\
-            development\
-                My doc 3\
-            marketing\
-                My doc 1\
-                My doc 2\
-        by_status\
-            draft\
+        by_orga/
+            development/
+                My doc 3/
+            marketing/
+                My doc 1/
+                My doc 2/
+        by_status/
+            draft/
                 My doc 2
-            published\
+            published/
                 My doc 1
                 My doc 3
-        by_key\
-            1\
-            2\
-            3\
+        by_key/
+            1/
+            2/
+            3/
+            
 When accessed using WebDAV, the following URLs both return the same resource 
 'spec.doc'::
 
@@ -99,7 +124,7 @@ except ImportError:
     from StringIO import StringIO #@UnusedImport
 from wsgidav.dav_provider import DAVProvider, DAVResource
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
-    PRECONDITION_CODE_ProtectedProperty, HTTP_NOT_FOUND
+    PRECONDITION_CODE_ProtectedProperty
 from wsgidav import util
 
 __docformat__ = "reStructuredText en"
@@ -203,6 +228,12 @@ class _VirtualResource(DAVResource):
         return None
     def supportRanges(self):
         return False
+#    def handleDelete(self):
+#        raise DAVError(HTTP_FORBIDDEN)
+#    def handleMove(self, destPath):
+#        raise DAVError(HTTP_FORBIDDEN)
+#    def handleCopy(self, destPath, depthInfinity):
+#        raise DAVError(HTTP_FORBIDDEN)
 
 
 class VirtualResCollection(_VirtualResource):
@@ -231,9 +262,50 @@ class VirtualResource(_VirtualResource):
         self._nameList = _artifactNames[:] # Use a copy
         for f in data["resPathList"]:
             self._nameList.append(os.path.basename(f))
+
     def displayType(self):
         return "Resource folder"
     
+    def handleDelete(self):
+        """Change semantic of DELETE to remove resource tags."""
+        # DELETE is only supported for the '/by_tag/' collection 
+        if not "/by_tag/" in self.path:
+            raise DAVError(HTTP_FORBIDDEN)
+        # path must be '/by_tag/<tag>/<resname>' 
+        catType, tag, _rest = util.saveSplit(self.path.strip("/"), "/", 2)
+        assert catType == "by_tag"
+        assert tag in self._data["tags"]
+        self._data["tags"].remove(tag)
+        return True # OK
+        
+    def handleCopy(self, destPath, depthInfinity):
+        """Change semantic of COPY to add resource tags."""
+        # destPath must be '/by_tag/<tag>/<resname>' 
+        if not "/by_tag/" in destPath:
+            raise DAVError(HTTP_FORBIDDEN)
+        catType, tag, _rest = util.saveSplit(destPath.strip("/"), "/", 2)
+        assert catType == "by_tag"
+        if not tag in self._data["tags"]:
+            self._data["tags"].append(tag)
+        return True # OK
+
+    def handleMove(self, destPath):
+        """Change semantic of MOVE to change resource tags."""
+        # path and destPath must be '/by_tag/<tag>/<resname>' 
+        if not "/by_tag/" in self.path:
+            raise DAVError(HTTP_FORBIDDEN)
+        if not "/by_tag/" in destPath:
+            raise DAVError(HTTP_FORBIDDEN)
+        catType, tag, _rest = util.saveSplit(self.path.strip("/"), "/", 2)
+        assert catType == "by_tag"
+        assert tag in self._data["tags"]
+        self._data["tags"].remove(tag)
+        catType, tag, _rest = util.saveSplit(destPath.strip("/"), "/", 2)
+        assert catType == "by_tag"
+        if not tag in self._data["tags"]:
+            self._data["tags"].append(tag)
+        return True # OK
+
     def getRefUrl(self):
         refPath = "/by_key/%s" % self._data["key"] 
         return urllib.quote(self.provider.sharePath + refPath)
@@ -439,7 +511,7 @@ class VirtualResourceProvider(DAVProvider):
         """
         self._count_getResourceInst += 1
         
-        catType, cat, resName, contentSpec = util.saveSplit(path.strip("/"), "/", 3)
+        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
     
         _logger.info("getResourceInst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType, cat, resName))
         
@@ -454,7 +526,7 @@ class VirtualResourceProvider(DAVProvider):
             return None
             
         elif resName:
-            # Accessing /<catType>/<cat>/<name> or /<catType>/<cat>/<name>/<contentSpec>
+            # Accessing /<catType>/<cat>/<name> or /<catType>/<cat>/<resName>/<artifactName>
             res = None
             for data in _getResListByAttr(catType, cat):
                 if data["title"] == resName:
@@ -463,13 +535,13 @@ class VirtualResourceProvider(DAVProvider):
             if not res:
                 return None
             # Accessing /<catType>/<cat>/<name>
-            if contentSpec in _artifactNames:
+            if artifactName in _artifactNames:
                 # Accessing /<catType>/<cat>/<name>/.info.html, or similar
-                return VirtualArtifact(self, path, res, contentSpec)
-            elif contentSpec:
+                return VirtualArtifact(self, path, res, artifactName)
+            elif artifactName:
                 # Accessing /<catType>/<cat>/<name>/<file-name>
                 for f in res["resPathList"]:
-                    if contentSpec == os.path.basename(f):
+                    if artifactName == os.path.basename(f):
                         return VirtualResFile(self, path, res, f)
                 return None
             # Accessing /<catType>/<cat>/<name>

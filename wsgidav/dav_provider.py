@@ -114,12 +114,14 @@ _standardLivePropNames = ["{DAV:}creationdate",
 _lockPropertyNames = ["{DAV:}lockdiscovery", 
                       "{DAV:}supportedlock"]
 
+DAVHRES_Continue = "continue"
+DAVHRES_Done = "done"
 
 #===============================================================================
 # DAVResource 
 #===============================================================================
 class DAVResource(object):
-    """Represents a single existing DAV resource or collection instance.
+    """Represents a single existing DAV resource instance.
 
     Instances of this class are created through the DAVProvider::
         
@@ -257,18 +259,15 @@ class DAVResource(object):
     def supportModified(self):
         return self.getLastModified() is not None
     
-    def supportNativeCopy(self):
-        return False
-    def supportNativeDelete(self):
-        return False
-    def supportNativeMove(self):
-        return False
-#    def supportRecursiveCopy(self):
+#    def supportNativeCopy(self):
+#        """Return True, if provider handles copying by itself."""
 #        return False
-    def supportRecursiveDelete(self):
-        return False
-    def supportRecursiveMove(self):
-        return False
+#    def supportNativeDelete(self):
+#        """Return True, if provider handles deleting by itself."""
+#        return False
+#    def supportNativeMove(self):
+#        """Return True, if provider handles moving by itself."""
+#        return False
     
     
     def getPreferredPath(self):
@@ -335,7 +334,7 @@ class DAVResource(object):
         
         Byte string, UTF-8 encoded, quoted.
 
-        @see http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3
+        See http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3
         We are using the path-absolute option. i.e. starting with '/'. 
         URI ; See section 3.2.1 of [RFC2068]
         """
@@ -346,17 +345,15 @@ class DAVResource(object):
                             + self.getPreferredPath(), safe=safe)
 
 
-    def getParent(self):
-        """Return parent DAVResource or None.
-        
-        There is NO checking, if the parent is really a mapped collection.
-         
-        """
-        # TODO: check all calls to this: maybe we should return DavResource.exist=False instead of None
-        parentpath = util.getUriParent(self.path)
-        if not parentpath:
-            return None
-        return self.provider.getResourceInst(parentpath)
+#    def getParent(self):
+#        """Return parent DAVResource or None.
+#        
+#        There is NO checking, if the parent is really a mapped collection.
+#        """
+#        parentpath = util.getUriParent(self.path)
+#        if not parentpath:
+#            return None
+#        return self.provider.getResourceInst(parentpath)
 
 
     def getMemberNames(self):
@@ -774,75 +771,128 @@ class DAVResource(object):
         raise DAVError(HTTP_FORBIDDEN)               
 
     
+    def handleDelete(self):
+        """Handle a DELETE request natively.
+        
+        This method is called by the DELETE handler after checking for valid
+        request syntax and making sure that there are no conflicting locks and
+        If-headers.         
+        Depending on the return value, this provider can control further 
+        processing:
+        
+        False:
+            handleDelete() did not do anything. WsgiDAV will process the request
+            by calling delete() for every resource, bottom-up.
+        True:
+            handleDelete() has successfully performed the DELETE request.
+            HTTP_NO_CONTENT will be reported to the DAV client.
+        List of errors:
+            handleDelete() tried to perform the delete request, but failed
+            completely or partially. A list of errors is returned like
+            ``[ (<ref-url>, <DAVError>), ... ]``
+            These errors will be reported to the client.
+        DAVError raised:
+            handleDelete() refuses to perform the delete request. The DAVError 
+            will be reported to the client.
+
+        An implementation may choose to apply other semantics and return True.
+        For example deleting '/by_tag/cool/myres' may simply remove the 'cool' 
+        tag from 'my_res'. 
+        In this case, the resource might still be available by other URLs, so 
+        locks and properties are not removed.
+
+        This default implementation returns ``False``, so standard processing
+        takes place.
+         
+        Implementation of this method is OPTIONAL.
+        """
+        return False               
+
+    
+    def supportRecursiveDelete(self):
+        """Return True, if delete() may be called on collections (see comments there)."""
+        return False
+
+    
     def delete(self):
         """Remove this resource (recursive).
         
         Preconditions (to be ensured by caller):
         
-          - there must not be any conflicting locks  
+          - there are no conflicting locks or If-headers
+          - if supportRecursiveDelete() is False, and this is a collection,
+            all members have already been deleted.
+
+        When supportRecursiveDelete is True, this method must be prepared to 
+        handle recursive deletes. This implies that child errors must be 
+        reported as tuple list [ (<ref-url>, <DAVError>), ... ].
+        See http://www.webdav.org/specs/rfc4918.html#delete-collections
 
         This function
         
-          - removes this resource and all members
+          - removes this resource
+          - if this is a non-empty collection, also removes all members.
+            Note that this may only occur, if supportRecursiveDelete is True.
+          - For recursive deletes, return a list of error tuples for all failed 
+            resource paths.
           - removes associated locks
           - removes associated dead properties
           - raises HTTP_FORBIDDEN for read-only resources
           - raises HTTP_INTERNAL_ERROR on error
         
-        An implementation may choose to apply other semantics.
-        For example deleting '\by_tag\cool\myres' may simply remove the 'cool' 
-        tag from 'my_res'. 
-        In this case, the resource might still be available by other URLs, so 
-        locks and properties are not removed.
-
         This method MUST be implemented by all providers that support write 
         access.
         """
         raise DAVError(HTTP_FORBIDDEN)               
 
     
-    def move(self, destPath):
-        """Move this resource to destPath (recursive).
+    def handleCopy(self, destPath, depthInfinity):
+        """Handle a COPY request natively.
         
-        Preconditions (to be ensured by caller):
+        This method is called by the COPY handler after checking for valid
+        request syntax and making sure that there are no conflicting locks and
+        If-headers.         
+        Depending on the return value, this provider can control further 
+        processing:
         
-          - there must not be any conflicting locks on source
-          - there must not be any conflicting locks on destination
-          - destPath must not exist 
-          - destPath must not be a member of this resource
+        False:
+            handleCopy() did not do anything. WsgiDAV will process the request
+            by calling copySingle() for every resource, bottom-up.
+        True:
+            handleCopy() has successfully performed the COPY request.
+            HTTP_NO_CONTENT/HTTP_CREATED will be reported to the DAV client.
+        List of errors:
+            handleCopy() tried to perform the copy request, but failed
+            completely or partially. A list of errors is returned like
+            ``[ (<ref-url>, <DAVError>), ... ]``
+            These errors will be reported to the client.
+        DAVError raised:
+            handleCopy() refuses to perform the copy request. The DAVError 
+            will be reported to the client.
 
-        This function
-        
-          - moves this resource and all members to destPath.
-          - MUST NOT move associated locks.
-            Instead, if the source (or children thereof) have locks, then
-            these locks should be removed.
-          - SHOULD maintain associated live properties, when applicable
-            See http://www.webdav.org/specs/rfc4918.html#dav.properties
-          - MUST maintain associated dead properties
-          - raises HTTP_FORBIDDEN for read-only resources
-          - raises HTTP_INTERNAL_ERROR on error
-        
-        An implementation may choose to apply other semantics.
-        For example copying '\by_tag\cool\myres' to '\by_tag\new\myres' may 
-        simply add a 'new' tag to 'my_res'. 
+        An implementation may choose to apply other semantics and return True.
+        For example copying '/by_tag/cool/myres' to '/by_tag/hot/myres' may 
+        simply add a 'hot' tag. 
+        In this case, the resource might still be available by other URLs, so 
+        locks and properties are not removed.
 
-        This method is only called, when self.supportRecursiveMove() returns 
-        True. Otherwise, the request server implements MOVE using delete/copy.
-        
-        This method MAY be implemented in order to improve performance.
+        This default implementation returns ``False``, so standard processing
+        takes place.
+         
+        Implementation of this method is OPTIONAL.
         """
-        raise DAVError(HTTP_FORBIDDEN)               
+        return False               
 
-
-    def copy(self, destPath):
+    
+    def copySingle(self, destPath):
         """Copy this resource to destPath (non-recursive).
         
         Preconditions (to be ensured by caller):
         
           - there must not be any conflicting locks on destination
           - overwriting is only allowed (i.e. destPath exists), when source and 
-            dest both are non-collections and a Overwrite='T' was passed 
+            dest are of the same type ((non-)collections) and a Overwrite='T' 
+            was passed 
           - destPath must not be a child path of this resource
 
         This function
@@ -865,42 +915,86 @@ class DAVResource(object):
 
 
 
-#    def copyNative(self, destPath):
-#        """Copy this resource and all members to destPath.
-#        
-#        Preconditions (to be ensured by caller):
-#        
-#          - there must not be any conflicting locks on destination
-#          - overwriting is only allowed (i.e. destPath exists), when source and 
-#            dest both are non-collections and a Overwrite='T' was passed 
-#          - destPath must not be a child path of this resource
-#
-#        This function
-#        
-#          - copies this resource to destPath.
-#            If source is a collection and ``recursive`` is True, then all 
-#            members are copied as well.
-#            If ``recursive`` is False, only the resource and it's properties
-#            are copied
-#          - MUST NOT copy locks
-#          - SHOULD copy live properties, when appropriate.
-#            E.g. displayname should be copied, but creationdate should be
-#            reset if the target did not exist before.
-#          - SHOULD copy dead properties
-#          - raises HTTP_FORBIDDEN for read-only providers
-#          - raises HTTP_INTERNAL_ERROR on error
-#        
-#        A depth-0 copy of collections can NOT be handled by this method.
-#        
-#        An implementation may choose to apply other semantics.
-#        For example copying '\by_tag\cool\myres' to '\by_tag\new\myres' may 
-#        simply add a 'new' tag to 'my_res'. 
-#
-#        This method MUST be implemented by all providers that support write 
-#        access.
-#        """
-#        raise DAVError(HTTP_FORBIDDEN)               
+    def handleMove(self, destPath):
+        """Handle a MOVE request natively.
+        
+        This method is called by the MOVE handler after checking for valid
+        request syntax and making sure that there are no conflicting locks and
+        If-headers.         
+        Depending on the return value, this provider can control further 
+        processing:
+        
+        False:
+            handleMove() did not do anything. WsgiDAV will process the request
+            by calling delete() and copySingle() for every resource, bottom-up.
+        True:
+            handleMove() has successfully performed the MOVE request.
+            HTTP_NO_CONTENT/HTTP_CREATED will be reported to the DAV client.
+        List of errors:
+            handleMove() tried to perform the move request, but failed
+            completely or partially. A list of errors is returned like
+            ``[ (<ref-url>, <DAVError>), ... ]``
+            These errors will be reported to the client.
+        DAVError raised:
+            handleMove() refuses to perform the move request. The DAVError 
+            will be reported to the client.
 
+        An implementation may choose to apply other semantics and return True.
+        For example moving '/by_tag/cool/myres' to '/by_tag/hot/myres' may 
+        simply remove the 'cool' tag from 'my_res' and add a 'hot' tag instead. 
+        In this case, the resource might still be available by other URLs, so 
+        locks and properties are not removed.
+
+        This default implementation returns ``False``, so standard processing
+        takes place.
+         
+        Implementation of this method is OPTIONAL.
+        """
+        return False               
+
+    
+    def supportRecursiveMove(self, destPath):
+        """Return True, if move() may be called on collections (see comments there)."""
+        return False
+
+    
+    def move(self, destPath):
+        """Move this resource to destPath (recursive).
+        
+        Preconditions (to be ensured by caller):
+        
+          - there must not be any conflicting locks or If-header on source
+          - there must not be any conflicting locks or If-header on destination
+          - destPath must not exist 
+          - destPath must not be a member of this resource
+
+        When supportRecursiveMove is True, this method must be prepared to 
+        handle recursive moves. This implies that child errors must be reported 
+        as tuple list [ (<ref-url>, <DAVError>), ... ].
+        See http://www.webdav.org/specs/rfc4918.html#move-collections
+
+        This function
+        
+          - moves this resource and all members to destPath.
+          - MUST NOT move associated locks.
+            Instead, if the source (or children thereof) have locks, then
+            these locks should be removed.
+          - SHOULD maintain associated live properties, when applicable
+            See http://www.webdav.org/specs/rfc4918.html#dav.properties
+          - MUST maintain associated dead properties
+          - raises HTTP_FORBIDDEN for read-only resources
+          - raises HTTP_INTERNAL_ERROR on error
+        
+        An implementation may choose to apply other semantics.
+        For example copying '/by_tag/cool/myres' to '/by_tag/new/myres' may 
+        simply add a 'new' tag to 'my_res'. 
+
+        This method is only called, when self.supportRecursiveMove() returns 
+        True. Otherwise, the request server implements MOVE using delete/copy.
+        
+        This method MAY be implemented in order to improve performance.
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
 
 
 #===============================================================================
@@ -1006,40 +1100,3 @@ class DAVProvider(object):
         """
         res = self.getResourceInst(path)
         return res and res.isCollection
-
-
-#    def removeAtomic(self, pathOrRes):
-#        """Remove the resource and associated locks and properties.
-#        
-#        This default implementation calls self.deleteResource(path), followed by 
-#        .removeAllProperties(path) and .removeAllLocks(path).
-#        Errors are raised on failure. 
-#
-#        This function should NOT be implemented in a recursive way.
-#        Instead, the caller is responsible to call remove() for all child 
-#        resources before.
-#        The caller is also responsible for checking of locks and permissions. 
-#        """
-#        if isinstance(pathOrRes, str):
-#            pathOrRes = self.getResourceInst(pathOrRes)
-#        pathOrRes.deleteResource()
-#        pathOrRes.removeAllProperties()
-#        pathOrRes.removeAllLocks()
-
-
-    def copyAtomic(self, srcPath, destPath):
-        """Remove the resource and associated locks and properties.
-        
-        This default implementation calls self.deleteResource(path), followed by 
-        .removeAllProperties(path) and .removeAllLocks(path).
-        Errors are raised on failure. 
-
-        This function should NOT be implemented in a recursive way.
-        Instead, the caller is responsible to call remove() for all child 
-        resources before.
-        The caller is also responsible for checking of locks and permissions. 
-        """
-        self.deleteResource()
-        self.removeAllProperties()
-        self.removeAllLocks()
-
