@@ -298,6 +298,24 @@ class PropertyManager(object):
             self._lock.release()         
 
 
+    def moveProperties(self, srcurl, desturl):
+        _logger.debug("moveProperties(%s, %s)" % (srcurl, desturl))
+        self._lock.acquireWrite()
+        try:
+            if __debug__ and self._verbose >= 2:
+                self._check()         
+            if not self._loaded:
+                self._lazyOpen()
+            if srcurl in self._dict:      
+                self._dict[desturl] = self._dict[srcurl]
+                del self._dict[srcurl]
+                self._sync()
+            if __debug__ and self._verbose >= 2:
+                self._check("after move")         
+        finally:
+            self._lock.release()         
+
+
 #===============================================================================
 # ShelvePropertyManager
 #===============================================================================

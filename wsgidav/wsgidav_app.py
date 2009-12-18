@@ -332,9 +332,7 @@ class WsgiDAVApp(object):
             return start_response(status, response_headers, exc_info)
             
         # Call next middleware
-#        for v in self._application(environ, start_response):
         for v in self._application(environ, _start_response_wrapper):
-            util.debug("sc", "WsgiDAVApp: yield start")
             yield v
 
         return

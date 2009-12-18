@@ -19,6 +19,8 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+from wsgidav.dav_provider import DAVProvider, DAVResource
 
 import util
 import os
@@ -26,8 +28,6 @@ import mimetypes
 import shutil
 import stat
 
-#from dav_error import DAVError, HTTP_FORBIDDEN
-from dav_provider import DAVProvider, DAVResource
 
 __docformat__ = "reStructuredText"
 
@@ -170,7 +170,8 @@ class FileResource(DAVResource):
         """
         assert self.isCollection
         assert not "/" in name
-#        raise DAVError(HTTP_FORBIDDEN)               
+        if self.provider.readonly:
+            raise DAVError(HTTP_FORBIDDEN)               
         path = util.joinUri(self.path, name) 
         fp = self.provider._locToFilePath(path)
         f = open(fp, "w")
@@ -185,7 +186,8 @@ class FileResource(DAVResource):
         """
         assert self.isCollection
         assert not "/" in name
-#        raise DAVError(HTTP_FORBIDDEN)               
+        if self.provider.readonly:
+            raise DAVError(HTTP_FORBIDDEN)               
         path = util.joinUri(self.path, name) 
         fp = self.provider._locToFilePath(path)
         os.mkdir(fp)
@@ -209,7 +211,8 @@ class FileResource(DAVResource):
         This method MUST be implemented by all providers that support write 
         access."""
         assert not self.isCollection
-#        raise DAVError(HTTP_FORBIDDEN)               
+        if self.provider.readonly:
+            raise DAVError(HTTP_FORBIDDEN)               
         mode = "wb"
         if contentType and contentType.startswith("text"):
             mode = "w"
@@ -222,7 +225,8 @@ class FileResource(DAVResource):
         
         See DAVResource.delete()
         """
-#        raise DAVError(HTTP_FORBIDDEN)               
+        if self.provider.readonly:
+            raise DAVError(HTTP_FORBIDDEN)               
         if self.isCollection:
 #            os.rmdir(self._filePath)
             shutil.rmtree(self._filePath, ignore_errors=False)
@@ -232,12 +236,14 @@ class FileResource(DAVResource):
         self.removeAllLocks(True)
             
 
-    def copy(self, destPath):
-        """See DAVResource.copy() """
+    def copySingle(self, destPath):
+        """See DAVResource.copySingle() """
+        if self.provider.readonly:
+            raise DAVError(HTTP_FORBIDDEN)               
         fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
         if self.isCollection:
-#            assert not os.path.exists(fpDest)
+            # Create destination collection, if not exists
             if not os.path.exists(fpDest):
                 os.mkdir(fpDest)
             try:
@@ -246,6 +252,7 @@ class FileResource(DAVResource):
             except Exception, e:
                 _logger.debug("Could not copy folder stats: %s" % e)
         else:
+            # Copy file (overwrite, if exists)
             shutil.copy2(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
@@ -256,13 +263,19 @@ class FileResource(DAVResource):
 
     def move(self, destPath):
         """See DAVResource.move() """
-#        raise DAVError(HTTP_FORBIDDEN)
+        if self.provider.readonly:
+            raise DAVError(HTTP_FORBIDDEN)               
         fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
         _logger.debug("move(%s, %s)" % (self._filePath, fpDest))
         print("move(%s, %s)" % (self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
+        # (Live properties are copied by copy2 or copystat)
+        # Copy dead properties
+        if self.provider.propManager:
+            destRes = self.provider.getResourceInst(destPath)
+            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
                
 
 
