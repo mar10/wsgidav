@@ -233,8 +233,10 @@ class LockManager(object):
                 lockowner, timeout, user, tokenList):
         """Check for permissions and acquire a lock.
         
-        On success, return a one-element list with a tuple: [ (newLockDict, None) ]
-        On error return a list of conflicts (@see self.checkLockPermission)
+        On success return 2-tuple (newLockDict, None)
+        
+        On error return 2-tuple (None, conflictList)
+        See self.checkLockPermission for the format.
         """
         self._lock.acquireWrite()
         try:
@@ -242,9 +244,11 @@ class LockManager(object):
                 self._lazyOpen()
             conflictList = self.checkLockPermission(lockroot, locktype, lockscope, lockdepth, tokenList, user)
             if len(conflictList) > 0:
-                return conflictList
+#                return conflictList
+                return (None, conflictList)
             lockDict = self._generateLock(user, locktype, lockscope, lockdepth, lockowner, lockroot, timeout)
-            return [ (lockDict, None) ]
+#            return [ (lockDict, None) ]
+            return (lockDict, None)
         finally:
             self._lock.release()
         

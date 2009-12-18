@@ -245,6 +245,9 @@ class DAVResource(object):
             return "Collection"
         return "Non-Collection"
 
+#    def getDirectoryInfo(self):
+#        return False
+    
     def supportRanges(self):
         """Return True, if this non-resource supports Range on GET requests.
 

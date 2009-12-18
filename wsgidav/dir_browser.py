@@ -96,7 +96,9 @@ class WsgiDavDirBrowser(object):
             parentUrl = util.getUriParent(davres.getHref())
             o_list.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
 
-        for res in davres.getDescendants(depth="1", addSelf=False):
+        # TODO: getDescendants() can be very slow (namely MySQLBrowserProvider)
+        childList = davres.getDescendants(depth="1", addSelf=False)
+        for res in childList:
 
             infoDict = {"url": res.getHref(),
                         "displayName": res.getDisplayName(),

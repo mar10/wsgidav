@@ -1050,22 +1050,17 @@ class RequestServer(object):
 
         # --- Check, if path is already locked ---------------------------------
 
-        # TODO: lock.acquire should be easier to test for 'success' 
-        
-        lockResultList = lockMan.acquire(res.getRefUrl(), 
-                                         locktype, lockscope, lockdepth, 
-                                         lockowner, timeoutsecs, 
-                                         environ["wsgidav.username"], 
-                                         submittedTokenList)
+        (lock, conflictList) = lockMan.acquire(res.getRefUrl(), 
+                                               locktype, lockscope, lockdepth, 
+                                               lockowner, timeoutsecs, 
+                                               environ["wsgidav.username"], 
+                                               submittedTokenList)
 
         if environ.get("wsgidav.debug_break"):
             pass # break point
             
-        lockToken = None 
-        if len(lockResultList) == 1 and lockResultList[0][1] is None:
+        if lock is not None:
             # Lock succeeded
-            lockToken = lockResultList[0][0]
-    
             propEL = util.makePropEL()
             # TODO: handle exceptions in getPropertyValue
             lockdiscoveryEL = res.getPropertyValue("{DAV:}lockdiscovery")
@@ -1076,19 +1071,19 @@ class RequestServer(object):
                 respcode = "201 Created"
     
             start_response(respcode, [("Content-Type", "application/xml"),
-                                      ("Lock-Token", lockToken["token"]),
+                                      ("Lock-Token", lock["token"]),
                                       ("Date", util.getRfc1123Time()),
                                       ])
             return [ util.xmlToString(propEL, pretty_print=True) ]
 
         # --- Locking FAILED: return fault response 
-        if len(lockResultList) == 1 and lockResultList[0][0]["root"] == res.getRefUrl():
+        if len(conflictList) == 1 and conflictList[0][0]["root"] == res.getRefUrl():
             # If there is only one error for the root URL, send as simple error response
-            return util.sendSimpleResponse(environ, start_response, lockResultList[0][1]) 
+            return util.sendSimpleResponse(environ, start_response, conflictList[0][1]) 
          
         dictStatus = {}
 
-        for lockDict, e in lockResultList:
+        for lockDict, e in conflictList:
             dictStatus[lockDict["root"]] = e
 
         if not res.getRefUrl() in dictStatus:
