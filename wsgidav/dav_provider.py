@@ -452,7 +452,7 @@ class DAVResource(object):
             propNameList.append("{DAV:}getetag")
             
         ## Locking properties 
-        if self.provider.lockManager:
+        if self.provider.lockManager and not self.preventLocking():
             propNameList.extend(_lockPropertyNames)
 
         ## Dead properties
@@ -695,6 +695,16 @@ class DAVResource(object):
 
     # --- Locking --------------------------------------------------------------
 
+    def preventLocking(self):
+        """Return True, to prevent locking.
+        
+        This default implementation returns ``False``, so standard processing
+        takes place: locking (and refreshing of locks) is implemented using
+        the lock manager, if one is configured. 
+        """
+        return False               
+
+    
     def isLocked(self):
         """Return True, if URI is locked."""
         if self.provider.lockManager is None:

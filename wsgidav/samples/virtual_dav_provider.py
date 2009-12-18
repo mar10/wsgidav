@@ -36,6 +36,10 @@ Compared to a published file system, we have these main differences:
    semantics of these operations for the virtual '/by_tag/' collection.
    For example issuing a DELETE on ``<share>/by_tag/cool/My doc 1`` will
    simply remove the 'cool' tag from that resource.
+#. Virtual collections and artifacts cannot be locked.
+   However a resource can be locked. 
+   For example locking ``<share>/by_tag/cool/My doc 1`` will also lock 
+   ``<share>/by_key/1``.
 #. Some paths may be hidden, i.e. by_key is not browsable (but can be referenced)
    TODO: is this WebDAV compliant? 
  
@@ -245,6 +249,8 @@ class VirtualResCollection(_VirtualResource):
         return "Category"
     def getMemberNames(self):
         return self._nameList
+    def preventLocking(self):
+        return True
 
 
 class VirtualResource(_VirtualResource):
@@ -389,6 +395,8 @@ class VirtualArtifact(_VirtualResource):
         return "text/html"
     def displayType(self):
         return "Virtual info file"
+    def preventLocking(self):
+        return True
 
     def getRefUrl(self):
         refPath = "/by_key/%s/%s" % (self._data["key"], self.name)

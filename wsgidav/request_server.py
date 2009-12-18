@@ -942,19 +942,21 @@ class RequestServer(object):
         provider = self._davProvider
         res = provider.getResourceInst(path)
         lockMan = provider.lockManager
-        
+
         if lockMan is None:
             # http://www.webdav.org/specs/rfc4918.html#rfc.section.6.3
             # TODO: is this the correct status code?
             self._fail(HTTP_NOT_IMPLEMENTED,
                        "This realm does not support locking.")
+        if res and res.preventLocking():
+            self._fail(HTTP_NOT_IMPLEMENTED,
+                       "This resource does not support locking.")
 
         if environ.setdefault("HTTP_DEPTH", "infinity") not in ("0", "infinity"):
             self._fail(HTTP_BAD_REQUEST, "Expected Depth: 'infinity' or '0'.")
         
         self._evaluateIfHeaders(res, environ)
 
-#        resourceExists = res.exists()
         timeoutsecs = lock_manager.readTimeoutValueHeader(environ.get("HTTP_TIMEOUT", ""))
         submittedTokenList = environ["wsgidav.ifLockTokenList"]
 
@@ -998,9 +1000,7 @@ class RequestServer(object):
             start_response("200 OK", [("Content-Type","application/xml"),
                                       ("Date", util.getRfc1123Time()),
                                       ])
-            return [#"<?xml version='1.0' encoding='UTF-8' ?>", 
-                    util.xmlToString(propEL, pretty_print=True) 
-                    ]
+            return [ util.xmlToString(propEL, pretty_print=True) ]
             
         # --- Standard case: parse xml body ------------------------------------ 
         
