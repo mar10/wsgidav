@@ -823,7 +823,8 @@ class DAVResource(object):
 
     
     def supportRecursiveDelete(self):
-        """Return True, if delete() may be called on collections (see comments there)."""
+        """Return True, if delete() may be called on non-empty collections 
+        (see comments there)."""
         return False
 
     
@@ -870,7 +871,7 @@ class DAVResource(object):
         
         False:
             handleCopy() did not do anything. WsgiDAV will process the request
-            by calling copySingle() for every resource, bottom-up.
+            by calling copyMoveSingle() for every resource, bottom-up.
         True:
             handleCopy() has successfully performed the COPY request.
             HTTP_NO_CONTENT/HTTP_CREATED will be reported to the DAV client.
@@ -897,8 +898,8 @@ class DAVResource(object):
         return False               
 
     
-    def copySingle(self, destPath):
-        """Copy this resource to destPath (non-recursive).
+    def copyMoveSingle(self, destPath, isMove):
+        """Copy or move this resource to destPath (non-recursive).
         
         Preconditions (to be ensured by caller):
         
@@ -910,7 +911,7 @@ class DAVResource(object):
 
         This function
         
-          - MUST NOT copy collection members
+          - MUST NOT copy collection members.
           - Overwrites non-collections content, if destination exists.
           - MUST NOT copy locks
           - SHOULD copy live properties, when appropriate.
@@ -920,6 +921,15 @@ class DAVResource(object):
           - SHOULD copy dead properties
           - raises HTTP_FORBIDDEN for read-only providers
           - raises HTTP_INTERNAL_ERROR on error
+
+        When isMove is True,
+        
+          - Live properties should be moved too (e.g. creationdate)
+          - Non-collections must be moved, not copied
+          - For collections, this function behaves like in copy-mode: 
+            detination collection must be created and properties are copied.
+            Members are NOT created.
+            The source collection MUST NOT be removed
         
         This method MUST be implemented by all providers that support write 
         access.
@@ -939,7 +949,7 @@ class DAVResource(object):
         
         False:
             handleMove() did not do anything. WsgiDAV will process the request
-            by calling delete() and copySingle() for every resource, bottom-up.
+            by calling delete() and copyMoveSingle() for every resource, bottom-up.
         True:
             handleMove() has successfully performed the MOVE request.
             HTTP_NO_CONTENT/HTTP_CREATED will be reported to the DAV client.
@@ -967,13 +977,20 @@ class DAVResource(object):
 
     
     def supportRecursiveMove(self, destPath):
-        """Return True, if move() may be called on collections (see comments there)."""
+        """Return True, if moveRecursive() is available (see comments there)."""
         return False
 
     
-    def move(self, destPath):
-        """Move this resource to destPath (recursive).
+    def moveRecursive(self, destPath):
+        """Move this resource and members to destPath.
         
+        This method is only called, when supportRecursiveMove() returns True. 
+
+        MOVE is frequently used by clients to rename a file without changing its 
+        parent collection, so it's not appropriate to reset all live properties 
+        that are set at resource creation. For example, the DAV:creationdate 
+        property value SHOULD remain the same after a MOVE.
+
         Preconditions (to be ensured by caller):
         
           - there must not be any conflicting locks or If-header on source
@@ -981,9 +998,9 @@ class DAVResource(object):
           - destPath must not exist 
           - destPath must not be a member of this resource
 
-        When supportRecursiveMove is True, this method must be prepared to 
-        handle recursive moves. This implies that child errors must be reported 
-        as tuple list [ (<ref-url>, <DAVError>), ... ].
+        This method must be prepared to handle recursive moves. This implies 
+        that child errors must be reported as tuple list 
+        [ (<ref-url>, <DAVError>), ... ].
         See http://www.webdav.org/specs/rfc4918.html#move-collections
 
         This function
@@ -1008,6 +1025,38 @@ class DAVResource(object):
         This method MAY be implemented in order to improve performance.
         """
         raise DAVError(HTTP_FORBIDDEN)               
+
+
+# This would NOT work, since we would call moveSingle() top-down.
+# So the source children would be deleted, before we copy them. 
+
+#    def moveSingle(self, destPath):
+#        """Move this resource to destPath (non-recursive).
+#        
+#        Preconditions (to be ensured by caller):
+#        
+#          - there must not be any conflicting locks on destination
+#          - destPath does not exist
+#          - destPath parent exists and is a collection
+#          - destPath must not be a child path of this resource
+#
+#        This function
+#        
+#          - moves a non-collection resource destPath.
+#          - MUST NOT move associated locks.
+#            Instead, if the source (or children thereof) have locks, then
+#            these locks should be removed.
+#          - SHOULD maintain associated live properties, when applicable
+#            See http://www.webdav.org/specs/rfc4918.html#dav.properties
+#          - MUST maintain associated dead properties
+#          - raises HTTP_FORBIDDEN for read-only resources
+#          - raises HTTP_INTERNAL_ERROR on error
+#        
+#        This method MUST be implemented by all providers that support write 
+#        access.
+#        """
+#        self.copyMoveSingle(destPath)
+#        self.delete()    
 
 
 #===============================================================================

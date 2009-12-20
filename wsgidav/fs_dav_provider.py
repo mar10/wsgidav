@@ -236,8 +236,8 @@ class FileResource(DAVResource):
         self.removeAllLocks(True)
             
 
-    def copySingle(self, destPath):
-        """See DAVResource.copySingle() """
+    def copyMoveSingle(self, destPath, isMove):
+        """See DAVResource.copyMoveSingle() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)               
         fpDest = self.provider._locToFilePath(destPath)
@@ -247,7 +247,7 @@ class FileResource(DAVResource):
             if not os.path.exists(fpDest):
                 os.mkdir(fpDest)
             try:
-                # may raise: [Error 5] Zugriff verweigert: u'C:\\temp\\litmus\\ccdest'
+                # may raise: [Error 5] Permission denied: u'C:\\temp\\litmus\\ccdest'
                 shutil.copystat(self._filePath, fpDest)
             except Exception, e:
                 _logger.debug("Could not copy folder stats: %s" % e)
@@ -256,26 +256,36 @@ class FileResource(DAVResource):
             shutil.copy2(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
-        if self.provider.propManager:
+        propMan = self.provider.propManager
+        if propMan:
             destRes = self.provider.getResourceInst(destPath)
-            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+            if isMove:
+                propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(), 
+                                       withChildren=False)
+            else:
+                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl())
                
 
-    def move(self, destPath):
-        """See DAVResource.move() """
+    def supportRecursiveMove(self, destPath):
+        """Return True, if moveRecursive() is available (see comments there)."""
+        return True
+
+    
+    def moveRecursive(self, destPath):
+        """See DAVResource.moveRecursive() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)               
         fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
-        _logger.debug("move(%s, %s)" % (self._filePath, fpDest))
-        print("move(%s, %s)" % (self._filePath, fpDest))
+        _logger.debug("moveRecursive(%s, %s)" % (self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
-        # Copy dead properties
+        # Move dead properties
         if self.provider.propManager:
             destRes = self.provider.getResourceInst(destPath)
-            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+            self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(), 
+                                                     withChildren=True)
                
 
 

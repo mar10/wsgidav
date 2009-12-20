@@ -862,11 +862,9 @@ class RequestServer(object):
                         dRes.delete()
         
         # --- Let provider implement recursive move ----------------------------
-        # MOVE is frequently used by clients to rename a file without 
-        # changing its parent collection, so it's not appropriate to 
-        # reset all live properties that are set at resource creation. 
-        # For example, the DAV:creationdate property value SHOULD remain 
-        # the same after a MOVE.
+        # We do this only, if the provider supports it, and no conflicts exist.
+        # A provider can implement this very efficiently, without allocating
+        # double memory as a copy/delete approach would.
         
         if isMove and srcRes.supportRecursiveMove(destPath): 
             hasConflicts = False
@@ -879,16 +877,28 @@ class RequestServer(object):
             
             if not hasConflicts:
                 try:
-                    errorList = srcRes.move(destPath)
+                    _logger.debug("Recursive move: %s -> '%s'" % (srcRes, destPath))
+                    errorList = srcRes.moveRecursive(destPath)
                 except Exception, e:
                     errorList = [ (srcRes.getHref(), asDAVError(e)) ]
                 return self._sendResponse(environ, start_response, 
                                           srcRes, successCode, errorList)
         
-        # --- Copy/move file-by-file using copy/delete ------------------------- 
+        # --- Copy/move file-by-file using copy/delete -------------------------
+
+        # We get here, if 
+        # - the provider does not support recursive moves
+        # - this is a copy request  
+        #   In this case we would probably not win too much by a native provider
+        #   implementation, since we have to handle single child errors anyway.
+        # - the source tree is partially locked
+        #   We would have to pass this information to the native provider.  
+        
+        # TODO: test MOVE/COPY with partially locked trees
         
         # Hidden paths (paths of failed copy/moves) {<src_path>: True, ...}
-        ignoreDict = {}  
+        ignoreDict = {}
+        deleteList = []  
         
         for sRes in srcList:
             # Skip, if there was already an error while processing the parent
@@ -906,7 +916,16 @@ class RequestServer(object):
                 dPath = destPath + relUrl
                 
                 self._evaluateIfHeaders(sRes, environ)
-                sRes.copySingle(dPath)
+                
+                sRes.copyMoveSingle(dPath, isMove)
+                # If copy succeeded, and it was a non-collection delete it now.
+                # So the source tree shrinks while the destination grows and we 
+                # don't have to allocate the memory twice.
+                # We cannot remove collections here, because we have not yet 
+                # copied all children. 
+                if isMove and not sRes.isCollection:
+                    sRes.delete()
+                    
             except Exception, e:
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source 
@@ -918,6 +937,8 @@ class RequestServer(object):
         # MOVE: Remove source
         if isMove:
             # TODO: use recursive delete, if supported
+            # TODO: delete collection only
+            # TODO: do NOT delete if collection contains unmoved resources!
             reverseSrcList = srcRes.getDescendants(depthFirst=True, addSelf=True)
             for sRes in reverseSrcList:
                 _logger.debug("Remove source after move '%s'" % sRes)
