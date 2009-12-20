@@ -2,8 +2,8 @@
 property_manager
 ================
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Implements two property managers: one in-memory (dict-based), and one 
@@ -151,7 +151,7 @@ class PropertyManager(object):
 #                print "  -> %s" % self._dict[k]
             for k, v in self._dict.items():
                 _ = "%s, %s" % (k, v)
-            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
+#            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
             return True
         except Exception:
             _logger.exception("%s _check: ERROR %s" % (self.__class__.__name__, msg))
@@ -294,6 +294,24 @@ class PropertyManager(object):
                 self._sync()
             if __debug__ and self._verbose >= 2:
                 self._check("after copy")         
+        finally:
+            self._lock.release()         
+
+
+    def moveProperties(self, srcurl, desturl):
+        _logger.debug("moveProperties(%s, %s)" % (srcurl, desturl))
+        self._lock.acquireWrite()
+        try:
+            if __debug__ and self._verbose >= 2:
+                self._check()         
+            if not self._loaded:
+                self._lazyOpen()
+            if srcurl in self._dict:      
+                self._dict[desturl] = self._dict[srcurl]
+                del self._dict[srcurl]
+                self._sync()
+            if __debug__ and self._verbose >= 2:
+                self._check("after move")         
         finally:
             self._lock.release()         
 

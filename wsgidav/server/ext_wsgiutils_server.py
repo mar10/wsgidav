@@ -216,8 +216,17 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        _logger.debug("wsgiWriteData: '%s...', len=%s" % (data[:10], len(data)))
-        self.wfile.write (data)
+        try:
+            self.wfile.write (data)
+        except socket.error, e:
+            # Suppress stack trace when client aborts connection disgracefully:
+            # 10053: Software caused connection abort
+            # 10054: Connection reset by peer
+            if e[0] in (10053, 10054):
+                print >>sys.stderr, "*** Caught socket.error: ", e
+            else:  
+                raise
+
 
 class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def __init__ (self, serverAddress, wsgiApplications, serveFiles=1):
@@ -236,7 +245,8 @@ def serve(conf, app):
     server = ExtServer((host, port), {"": app})
     if conf.get("verbose") >= 1:
         if host in ("", "0.0.0.0"):
-            print "WsgiDAV %s serving at %s, port %s (local IP is %s)..." % (__version__, host, port, socket.gethostbyname(socket.gethostname()))
+            (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
+            print "WsgiDAV %s serving at %s, port %s (host='%s' %s)..." % (__version__, host, port, hostname, ipaddrlist)
         else:
             print "WsgiDAV %s serving at %s, port %s..." % (__version__, host, port)
     server.serve_forever()

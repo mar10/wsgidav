@@ -1,8 +1,8 @@
 """
 dav_error
 =========
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Implements a DAVError class that is used to signal WebDAV and HTTP errors. 
@@ -11,6 +11,9 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
+import traceback
+import datetime
+import cgi
 import sys
 __docformat__ = "reStructuredText"
 
@@ -125,16 +128,25 @@ def makePreconditionError(preconditionCode):
     return """<error><%s/></error>""" % preconditionCode
 
 
-def getHttpStatusString(v):
-    """Return string representation, that can be used as HTTP response status."""
+def getHttpStatusCode(v):
+    """Return HTTP response code as integer, e.g. 204."""
     if hasattr(v, "value"):
-        status = str(v.value)  # v is a DAVError
+        return int(v.value)  # v is a DAVError
     else:  
-        status = str(v)
+        return int(v)
+
+
+def getHttpStatusString(v):
+    """Return HTTP response string, e.g. '204 No Content'."""
+#    if hasattr(v, "value"):
+#        status = str(v.value)  # v is a DAVError
+#    else:  
+#        status = str(v)
+    code = getHttpStatusCode(v)
     try:
-        return ERROR_DESCRIPTIONS[int(status)]
+        return ERROR_DESCRIPTIONS[code]
     except:
-        return status
+        return str(code)
 
 
 def asDAVError(e):
@@ -143,6 +155,8 @@ def asDAVError(e):
         return e
     elif isinstance(e, Exception):
         print >>sys.stderr, "asHTTPRequestException: %s" % e
+#        traceback.print_exception(type(e), e)
+        traceback.print_exc()
         return DAVError(HTTP_INTERNAL_ERROR, srcexception=e)
     else:
         return DAVError(HTTP_INTERNAL_ERROR, "%s" % e)
@@ -190,3 +204,16 @@ class DAVError(Exception):
             s += "\n    Source exception: '%s'" % self.srcexception
 
         return s
+
+    def getHtmlResponse(self):
+        respcode = getHttpStatusString(self)
+        html = []
+        html.append("<html><head>") 
+        html.append("<title>%s</title>" % respcode) 
+        html.append("</head><body>") 
+        html.append("<h1>%s</h1>" % respcode) 
+        html.append("<p>%s</p>" % cgi.escape(self.getUserInfo()))         
+        html.append("<hr>")
+        html.append("<p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
+        html.append("</body></html>")
+        return "\n".join(html)

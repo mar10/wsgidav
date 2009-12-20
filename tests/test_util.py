@@ -3,7 +3,7 @@
 """Unit tests for wsgidav.util"""
 
 from unittest import TestCase, TestSuite, TextTestRunner
-from wsgidav.util import *
+from wsgidav.util import * #@UnusedWildImport
 
 class BasicTest(TestCase):                          
     """Test ."""
@@ -32,6 +32,13 @@ class BasicTest(TestCase):
 
     def testBasics(self):                          
         """Test basic tool functions."""
+        assert joinUri("/a/b", "c") == "/a/b/c"
+        assert joinUri("/a/b/", "c") == "/a/b/c"
+        assert joinUri("/a/b", "c", "d") == "/a/b/c/d"
+        assert joinUri("a/b", "c", "d") == "a/b/c/d"
+        assert joinUri("/", "c") == "/c"
+        assert joinUri("", "c") == "/c"
+        
         assert not isChildUri("/a/b", "/a/")
         assert not isChildUri("/a/b", "/a/b")
         assert not isChildUri("/a/b", "/a/b/")

@@ -98,7 +98,7 @@ class ServerTest(unittest.TestCase):
 
         # Prepare file content
         data1 = "this is a file\nwith two lines"
-        data2 = "this is another file\nwith three lines\nsee!"
+        data2 = "this is another file\nwith three lines\nsee?"
         # Big file with 10 MB
         lines = []
         line = "." * (1000-6)
@@ -130,12 +130,23 @@ class ServerTest(unittest.TestCase):
         # PUT writes a big file (expect '201 Created')
         app.put("/file2.txt", params=data3, status=201)
 
+        res = app.get("/file2.txt", status=200)
+        assert res.body == data3, "GET file content different from PUT"
+
         # Request must not contain a body (expect '415 Media Type Not Supported')
         app.get("/file1.txt", 
                 headers={"Content-Length": str(len(data1))},
                 params=data1, 
                 status=415)
 
+        # Delete existing resource (expect '204 No Content')
+        app.delete("/file1.txt", status=204)
+        # Get deleted resource (expect '404 Not Found')
+        app.get("/file1.txt", status=404)
+
+        # PUT a small file (expect '201 Created')
+        app.put("/file1.txt", params=data1, status=201)
+        
 
     def testEncoding(self):                          
         """Handle special characters."""

@@ -4,8 +4,8 @@
 lock_manager
 ============
 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
+:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
 Implements two lock managers: one in-memory (dict-based), and one persistent low 
@@ -233,8 +233,10 @@ class LockManager(object):
                 lockowner, timeout, user, tokenList):
         """Check for permissions and acquire a lock.
         
-        On success, return a one-element list with a tuple: [ (newLockDict, None) ]
-        On error return a list of conflicts (@see self.checkLockPermission)
+        On success return 2-tuple (newLockDict, None)
+        
+        On error return 2-tuple (None, conflictList)
+        See self.checkLockPermission for the format.
         """
         self._lock.acquireWrite()
         try:
@@ -242,9 +244,11 @@ class LockManager(object):
                 self._lazyOpen()
             conflictList = self.checkLockPermission(lockroot, locktype, lockscope, lockdepth, tokenList, user)
             if len(conflictList) > 0:
-                return conflictList
+#                return conflictList
+                return (None, conflictList)
             lockDict = self._generateLock(user, locktype, lockscope, lockdepth, lockowner, lockroot, timeout)
-            return [ (lockDict, None) ]
+#            return [ (lockDict, None) ]
+            return (lockDict, None)
         finally:
             self._lock.release()
         
@@ -506,7 +510,7 @@ class LockManager(object):
             self._lock.release()               
 
 
-    def checkAccessPermission(self, resourceAL, url, tokenList, accesstype, accessdepth, user):
+    def checkAccessPermission(self, url, tokenList, accesstype, accessdepth, user):
         """Check, if <user> can modify <url>, otherwise return a list of conflicting locks.
         
         If an empty list is returned, the write access is allowed (concerning locks).
