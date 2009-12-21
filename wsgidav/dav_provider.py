@@ -769,7 +769,7 @@ class DAVResource(object):
          
         This method MUST be implemented by all providers.
         """
-        assert not self.isResource()
+        assert not self.isCollection
         raise NotImplementedError()
     
 
