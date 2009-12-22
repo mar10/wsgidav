@@ -3,7 +3,7 @@
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
-Implementation of a DAV provider that provides a very basic, read-only
+Implementation of a WebDAV provider that provides a very basic, read-only
 resource layer emulation of a MySQL database.
 
 This module is specific to the WsgiDAV application. It provides a 
