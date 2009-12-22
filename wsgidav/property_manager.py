@@ -9,63 +9,20 @@ property_manager
 Implements two property managers: one in-memory (dict-based), and one 
 persistent low performance variant using shelve.
 
-This module consists of a number of miscellaneous functions for the dead 
-properties features of WebDAV.
+The properties dictionaray is built like::
 
-It also includes an implementation of a PropertyManager for
-storage of dead properties. This implementation use
-shelve for file storage.  See request_server.py for details.
-
-PropertyManagers must provide the methods as described in 
-propertymanagerinterface_
+    { ref-url1: {propname1: value1,
+                 propname2: value2,
+                 },
+      ref-url2: {propname1: value1,
+                 propname2: value2,
+                 },
+      }
 
 See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 .. _propertymanagerinterface : interfaces/propertymanagerinterface.py
-
-
-
-Properties and WsgiDAV
-----------------------
-Properties of a resource refers to the attributes of the resource. A property
-is referenced by the property name and the property namespace. We usually
-refer to the property as ``{property namespace}property name`` 
-
-Properties of resources as defined in WebDAV falls under three categories:
-
-Live properties
-   These properties are attributes actively maintained by the server, such as 
-   file size, or read permissions. if you are sharing a database record as a 
-   resource, for example, the attributes of the record could become the live 
-   properties of the resource.
-
-   The webdav specification defines the following properties that could be
-   live properties (refer to webdav specification for details):
-   {DAV:}creationdate
-   {DAV:}displayname
-   {DAV:}getcontentlanguage
-   {DAV:}getcontentlength
-   {DAV:}getcontenttype
-   {DAV:}getetag
-   {DAV:}getlastmodified
-   {DAV:}resourcetype
-   {DAV:}source
-
-   These properties are implemented by the abstraction layer.
-
-Locking properties 
-   They refer to the two webdav-defined properties 
-   {DAV:}supportedlock and {DAV:}lockdiscovery
-    
-   These properties are implemented by the locking library in
-   ``wsgidav.lock_manager``.
-      
-Dead properties
-   They refer to arbitrarily assigned properties not actively maintained. 
-
-   These properties are implemented by the dead properties library in
-   ``wsgidav.property_manager``.
 """
 from wsgidav import util
 import os
@@ -149,6 +106,7 @@ class PropertyManager(object):
 #            for k in self._dict.keys():
 #                print "%s" % k
 #                print "  -> %s" % self._dict[k]
+            self._dump()
             for k, v in self._dict.items():
                 _ = "%s, %s" % (k, v)
 #            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
@@ -177,6 +135,7 @@ class PropertyManager(object):
                         print >>out, "        %s: '%s'" % (k2, v2)
                     except Exception, e:
                         print >>out, "        %s: ERROR %s" % (k2, e)
+            out.flush()
         except Exception, e:
             print >>sys.stderr, "PropertyManager._dump()  ERROR: %s" % e            
 
@@ -298,18 +257,27 @@ class PropertyManager(object):
             self._lock.release()         
 
 
-    def moveProperties(self, srcurl, desturl):
-        _logger.debug("moveProperties(%s, %s)" % (srcurl, desturl))
+    def moveProperties(self, srcurl, desturl, withChildren):
+        _logger.debug("moveProperties(%s, %s, %s)" % (srcurl, desturl, withChildren))
         self._lock.acquireWrite()
         try:
             if __debug__ and self._verbose >= 2:
                 self._check()         
             if not self._loaded:
                 self._lazyOpen()
-            if srcurl in self._dict:      
+            if withChildren:
+                # Move srcurl\*      
+                for url in self._dict.keys():
+                    if util.isEqualOrChildUri(srcurl, url):
+                        d = url.replace(srcurl, desturl)
+                        self._dict[d] = self._dict[url]
+                        del self._dict[url]
+                        print "moveProperties:", url, d
+            elif srcurl in self._dict:
+                # Move srcurl only      
                 self._dict[desturl] = self._dict[srcurl]
                 del self._dict[srcurl]
-                self._sync()
+            self._sync()
             if __debug__ and self._verbose >= 2:
                 self._check("after move")         
         finally:
@@ -373,3 +341,4 @@ class ShelvePropertyManager(PropertyManager):
                 self._loaded = False
         finally:
             self._lock.release()         
+

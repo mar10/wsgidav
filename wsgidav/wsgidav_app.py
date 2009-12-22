@@ -334,5 +334,4 @@ class WsgiDAVApp(object):
         # Call next middleware
         for v in self._application(environ, _start_response_wrapper):
             yield v
-
         return

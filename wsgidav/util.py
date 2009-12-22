@@ -596,6 +596,7 @@ def parseXmlBody(environ, allowEmpty=False):
             requestbody = ""
         else:
             requestbody = environ["wsgi.input"].read(contentLength)
+            environ["wsgidav.consumed_body"] = 1
 
     if requestbody == "":
         if allowEmpty:
