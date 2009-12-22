@@ -81,6 +81,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
+import socket
 
 __docformat__ = "reStructuredText"
 
@@ -128,6 +129,35 @@ class ErrorPrinter(object):
                     traceback.print_exc(10, sys.stderr) 
                     raise
         except DAVError, e:
+            # HOTFIX: issue 13, issue 23
+            # An exception like '401 Not authorized', or '500 Internal error'
+            # was raised. This may have happened before reading anything from
+            # the request.
+            # Returning a response without reading from an request body might
+            # confuse the client.  
+            # See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
+            if (environ.get("wsgidav.is_builtin_server")
+                and environ.get("CONTENT_LENGTH", 0) > 0 
+                and not environ.get("wsgidav.consumed_body")
+                ):
+                try:
+                    print >>sys.stderr, "Caught exception with potentially unread POST body"
+                    input = environ["wsgi.input"]
+                    # Set socket to non-blocking
+                    sock = input._sock
+                    timeout = sock.gettimeout()
+                    sock.settimeout(0)
+                    # Read one byte
+                    try:
+                        _c = input.read(1)
+                    except socket.error, se:
+                        # se(10035, 'The socket operation could not complete without blocking')
+                        print >>sys.stderr, "-> read 1 byte failed", se
+                    # Restore socket settings
+                    sock.settimeout(timeout)
+                except:
+                    print >>sys.stderr, "--> input.read(1): ", sys.exc_info()
+
             _logger.debug("caught %s" % e)
             evalue = e.value
             respcode = getHttpStatusString(e)

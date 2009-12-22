@@ -634,6 +634,7 @@ class RequestServer(object):
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
                 l = int(environ["wsgi.input"].readline(), 16)
+                environ["wsgidav.consumed_body"] = 1
                 while l > 0:
                     buf = environ["wsgi.input"].read(l)
                     fileobj.write(buf)
@@ -656,6 +657,7 @@ class RequestServer(object):
                 nb = 0
                 try:
                     for s in environ["wsgi.input"]:
+                        environ["wsgidav.consumed_body"] = 1
                         _logger.debug("PUT: read from wsgi.input.__iter__, len=%s" % len(s))
                         fileobj.write(s)
                         nb += len (s)
@@ -670,6 +672,7 @@ class RequestServer(object):
                     readbuffer = environ["wsgi.input"].read(n)
                     # This happens with litmus expect-100 test:
                     assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
+                    environ["wsgidav.consumed_body"] = 1
                     fileobj.write(readbuffer)
                     contentremain -= len(readbuffer)
                      
@@ -722,6 +725,7 @@ class RequestServer(object):
             # Still clients may send it (e.g. DAVExplorer 0.9.1 File-Copy) sends 
             # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
             body = environ["wsgi.input"].read(util.getContentLength(environ))
+            environ["wsgidav.consumed_body"] = 1
             _logger.info("Ignored copy/move  body: '%s'..." % body[:50])
         
         if srcRes.isCollection:
