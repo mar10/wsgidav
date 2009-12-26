@@ -8,6 +8,20 @@ Sample implementation of a DAV provider that pulishes a mercurial reposity.
 See:
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 
+Sample layout::
+    
+    /<share>/
+        tip/
+            server/
+                ext_server.py
+            README.txt
+        archive/
+            rev1/
+            rev2/
+        tags/
+            release1/
+            
+
 """
 from pprint import pprint
 import sys
