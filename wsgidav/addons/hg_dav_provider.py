@@ -24,6 +24,7 @@ Sample layout::
 
 """
 from pprint import pprint
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 import time
 import sys
 import mimetypes
@@ -39,6 +40,7 @@ from wsgidav import util
 
 try:
     import mercurial.ui
+#    import mercurial.error
     from mercurial.__version__ import version as hgversion
     from mercurial import commands, hg
     #from mercurial import util as hgutil 
@@ -63,10 +65,37 @@ class HgResource(DAVResource):
         super(HgResource, self).__init__(provider, path, isCollection, environ)
         self._filePath = os.path.join(self.provider.repoPath, *path.split("/"))
 #        print path, self._filePath
+        if isCollection:
+#            self.fctx = self.provider.repo.filectx(repoFilePath, fileid="tip")
+            self.fctx = None
+        else:
+            # Change Context for the working directory:
+#            wdctx = self.provider.repo[None]
+            # Change Context for the TIP:
+            wdctx = self.provider.repo["tip"]
+            # HG expects path without leading '/'
+            repoFilePath = self.path.lstrip("/")
+            self.fctx = wdctx[repoFilePath]
+#        try:
+#            # Change Context for the working directory:
+##            wdctx = self.provider.repo[None]
+#            # Change Context for the TIP:
+#            wdctx = self.provider.repo["tip"]
+#            # HG expects path without leading '/'
+#            repoFilePath = self.path.lstrip("/")
+#            # store the File Context
+#            if isCollection:
+#                self.fctx = self.provider.repo.filectx(repoFilePath, fileid="tip")
+#            else:
+#                self.fctx = wdctx[repoFilePath]
+#        except mercurial.error.RepoError:
+#            self.fctx = None #self.provider.repo.filectx(path, fileid="tip")
+#        pprint(self.fctx)
 
     def getContentLength(self):
-        statresults = os.stat(self._filePath)
-        return statresults[stat.ST_SIZE]
+        if self.isCollection:
+            return None
+        return self.fctx.size()
     def getContentType(self):
         (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
         if not mimetype:
@@ -76,12 +105,18 @@ class HgResource(DAVResource):
         statresults = os.stat(self._filePath)
         return statresults[stat.ST_CTIME]
     def getDisplayName(self):
-        return self.name
+        if self.isCollection:
+            return self.name
+#        return str(self.fctx)
+#        return "%s@%s,%s,%s" % (self.name, self.fctx.rev(), self.fctx.user(), self.fctx.date())
+        return "%s@%s" % (self.name, self.fctx.filerev())
     def getEtag(self):
         return util.getETag(self._filePath)
     def getLastModified(self):
-        statresults = os.stat(self._filePath)
-        return statresults[stat.ST_MTIME]
+        if self.isCollection:
+            return None
+        # (secs, tz-ofs)
+        return self.fctx.date()[0]
     def supportRanges(self):
         return False
     def displayType(self):
@@ -92,7 +127,6 @@ class HgResource(DAVResource):
     def getMemberNames(self):
         assert self.isCollection
         tree = self.environ.get("wsgidav.hg.tree")
-
         dirinfos = tree["dirinfos"] 
         return dirinfos[self.path][0] + dirinfos[self.path][1] 
 #        return self.provider._listMembers(self.path)
@@ -105,7 +139,17 @@ class HgResource(DAVResource):
         # Let base class implementation add supported live and dead properties
         propNameList = super(HgResource, self).getPropertyNames(isAllProp)
         # Add custom live properties (report on 'allprop' and 'propnames')
-        propNameList.extend(["{hg:}status", ])
+        propNameList.extend(["{hg:}status",
+                             "{hg:}branch",
+#                             "{hg:}changectx",
+                             "{hg:}date",
+                             "{hg:}description",
+#                             "{hg:}filenode",
+                             "{hg:}filerev",
+#                             "{hg:}node",
+                             "{hg:}rev",
+                             "{hg:}user",
+                             ])
         return propNameList
 
     def getPropertyValue(self, propname):
@@ -117,19 +161,48 @@ class HgResource(DAVResource):
         tree = self.environ.get("wsgidav.hg.tree")
         if propname == "{hg:}status":
             return tree["filestats"][self.path]
+        elif propname == "{hg:}branch":
+            return self.fctx.branch()
+#        elif propname == "{hg:}changectx":
+#            return self.fctx.changectx()
+        elif propname == "{hg:}date":
+            # (secs, tz-ofs)
+            return str(self.fctx.date()[0])
+        elif propname == "{hg:}description":
+            return self.fctx.description()
+#        elif propname == "{hg:}filenode":
+#            return self.fctx.filenode()
+        elif propname == "{hg:}filerev":
+            return str(self.fctx.filerev())
+#        elif propname == "{hg:}node":
+#            return str(self.fctx.node())
+        elif propname == "{hg:}rev":
+            return str(self.fctx.rev())
+        elif propname == "{hg:}user":
+            return str(self.fctx.user())
+        
         # Let base class implementation report live and dead properties
         return super(HgResource, self).getPropertyValue(propname)
     
+    def setPropertyValue(self, propname, value, dryRun=False):
+        """Set or remove property value.
+        
+        See DAVResource.setPropertyValue()
+        """
+        raise DAVError(HTTP_FORBIDDEN)
+
     def getContent(self):
         """Open content as a stream for reading.
          
         See DAVResource.getContent()
         """
         assert not self.isCollection
-        mime = self.getContentType()
-        if mime.startswith("text"):
-            return file(self._filePath, "r", BUFFER_SIZE)
-        return file(self._filePath, "rb", BUFFER_SIZE)
+#        mime = self.getContentType()
+#        if mime.startswith("text"):
+#            return file(self._filePath, "r", BUFFER_SIZE)
+#        return file(self._filePath, "rb", BUFFER_SIZE)
+        d = self.fctx.data()
+        return StringIO(d)
         
          
 #===============================================================================
