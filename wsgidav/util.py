@@ -405,6 +405,49 @@ def getContentLength(environ):
         return 0
 
 
+def readOneByteFromInput(environ):
+    """Read 1 byte from wsgi.input, if this has not been done yet.
+    
+    Returning a response without reading from an request body might confuse the 
+    WebDAV client.  
+    See issue 13, issue 23
+    See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
+
+    This may happen, if an exception like '401 Not authorized', or 
+    '500 Internal error' was raised BEFORE anything was read from the request 
+    stream.
+    Also, if the HTTPAuthenticator middleware rejects such a request.
+    """
+    cl = getContentLength(environ)
+    if cl < 1:
+        return 
+    if environ.get("wsgidav.consumed_body"):
+        return
+    environ["wsgidav.consumed_body"] = 1
+    
+    input = environ["wsgi.input"]
+    if environ.get("wsgidav.is_builtin_server"):
+#    if hasattr(input, "_sock"):
+        try:
+            # Set socket to non-blocking
+            sock = input._sock
+            timeout = sock.gettimeout()
+            sock.settimeout(0)
+            # Read one byte
+            try:
+                n = 1 # cl
+                _c = input.read(1)
+#                _c = input.read(cl)
+                write("Reading %s bytes from potentially unread POST body: '%s'..." % (n, _c[:50]))
+            except socket.error, se:
+                # se(10035, 'The socket operation could not complete without blocking')
+                warn("-> read 1 byte failed: %s" % se)
+            # Restore socket settings
+            sock.settimeout(timeout)
+        except:
+            warn("--> input.read(1): %s" % sys.exc_info())
+
+
 #===============================================================================
 # URLs
 #===============================================================================

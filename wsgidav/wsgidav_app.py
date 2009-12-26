@@ -290,7 +290,9 @@ class WsgiDAVApp(object):
 
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):
-            # Log request
+             # HOTFIX: issue 13, issue 23
+            util.readOneByteFromInput(environ)
+           # Log request
             if self._verbose >= 1:
                 threadInfo = ""
                 userInfo = environ.get("http_authenticator.username")
@@ -329,6 +331,7 @@ class WsgiDAVApp(object):
                                         # response Content-Length
                                         # referer
                                      )
+ 
             return start_response(status, response_headers, exc_info)
             
         # Call next middleware
