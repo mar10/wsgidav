@@ -106,7 +106,7 @@ class PropertyManager(object):
 #            for k in self._dict.keys():
 #                print "%s" % k
 #                print "  -> %s" % self._dict[k]
-            self._dump()
+#            self._dump()
             for k, v in self._dict.items():
                 _ = "%s, %s" % (k, v)
 #            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))

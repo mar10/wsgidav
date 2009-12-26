@@ -911,8 +911,8 @@ class DAVResource(object):
 
         This function
         
-          - MUST NOT copy collection members.
           - Overwrites non-collections content, if destination exists.
+          - MUST NOT copy collection members.
           - MUST NOT copy locks
           - SHOULD copy live properties, when appropriate.
             E.g. displayname should be copied, but creationdate should be

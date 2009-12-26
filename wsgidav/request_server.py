@@ -894,18 +894,15 @@ class RequestServer(object):
         # - the provider does not support recursive moves
         # - this is a copy request  
         #   In this case we would probably not win too much by a native provider
-        #   implementation, since we have to handle single child errors anyway.
+        #   implementation, since we had to handle single child errors anyway.
         # - the source tree is partially locked
         #   We would have to pass this information to the native provider.  
         
-        # TODO: test MOVE/COPY with partially locked trees
-        
         # Hidden paths (paths of failed copy/moves) {<src_path>: True, ...}
         ignoreDict = {}
-        deleteList = []  
         
         for sRes in srcList:
-            # Skip, if there was already an error while processing the parent
+            # Skip this resource, if there was a failure copying a parent 
             parentError = False
             for ignorePath in ignoreDict.keys():
                 if util.isEqualOrChildUri(ignorePath, sRes.path):
@@ -914,14 +911,18 @@ class RequestServer(object):
             if parentError:
                 _logger.debug("Copy: skipping '%s', because of parent error" % sRes.path)
                 continue
-            
+
             try:
                 relUrl = sRes.path[srcRootLen:]
                 dPath = destPath + relUrl
                 
                 self._evaluateIfHeaders(sRes, environ)
                 
+                # We copy resources and their properties top-down. 
+                # Collections are simply created (without members), for
+                # non-collections bytes are copied (overwriting target)
                 sRes.copyMoveSingle(dPath, isMove)
+                
                 # If copy succeeded, and it was a non-collection delete it now.
                 # So the source tree shrinks while the destination grows and we 
                 # don't have to allocate the memory twice.
@@ -938,18 +939,32 @@ class RequestServer(object):
                 # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.8.5
                 errorList.append( (sRes.getHref(), asDAVError(e)) )
 
-        # MOVE: Remove source
+        # MOVE: Remove source tree (bottom-up)
         if isMove:
-            # TODO: use recursive delete, if supported
-            # TODO: delete collection only
-            # TODO: do NOT delete if collection contains unmoved resources!
-            reverseSrcList = srcRes.getDescendants(depthFirst=True, addSelf=True)
+            reverseSrcList = srcList[:]
+            reverseSrcList.reverse()
+            util.status("Delete after move, ignore=", var=ignoreDict)
             for sRes in reverseSrcList:
-                _logger.debug("Remove source after move '%s'" % sRes)
+                # Non-collections have already been removed in the copy loop.    
+                if not sRes.isCollection:
+                    continue
+                # Skip collections that contain errors (unmoved resources)   
+                childError = False
+                for ignorePath in ignoreDict.keys():
+                    if util.isEqualOrChildUri(sRes.path, ignorePath):
+                        childError = True
+                        break
+                if childError:
+                    util.status("Delete after move: skipping '%s', because of child error" % sRes.path)
+                    continue
+
                 try:
+#                    _logger.debug("Remove source after move: %s" % sRes)
+                    util.status("Remove collection after move: %s" % sRes)
                     sRes.delete()
                 except Exception, e:
                     errorList.append( (srcRes.getHref(), asDAVError(e)) )
+            util.status("ErrorList", var=errorList)
                 
         # --- Return response --------------------------------------------------
          
