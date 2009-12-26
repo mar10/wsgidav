@@ -24,6 +24,7 @@ Sample layout::
 
 """
 from pprint import pprint
+import time
 import sys
 import mimetypes
 import stat
@@ -34,8 +35,6 @@ try:
 except ImportError:
     from StringIO import StringIO #@UnusedImport
 from wsgidav.dav_provider import DAVProvider, DAVResource
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
-    PRECONDITION_CODE_ProtectedProperty
 from wsgidav import util
 
 try:
@@ -92,28 +91,35 @@ class HgResource(DAVResource):
         
     def getMemberNames(self):
         assert self.isCollection
-        dirinfos = self.provider.tree["dirinfos"] 
+        tree = self.environ.get("wsgidav.hg.tree")
+
+        dirinfos = tree["dirinfos"] 
         return dirinfos[self.path][0] + dirinfos[self.path][1] 
 #        return self.provider._listMembers(self.path)
-        # TODO: this is not efficient!
 
-#        childlist = []
-#        l = len(self.path)
-#        for f in self.provider.files:
-#            if f.startswith(self.path):
-#                p = f[l:]
-##                print f, p
-#                if "/" in p:
-#                    # This is a member container, so we only append it once
-#                    p = p.split("/")[0]
-#                if len(childlist) == 0 or childlist[-1] != p:
-#                    childlist.append(p) 
-#            else:
-#                if len(childlist) > 0:
-#                    # we reached the end of the matching sequence
-#                    break
-        return childlist
+    def getPropertyNames(self, isAllProp):
+        """Return list of supported property names in Clark Notation.
+        
+        See DAVResource.getPropertyNames() 
+        """
+        # Let base class implementation add supported live and dead properties
+        propNameList = super(HgResource, self).getPropertyNames(isAllProp)
+        # Add custom live properties (report on 'allprop' and 'propnames')
+        propNameList.extend(["{hg:}status", ])
+        return propNameList
 
+    def getPropertyValue(self, propname):
+        """Return the value of a property.
+        
+        See getPropertyValue()
+        """
+        # Supported custom live properties
+        tree = self.environ.get("wsgidav.hg.tree")
+        if propname == "{hg:}status":
+            return tree["filestats"][self.path]
+        # Let base class implementation report live and dead properties
+        return super(HgResource, self).getPropertyValue(propname)
+    
     def getContent(self):
         """Open content as a stream for reading.
          
@@ -145,12 +151,8 @@ class HgResourceProvider(DAVProvider):
         self.repoPath = self.repo.root
 
         # Verify integrity of the repository
-        print "Verify repository '%s' tree..." % self.repo.root
+        util.status("Verify repository '%s' tree..." % self.repo.root)
         commands.verify(self.ui, self.repo)
-        
-        print "Reading tree..."
-        self.tree = self._readTree()
-        pprint(self.tree)
         
 #        self.ui.status("Changelog: %s\n" % self.repo.changelog)
         print "Status:"
@@ -264,6 +266,7 @@ class HgResourceProvider(DAVProvider):
                        }
                        }
         """
+        start_time = time.time()
         self.ui.pushbuffer()
 #        commands.status(self.ui, self.repo, all=True)
         commands.status(self.ui, self.repo, modified=True, added=True, clean=True)
@@ -291,6 +294,8 @@ class HgResourceProvider(DAVProvider):
             files.append(file)
             filestats[file] = stat
         files.sort()
+        util.status("_readTree() took %s" % (time.time() - start_time))
+#        pprint(tree)
         return {"files": files,
                 "dirinfos": dirinfos,
                 "filestats": filestats,
@@ -337,16 +342,22 @@ class HgResourceProvider(DAVProvider):
         See DAVProvider.getResourceInst()
         """
         self._count_getResourceInst += 1
+
+        if environ.get("wsgidav.hg.tree"):
+            tree = environ.get("wsgidav.hg.tree")
+        else:
+            tree = self._readTree()
+            environ["wsgidav.hg.tree"] = tree
         
 #        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
         #info = self._identify(path)
         p = "/" + path.strip("/")
-        if p in self.tree["filestats"]:
+        if p in tree["filestats"]:
             # It is a version controlled file
-            return HgResource(self, path, False)
+            return HgResource(self, path, False, environ)
         
-        if p in self.tree["dirinfos"]:
+        if p in tree["dirinfos"]:
             # It is an existing folder
-            return HgResource(self, p, True)
+            return HgResource(self, p, True, environ)
         return None
         

@@ -69,7 +69,7 @@ from wsgidav.dav_provider import DAVProvider, DAVResource
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty
-import MySQLdb
+import MySQLdb  #@UnresolvedImport
 import md5
 import time
 import csv
