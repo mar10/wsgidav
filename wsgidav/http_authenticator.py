@@ -147,8 +147,8 @@ class HTTPAuthenticator(object):
     def __call__(self, environ, start_response):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"], environ)
         
-        if environ.get("REQUEST_METHOD") == "PUT":
-            pass
+#        if environ.get("REQUEST_METHOD") == "PUT" and environ["CONTENT_LENGTH"] > 0:
+#            pass # breakpoint
         
         if not self._domaincontroller.requireAuthentication(realmname, environ):
             # no authentication needed
