@@ -60,8 +60,8 @@ BUFFER_SIZE = 8192
 #===============================================================================
 class HgResource(DAVResource):
     """Abstract base class for all resources."""
-    def __init__(self, provider, path, isCollection):
-        super(HgResource, self).__init__(provider, path, isCollection)
+    def __init__(self, provider, path, isCollection, environ):
+        super(HgResource, self).__init__(provider, path, isCollection, environ)
         self._filePath = os.path.join(self.provider.repoPath, *path.split("/"))
 #        print path, self._filePath
 
@@ -326,7 +326,7 @@ class HgResourceProvider(DAVProvider):
         pprint(lines)
         return dict
         
-    def getResourceInst(self, path):
+    def getResourceInst(self, path, environ):
         """Return _VirtualResource object for path.
         
         path is expected to be 

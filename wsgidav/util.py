@@ -14,10 +14,12 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-from pprint import pprint
+from pprint import pformat
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
+import urllib
+import socket
 
 
 import locale
@@ -175,16 +177,16 @@ def initLogging(verbose=2, enable_loggers=[]):
     
     Log level matrix
     ~~~~~~~~~~~~~~~~
-    =======  ===========  ====================== =======================
-    verbose                         Log level 
-    -------  -----------------------------------------------------------
-      n      base logger  module logger(enabled)  module logger(disabled)
-    =======  ===========  ====================== =======================
-      0        ERROR        ERROR                   ERROR
-      1        WARN         WARN                    WARN
-      2        INFO         DEBUG                   INFO
-      3        DEBUG        DEBUG                   INFO
-    =======  ===========  ====================== =======================
+    =======  =====  ===========  ======================  =======================
+    verbose  util.                        Log level 
+    -------  -----  -----------------------------------------------------------
+      n      ()     base logger  module logger(enabled)  module logger(disabled)
+    =======  =====  ===========  ======================  =======================
+      0      write   ERROR        ERROR                   ERROR
+      1      status  WARN         WARN                    WARN
+      2      note    INFO         DEBUG                   INFO
+      3      debug   DEBUG        DEBUG                   INFO
+    =======  =====  ===========  ======================  =======================
     """
 
     formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",
@@ -255,19 +257,13 @@ def log(msg, var=None):
 
     This message will only display, if verbose >= 2. 
     """
-    _logger.info(msg)
-    if var and logging.INFO >= _logger.getEffectiveLevel():
-        pprint(var, sys.stderr, indent=4)
+#    _logger.info(msg)
+#    if var and logging.INFO >= _logger.getEffectiveLevel():
+#        pprint(var, sys.stderr, indent=4)
+    note(msg, var=var)
     
 
-def debug(module, msg, var=None):
-    """Shortcut for logging.getLogger('wsgidav.MODULE').debug(msg)
-    
-    This message will only display, if the module logger was enabled and 
-    verbose >= 2.
-    If module is None, the base logger is used, so the message is only displayed
-    if verbose >= 3. 
-    """
+def _write(msg, var, module, level, flush):  
     if module:
         logger = logging.getLogger(BASE_LOGGER_NAME+"."+module)
         # Disable debug messages for module loggers by default
@@ -275,9 +271,48 @@ def debug(module, msg, var=None):
             logger.setLevel(logging.INFO)
     else:
         logger = _logger
-    logger.debug(msg)
-    if var and logging.DEBUG >= logger.getEffectiveLevel():
-        pprint(var, sys.stderr, indent=4)
+    logger.log(level, msg)
+#    if level >= logger.getEffectiveLevel():
+    if var is not None and level >= logger.getEffectiveLevel():
+        logger.log(level, pformat(var, indent=4))
+    if flush:
+        for hdlr in logger.handlers:
+            hdlr.flush()
+
+def write(msg, var=None, module=None, flush=True):  
+    """Log always."""
+    _write(msg, var, module, logging.CRITICAL, flush)
+def warn(msg, var=None, module=None, flush=True):
+    """Log to stderr."""
+    _write(msg, var, module, logging.ERROR, flush)
+def status(msg, var=None, module=None, flush=True):
+    """Log if not --quiet."""
+    _write(msg, var, module, logging.WARNING, flush)
+def note(msg, var=None, module=None, flush=True):
+    """Log if --verbose."""
+    _write(msg, var, module, logging.INFO, flush)
+def debug(msg, var=None, module=None, flush=True):
+    """Log if --debug."""
+    _write(msg, var, module, logging.DEBUG, flush)
+
+#def debug(module, msg, var=None):
+#    """Shortcut for logging.getLogger('wsgidav.MODULE').debug(msg)
+#    
+#    This message will only display, if the module logger was enabled and 
+#    verbose >= 2.
+#    If module is None, the base logger is used, so the message is only displayed
+#    if verbose >= 3. 
+#    """
+#    if module:
+#        logger = logging.getLogger(BASE_LOGGER_NAME+"."+module)
+#        # Disable debug messages for module loggers by default
+#        if logger.level == logging.NOTSET:
+#            logger.setLevel(logging.INFO)
+#    else:
+#        logger = _logger
+#    logger.debug(msg)
+#    if var and logging.DEBUG >= logger.getEffectiveLevel():
+#        pprint(var, sys.stderr, indent=4)
 
         
 def traceCall(msg=None):
@@ -405,15 +440,52 @@ def getContentLength(environ):
         return 0
 
 
+def readOneByteFromInput(environ):
+    """Read 1 byte from wsgi.input, if this has not been done yet.
+    
+    Returning a response without reading from an request body might confuse the 
+    WebDAV client.  
+    See issue 13, issue 23
+    See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
+
+    This may happen, if an exception like '401 Not authorized', or 
+    '500 Internal error' was raised BEFORE anything was read from the request 
+    stream.
+    Also, if the HTTPAuthenticator middleware rejects such a request.
+    """
+    cl = getContentLength(environ)
+    if cl < 1:
+        return 
+    if environ.get("wsgidav.consumed_body"):
+        return
+    environ["wsgidav.consumed_body"] = 1
+    
+    input = environ["wsgi.input"]
+    if environ.get("wsgidav.is_builtin_server"):
+#    if hasattr(input, "_sock"):
+        try:
+            # Set socket to non-blocking
+            sock = input._sock
+            timeout = sock.gettimeout()
+            sock.settimeout(0)
+            # Read one byte
+            try:
+                n = 1 # cl
+                _c = input.read(1)
+#                _c = input.read(cl)
+                write("Reading %s bytes from potentially unread POST body: '%s'..." % (n, _c[:50]))
+            except socket.error, se:
+                # se(10035, 'The socket operation could not complete without blocking')
+                warn("-> read 1 byte failed: %s" % se)
+            # Restore socket settings
+            sock.settimeout(timeout)
+        except:
+            warn("--> input.read(1): %s" % sys.exc_info())
+
+
 #===============================================================================
 # URLs
 #===============================================================================
-
-#def getUriRealm(uri):
-#    """Return realm, i.e. first part of URI with a leading '/'."""
-#    if uri.strip() in ("", "/"):
-#        return "/"
-#    return uri.strip("/").split("/")[0]
 
 def joinUri(uri, *segments):
     """Append segments to URI.
@@ -596,6 +668,7 @@ def parseXmlBody(environ, allowEmpty=False):
             requestbody = ""
         else:
             requestbody = environ["wsgi.input"].read(contentLength)
+            environ["wsgidav.consumed_body"] = 1
 
     if requestbody == "":
         if allowEmpty:
@@ -976,13 +1049,13 @@ def parseIfHeaderDict(environ):
 
     environ["wsgidav.conditions.if"] = ifDict
     environ["wsgidav.ifLockTokenList"] = ifLockList
-    debug("if", "parseIfHeaderDict", ifDict)
+    debug("parseIfHeaderDict", var=ifDict, module="if")
     return
 
 
 def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
-    debug("if", "testIfHeaderDict(%s, %s, %s)" % (fullurl, locktokenlist, entitytag),
-          dictIf)
+    debug("testIfHeaderDict(%s, %s, %s)" % (fullurl, locktokenlist, entitytag),
+          var=dictIf, module="if")
 
     if fullurl in dictIf:
         listTest = dictIf[fullurl]
@@ -1011,7 +1084,7 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
                 break
         if not matchfailed:
             return True
-    debug("if", "  -> FAILED")
+    debug("  -> FAILED", module="if")
     return False
 
 testIfHeaderDict.__test__ = False # Tell nose to ignore this function
@@ -1022,7 +1095,7 @@ testIfHeaderDict.__test__ = False # Tell nose to ignore this function
 def testLogging():
     enable_loggers = ["test",
                       ]
-    initLogging(0, enable_loggers)
+    initLogging(3, enable_loggers)
     
     _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
     _enabledLogger = getModuleLogger("test")  
@@ -1044,7 +1117,13 @@ def testLogging():
     _disabledLogger.info("_disabledLogger.info")  
     _disabledLogger.warning("_disabledLogger.warning")  
     _disabledLogger.error("_disabledLogger.error")  
+    print >>sys.stderr, ""
 
+    write("util.write()")
+    warn("util.warn()")
+    status("util.status()")
+    note("util.note()")
+    debug("util.debug()")
     
 if __name__ == "__main__":
     testLogging()

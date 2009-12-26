@@ -14,7 +14,8 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
+from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED,\
+    HTTP_NOT_IMPLEMENTED
 import sys
 import urllib
 import util
@@ -35,9 +36,16 @@ class WsgiDavDirBrowser(object):
         
         davres = None
         if environ["wsgidav.provider"]:
-            davres = environ["wsgidav.provider"].getResourceInst(path)
+            davres = environ["wsgidav.provider"].getResourceInst(path, environ)
 
         if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection:
+
+#            if "mozilla" not in environ.get("HTTP_USER_AGENT").lower():
+#                # issue 14: Nautilus sends GET on collections
+#                # http://code.google.com/p/wsgidav/issues/detail?id=14
+#                util.status("Directory browsing disabled for agent '%s'" % environ.get("HTTP_USER_AGENT"))
+#                self._fail(HTTP_NOT_IMPLEMENTED)
+#                return self._application(environ, start_response)
 
             if util.getContentLength(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,

@@ -233,7 +233,7 @@ class RequestServer(object):
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_PROPFIND
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         # RFC: By default, the PROPFIND method without a Depth header MUST act as if a "Depth: infinity" header was included.
         environ.setdefault("HTTP_DEPTH", "infinity")
@@ -325,7 +325,7 @@ class RequestServer(object):
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_PROPPATCH
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         # Only accept Depth: 0 (but assume this, if omitted)
         environ.setdefault("HTTP_DEPTH", "0")
@@ -435,7 +435,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-#        res = provider.getResourceInst(path)
+#        res = provider.getResourceInst(path, environ)
 
         # Do not understand ANY request body entities
         if util.getContentLength(environ) != 0:
@@ -446,11 +446,11 @@ class RequestServer(object):
         if environ.setdefault("HTTP_DEPTH", "0") != "0":
             self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
         
-        if provider.exists(path):
+        if provider.exists(path, environ):
             self._fail(HTTP_METHOD_NOT_ALLOWED,
                        "MKCOL can only be executed on an unmapped URL.")         
 
-        parentRes = provider.getResourceInst(util.getUriParent(path))
+        parentRes = provider.getResourceInst(util.getUriParent(path), environ)
         if not parentRes or not parentRes.isCollection:
             self._fail(HTTP_CONFLICT, "Parent must be an existing collection.")          
 
@@ -481,7 +481,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
 
         # --- Check request preconditions --------------------------------------
         
@@ -570,7 +570,7 @@ class RequestServer(object):
                 self._checkWritePermission(childRes, "0", environ)
                 childRes.delete()
                 # Double-check, if deletion succeeded
-                if provider.exists(childRes.path):
+                if provider.exists(childRes.path, environ):
                     raise DAVError(HTTP_INTERNAL_ERROR, 
                                    "Resource could not be deleted.")
             except Exception, e:
@@ -591,8 +591,8 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
-        parentRes = provider.getResourceInst(util.getUriParent(path))
+        res = provider.getResourceInst(path, environ)
+        parentRes = provider.getResourceInst(util.getUriParent(path), environ)
         
         isnewfile = res is None
 
@@ -634,6 +634,7 @@ class RequestServer(object):
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
                 l = int(environ["wsgi.input"].readline(), 16)
+                environ["wsgidav.consumed_body"] = 1
                 while l > 0:
                     buf = environ["wsgi.input"].read(l)
                     fileobj.write(buf)
@@ -656,6 +657,7 @@ class RequestServer(object):
                 nb = 0
                 try:
                     for s in environ["wsgi.input"]:
+                        environ["wsgidav.consumed_body"] = 1
                         _logger.debug("PUT: read from wsgi.input.__iter__, len=%s" % len(s))
                         fileobj.write(s)
                         nb += len (s)
@@ -670,6 +672,7 @@ class RequestServer(object):
                     readbuffer = environ["wsgi.input"].read(n)
                     # This happens with litmus expect-100 test:
                     assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
+                    environ["wsgidav.consumed_body"] = 1
                     fileobj.write(readbuffer)
                     contentremain -= len(readbuffer)
                      
@@ -705,7 +708,7 @@ class RequestServer(object):
         """
         srcPath = environ["PATH_INFO"]
         provider = self._davProvider
-        srcRes = provider.getResourceInst(srcPath)
+        srcRes = provider.getResourceInst(srcPath, environ)
 
         # --- Check source -----------------------------------------------------
         
@@ -722,6 +725,7 @@ class RequestServer(object):
             # Still clients may send it (e.g. DAVExplorer 0.9.1 File-Copy) sends 
             # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
             body = environ["wsgi.input"].read(util.getContentLength(environ))
+            environ["wsgidav.consumed_body"] = 1
             _logger.info("Ignored copy/move  body: '%s'..." % body[:50])
         
         if srcRes.isCollection:
@@ -776,10 +780,10 @@ class RequestServer(object):
 
         # destPath is now relative to current mount/share starting with '/'
 
-        destRes = provider.getResourceInst(destPath)
+        destRes = provider.getResourceInst(destPath, environ)
         destExists = destRes is not None
 
-        destParentRes = provider.getResourceInst(util.getUriParent(destPath))
+        destParentRes = provider.getResourceInst(util.getUriParent(destPath), environ)
         
         if not destParentRes or not destParentRes.isCollection:
             self._fail(HTTP_CONFLICT, "Destination parent must be a collection.")
@@ -862,11 +866,9 @@ class RequestServer(object):
                         dRes.delete()
         
         # --- Let provider implement recursive move ----------------------------
-        # MOVE is frequently used by clients to rename a file without 
-        # changing its parent collection, so it's not appropriate to 
-        # reset all live properties that are set at resource creation. 
-        # For example, the DAV:creationdate property value SHOULD remain 
-        # the same after a MOVE.
+        # We do this only, if the provider supports it, and no conflicts exist.
+        # A provider can implement this very efficiently, without allocating
+        # double memory as a copy/delete approach would.
         
         if isMove and srcRes.supportRecursiveMove(destPath): 
             hasConflicts = False
@@ -879,19 +881,28 @@ class RequestServer(object):
             
             if not hasConflicts:
                 try:
-                    errorList = srcRes.move(destPath)
+                    _logger.debug("Recursive move: %s -> '%s'" % (srcRes, destPath))
+                    errorList = srcRes.moveRecursive(destPath)
                 except Exception, e:
                     errorList = [ (srcRes.getHref(), asDAVError(e)) ]
                 return self._sendResponse(environ, start_response, 
                                           srcRes, successCode, errorList)
         
-        # --- Copy/move file-by-file using copy/delete ------------------------- 
+        # --- Copy/move file-by-file using copy/delete -------------------------
+
+        # We get here, if 
+        # - the provider does not support recursive moves
+        # - this is a copy request  
+        #   In this case we would probably not win too much by a native provider
+        #   implementation, since we had to handle single child errors anyway.
+        # - the source tree is partially locked
+        #   We would have to pass this information to the native provider.  
         
         # Hidden paths (paths of failed copy/moves) {<src_path>: True, ...}
-        ignoreDict = {}  
+        ignoreDict = {}
         
         for sRes in srcList:
-            # Skip, if there was already an error while processing the parent
+            # Skip this resource, if there was a failure copying a parent 
             parentError = False
             for ignorePath in ignoreDict.keys():
                 if util.isEqualOrChildUri(ignorePath, sRes.path):
@@ -900,13 +911,26 @@ class RequestServer(object):
             if parentError:
                 _logger.debug("Copy: skipping '%s', because of parent error" % sRes.path)
                 continue
-            
+
             try:
                 relUrl = sRes.path[srcRootLen:]
                 dPath = destPath + relUrl
                 
                 self._evaluateIfHeaders(sRes, environ)
-                sRes.copySingle(dPath)
+                
+                # We copy resources and their properties top-down. 
+                # Collections are simply created (without members), for
+                # non-collections bytes are copied (overwriting target)
+                sRes.copyMoveSingle(dPath, isMove)
+                
+                # If copy succeeded, and it was a non-collection delete it now.
+                # So the source tree shrinks while the destination grows and we 
+                # don't have to allocate the memory twice.
+                # We cannot remove collections here, because we have not yet 
+                # copied all children. 
+                if isMove and not sRes.isCollection:
+                    sRes.delete()
+                    
             except Exception, e:
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source 
@@ -915,16 +939,32 @@ class RequestServer(object):
                 # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.8.5
                 errorList.append( (sRes.getHref(), asDAVError(e)) )
 
-        # MOVE: Remove source
+        # MOVE: Remove source tree (bottom-up)
         if isMove:
-            # TODO: use recursive delete, if supported
-            reverseSrcList = srcRes.getDescendants(depthFirst=True, addSelf=True)
+            reverseSrcList = srcList[:]
+            reverseSrcList.reverse()
+            util.status("Delete after move, ignore=", var=ignoreDict)
             for sRes in reverseSrcList:
-                _logger.debug("Remove source after move '%s'" % sRes)
+                # Non-collections have already been removed in the copy loop.    
+                if not sRes.isCollection:
+                    continue
+                # Skip collections that contain errors (unmoved resources)   
+                childError = False
+                for ignorePath in ignoreDict.keys():
+                    if util.isEqualOrChildUri(sRes.path, ignorePath):
+                        childError = True
+                        break
+                if childError:
+                    util.status("Delete after move: skipping '%s', because of child error" % sRes.path)
+                    continue
+
                 try:
+#                    _logger.debug("Remove source after move: %s" % sRes)
+                    util.status("Remove collection after move: %s" % sRes)
                     sRes.delete()
                 except Exception, e:
                     errorList.append( (srcRes.getHref(), asDAVError(e)) )
+            util.status("ErrorList", var=errorList)
                 
         # --- Return response --------------------------------------------------
          
@@ -940,7 +980,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
         lockMan = provider.lockManager
 
         if lockMan is None:
@@ -986,7 +1026,7 @@ class RequestServer(object):
             
             # The lock root may be <path>, or a parent of <path>.
             lockPath = provider.refUrlToPath(lock["root"])
-            lockRes = provider.getResourceInst(lockPath)
+            lockRes = provider.getResourceInst(lockPath, environ)
             
             propEL = util.makePropEL()
             # TODO: handle exceptions in getPropertyValue
@@ -1042,10 +1082,10 @@ class RequestServer(object):
         # Locking unmapped URLs: must create an empty resource
         createdNewResource = False
         if res is None:
-            parentRes = provider.getResourceInst(util.getUriParent(path))
+            parentRes = provider.getResourceInst(util.getUriParent(path), environ)
             if not parentRes.isCollection:
                 self._fail(HTTP_CONFLICT, "LOCK-0 parent must be a collection")
-            res = parentRes.createEmptyResource(util.getUriName(path)) 
+            res = parentRes.createEmptyResource(util.getUriName(path))
             createdNewResource = True
 
         # --- Check, if path is already locked ---------------------------------
@@ -1113,7 +1153,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         lockMan = provider.lockManager
         if lockMan is None:
@@ -1153,7 +1193,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
 
         headers = [("Content-Type", "text/html"),
                    ("Content-Length", "0"),
@@ -1189,7 +1229,7 @@ class RequestServer(object):
             headers.append( ("Allow", "OPTIONS HEAD GET PUT DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
             if res.supportRanges(): 
                 headers.append( ("Allow-Ranges", "bytes") )
-        elif provider.isCollection(util.getUriParent(path)):
+        elif provider.isCollection(util.getUriParent(path), environ):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an non-existing resource
             headers.append( ("Allow", "OPTIONS PUT MKCOL") ) 
@@ -1220,7 +1260,7 @@ class RequestServer(object):
         @see: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         if util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,

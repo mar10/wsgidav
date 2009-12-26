@@ -44,8 +44,8 @@ class FileResource(DAVResource):
 
     See also DAVResource and FilesystemProvider.
     """
-    def __init__(self, provider, path, isCollection, filePath):
-        super(FileResource, self).__init__(provider, path, isCollection)
+    def __init__(self, provider, path, isCollection, environ, filePath):
+        super(FileResource, self).__init__(provider, path, isCollection, environ)
         self._filePath = filePath
         self._dict = None
         # Setting the name from the file path should fix the case on Windows
@@ -176,7 +176,7 @@ class FileResource(DAVResource):
         fp = self.provider._locToFilePath(path)
         f = open(fp, "w")
         f.close()
-        return self.provider.getResourceInst(path)
+        return self.provider.getResourceInst(path, self.environ)
     
 
     def createCollection(self, name):
@@ -236,8 +236,8 @@ class FileResource(DAVResource):
         self.removeAllLocks(True)
             
 
-    def copySingle(self, destPath):
-        """See DAVResource.copySingle() """
+    def copyMoveSingle(self, destPath, isMove):
+        """See DAVResource.copyMoveSingle() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)               
         fpDest = self.provider._locToFilePath(destPath)
@@ -247,7 +247,7 @@ class FileResource(DAVResource):
             if not os.path.exists(fpDest):
                 os.mkdir(fpDest)
             try:
-                # may raise: [Error 5] Zugriff verweigert: u'C:\\temp\\litmus\\ccdest'
+                # may raise: [Error 5] Permission denied: u'C:\\temp\\litmus\\ccdest'
                 shutil.copystat(self._filePath, fpDest)
             except Exception, e:
                 _logger.debug("Could not copy folder stats: %s" % e)
@@ -256,26 +256,36 @@ class FileResource(DAVResource):
             shutil.copy2(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
-        if self.provider.propManager:
-            destRes = self.provider.getResourceInst(destPath)
-            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+        propMan = self.provider.propManager
+        if propMan:
+            destRes = self.provider.getResourceInst(destPath, self.environ)
+            if isMove:
+                propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(), 
+                                       withChildren=False)
+            else:
+                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl())
                
 
-    def move(self, destPath):
-        """See DAVResource.move() """
+    def supportRecursiveMove(self, destPath):
+        """Return True, if moveRecursive() is available (see comments there)."""
+        return True
+
+    
+    def moveRecursive(self, destPath):
+        """See DAVResource.moveRecursive() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)               
         fpDest = self.provider._locToFilePath(destPath)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
-        _logger.debug("move(%s, %s)" % (self._filePath, fpDest))
-        print("move(%s, %s)" % (self._filePath, fpDest))
+        _logger.debug("moveRecursive(%s, %s)" % (self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
-        # Copy dead properties
+        # Move dead properties
         if self.provider.propManager:
-            destRes = self.provider.getResourceInst(destPath)
-            self.provider.propManager.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+            destRes = self.provider.getResourceInst(destPath, self.environ)
+            self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(), 
+                                                     withChildren=True)
                
 
 
@@ -314,7 +324,7 @@ class FilesystemProvider(DAVProvider):
         return r  
 
     
-    def getResourceInst(self, path):
+    def getResourceInst(self, path, environ):
         """Return info dictionary for path.
 
         See DAVProvider.getResourceInst()
@@ -323,4 +333,4 @@ class FilesystemProvider(DAVProvider):
         fp = self._locToFilePath(path)
         if not os.path.exists(fp):
             return None
-        return FileResource(self, path, os.path.isdir(fp), fp)
+        return FileResource(self, path, os.path.isdir(fp), environ, fp)

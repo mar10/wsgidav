@@ -147,6 +147,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                "wsgi.multithread": 1,
                "wsgi.multiprocess": 0,
                "wsgi.run_once": 0,
+               "wsgidav.is_builtin_server": 1,
                "REQUEST_METHOD": self.command,
                "SCRIPT_NAME": scriptName,
                "PATH_INFO": pathInfo,
