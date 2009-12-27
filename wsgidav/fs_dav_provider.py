@@ -76,8 +76,8 @@ class FileResource(DAVResource):
             displayType = "Unknown"
         
         self._dict = {
-            "contentLength": None, # TODO: remove?
-            "contentType": None, #"text/html", # TODO: should be None?
+            "contentLength": None,
+            "contentType": None, 
             "created": statresults[stat.ST_CTIME],
             "displayType": displayType,
             "etag": util.getETag(self._filePath), # TODO: should be resource-only?
@@ -149,15 +149,15 @@ class FileResource(DAVResource):
 
 
     # --- Properties -----------------------------------------------------------
+    # TODO: RFC 4918 states that {DAV:}displayname 'SHOULD NOT be protected' 
+    # so we could implement {DAV:}displayname as RW, if propMan is available
+    # Maybe in a 'create-on-write' way.   
+    # http://www.webdav.org/specs/rfc4918.html#rfc.section.15.2     
 #    def setPropertyValue(self, propname, value, dryRun=False):
 #        """Set a property value or remove a property.
 #        
 #        See DAVResource.setPropertyValue(). 
 #        """
-#        # TODO: RFC 4918 states that {DAV:}displayname 'SHOULD NOT be protected' 
-#        # so we could implement {DAV:}displayname as RW, if propMan is available
-#        # Maybe in a 'create-on-write' way.   
-#        # http://www.webdav.org/specs/rfc4918.html#rfc.section.15.2     
 #        raise DAVError(HTTP_FORBIDDEN) 
 
 

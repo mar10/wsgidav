@@ -237,7 +237,7 @@ def _initConfig():
 
 
 
-def _runPaste(app, config):
+def _runPaste(app, config, mode):
     """Run WsgiDAV using paste.httpserver, if Paste is installed.
     
     See http://pythonpaste.org/modules/httpserver.html for more options
@@ -264,7 +264,7 @@ def _runPaste(app, config):
 
 
 
-def _runCherryPy(app, config):
+def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver, if CherryPy is installed."""
     try:
         # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
@@ -285,7 +285,36 @@ def _runCherryPy(app, config):
 
 
 
-def _runSimpleServer(app, config):
+def _runFlup(app, config, mode):
+    """Run WsgiDAV using flup.server.fcgi, if Flup is installed."""
+    try:
+        # http://trac.saddi.com/flup/wiki/FlupServers
+        if mode == "flup-fcgi":  
+            from flup.server.fcgi import WSGIServer, __version__ as flupver
+        elif mode == "flup-fcgi_fork":
+            from flup.server.fcgi_fork import WSGIServer, __version__ as flupver
+        else:
+            raise ValueError    
+
+        if config["verbose"] >= 2:
+            print "Running WsgiDAV %s on %s..." % (__version__,
+                                                   WSGIServer.__module__)
+        server = WSGIServer(app,
+                            bindAddress=(config["host"], config["port"]),
+#                            bindAddress=("127.0.0.1", 8001),
+#                            debug=True,
+                            )
+        server.run()
+    except ImportError, e:
+        if config["verbose"] >= 1:
+            print "Could not import flup.server.fcgi", e
+        return False
+    return True
+
+
+
+
+def _runSimpleServer(app, config, mode):
     """Run WsgiDAV using wsgiref.simple_server, on Python 2.5+."""
     try:
         # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
@@ -304,7 +333,7 @@ def _runSimpleServer(app, config):
 
 
 
-def _runBuiltIn(app, config):
+def _runBuiltIn(app, config, mode):
     """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     try:
         import ext_wsgiutils_server
@@ -321,6 +350,7 @@ def _runBuiltIn(app, config):
 SUPPORTED_SERVERS = {"paste": _runPaste,
                      "cherrypy": _runCherryPy,
                      "wsgiref": _runSimpleServer,
+                     "flup-fcgi": _runFlup,
                      "wsgidav": _runBuiltIn,
                      }
 
@@ -336,7 +366,7 @@ def run():
         fn = SUPPORTED_SERVERS.get(e)
         if fn is None:
             print "Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys()))
-        elif fn(app, config):
+        elif fn(app, config, e):
             res = True
             break
     
