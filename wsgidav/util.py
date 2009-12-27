@@ -177,16 +177,16 @@ def initLogging(verbose=2, enable_loggers=[]):
     
     Log level matrix
     ~~~~~~~~~~~~~~~~
-    =======  =====  ===========  ======================  =======================
-    verbose  util.                        Log level 
-    -------  -----  -----------------------------------------------------------
-      n      ()     base logger  module logger(enabled)  module logger(disabled)
-    =======  =====  ===========  ======================  =======================
+    =======  ======  ===========  ======================  =======================
+    verbose  util                        Log level 
+    -------  ------  ------------------------------------------------------------
+      n      ()      base logger  module logger(enabled)  module logger(disabled)
+    =======  ======  ===========  ======================  =======================
       0      write   ERROR        ERROR                   ERROR
       1      status  WARN         WARN                    WARN
       2      note    INFO         DEBUG                   INFO
       3      debug   DEBUG        DEBUG                   INFO
-    =======  =====  ===========  ======================  =======================
+    =======  ======  ===========  ======================  =======================
     """
 
     formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",

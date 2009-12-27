@@ -11,13 +11,9 @@ This module implements DAVResource and DAVProvider objects.
 DAVResource
 -----------
 Represents an existing (i.e. mapped) WebDAV resource or collection.
-A DAVResource object is created by a call the DAVProvider::
+A DAVResource object is created by a call to the DAVProvider.
 
-    res = provider.getResourceInst(path, environ)
-    if res is None:
-        raise DAVError(HTTP_NOT_FOUND)
-
-The resource then may be used to query different attributes like ``res.name``,
+The resource may then be used to query different attributes like ``res.name``,
 ``res.isCollection``, ``res.getContentLength()``, and ``res.supportEtag()``. 
 
 It also implements operations, that require an *existing* resource, like:
@@ -61,9 +57,9 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 
+
 Supporting Objects
 ------------------
-
 The DAVProvider takes two supporting objects:   
    
 propertyManager

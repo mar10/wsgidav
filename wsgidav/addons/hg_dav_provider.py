@@ -126,8 +126,8 @@ class HgResource(DAVResource):
         
     def getMemberNames(self):
         assert self.isCollection
-        tree = self.environ.get("wsgidav.hg.tree")
-        dirinfos = tree["dirinfos"] 
+        cache = self.environ.get("wsgidav.hg.cache")
+        dirinfos = cache["dirinfos"] 
         return dirinfos[self.path][0] + dirinfos[self.path][1] 
 #        return self.provider._listMembers(self.path)
 
@@ -158,9 +158,9 @@ class HgResource(DAVResource):
         See getPropertyValue()
         """
         # Supported custom live properties
-        tree = self.environ.get("wsgidav.hg.tree")
+        cache = self.environ.get("wsgidav.hg.cache")
         if propname == "{hg:}status":
-            return tree["filestats"][self.path]
+            return cache["filestats"][self.path]
         elif propname == "{hg:}branch":
             return self.fctx.branch()
 #        elif propname == "{hg:}changectx":
@@ -304,40 +304,45 @@ class HgResourceProvider(DAVProvider):
     def _readTree(self, rev=None):
         """Return a dictionary containing all files under source control.
 
-        files: sorted list of all file paths under source control
-        filestats: {filepath: status, ...}
-        dirinfos: {folderpath: (collectionlist, filelist), ...}
+        files: 
+            sorted list of all file paths under source control
+        filestats:
+            {filepath: status, ...}
+        dirinfos: 
+            {folderpath: (collectionlist, filelist), ...}
         
-        {'dirinfos': {'/': (['wsgidav',
-                             'tools',
-                             '.settings',
-                             'WsgiDAV.egg-info',
-                             'tests'],
-                            ['index.rst',
-                             'wsgidav MAKE_DAILY_BUILD.launch',
-                             'wsgidav run_server.py DEBUG.launch',
-                             'wsgidav run_server.py RELEASE.launch',
-                             'wsgidav test_all.py.launch',
-                             'wsgidav-paste.conf',
-                             ...
-                             'setup.py']),
-                      '/wsgidav': (['addons', 'samples', 'server', 'interfaces'],
-                                   ['__init__.pyc',
-                                    'dav_error.pyc',
-                                    'dav_provider.pyc',
-                                    ...
-                                    'wsgidav_app.py']),
-                        },
-         'files': ['/.hgignore',
-                   '/ADDONS.txt',
-                   '/wsgidav/addons/mysql_dav_provider.py',
-                   ...
-                   ],
-         'filestats': {'/.hgignore': 'C',
-                       '/README.txt': 'C',
-                       '/WsgiDAV.egg-info/PKG-INFO': 'I',
-                       }
-                       }
+        ::
+        
+            {'dirinfos': {'/': (['wsgidav',
+                                 'tools',
+                                 '.settings',
+                                 'WsgiDAV.egg-info',
+                                 'tests'],
+                                ['index.rst',
+                                 'wsgidav MAKE_DAILY_BUILD.launch',
+                                 'wsgidav run_server.py DEBUG.launch',
+                                 'wsgidav run_server.py RELEASE.launch',
+                                 'wsgidav test_all.py.launch',
+                                 'wsgidav-paste.conf',
+                                 ...
+                                 'setup.py']),
+                          '/wsgidav': (['addons', 'samples', 'server', 'interfaces'],
+                                       ['__init__.pyc',
+                                        'dav_error.pyc',
+                                        'dav_provider.pyc',
+                                        ...
+                                        'wsgidav_app.py']),
+                            },
+             'files': ['/.hgignore',
+                       '/ADDONS.txt',
+                       '/wsgidav/addons/mysql_dav_provider.py',
+                       ...
+                       ],
+             'filestats': {'/.hgignore': 'C',
+                           '/README.txt': 'C',
+                           '/WsgiDAV.egg-info/PKG-INFO': 'I',
+                           }
+                           }
         """
         start_time = time.time()
         self.ui.pushbuffer()
@@ -368,7 +373,7 @@ class HgResourceProvider(DAVProvider):
             filestats[file] = stat
         files.sort()
         util.status("_readTree() took %s" % (time.time() - start_time))
-#        pprint(tree)
+#        pprint(cache)
         return {"files": files,
                 "dirinfos": dirinfos,
                 "filestats": filestats,
@@ -416,20 +421,20 @@ class HgResourceProvider(DAVProvider):
         """
         self._count_getResourceInst += 1
 
-        if environ.get("wsgidav.hg.tree"):
-            tree = environ.get("wsgidav.hg.tree")
+        if environ.get("wsgidav.hg.cache"):
+            cache = environ.get("wsgidav.hg.cache")
         else:
-            tree = self._readTree()
-            environ["wsgidav.hg.tree"] = tree
+            cache = self._readTree()
+            environ["wsgidav.hg.cache"] = cache
         
 #        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
         #info = self._identify(path)
         p = "/" + path.strip("/")
-        if p in tree["filestats"]:
+        if p in cache["filestats"]:
             # It is a version controlled file
             return HgResource(self, path, False, environ)
         
-        if p in tree["dirinfos"]:
+        if p in cache["dirinfos"]:
             # It is an existing folder
             return HgResource(self, p, True, environ)
         return None
