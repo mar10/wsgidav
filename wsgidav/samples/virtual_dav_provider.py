@@ -43,15 +43,18 @@ Compared to a published file system, we have these main differences:
 #. Some paths may be hidden, i.e. by_key is not browsable (but can be referenced)
    TODO: is this WebDAV compliant? 
  
-The Layout is built like this::
+The *database* is a simple hard coded variable ``_resourceData``, that contains 
+a list of resource description dictionaries.
 
-    <share>/
-        category1_name/
-            category1_key/
-                Resource title/
-                    Artifact name/
+A resource is served as an collection, which is generated on-the-fly and 
+contains some virtual files (*artifacts*). 
 
-For example::
+In general, a URL is interpreted like this::
+
+  <share>/<category-type>/<category-key>/<resource-name>/<artifact-name>
+
+
+An example layout::
             
     <share>/
         by_tag/
@@ -87,34 +90,11 @@ For example::
             3/
             
 When accessed using WebDAV, the following URLs both return the same resource 
-'spec.doc'::
+'My doc 1'::
 
-  <realm>/ou/development/spec.doc
-  <realm>/type/doc/spec.doc
-
-In general, a URL is interpreted like this::
-
-  /<category-type>/<category>/<name>
-
-The *database* is a simple hard coded variable ``_resourceData``, that contains 
-a list of resource dictionaries.
-
-A resource is served as an descriptive HTML file, which is generated 
-on-the-fly. 
-Resources may contain files, which are linked from the HTML file.
-By appending "/content", it is possible to address the file data::
-
-  /<category-type>/<category>/<name>/content
-
-Additionally the special category-type *key* can be used to address a resource 
-(or resource content) by key:: 
-
-  /by_key/<key>
-  /by_key/<key>/content
-
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
-
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
+    <share>/by_tag/cool/My doc 1 
+    <share>/by_tag/hot/My doc 1
+    <share>/by_key/1
 """
 import urllib
 
