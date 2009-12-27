@@ -77,7 +77,7 @@ class FileResource(DAVResource):
         
         self._dict = {
             "contentLength": None, # TODO: remove?
-            "contentType": "text/html", # TODO: should be None?
+            "contentType": None, #"text/html", # TODO: should be None?
             "created": statresults[stat.ST_CTIME],
             "displayType": displayType,
             "etag": util.getETag(self._filePath), # TODO: should be resource-only?
@@ -85,12 +85,13 @@ class FileResource(DAVResource):
             }
         # Some resource-only infos: 
         if isFile:
+            self._dict["contentLength"] = statresults[stat.ST_SIZE]
+        
             (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
             if not mimetype:
                 mimetype = "application/octet-stream" 
             self._dict["contentType"] = mimetype
 
-            self._dict["contentLength"] = statresults[stat.ST_SIZE]
         return
 
     
