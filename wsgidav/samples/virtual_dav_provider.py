@@ -193,8 +193,8 @@ def _getResByKey(key):
 #===============================================================================
 class _VirtualResource(DAVResource):
     """Abstract base class for all resources."""
-    def __init__(self, provider, path, isCollection):
-        super(_VirtualResource, self).__init__(provider, path, isCollection)
+    def __init__(self, provider, path, isCollection, environ):
+        super(_VirtualResource, self).__init__(provider, path, isCollection, environ)
 
     def getContentLength(self):
         return None
@@ -222,8 +222,8 @@ class _VirtualResource(DAVResource):
 
 class VirtualResCollection(_VirtualResource):
     """Collection resource, that contains a list of names."""
-    def __init__(self, provider, path, nameList):
-        _VirtualResource.__init__(self, provider, path, True)
+    def __init__(self, provider, path, environ, nameList):
+        _VirtualResource.__init__(self, provider, path, True, environ)
         self._nameList = nameList
     def displayType(self):
         return "Category"
@@ -242,8 +242,8 @@ class VirtualResource(_VirtualResource):
                        "{virtres:}tags",
                        "{virtres:}description",
                        ]
-    def __init__(self, provider, path, data):
-        _VirtualResource.__init__(self, provider, path, True)
+    def __init__(self, provider, path, environ, data):
+        _VirtualResource.__init__(self, provider, path, True, environ)
         self._data = data
         self._nameList = _artifactNames[:] # Use a copy
         for f in data["resPathList"]:
@@ -361,9 +361,9 @@ class VirtualResource(_VirtualResource):
 
 class VirtualArtifact(_VirtualResource):
     """A virtual file, containing resource descriptions."""
-    def __init__(self, provider, path, data, name):
+    def __init__(self, provider, path, environ, data, name):
         assert name in _artifactNames
-        _VirtualResource.__init__(self, provider, path, False)
+        _VirtualResource.__init__(self, provider, path, False, environ)
         assert self.name == name
         self._data = data
 
@@ -435,9 +435,9 @@ class VirtualArtifact(_VirtualResource):
 
 class VirtualResFile(_VirtualResource):
     """Represents an existing file, that is a member of a VirtualResource."""
-    def __init__(self, provider, path, data, filePath):
+    def __init__(self, provider, path, environ, data, filePath):
 #        assert os.path.exists(filePath)
-        _VirtualResource.__init__(self, provider, path, False)
+        _VirtualResource.__init__(self, provider, path, False, environ)
         self._data = data
         self.filePath = filePath
 
@@ -487,7 +487,7 @@ class VirtualResourceProvider(DAVProvider):
         self.resourceData = _resourceData
         
 
-    def getResourceInst(self, path):
+    def getResourceInst(self, path, environ):
         """Return _VirtualResource object for path.
         
         path is expected to be 
@@ -510,7 +510,7 @@ class VirtualResourceProvider(DAVProvider):
             # Accessing /by_key/<key>
             data = _getResByKey(cat)
             if data:
-                return VirtualResource(self, path, data)
+                return VirtualResource(self, path, environ, data)
             return None
             
         elif resName:
@@ -525,21 +525,21 @@ class VirtualResourceProvider(DAVProvider):
             # Accessing /<catType>/<cat>/<name>
             if artifactName in _artifactNames:
                 # Accessing /<catType>/<cat>/<name>/.info.html, or similar
-                return VirtualArtifact(self, path, res, artifactName)
+                return VirtualArtifact(self, path, environ, res, artifactName)
             elif artifactName:
                 # Accessing /<catType>/<cat>/<name>/<file-name>
                 for f in res["resPathList"]:
                     if artifactName == os.path.basename(f):
-                        return VirtualResFile(self, path, res, f)
+                        return VirtualResFile(self, path, environ, res, f)
                 return None
             # Accessing /<catType>/<cat>/<name>
-            return VirtualResource(self, path, data) 
+            return VirtualResource(self, path, environ, data) 
                  
         elif cat:
             # Accessing /catType/cat: return list of matching names
             resList = _getResListByAttr(catType, cat)
             nameList = [ data["title"] for data in resList ]
-            return VirtualResCollection(self, path, nameList)
+            return VirtualResCollection(self, path, environ, nameList)
         
         elif catType: 
             # Accessing /catType/: return all possible values for this catType
@@ -557,9 +557,9 @@ class VirtualResourceProvider(DAVProvider):
                             if not tag in resList:
                                 resList.append(tag)
                         
-                return VirtualResCollection(self, path, resList)
+                return VirtualResCollection(self, path, environ, resList)
             # Known category type, but not browsable (e.g. 'by_key')
             raise DAVError(HTTP_FORBIDDEN)
                  
         # Accessing /: return list of categories
-        return VirtualResCollection(self, path, _browsableCategories)
+        return VirtualResCollection(self, path, environ, _browsableCategories)

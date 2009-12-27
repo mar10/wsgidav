@@ -44,8 +44,8 @@ class FileResource(DAVResource):
 
     See also DAVResource and FilesystemProvider.
     """
-    def __init__(self, provider, path, isCollection, filePath):
-        super(FileResource, self).__init__(provider, path, isCollection)
+    def __init__(self, provider, path, isCollection, environ, filePath):
+        super(FileResource, self).__init__(provider, path, isCollection, environ)
         self._filePath = filePath
         self._dict = None
         # Setting the name from the file path should fix the case on Windows
@@ -176,7 +176,7 @@ class FileResource(DAVResource):
         fp = self.provider._locToFilePath(path)
         f = open(fp, "w")
         f.close()
-        return self.provider.getResourceInst(path)
+        return self.provider.getResourceInst(path, self.environ)
     
 
     def createCollection(self, name):
@@ -258,7 +258,7 @@ class FileResource(DAVResource):
         # Copy dead properties
         propMan = self.provider.propManager
         if propMan:
-            destRes = self.provider.getResourceInst(destPath)
+            destRes = self.provider.getResourceInst(destPath, self.environ)
             if isMove:
                 propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(), 
                                        withChildren=False)
@@ -283,7 +283,7 @@ class FileResource(DAVResource):
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
         if self.provider.propManager:
-            destRes = self.provider.getResourceInst(destPath)
+            destRes = self.provider.getResourceInst(destPath, self.environ)
             self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(), 
                                                      withChildren=True)
                
@@ -324,7 +324,7 @@ class FilesystemProvider(DAVProvider):
         return r  
 
     
-    def getResourceInst(self, path):
+    def getResourceInst(self, path, environ):
         """Return info dictionary for path.
 
         See DAVProvider.getResourceInst()
@@ -333,4 +333,4 @@ class FilesystemProvider(DAVProvider):
         fp = self._locToFilePath(path)
         if not os.path.exists(fp):
             return None
-        return FileResource(self, path, os.path.isdir(fp), fp)
+        return FileResource(self, path, os.path.isdir(fp), environ, fp)

@@ -13,7 +13,7 @@ DAVResource
 Represents an existing (i.e. mapped) WebDAV resource or collection.
 A DAVResource object is created by a call the DAVProvider::
 
-    res = provider.getResourceInst(path)
+    res = provider.getResourceInst(path, environ)
     if res is None:
         raise DAVError(HTTP_NOT_FOUND)
 
@@ -25,7 +25,7 @@ It also implements operations, that require an *existing* resource, like:
 
 Usage::
 
-    res = provider.getResourceInst(path)
+    res = provider.getResourceInst(path, environ)
     if res is not None:
         print res.getName()
 
@@ -125,7 +125,7 @@ class DAVResource(object):
 
     Instances of this class are created through the DAVProvider::
         
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
         if res and res.isCollection:
             print res.getDisplayName()
             
@@ -137,6 +137,7 @@ class DAVResource(object):
         res.provider
         res.name
         res.isCollection
+        res.environ
     
     Querying other attributes is considered 'expensive' and may be delayed until 
     the first access. 
@@ -163,11 +164,12 @@ class DAVResource(object):
 
     See also DAVProvider.getResourceInst().
     """
-    def __init__(self, provider, path, isCollection):
+    def __init__(self, provider, path, isCollection, environ):
         assert path=="" or path.startswith("/")
         self.provider = provider
         self.path = path
         self.isCollection = isCollection
+        self.environ = environ
         self.name = util.getUriName(self.path)
     
     
@@ -261,17 +263,6 @@ class DAVResource(object):
         return self.getEtag() is not None
     def supportModified(self):
         return self.getLastModified() is not None
-    
-#    def supportNativeCopy(self):
-#        """Return True, if provider handles copying by itself."""
-#        return False
-#    def supportNativeDelete(self):
-#        """Return True, if provider handles deleting by itself."""
-#        return False
-#    def supportNativeMove(self):
-#        """Return True, if provider handles moving by itself."""
-#        return False
-    
     
     def getPreferredPath(self):
         """Return preferred mapping for a resource mapping.
@@ -390,7 +381,7 @@ class DAVResource(object):
         if depth != "0" and self.isCollection:
             pathPrefix = self.path.rstrip("/") + "/"
             for name in self.getMemberNames():
-                child = self.provider.getResourceInst(pathPrefix + name)
+                child = self.provider.getResourceInst(pathPrefix + name, self.environ)
                 assert child, "Could not read resource inst '%s'" % (pathPrefix + name)
                 want = (collections and child.isCollection) or (resources and not child.isCollection)
                 if want and not depthFirst: 
@@ -575,7 +566,7 @@ class DAVResource(object):
                 #       
 #                lockRoot = self.getHref(self.provider.refUrlToPath(lock["root"]))
                 lockPath = self.provider.refUrlToPath(lock["root"])
-                lockRes = self.provider.getResourceInst(lockPath)
+                lockRes = self.provider.getResourceInst(lockPath, self.environ)
                 lockHref = lockRes.getHref()
 #                print "lockedRoot: %s -> href=%s" % (lockPath, lockHref)
 
@@ -1027,38 +1018,6 @@ class DAVResource(object):
         raise DAVError(HTTP_FORBIDDEN)               
 
 
-# This would NOT work, since we would call moveSingle() top-down.
-# So the source children would be deleted, before we copy them. 
-
-#    def moveSingle(self, destPath):
-#        """Move this resource to destPath (non-recursive).
-#        
-#        Preconditions (to be ensured by caller):
-#        
-#          - there must not be any conflicting locks on destination
-#          - destPath does not exist
-#          - destPath parent exists and is a collection
-#          - destPath must not be a child path of this resource
-#
-#        This function
-#        
-#          - moves a non-collection resource destPath.
-#          - MUST NOT move associated locks.
-#            Instead, if the source (or children thereof) have locks, then
-#            these locks should be removed.
-#          - SHOULD maintain associated live properties, when applicable
-#            See http://www.webdav.org/specs/rfc4918.html#dav.properties
-#          - MUST maintain associated dead properties
-#          - raises HTTP_FORBIDDEN for read-only resources
-#          - raises HTTP_INTERNAL_ERROR on error
-#        
-#        This method MUST be implemented by all providers that support write 
-#        access.
-#        """
-#        self.copyMoveSingle(destPath)
-#        self.delete()    
-
-
 #===============================================================================
 # DAVProvider
 #===============================================================================
@@ -1125,16 +1084,17 @@ class DAVProvider(object):
         return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
 
-    def getResourceInst(self, path):
+    def getResourceInst(self, path, environ):
         """Return a DAVResource object for path.
 
         Should be called only once per request and resource::
             
-            res = provider.getResourceInst(path)
+            res = provider.getResourceInst(path, environ)
             if res and not res.isCollection:
                 print res.getContentType()
         
         If <path> does not exist, None is returned.
+        <environ> may be used by the provider to implement per-request caching.
         
         See DAVResource for details.
 
@@ -1143,7 +1103,7 @@ class DAVProvider(object):
         raise NotImplementedError()
 
 
-    def exists(self, path):
+    def exists(self, path, environ):
         """Return True, if path maps to an existing resource.
 
         This method should only be used, if no other information is queried
@@ -1151,14 +1111,14 @@ class DAVProvider(object):
         
         This method SHOULD be overridden by a more efficient implementation.
         """
-        return self.getResourceInst(path) is not None
+        return self.getResourceInst(path, environ) is not None
 
 
-    def isCollection(self, path):
+    def isCollection(self, path, environ):
         """Return True, if path maps to a collection resource.
 
         This method should only be used, if no other information is queried
         for <path>. Otherwise a DAVResource should be created first.
         """
-        res = self.getResourceInst(path)
+        res = self.getResourceInst(path, environ)
         return res and res.isCollection

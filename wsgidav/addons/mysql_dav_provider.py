@@ -66,11 +66,10 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 .. _abstractionlayerinterface : interfaces/abstractionlayerinterface.py
 """
 from wsgidav.dav_provider import DAVProvider, DAVResource
-#from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty
-import MySQLdb
+import MySQLdb  #@UnresolvedImport
 import md5
 import time
 import csv
@@ -89,8 +88,8 @@ class MySQLBrowserResource(DAVResource):
 
     See also DAVResource and MySQLBrowserProvider.
     """
-    def __init__(self, provider, path, isCollection):
-        super(MySQLBrowserResource, self).__init__(provider, path, isCollection)
+    def __init__(self, provider, path, isCollection, environ):
+        super(MySQLBrowserResource, self).__init__(provider, path, isCollection, environ)
         self._dict = None
 
     
@@ -123,7 +122,6 @@ class MySQLBrowserResource(DAVResource):
                 displayRemarks = "Attributes available as properties"
 
         # Avoid calling isCollection, since it would call isExisting -> _initConnection 
-#        isCollection = self.isCollection(path)
         isCollection = primKey is None
         
         self._dict = {"contentLength": None,
@@ -484,7 +482,7 @@ class MySQLBrowserProvider(DAVProvider):
         return retlist
         
 
-    def getResourceInst(self, path):
+    def getResourceInst(self, path, environ):
         """Return info dictionary for path.
         
         See getResourceInst()
@@ -493,14 +491,14 @@ class MySQLBrowserProvider(DAVProvider):
         #       At least compared to PyFileServer, which simply used string 
         #       functions to get displayType and displayRemarks  
         self._count_getResourceInst += 1
-        if not self.exists(path):
+        if not self.exists(path, environ):
             return None
         _tableName, primKey = self._splitPath(path)
         isCollection = primKey is None 
         return MySQLBrowserResource(self, path, isCollection)
     
 
-    def exists(self, path):
+    def exists(self, path, environ):
         tableName, primKey = self._splitPath(path)
         if path == "/":
             return True
@@ -519,6 +517,6 @@ class MySQLBrowserProvider(DAVProvider):
             conn.close()
 
     
-    def isCollection(self, path):
+    def isCollection(self, path, environ):
         _tableName, primKey = self._splitPath(path)
-        return self.exists(path) and primKey is None 
+        return self.exists(path, environ) and primKey is None 

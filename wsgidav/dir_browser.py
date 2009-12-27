@@ -36,7 +36,7 @@ class WsgiDavDirBrowser(object):
         
         davres = None
         if environ["wsgidav.provider"]:
-            davres = environ["wsgidav.provider"].getResourceInst(path)
+            davres = environ["wsgidav.provider"].getResourceInst(path, environ)
 
         if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection:
 

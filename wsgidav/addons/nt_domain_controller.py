@@ -75,10 +75,9 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 """
 from wsgidav import util
 
-import win32net
-import win32security
-#import win32api
-import win32netcon
+import win32net    #@UnresolvedImport
+import win32security #@UnresolvedImport
+import win32netcon #@UnresolvedImport
 
 __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)

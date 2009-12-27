@@ -233,7 +233,7 @@ class RequestServer(object):
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_PROPFIND
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         # RFC: By default, the PROPFIND method without a Depth header MUST act as if a "Depth: infinity" header was included.
         environ.setdefault("HTTP_DEPTH", "infinity")
@@ -325,7 +325,7 @@ class RequestServer(object):
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_PROPPATCH
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         # Only accept Depth: 0 (but assume this, if omitted)
         environ.setdefault("HTTP_DEPTH", "0")
@@ -435,7 +435,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-#        res = provider.getResourceInst(path)
+#        res = provider.getResourceInst(path, environ)
 
         # Do not understand ANY request body entities
         if util.getContentLength(environ) != 0:
@@ -446,11 +446,11 @@ class RequestServer(object):
         if environ.setdefault("HTTP_DEPTH", "0") != "0":
             self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
         
-        if provider.exists(path):
+        if provider.exists(path, environ):
             self._fail(HTTP_METHOD_NOT_ALLOWED,
                        "MKCOL can only be executed on an unmapped URL.")         
 
-        parentRes = provider.getResourceInst(util.getUriParent(path))
+        parentRes = provider.getResourceInst(util.getUriParent(path), environ)
         if not parentRes or not parentRes.isCollection:
             self._fail(HTTP_CONFLICT, "Parent must be an existing collection.")          
 
@@ -481,7 +481,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
 
         # --- Check request preconditions --------------------------------------
         
@@ -570,7 +570,7 @@ class RequestServer(object):
                 self._checkWritePermission(childRes, "0", environ)
                 childRes.delete()
                 # Double-check, if deletion succeeded
-                if provider.exists(childRes.path):
+                if provider.exists(childRes.path, environ):
                     raise DAVError(HTTP_INTERNAL_ERROR, 
                                    "Resource could not be deleted.")
             except Exception, e:
@@ -591,8 +591,8 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
-        parentRes = provider.getResourceInst(util.getUriParent(path))
+        res = provider.getResourceInst(path, environ)
+        parentRes = provider.getResourceInst(util.getUriParent(path), environ)
         
         isnewfile = res is None
 
@@ -708,7 +708,7 @@ class RequestServer(object):
         """
         srcPath = environ["PATH_INFO"]
         provider = self._davProvider
-        srcRes = provider.getResourceInst(srcPath)
+        srcRes = provider.getResourceInst(srcPath, environ)
 
         # --- Check source -----------------------------------------------------
         
@@ -780,10 +780,10 @@ class RequestServer(object):
 
         # destPath is now relative to current mount/share starting with '/'
 
-        destRes = provider.getResourceInst(destPath)
+        destRes = provider.getResourceInst(destPath, environ)
         destExists = destRes is not None
 
-        destParentRes = provider.getResourceInst(util.getUriParent(destPath))
+        destParentRes = provider.getResourceInst(util.getUriParent(destPath), environ)
         
         if not destParentRes or not destParentRes.isCollection:
             self._fail(HTTP_CONFLICT, "Destination parent must be a collection.")
@@ -980,7 +980,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
         lockMan = provider.lockManager
 
         if lockMan is None:
@@ -1026,7 +1026,7 @@ class RequestServer(object):
             
             # The lock root may be <path>, or a parent of <path>.
             lockPath = provider.refUrlToPath(lock["root"])
-            lockRes = provider.getResourceInst(lockPath)
+            lockRes = provider.getResourceInst(lockPath, environ)
             
             propEL = util.makePropEL()
             # TODO: handle exceptions in getPropertyValue
@@ -1082,10 +1082,10 @@ class RequestServer(object):
         # Locking unmapped URLs: must create an empty resource
         createdNewResource = False
         if res is None:
-            parentRes = provider.getResourceInst(util.getUriParent(path))
+            parentRes = provider.getResourceInst(util.getUriParent(path), environ)
             if not parentRes.isCollection:
                 self._fail(HTTP_CONFLICT, "LOCK-0 parent must be a collection")
-            res = parentRes.createEmptyResource(util.getUriName(path)) 
+            res = parentRes.createEmptyResource(util.getUriName(path))
             createdNewResource = True
 
         # --- Check, if path is already locked ---------------------------------
@@ -1153,7 +1153,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         lockMan = provider.lockManager
         if lockMan is None:
@@ -1193,7 +1193,7 @@ class RequestServer(object):
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        res = provider.getResourceInst(path)
+        res = provider.getResourceInst(path, environ)
 
         headers = [("Content-Type", "text/html"),
                    ("Content-Length", "0"),
@@ -1229,7 +1229,7 @@ class RequestServer(object):
             headers.append( ("Allow", "OPTIONS HEAD GET PUT DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
             if res.supportRanges(): 
                 headers.append( ("Allow-Ranges", "bytes") )
-        elif provider.isCollection(util.getUriParent(path)):
+        elif provider.isCollection(util.getUriParent(path), environ):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an non-existing resource
             headers.append( ("Allow", "OPTIONS PUT MKCOL") ) 
@@ -1260,7 +1260,7 @@ class RequestServer(object):
         @see: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.getResourceInst(path)
+        res = self._davProvider.getResourceInst(path, environ)
 
         if util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
