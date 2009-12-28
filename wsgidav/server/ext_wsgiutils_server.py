@@ -160,7 +160,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                "SERVER_PROTOCOL": self.request_version,
                }
         for httpHeader, httpValue in self.headers.items():
-            if not httpHeader in ("Content-Type", "Content-Length"):
+            if not httpHeader.lower() in ("content-type", "content-length"):
                 env ["HTTP_%s" % httpHeader.replace ("-", "_").upper()] = httpValue
 #        print env["REQUEST_METHOD"], env.get("HTTP_AUTHORIZATION")
 
