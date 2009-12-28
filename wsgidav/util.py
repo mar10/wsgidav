@@ -353,6 +353,15 @@ def saveSplit(s, sep, maxsplit):
     return tok
 
 
+def popPath(path):
+    """Return '/a/b/c' -> ('a', '/b/c')."""
+    if path in ("", "/"):
+        return ("", "")
+    assert path.startswith("/")
+    first, _sep, rest = path.lstrip("/").partition("/")
+    return (first, "/"+rest)
+
+
 def splitNamespace(clarkName):
     """Return (namespace, localname) tuple for a property name in Clark Notation.
     

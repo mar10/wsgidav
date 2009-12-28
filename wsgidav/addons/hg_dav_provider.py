@@ -11,10 +11,11 @@ See:
 Sample layout::
     
     /<share>/
-        tip/
+        edit/
             server/
                 ext_server.py
             README.txt
+        public/
         archive/
             rev1/
             rev2/
@@ -55,9 +56,22 @@ _logger = util.getModuleLogger(__name__)
 BUFFER_SIZE = 8192
 
 
+#===============================================================================
+# VirtualCollection
+#===============================================================================
+class VirtualCollection(DAVResource):
+    """Collection resource, that contains a list of member names."""
+    def __init__(self, provider, path, environ, memberNames):
+        DAVResource.__init__(self, provider, path, True, environ)
+        self._memberNames = memberNames
+    def displayType(self):
+        return "Collection"
+    def getMemberNames(self):
+        return self._memberNames
+
 
 #===============================================================================
-# _VirtualResource classes
+# HgResource
 #===============================================================================
 class HgResource(DAVResource):
     """Abstract base class for all resources."""
@@ -398,7 +412,7 @@ class HgResourceProvider(DAVProvider):
         
     def _listMembers(self, path, rev=None):
         """Return a list of all non-collection members"""
-        # Pattern gor direct members:
+        # Pattern for direct members:
         glob = "glob:" + os.path.join(path, "*").lstrip("/")
 #        print glob
         self.ui.pushbuffer()
@@ -408,7 +422,7 @@ class HgResourceProvider(DAVProvider):
         lines = self.ui.popbuffer().strip().split("\n")
         pprint(lines)
         return dict
-        
+
     def getResourceInst(self, path, environ):
         """Return _VirtualResource object for path.
         
@@ -421,14 +435,29 @@ class HgResourceProvider(DAVProvider):
         """
         self._count_getResourceInst += 1
 
-        if environ.get("wsgidav.hg.cache"):
-            cache = environ.get("wsgidav.hg.cache")
+        cmd, rest = util.popPath(path)
+        if cmd == "":
+            return VirtualCollection(self, path, environ, ["tip", 
+                                                           "tags", 
+                                                           "archive"])
+        elif cmd == "tip":
+            path = rest
+        elif cmd == "tags":
+            if  rest == "/":
+                return VirtualCollection(self, path, environ, ["a", "b", "c"])
+            else:
+                raise
+        elif cmd == "archive":
+            path = rest
         else:
-            cache = self._readTree()
-            environ["wsgidav.hg.cache"] = cache
+            return None
         
-#        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
-        #info = self._identify(path)
+        # read mercurial repo into request cache
+        if environ.get("wsgidav.hg.cache") is None:
+            cache = environ["wsgidav.hg.cache"] = self._readTree()
+        else:
+            cache = environ["wsgidav.hg.cache"]
+        
         p = "/" + path.strip("/")
         if p in cache["filestats"]:
             # It is a version controlled file

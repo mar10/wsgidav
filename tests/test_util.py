@@ -59,6 +59,12 @@ class BasicTest(TestCase):
         assert lstripstr("/dav/a/b", "/DAV")       == "/dav/a/b" 
         assert lstripstr("/dav/a/b", "/DAV", True) == "/a/b" 
 
+        assert popPath("/a/b/c") == ("a", "/b/c")
+        assert popPath("/a/b/") == ("a", "/b/")
+        assert popPath("/a/") == ("a", "/")
+        assert popPath("/a") == ("a", "/")
+        assert popPath("/") == ("", "")
+        assert popPath("") == ("", "")
 
 
 #===============================================================================
