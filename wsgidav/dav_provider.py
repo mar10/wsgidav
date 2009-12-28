@@ -189,7 +189,9 @@ class DAVResource(object):
         The getcontentlength property MUST be defined on any DAV compliant 
         resource that returns the Content-Length header in response to a GET.
         """
-        return None
+        if self.isCollection:
+            return None
+        raise NotImplementedError()
     def getContentType(self):
         """Contains the Content-Type header returned by a GET without accept 
         headers.
@@ -198,6 +200,8 @@ class DAVResource(object):
         resource that returns the Content-Type header in response to a GET.
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getcontenttype
         """
+        if self.isCollection:
+            return None
         raise NotImplementedError()
     def getCreationDate(self):
         """Records the time and date the resource was created.
@@ -249,7 +253,7 @@ class DAVResource(object):
     def supportRanges(self):
         """Return True, if this non-resource supports Range on GET requests.
 
-        This method is only called for non-resources.
+        This method is only called for non-collections.
         """
         raise NotImplementedError()
 
