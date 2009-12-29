@@ -152,17 +152,18 @@ class HgResource(DAVResource):
         # Let base class implementation add supported live and dead properties
         propNameList = super(HgResource, self).getPropertyNames(isAllProp)
         # Add custom live properties (report on 'allprop' and 'propnames')
-        propNameList.extend(["{hg:}status",
-                             "{hg:}branch",
-#                             "{hg:}changectx",
-                             "{hg:}date",
-                             "{hg:}description",
-#                             "{hg:}filenode",
-                             "{hg:}filerev",
-#                             "{hg:}node",
-                             "{hg:}rev",
-                             "{hg:}user",
-                             ])
+        if self.fctx:
+            propNameList.extend(["{hg:}status",
+                                 "{hg:}branch",
+    #                             "{hg:}changectx",
+                                 "{hg:}date",
+                                 "{hg:}description",
+    #                             "{hg:}filenode",
+                                 "{hg:}filerev",
+    #                             "{hg:}node",
+                                 "{hg:}rev",
+                                 "{hg:}user",
+                                 ])
         return propNameList
 
     def getPropertyValue(self, propname):
@@ -171,9 +172,9 @@ class HgResource(DAVResource):
         See getPropertyValue()
         """
         # Supported custom live properties
-        cache = self.environ.get("wsgidav.hg.cache")
+        cache = self.environ["wsgidav.hg.cache"][str(self.rev)]
         if propname == "{hg:}status":
-            return cache["filestats"][self.path]
+            return cache["filestats"][self.repoPath]
         elif propname == "{hg:}branch":
             return self.fctx.branch()
 #        elif propname == "{hg:}changectx":
@@ -283,7 +284,7 @@ class HgResourceProvider(DAVProvider):
     def _getLog(self, limit=None):
         """Read log entries into a list of dictionaries."""
         self.ui.pushbuffer()
-        commands.log(self.ui, self.repo, limit=3, 
+        commands.log(self.ui, self.repo, limit=limit, 
                      date=None, rev=None, user=None,
                      )
         res = self.ui.popbuffer().strip()
