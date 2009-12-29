@@ -220,7 +220,7 @@ class DAVResource(object):
         resource that is suitable for presentation to a user.
         
         """
-        return None
+        return self.name
     def getEtag(self):
         """
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getetag
