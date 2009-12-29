@@ -3,9 +3,13 @@
 :Author: Martin Wendt
 :Copyright: Lesser GNU Public License, see LICENSE file attached with package
 
-Sample implementation of a DAV provider that pulishes a mercurial reposity.
+Sample implementation of a DAV provider that publishes a Mercurial repository.
 
 See:
+    http://mercurial.selenic.com/wiki/MercurialApi
+Requirements:
+    ``easy_install mercurial`` or install the API as non-standalone version
+    from here: http://mercurial.berkwood.com/
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 
 Sample layout::
@@ -15,7 +19,7 @@ Sample layout::
             server/
                 ext_server.py
             README.txt
-        public/
+        released/
         archive/
             rev1/
             rev2/
@@ -35,7 +39,6 @@ import sys
 import mimetypes
 import stat
 
-import os
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -255,13 +258,7 @@ class HgResourceProvider(DAVProvider):
         reslines = [ tuple(line.split(":", 1)) for line in res.split("\n")]
         pprint(reslines)
 
-#        print "Log:"
-#        self.ui.pushbuffer()
-#        commands.log(self.ui, self.repo, limit=3)
-#        res = self.ui.popbuffer().strip()
-#        statuslist = [ tuple(line.split(":", 1)) for line in res.split("\n")]
-#        pprint(statuslist)
-
+        self._getLog()
         
         # 'cat': get file content for a given revision:
 #        self.ui.pushbuffer()
@@ -273,16 +270,39 @@ class HgResourceProvider(DAVProvider):
         # paths
         # showconfig
         
-        print "Tip:"
-        self.ui.pushbuffer()
-        commands.tip(self.ui, self.repo)
-        res = self.ui.popbuffer().strip()
-        statuslist = [ tuple(line.split(":", 1)) for line in res.split("\n")]
-        pprint(statuslist)
+#        print "Tip:"
+#        self.ui.pushbuffer()
+#        commands.tip(self.ui, self.repo)
+#        res = self.ui.popbuffer().strip()
+#        statuslist = [ tuple(line.split(":", 1)) for line in res.split("\n")]
+#        pprint(statuslist)
 #        raise
 #        self.repo.ui.status(self.repo.)
         
 
+    def _getLog(self, limit=None):
+        """Read log entries into a list of dictionaries."""
+        self.ui.pushbuffer()
+        commands.log(self.ui, self.repo, limit=3, 
+                     date=None, rev=None, user=None,
+                     )
+        res = self.ui.popbuffer().strip()
+
+        logList = []
+        for logentry in res.split("\n\n"):
+            log = {}
+            logList.append(log)
+            for line in logentry.split("\n"):
+                k, v = line.split(":", 1)
+                assert k in ("changeset", "tag", "user", "date", "summary")
+                log[k.strip()] = v.strip()
+            log["parsed_date"] = util.parseTimeString(log["date"])
+            local_id, unid = log["changeset"].split(":")
+            log["local_id"] = int(local_id)
+            log["unid"] = unid
+        pprint(logList)
+        return logList
+        
     def _readTree(self, rev):
         """Return a dictionary containing all files under source control.
 
@@ -415,18 +435,29 @@ class HgResourceProvider(DAVProvider):
         if cmd == "":
             return VirtualCollection(self, path, environ, 
                                      ["edit",
-                                      "public", 
-#                                      "archive",
+                                      "released", 
+                                      "archive",
 #                                      "tags", 
                                       ])
         elif cmd == "edit":
             repoPath = "/" + rest.strip("/")
             rev = None #"."
-        elif cmd == "public":
+        elif cmd == "released":
             repoPath = "/" + rest.strip("/")
             rev = "tip"
-#        elif cmd == "archive":
-#            repoPath = "/" + rest.strip("/")
+        elif cmd == "archive":
+            if rest == "/":
+                loglist = self._getLog()
+#                members = [ time.strftime("%Y-%m-%d", time.gmtime(l["parsed_date"])) 
+#                            + "_" 
+#                            + l["summary"]  
+#                            for l in loglist ] 
+#                members = [ l["unid"]  for l in loglist ] 
+                members = [ str(l["local_id"])  for l in loglist ] 
+                return VirtualCollection(self, path, environ, members)
+            unid, rest = util.popPath(rest)
+            rev = unid
+            repoPath = "/" + rest.strip("/")
 #        elif cmd == "tags":
 #            if  rest == "/":
 #                return VirtualCollection(self, path, environ, ["a", "b", "c"])

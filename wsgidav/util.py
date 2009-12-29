@@ -34,7 +34,7 @@ import calendar
 import sys
 import time
 import stat
-from email.utils import formatdate
+from email.utils import formatdate, parsedate
 
 try:
     from cStringIO import StringIO
@@ -124,6 +124,12 @@ def _parsegmtime(timestring):
     # Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format  
     try:
         return time.strptime(timestring, "%a %b %d %H:%M:%S %Y")
+    except:
+        pass
+
+    # Sun Nov  6 08:49:37 1994 +0100      ; ANSI C's asctime() format with timezon  
+    try:
+        return parsedate(timestring)
     except:
         pass
 
