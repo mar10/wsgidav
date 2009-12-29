@@ -351,6 +351,7 @@ SUPPORTED_SERVERS = {"paste": _runPaste,
                      "cherrypy": _runCherryPy,
                      "wsgiref": _runSimpleServer,
                      "flup-fcgi": _runFlup,
+                     "flup-fcgi_fork": _runFlup,
                      "wsgidav": _runBuiltIn,
                      }
 
