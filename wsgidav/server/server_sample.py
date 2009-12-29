@@ -29,8 +29,8 @@ config.update({
     "user_mapping": {},
     "verbose": 1,
     "enable_loggers": [],
-    "propsmanager": None,      # None: use property_manager.PropertyManager                    
-    "locksmanager": None,      # None: use lock_manager.LockManager                   
+    "propsmanager": True,      # True: use property_manager.PropertyManager                    
+    "locksmanager": True,      # True: use lock_manager.LockManager                   
     "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
     })
 app = WsgiDAVApp(config)

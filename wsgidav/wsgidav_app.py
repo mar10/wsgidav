@@ -31,9 +31,9 @@ ext_servers
 enable_loggers
     List
 propsmanager
-    Default: None (use property_manager.PropertyManager)                    
+    Default: None (no property manager)                    
 locksmanager
-    Default: None (use lock_manager.LockManager)                   
+    Default: True (use lock_manager.LockManager)                   
 domaincontroller
     Default: None (use domain_controller.WsgiDAVDomainController(user_mapping))
 verbose
@@ -91,8 +91,8 @@ DEFAULT_CONFIG = {
     "enable_loggers": [
                       ],
 
-    "propsmanager": None,  # None: use property_manager.PropertyManager                    
-    "locksmanager": None,  # None: use lock_manager.LockManager    
+    "propsmanager": None,  # True: use property_manager.PropertyManager                  
+    "locksmanager": True,  # True: use lock_manager.LockManager    
     
     # HTTP Authentication Options
     "user_mapping": {},       # dictionary of dictionaries 
@@ -143,10 +143,16 @@ class WsgiDAVApp(object):
 
         locksManager = config.get("locksmanager") 
         if not locksManager:
+            # Normalize False, 0 to None
+            locksManager = None
+        elif locksManager is True:
             locksManager = LockManager()
             
         propsManager = config.get("propsmanager")     
         if not propsManager:
+            # Normalize False, 0 to None
+            propsManager = None
+        elif propsManager is True:
             propsManager = PropertyManager()     
 
         mount_path = config.get("mount_path")

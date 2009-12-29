@@ -46,8 +46,8 @@ class ServerTest(unittest.TestCase):
             "user_mapping": {},
             "verbose": 1,
             "enable_loggers": [],
-            "propsmanager": None,      # None: use property_manager.PropertyManager                    
-            "locksmanager": None,      # None: use lock_manager.LockManager                   
+            "propsmanager": None,      # None: no property manager                    
+            "locksmanager": True,      # True: use lock_manager.LockManager                   
             "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
             })
 

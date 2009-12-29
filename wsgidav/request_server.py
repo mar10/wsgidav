@@ -671,7 +671,10 @@ class RequestServer(object):
                     n = min(contentremain, BLOCK_SIZE)
                     readbuffer = environ["wsgi.input"].read(n)
                     # This happens with litmus expect-100 test:
-                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
+#                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
+                    if not len(readbuffer) > 0:
+                        util.warn("input.read(%s) returned %s bytes" % (n, len(readbuffer)))
+                        break
                     environ["wsgidav.consumed_body"] = 1
                     fileobj.write(readbuffer)
                     contentremain -= len(readbuffer)
