@@ -988,11 +988,10 @@ class RequestServer(object):
 
         if lockMan is None:
             # http://www.webdav.org/specs/rfc4918.html#rfc.section.6.3
-            # TODO: is this the correct status code?
             self._fail(HTTP_NOT_IMPLEMENTED,
                        "This realm does not support locking.")
         if res and res.preventLocking():
-            self._fail(HTTP_NOT_IMPLEMENTED,
+            self._fail(HTTP_FORBIDDEN,
                        "This resource does not support locking.")
 
         if environ.setdefault("HTTP_DEPTH", "infinity") not in ("0", "infinity"):

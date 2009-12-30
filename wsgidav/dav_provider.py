@@ -400,6 +400,8 @@ class DAVResource(object):
         
         This method is called by dir_browser middleware, and may be used to
         provide the directory listing info in a efficient way.
+        
+        CURRENTLY NOT USED.
         """
         assert self.isCollection
         raise NotImplementedError()
@@ -771,7 +773,7 @@ class DAVResource(object):
         This method MUST be implemented by all providers that support write 
         access.
         """
-        assert self.isResource()
+        assert not self.isCollection
         raise DAVError(HTTP_FORBIDDEN)               
 
     

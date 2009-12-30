@@ -30,6 +30,7 @@ Sample layout::
 """
 from pprint import pprint
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+import os
 try:
     from hashlib import md5
 except ImportError:
@@ -72,7 +73,7 @@ class VirtualCollection(DAVResource):
         DAVResource.__init__(self, provider, path, True, environ)
         self._memberNames = memberNames
     def displayType(self):
-        return "Collection"
+        return "Virtual Collection"
     def getMemberNames(self):
         return self._memberNames
 
@@ -97,10 +98,8 @@ class HgResource(DAVResource):
             # rev=None: current working dir
             # rev="tip": TIP
             wdctx = self.provider.repo[self.rev]
-            # HG expects path without leading '/'
-            p = self.repoPath.lstrip("/")
-            self.fctx = wdctx[p]
-        util.write("HgResourcdec: path=%s, rev=%s, repoPath=%s, fctx=%s", 
+            self.fctx = wdctx[self.repoPath]
+        util.write("HgResourcdec: path=%s, rev=%s, repoPath=%s, fctx=%s" % 
                    (self.path, self.rev, self.repoPath, self.fctx))
 
     def getContentLength(self):
@@ -123,7 +122,6 @@ class HgResource(DAVResource):
             return self.name
         return "%s@%s" % (self.name, self.fctx.filerev())
     def getEtag(self):
-#        return util.getETag(self._filePath)
         return md5(self.path).hexdigest() + "-" + str(self.getLastModified()) + "-" + str(self.getContentLength())
     def getLastModified(self):
         if self.isCollection:
@@ -155,12 +153,9 @@ class HgResource(DAVResource):
         if self.fctx:
             propNameList.extend(["{hg:}status",
                                  "{hg:}branch",
-    #                             "{hg:}changectx",
                                  "{hg:}date",
                                  "{hg:}description",
-    #                             "{hg:}filenode",
                                  "{hg:}filerev",
-    #                             "{hg:}node",
                                  "{hg:}rev",
                                  "{hg:}user",
                                  ])
@@ -177,19 +172,13 @@ class HgResource(DAVResource):
             return cache["filestats"][self.repoPath]
         elif propname == "{hg:}branch":
             return self.fctx.branch()
-#        elif propname == "{hg:}changectx":
-#            return self.fctx.changectx()
         elif propname == "{hg:}date":
             # (secs, tz-ofs)
             return str(self.fctx.date()[0])
         elif propname == "{hg:}description":
             return self.fctx.description()
-#        elif propname == "{hg:}filenode":
-#            return self.fctx.filenode()
         elif propname == "{hg:}filerev":
             return str(self.fctx.filerev())
-#        elif propname == "{hg:}node":
-#            return str(self.fctx.node())
         elif propname == "{hg:}rev":
             return str(self.fctx.rev())
         elif propname == "{hg:}user":
@@ -205,6 +194,42 @@ class HgResource(DAVResource):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
+
+    def _checkWriteAccess(self):
+        """Raise HTTP_FORBIDDEN, if resource is unwritable."""
+        if self.rev is not None:
+            # Only working directory may be edited 
+            raise DAVError(HTTP_FORBIDDEN)
+
+    
+    def preventLocking(self):
+        """Return True, to prevent locking.
+        
+        See preventLocking()
+        """
+        if self.rev is not None:
+            # Only working directory may be edited 
+            return True
+        return False               
+
+    
+    def createEmptyResource(self, name):
+        """Create and return an empty (length-0) resource as member of self.
+        
+        See DAVResource.createEmptyResource()
+        """
+        assert self.isCollection
+        self._checkWriteAccess()               
+    
+
+    def createCollection(self, name):
+        """Create a new collection as member of self.
+        
+        """
+        assert self.isCollection
+        self._checkWriteAccess()               
+
+
     def getContent(self):
         """Open content as a stream for reading.
          
@@ -213,25 +238,95 @@ class HgResource(DAVResource):
         assert not self.isCollection
         d = self.fctx.data()
         return StringIO(d)
+    
+
+    def openResourceForWrite(self, contentType=None):
+        """Open content as a stream for writing.
+         
+        """
+        assert not self.isCollection
+        self._checkWriteAccess()               
+
+    
+#    def handleDelete(self):
+#        """Handle a DELETE request natively.
+#        
+#        """
+#        self._checkWriteAccess()               
+#        return False               
+
+    
+    def supportRecursiveDelete(self):
+        """Return True, if delete() may be called on non-empty collections 
+        (see comments there)."""
+        return True
+
+    
+    def delete(self):
+        """Remove this resource (recursive)."""
+        self._checkWriteAccess()
+        ui = self.provider.ui  
+        repo = self.provider.repo
+        ui.pushbuffer()
+        commands.remove(ui, repo, self.repoPath, cwd=self.provider.repoRoot)
+        res = ui.popbuffer().strip()
+        print res                     
+
+    
+    def handleCopy(self, destPath, depthInfinity):
+        """Handle a COPY request natively.
         
+        """
+        return False               
+
+    
+    def copyMoveSingle(self, destPath, isMove):
+        """Copy or move this resource to destPath (non-recursive).
+        
+        """
+        self._checkWriteAccess()               
+
+
+
+    def handleMove(self, destPath):
+        """Handle a MOVE request natively.
+        
+        """
+        return False               
+
+    
+    def supportRecursiveMove(self, destPath):
+        """Return True, if moveRecursive() is available (see comments there)."""
+        return True
+
+    
+    def moveRecursive(self, destPath):
+        """Move this resource and members to destPath.
+        
+        """
+        self._checkWriteAccess()               
+
          
 #===============================================================================
 # HgResourceProvider
 #===============================================================================
 
-
 class HgResourceProvider(DAVProvider):
     """
     DAV provider that serves a VirtualResource derived structure.
     """
-    def __init__(self, repoPath):
+    def __init__(self, repoRoot):
         super(HgResourceProvider, self).__init__()
-        self.repoPath = repoPath
+        self.repoRoot = repoRoot
         print "Mercurial version %s" % hgversion
         self.ui = mercurial.ui.ui()
-        self.repo = hg.repository(self.ui, repoPath)
+        self.repo = hg.repository(self.ui, repoRoot)
         self.ui.status("Connected to repository %s\n" % self.repo.root)
-        self.repoPath = self.repo.root
+        self.repoRoot = self.repo.root
+        
+        # Some commands (remove) seem to exect cwd set to the repo
+#        print os.getcwd()
+        os.chdir(self.repo.root)
 
         # Verify integrity of the repository
         util.status("Verify repository '%s' tree..." % self.repo.root)
@@ -242,7 +337,7 @@ class HgResourceProvider(DAVProvider):
         pprint(self.repo.status())
         self.repo.ui.status("the default username to be used in commits: %s\n" % self.repo.ui.username())
 #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
-        self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoPath))
+        self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
         
         print "Working directory state summary:"
         self.ui.pushbuffer()
@@ -260,33 +355,13 @@ class HgResourceProvider(DAVProvider):
         pprint(reslines)
 
         self._getLog()
-        
-        # 'cat': get file content for a given revision:
-#        self.ui.pushbuffer()
-#        commands.cat(self.ui, self.repo, filename)
-#        res = self.ui.popbuffer()
-        # heads
-        # manifest: list all versioned files
-        # parents
-        # paths
-        # showconfig
-        
-#        print "Tip:"
-#        self.ui.pushbuffer()
-#        commands.tip(self.ui, self.repo)
-#        res = self.ui.popbuffer().strip()
-#        statuslist = [ tuple(line.split(":", 1)) for line in res.split("\n")]
-#        pprint(statuslist)
-#        raise
-#        self.repo.ui.status(self.repo.)
-        
+                
 
     def _getLog(self, limit=None):
         """Read log entries into a list of dictionaries."""
         self.ui.pushbuffer()
         commands.log(self.ui, self.repo, limit=limit, 
-                     date=None, rev=None, user=None,
-                     )
+                     date=None, rev=None, user=None)
         res = self.ui.popbuffer().strip()
 
         logList = []
@@ -301,9 +376,10 @@ class HgResourceProvider(DAVProvider):
             local_id, unid = log["changeset"].split(":")
             log["local_id"] = int(local_id)
             log["unid"] = unid
-        pprint(logList)
+#        pprint(logList)
         return logList
         
+
     def _readTree(self, rev):
         """Return a dictionary containing all files under source control.
 
@@ -316,34 +392,34 @@ class HgResourceProvider(DAVProvider):
         
         ::
         
-            {'dirinfos': {'/': (['wsgidav',
-                                 'tools',
-                                 '.settings',
-                                 'WsgiDAV.egg-info',
-                                 'tests'],
-                                ['index.rst',
-                                 'wsgidav MAKE_DAILY_BUILD.launch',
-                                 'wsgidav run_server.py DEBUG.launch',
-                                 'wsgidav run_server.py RELEASE.launch',
-                                 'wsgidav test_all.py.launch',
-                                 'wsgidav-paste.conf',
-                                 ...
-                                 'setup.py']),
-                          '/wsgidav': (['addons', 'samples', 'server', 'interfaces'],
-                                       ['__init__.pyc',
-                                        'dav_error.pyc',
-                                        'dav_provider.pyc',
-                                        ...
-                                        'wsgidav_app.py']),
-                            },
-             'files': ['/.hgignore',
-                       '/ADDONS.txt',
-                       '/wsgidav/addons/mysql_dav_provider.py',
+            {'dirinfos': {'': (['wsgidav',
+                                'tools',
+                                '.settings',
+                                'WsgiDAV.egg-info',
+                                'tests'],
+                               ['index.rst',
+                                'wsgidav MAKE_DAILY_BUILD.launch',
+                                'wsgidav run_server.py DEBUG.launch',
+                                'wsgidav run_server.py RELEASE.launch',
+                                'wsgidav test_all.py.launch',
+                                'wsgidav-paste.conf',
+                                ...
+                                'setup.py']),
+                          'wsgidav': (['addons', 'samples', 'server', 'interfaces'],
+                                      ['__init__.pyc',
+                                       'dav_error.pyc',
+                                       'dav_provider.pyc',
+                                       ...
+                                       'wsgidav_app.py']),
+                           },
+             'files': ['.hgignore',
+                       'ADDONS.txt',
+                       'wsgidav/addons/mysql_dav_provider.py',
                        ...
                        ],
-             'filestats': {'/.hgignore': 'C',
-                           '/README.txt': 'C',
-                           '/WsgiDAV.egg-info/PKG-INFO': 'I',
+             'filestats': {'.hgignore': 'C',
+                           'README.txt': 'C',
+                           'WsgiDAV.egg-info/PKG-INFO': 'I',
                            }
                            }
         """
@@ -365,15 +441,18 @@ class HgResourceProvider(DAVProvider):
             # add all parent directories to 'dirinfos'
             parents = file.split("/")
             if len(parents) >= 1:
-                p1 = "/"
+                p1 = ""
                 for i in range(0, len(parents)-1):
                     p2 = parents[i]
                     dir = dirinfos.setdefault(p1, ([], []))
                     if not p2 in dir[0]:
                         dir[0].append(p2)
-                    p1 = "%s/%s" % (p1.rstrip("/"), p2)
+                    if p1 == "":
+                        p1 = p2
+                    else:
+                        p1 = "%s/%s" % (p1, p2)
                 dirinfos.setdefault(p1, ([], []))[1].append(parents[-1])
-            file = "/" + file 
+            file = file 
             files.append(file)
             filestats[file] = stat
         files.sort()
@@ -420,16 +499,12 @@ class HgResourceProvider(DAVProvider):
     def getResourceInst(self, path, environ):
         """Return _VirtualResource object for path.
         
-        path is expected to be 
-            categoryType/category/name/artifact
-        for example:
-            'by_tag/cool/My doc 2/info.html'
-
         See DAVProvider.getResourceInst()
         """
         self._count_getResourceInst += 1
 
-        repoPath = path
+        # HG expects the resource paths without leading '/'
+        repoPath = path.strip("/")
         rev = None
         cmd, rest = util.popPath(path)
         
@@ -441,24 +516,19 @@ class HgResourceProvider(DAVProvider):
 #                                      "tags", 
                                       ])
         elif cmd == "edit":
-            repoPath = "/" + rest.strip("/")
-            rev = None #"."
+            repoPath = rest.strip("/")
+            rev = None 
         elif cmd == "released":
-            repoPath = "/" + rest.strip("/")
+            repoPath = rest.strip("/")
             rev = "tip"
         elif cmd == "archive":
             if rest == "/":
                 loglist = self._getLog()
-#                members = [ time.strftime("%Y-%m-%d", time.gmtime(l["parsed_date"])) 
-#                            + "_" 
-#                            + l["summary"]  
-#                            for l in loglist ] 
-#                members = [ l["unid"]  for l in loglist ] 
                 members = [ str(l["local_id"])  for l in loglist ] 
                 return VirtualCollection(self, path, environ, members)
             unid, rest = util.popPath(rest)
             rev = unid
-            repoPath = "/" + rest.strip("/")
+            repoPath = rest.strip("/")
 #        elif cmd == "tags":
 #            if  rest == "/":
 #                return VirtualCollection(self, path, environ, ["a", "b", "c"])
