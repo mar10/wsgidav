@@ -705,26 +705,43 @@ def elementContentAsString(element):
 
 def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # Send response
-    start_response("207 Multistatus", [("Content-Type", "application/xml"), 
-                                       ("Date", getRfc1123Time()),
-                                       ])
+    xml_data = xmlToString(multistatusEL)
+
+    headers = [
+        ("Content-Type", "application/xml"),
+        ("Date", getRfc1123Time()),
+    ]
+
+    if environ.get('HTTP_CONNECTION', None) == 'keep-alive':
+        headers += [
+            ('Connection', 'keep-alive'),
+            ('Content-Length', len(xml_data))
+        ]
+
+    start_response("207 Multistatus", headers)
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
     if __debug__: 
         xml = xmlToString(multistatusEL, pretty_print=True) 
         log(xml)
-    pretty_print = False
-    return [#"<?xml version='1.0' encoding='UTF-8' ?>",
-            xmlToString(multistatusEL, pretty_print=pretty_print) ]
+
+    return [ xml_data ]
         
             
 def sendSimpleResponse(environ, start_response, status):
     """Start a WSGI response for a DAVError or status code.""" 
     s = getHttpStatusString(status)
+
+    headers = [] 
+    if environ.get('HTTP_CONNECTION', None) == 'keep-alive':
+        headers += [
+            ('Connection', 'keep-alive'),
+        ]
+
     if status in (HTTP_CREATED, HTTP_NO_CONTENT):
         # See paste.lint: these code don't have content
-        start_response(s, [("Content-Length", "0"),
+        start_response(s, headers + [("Content-Length", "0"),
                            ("Date", getRfc1123Time()),
                            ])
         return [ "" ]
@@ -732,7 +749,7 @@ def sendSimpleResponse(environ, start_response, status):
     html = status.getHtmlResponse()
     if __debug__: 
         log(html)
-    start_response(s, [("Content-Type", "text/html"),
+    start_response(s, headers + [("Content-Type", "text/html"),
                        ("Content-Length", str(len(html))),
                        ("Date", getRfc1123Time()),
                        ])

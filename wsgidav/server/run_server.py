@@ -252,6 +252,7 @@ def _runPaste(app, config):
                          host=config["host"], 
                          port=config["port"],
                          server_version="WsgiDAV/%s" % __version__,
+                         protocol_version='HTTP/1.1'
                          )
         # TODO: is this better? 
         #httpserver.server_runner(app, serverOpts)

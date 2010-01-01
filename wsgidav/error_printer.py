@@ -153,7 +153,15 @@ class ErrorPrinter(object):
                 respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1></body></html>"
 
             util.debug("sc", "Return error html %s: %s" % (respcode, respbody))
-            start_response(respcode, [("Content-Type", "text/html"), 
+
+            headers = []
+            if environ.get('HTTP_CONNECTION', None) == 'keep-alive':
+                headers += [
+                    ('Connection', 'keep-alive'),
+                    ('Content-Length', len(respbody))
+                ]
+
+            start_response(respcode, headers + [("Content-Type", "text/html"), 
                                       ("Date", datestr)
                                       ],
 #                          sys.exc_info() # TODO: Always provide exc_info when beginning an error response?
