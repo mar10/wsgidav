@@ -313,7 +313,6 @@ class RequestServer(object):
         if responsedescription:
             etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = "\n".join(responsedescription)
             
-#        print util.xmlToString(multistatusEL, pretty_print=True)
         return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
 
 
@@ -629,8 +628,9 @@ class RequestServer(object):
             self._fail(HTTP_BAD_REQUEST, 
                        "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
         
+        hasErrors = False
         try:      
-            fileobj = res.openResourceForWrite(contentType=environ.get("CONTENT_TYPE"))
+            fileobj = res.beginWrite(contentType=environ.get("CONTENT_TYPE"))
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
                 l = int(environ["wsgi.input"].readline(), 16)
@@ -651,7 +651,7 @@ class RequestServer(object):
                 # TODO: review this
                 # If CONTENT_LENGTH is invalid, we may try to workaround this
                 # by reading until the end of the stream. This may block however!
-                # The iterator produced small chnunks of varying size, but not
+                # The iterator produced small chunks of varying size, but not
                 # sure, if we always get everything before it times out.
                 _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
                 nb = 0
@@ -663,7 +663,7 @@ class RequestServer(object):
                         nb += len (s)
                 except socket.timeout:
                     _logger.warning("PUT: input timed out after writing %s bytes" % nb)
-                    
+                    hasErrors = True                    
             else:
                 assert contentlength > 0
                 contentremain = contentlength
@@ -673,7 +673,7 @@ class RequestServer(object):
                     # This happens with litmus expect-100 test:
 #                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
                     if not len(readbuffer) > 0:
-                        util.warn("input.read(%s) returned %s bytes" % (n, len(readbuffer)))
+                        util.warn("input.read(%s) returned 0 bytes" % n)
                         break
                     environ["wsgidav.consumed_body"] = 1
                     fileobj.write(readbuffer)
@@ -682,8 +682,11 @@ class RequestServer(object):
             fileobj.close()
 
         except Exception, e:
+            res.endWrite(hasErrors=True)
             _logger.exception("PUT: byte copy failed")
             self._fail(e)
+
+        res.endWrite(hasErrors)
 
         if isnewfile:
             return util.sendSimpleResponse(environ, start_response, HTTP_CREATED)

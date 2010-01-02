@@ -767,7 +767,7 @@ class DAVResource(object):
     
 
     # TODO: rename to beginWrite() and add endWrite(success)
-    def openResourceForWrite(self, contentType=None):
+    def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
          
         This method MUST be implemented by all providers that support write 
@@ -775,6 +775,14 @@ class DAVResource(object):
         """
         assert not self.isCollection
         raise DAVError(HTTP_FORBIDDEN)               
+
+    
+    def endWrite(self, withErrors):
+        """Called when PUT has finished writing.
+         
+        This is only a notification. that MAY be handled.
+        """
+        pass               
 
     
     def handleDelete(self):

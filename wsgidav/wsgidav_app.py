@@ -319,6 +319,8 @@ class WsgiDAVApp(object):
                     extra.append("overwrite=%s" % environ.get("HTTP_OVERWRITE"))
 #                if "HTTP_EXPECT" in environ:
 #                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
+                if self._verbose >= 2 and "HTTP_CONNECTION" in environ:
+                    extra.append('connection="%s"' % environ.get("HTTP_CONNECTION"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
                 if self._verbose >= 1:

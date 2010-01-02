@@ -206,18 +206,18 @@ class FileResource(DAVResource):
         return file(self._filePath, "rb", BUFFER_SIZE)
    
 
-    def openResourceForWrite(self, contentType=None):
+    def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
          
-        This method MUST be implemented by all providers that support write 
-        access."""
+        See DAVResource.beginWrite()
+        """
         assert not self.isCollection
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)               
         mode = "wb"
         if contentType and contentType.startswith("text"):
             mode = "w"
-        _logger.debug("openResourceForWrite: %s, %s" % (self._filePath, mode))
+        _logger.debug("beginWrite: %s, %s" % (self._filePath, mode))
         return file(self._filePath, mode, BUFFER_SIZE)
 
     
