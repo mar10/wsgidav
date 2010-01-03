@@ -5,6 +5,8 @@
 
 DAV provider that publishes a Mercurial repository.
 
+Note: This is **not** production code!
+
 The repository is rendered as three top level collections.
 
 edit:
@@ -15,25 +17,8 @@ released:
     Contains the latest committed files, also known as 'tip'.
     This folder is read-only.
 archive:
-    Contains the last 20 revisions as sub-folders.
+    Contains the last 10 revisions as sub-folders.
     This folder is read-only.    
-
-Special functions
-
-#. Copying or moving files from ``/edit/..`` to the ``/edit/..`` folder will
-   result in a ``hg copy`` or ``hg rename``.
-#. Deleting resources from ``/edit/..`` will result in a ``hg remove``.
-#. Copying or moving files from ``/edit/..`` to the ``/released`` folder will
-   result in a ``hg commit``.
-   Note that the destination path is ignored, instead the source path is used.
-   So a user can drag a file or folder from somewhere under the ``edit/..``
-   directory and drop it directly on the ``released`` directory to commit 
-   changes.   
-#. To commit all changes, simply drag'n'drop the ``/edit`` folder on the 
-   ``/released`` folder.   
-#. Creating new collections results in creation of a file called ``.directory``,
-   which is then ``hg add``ed since Mercurial doesn't track directories.
-#. Some attributes are published as live properties, such as ``{hg:}date``.
 
 Sample layout::
     
@@ -48,8 +33,37 @@ Sample layout::
             18/
             ...
 
+Supported features:
 
-.. note:: This is **not** production code.
+#. Copying or moving files from ``/edit/..`` to the ``/edit/..`` folder will
+   result in a ``hg copy`` or ``hg rename``.
+#. Deleting resources from ``/edit/..`` will result in a ``hg remove``.
+#. Copying or moving files from ``/edit/..`` to the ``/released`` folder will
+   result in a ``hg commit``.
+   Note that the destination path is ignored, instead the source path is used.
+   So a user can drag a file or folder from somewhere under the ``edit/..``
+   directory and drop it directly on the ``released`` directory to commit 
+   changes.   
+#. To commit all changes, simply drag'n'drop the ``/edit`` folder on the 
+   ``/released`` folder.   
+#. Creating new collections results in creation of a file called ``.directory``,
+   which is then ``hg add`` ed since Mercurial doesn't track directories.
+#. Some attributes are published as live properties, such as ``{hg:}date``.
+
+
+Known limitations:
+
+#. This 'commit by drag-and-drop' only works, if the WebDAV clients produces
+   MOVE or COPY requests. Alas, some clients will send PUT, MKCOL, ... sequences
+   instead.
+#. Adding and then removing a file without committing after the 'add' will 
+   leave this file on disk (untracked)
+   This happens for example whit lock files that Open Office Write and other 
+   applications will create.   
+#. Dragging the 'edit' folder onto 'released' with Windows File Explorer will
+   remove the folder in the explorer view, although WsgiDAV did not delete it.
+   This seems to be done by the client.    
+
 
 See:
     http://mercurial.selenic.com/wiki/MercurialApi
@@ -68,7 +82,6 @@ except ImportError:
 import time
 import sys
 import mimetypes
-import stat
 
 try:
     from cStringIO import StringIO
@@ -79,7 +92,6 @@ from wsgidav import util
 
 try:
     import mercurial.ui
-#    import mercurial.error
     from mercurial.__version__ import version as hgversion
     from mercurial import commands, hg
     #from mercurial import util as hgutil 
@@ -122,18 +134,14 @@ class HgResource(DAVResource):
         self.absFilePath = self._getFilePath() 
         assert not "\\" in self.localHgPath
         assert not "/" in self.absFilePath
-#        if path.startswith("f9") and len(path)>3:
-#            pass
-#        if self.localHgPath.startswith("f9") and len(self.localHgPath)>3:
-#            pass
         
         if isCollection:
-#            self.fctx = self.provider.repo.filectx(repoFilePath, fileid="tip")
             self.fctx = None
         else:
-            # Change Context for the working directory:
+            # Change Context for the requested revision:
             # rev=None: current working dir
             # rev="tip": TIP
+            # rev=<int>: Revision ID
             wdctx = self.provider.repo[self.rev]
             self.fctx = wdctx[self.localHgPath]
 #        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (self.path, self.rev, self.localHgPath, self.fctx))
@@ -144,10 +152,6 @@ class HgResource(DAVResource):
         parts = self.localHgPath.split("/")
         if addParts:
             parts.extend(addParts)
-#        print "_getFilePath(%s, %s): %s" % (self.localHgPath,
-#                                            addParts,
-#                                            os.path.join(self.provider.repo.root, *parts)
-#                                            )
         return os.path.join(self.provider.repo.root, *parts)
 
 
@@ -186,7 +190,6 @@ class HgResource(DAVResource):
         if self.isCollection or self.fctx.filerev() is None:
             return self.name
         return "%s@%s" % (self.name, self.fctx.filerev())
-#        return self.name
     def getEtag(self):
         return md5(self.path).hexdigest() + "-" + str(self.getLastModified()) + "-" + str(self.getContentLength())
     def getLastModified(self):
@@ -201,6 +204,7 @@ class HgResource(DAVResource):
             return "Directory"
         return "File"
         
+
     def getMemberNames(self):
         assert self.isCollection
         cache = self.environ["wsgidav.hg.cache"][str(self.rev)]
@@ -210,6 +214,7 @@ class HgResource(DAVResource):
         return dirinfos[self.localHgPath][0] + dirinfos[self.localHgPath][1] 
 #        return self.provider._listMembers(self.path)
 
+    
     def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
         
@@ -219,8 +224,7 @@ class HgResource(DAVResource):
         propNameList = super(HgResource, self).getPropertyNames(isAllProp)
         # Add custom live properties (report on 'allprop' and 'propnames')
         if self.fctx:
-            propNameList.extend([#"{hg:}status",
-                                 "{hg:}branch",
+            propNameList.extend(["{hg:}branch",
                                  "{hg:}date",
                                  "{hg:}description",
                                  "{hg:}filerev",
@@ -229,15 +233,13 @@ class HgResource(DAVResource):
                                  ])
         return propNameList
 
+    
     def getPropertyValue(self, propname):
         """Return the value of a property.
         
         See getPropertyValue()
         """
         # Supported custom live properties
-#        cache = self.environ["wsgidav.hg.cache"][str(self.rev)]
-#        if propname == "{hg:}status":
-#            return cache["filestats"][self.localHgPath]
         if propname == "{hg:}branch":
             return self.fctx.branch()
         elif propname == "{hg:}date":
@@ -254,6 +256,7 @@ class HgResource(DAVResource):
         
         # Let base class implementation report live and dead properties
         return super(HgResource, self).getPropertyValue(propname)
+    
     
     def setPropertyValue(self, propname, value, dryRun=False):
         """Set or remove property value.
@@ -381,12 +384,6 @@ class HgResource(DAVResource):
             # COPY /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
             self._commit("WsgiDAV commit (COPY %s -> %s)" % (self.path, destPath))
-#            commands.commit(ui, repo, 
-#                            self.localHgPath, 
-#                            addremove=True,
-#                            user=self.environ.get("http_authenticator.username", "Anonymous"),
-#                            message="WsgiDAV commit (COPY %s -> %s)" % (self.path, destPath)
-#                            )
         else:
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
@@ -405,19 +402,11 @@ class HgResource(DAVResource):
         if self.rev is None and destType == "edit":
             # MOVE /edit/a/b to /edit/c/d: turn into 'hg rename -f a/b c/d'
             commands.rename(ui, repo, self.localHgPath, destHgPath,
-#                            cwd=self.provider.repoRoot,
-                            force=True,
-                            )
+                            force=True)
         elif self.rev is None and destType == "released":
             # MOVE /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
             self._commit("WsgiDAV commit (MOVE %s -> %s)" % (self.path, destPath))
-#            commands.commit(ui, repo, 
-#                            self.localHgPath, 
-#                            addremove=True,
-#                            user=self.environ.get("http_authenticator.username", "Anonymous"),
-#                            message="WsgiDAV commit (MOVE %s -> %s)" % (self.path, destPath)
-#                            )
         else:
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
@@ -442,6 +431,8 @@ class HgResourceProvider(DAVProvider):
         self.repoRoot = self.repo.root
         
         # Some commands (remove) seem to expect cwd set to the repo
+        # TODO: try to go along without this, because it prevents serving
+        #       multiple repos. Instead pass absolute paths to the commands. 
 #        print os.getcwd()
         os.chdir(self.repo.root)
 
@@ -613,7 +604,6 @@ class HgResourceProvider(DAVProvider):
                                      ["edit",
                                       "released", 
                                       "archive",
-#                                      "tags", 
                                       ])
         elif cmd == "edit":
             localHgPath = rest.strip("/")
@@ -624,7 +614,7 @@ class HgResourceProvider(DAVProvider):
         elif cmd == "archive":
             if rest == "/":
                 # Browse /archive: return a list of revision folders:
-                loglist = self._getLog(limit=20)
+                loglist = self._getLog(limit=10)
                 members = [ str(l["local_id"])  for l in loglist ] 
                 return VirtualCollection(self, path, environ, members)
             revid, rest = util.popPath(rest)
@@ -636,11 +626,6 @@ class HgResourceProvider(DAVProvider):
             # Access /archive/19
             rev = revid
             localHgPath = rest.strip("/")
-#        elif cmd == "tags":
-#            if  rest == "/":
-#                return VirtualCollection(self, path, environ, ["a", "b", "c"])
-#            else:
-#                raise
         else:
             return None
         
