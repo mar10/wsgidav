@@ -1,0 +1,243 @@
+WsgiDAV 0.4.0b1 serving at 0.0.0.0, port 80 (host='Athlon5000' ['192.168.178.28', '192.168.56.1'])...
+<6120> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:28] "DELETE /litmus/" elap=0.008sec -> 401 Not Authorized
+<4268> 192.168.178.28 - tester - [2010-01-03 16:30:28] "DELETE /litmus/" depth=infinity, elap=0.004sec -> 204 No Content
+<4404> 192.168.178.28 - tester - [2010-01-03 16:30:28] "MKCOL /litmus/" depth=0, elap=0.003sec -> 201 Created
+<4664> 192.168.178.28 - tester - [2010-01-03 16:30:28] "OPTIONS /litmus/" elap=0.002sec -> 200 OK
+<5844> 192.168.178.28 - tester - [2010-01-03 16:30:28] "PUT /litmus/res" length=41, elap=0.003sec -> 201 Created
+<4192> 192.168.178.28 - tester - [2010-01-03 16:30:28] "GET /litmus/res" depth=0, elap=0.003sec -> 200 OK
+<1984> 192.168.178.28 - tester - [2010-01-03 16:30:28] "PUT /litmus/res-â?¬" length=41, elap=0.003sec -> 201 Created
+<4552> 192.168.178.28 - tester - [2010-01-03 16:30:28] "GET /litmus/res-â?¬" depth=0, elap=0.001sec -> 200 OK
+<5928> 192.168.178.28 - tester - [2010-01-03 16:30:28] "MKCOL /litmus/409me/noparent.txt/" depth=0, elap=0.001sec -> 409 Conflict
+<6100> 192.168.178.28 - tester - [2010-01-03 16:30:28] "MKCOL /litmus/res-â?¬/" depth=0, elap=0.001sec -> 405 Method Not Allowed
+<5852> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/res-â?¬" depth=0, elap=0.002sec -> 204 No Content
+<5652> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/404me" elap=0.001sec -> 404 Not Found
+<6108> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/frag/" depth=0, elap=0.002sec -> 201 Created
+<2740> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/frag/#ment" elap=0.001sec -> 404 Not Found
+<2028> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/frag/" depth=infinity, elap=0.003sec -> 204 No Content
+<5292> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/coll/" depth=0, elap=0.003sec -> 201 Created
+<4808> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/coll/" depth=0, elap=0.002sec -> 405 Method Not Allowed
+<4308> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/coll/" depth=infinity, elap=0.002sec -> 204 No Content
+<1008> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/409me/noparent/" depth=0, elap=0.001sec -> 409 Conflict
+<3540> [17:30:29.118] wsgidav:  Reading 1 bytes from potentially unread POST body: 'a'...
+<3540> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/mkcolbody" length=8, elap=0.001sec -> 415 Media Type Not Supported
+<5240> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:29] "DELETE /litmus/" elap=0.001sec -> 401 Not Authorized
+<172> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/" depth=infinity, elap=0.005sec -> 204 No Content
+<4260> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/" depth=0, elap=0.002sec -> 201 Created
+<5468> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/copysrc" length=32, elap=0.004sec -> 201 Created
+<5780> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/copycoll/" depth=0, elap=0.001sec -> 201 Created
+<5116> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/copysrc" dest="http://192.168.178.28/temp/litmus/copydest", depth=0, overwrite=F, elap=0.006sec -> 201 Created
+<3768> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/copysrc" dest="http://192.168.178.28/temp/litmus/copydest", depth=0, overwrite=F, elap=0.002sec -> 412 Precondition Failed
+<4160> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/copysrc" dest="http://192.168.178.28/temp/litmus/copydest", depth=0, overwrite=T, elap=0.006sec -> 204 No Content
+<2844> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/copysrc" dest="http://192.168.178.28/temp/litmus/copycoll/", depth=0, overwrite=T, elap=0.007sec -> 204 No Content
+<4608> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/copysrc" dest="http://192.168.178.28/temp/litmus/nonesuch/foo", depth=0, overwrite=F, elap=0.005sec -> 409 Conflict
+<6096> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/copysrc" depth=0, elap=0.002sec -> 204 No Content
+<3580> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/copydest" depth=0, elap=0.002sec -> 204 No Content
+<4792> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/copycoll" depth=0, elap=0.002sec -> 204 No Content
+<4212> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/copycoll/" elap=0.001sec -> 404 Not Found
+<1884> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/ccsrc/" depth=0, elap=0.002sec -> 201 Created
+<1116> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.0" length=32, elap=0.003sec -> 201 Created
+<5072> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.1" length=32, elap=0.004sec -> 201 Created
+<6140> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.2" length=32, elap=0.003sec -> 201 Created
+<3588> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.3" length=32, elap=0.004sec -> 201 Created
+<4240> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.4" length=32, elap=0.003sec -> 201 Created
+<5244> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.5" length=32, elap=0.005sec -> 201 Created
+<5992> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.6" length=32, elap=0.004sec -> 201 Created
+<5684> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.7" length=32, elap=0.004sec -> 201 Created
+<4156> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.8" length=32, elap=0.005sec -> 201 Created
+<2248> 192.168.178.28 - tester - [2010-01-03 16:30:29] "PUT /litmus/ccsrc/foo.9" length=32, elap=0.005sec -> 201 Created
+<4224> 192.168.178.28 - tester - [2010-01-03 16:30:29] "MKCOL /litmus/ccsrc/subcoll/" depth=0, elap=0.003sec -> 201 Created
+<5248> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/ccdest/" elap=0.000sec -> 404 Not Found
+<1640> 192.168.178.28 - tester - [2010-01-03 16:30:29] "DELETE /litmus/ccdest2/" elap=0.001sec -> 404 Not Found
+<4056> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/ccsrc/" dest="http://192.168.178.28/temp/litmus/ccdest/", depth=infinity, overwrite=F, elap=0.119sec -> 201 Created
+<4264> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/ccsrc/" dest="http://192.168.178.28/temp/litmus/ccdest2/", depth=infinity, overwrite=F, elap=0.036sec -> 201 Created
+<2564> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/ccdest/" dest="http://192.168.178.28/temp/litmus/ccdest2/", depth=infinity, overwrite=F, elap=0.002sec -> 412 Precondition Failed
+<564> 192.168.178.28 - tester - [2010-01-03 16:30:29] "COPY /litmus/ccdest2/" dest="http://192.168.178.28/temp/litmus/ccdest/", depth=infinity, overwrite=T, elap=0.155sec -> 204 No Content
+<260> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccsrc/" depth=infinity, elap=0.023sec -> 204 No Content
+<2276> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.0" depth=0, elap=0.002sec -> 204 No Content
+<2116> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.1" depth=0, elap=0.002sec -> 204 No Content
+<216> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.2" depth=0, elap=0.002sec -> 204 No Content
+<3228> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.3" depth=0, elap=0.002sec -> 204 No Content
+<916> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.4" depth=0, elap=0.003sec -> 204 No Content
+<5860> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.5" depth=0, elap=0.002sec -> 204 No Content
+<5524> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.6" depth=0, elap=0.003sec -> 204 No Content
+<4452> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.7" depth=0, elap=0.003sec -> 204 No Content
+<3912> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.8" depth=0, elap=0.003sec -> 204 No Content
+<5824> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/foo.9" depth=0, elap=0.004sec -> 204 No Content
+<2132> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/subcoll/" depth=infinity, elap=0.002sec -> 204 No Content
+<5412> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest2/" depth=infinity, elap=0.019sec -> 204 No Content
+<2672> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/" depth=infinity, elap=0.003sec -> 204 No Content
+<3712> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MKCOL /litmus/ccsrc/" depth=0, elap=0.002sec -> 201 Created
+<5568> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/ccsrc/foo" length=32, elap=0.003sec -> 201 Created
+<4120> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/" elap=0.000sec -> 404 Not Found
+<5680> 192.168.178.28 - tester - [2010-01-03 16:30:30] "COPY /litmus/ccsrc/" dest="http://192.168.178.28/temp/litmus/ccdest/", depth=0, overwrite=F, elap=0.009sec -> 201 Created
+<5532> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccsrc/" depth=infinity, elap=0.011sec -> 204 No Content
+<6132> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/foo" elap=0.001sec -> 404 Not Found
+<5340> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/ccdest/" depth=infinity, elap=0.004sec -> 204 No Content
+<2732> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/move" length=32, elap=0.003sec -> 201 Created
+<5120> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/move2" length=32, elap=0.002sec -> 201 Created
+<6124> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MKCOL /litmus/movecoll/" depth=0, elap=0.003sec -> 201 Created
+<5620> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/move" dest="http://192.168.178.28/temp/litmus/movedest", depth=0, overwrite=F, elap=0.003sec -> 201 Created
+<2204> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/move2" dest="http://192.168.178.28/temp/litmus/movedest", depth=0, overwrite=F, elap=0.002sec -> 412 Precondition Failed
+<4236> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/move2" dest="http://192.168.178.28/temp/litmus/movedest", depth=0, overwrite=T, elap=0.009sec -> 204 No Content
+<5304> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/movedest" dest="http://192.168.178.28/temp/litmus/movecoll/", depth=0, overwrite=T, elap=0.007sec -> 204 No Content
+<5904> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/movecoll" depth=0, elap=0.003sec -> 204 No Content
+<12> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MKCOL /litmus/mvsrc/" depth=0, elap=0.002sec -> 201 Created
+<6008> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.0" length=32, elap=0.003sec -> 201 Created
+<3808> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.1" length=32, elap=0.004sec -> 201 Created
+<5724> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.2" length=32, elap=0.007sec -> 201 Created
+<2712> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.3" length=32, elap=0.011sec -> 201 Created
+<4216> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.4" length=32, elap=0.003sec -> 201 Created
+<2516> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.5" length=32, elap=0.003sec -> 201 Created
+<4288> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.6" length=32, elap=0.004sec -> 201 Created
+<4596> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.7" length=32, elap=0.004sec -> 201 Created
+<5356> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.8" length=32, elap=0.004sec -> 201 Created
+<1988> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvsrc/foo.9" length=32, elap=0.004sec -> 201 Created
+<1304> 192.168.178.28 - tester - [2010-01-03 16:30:30] "PUT /litmus/mvnoncoll" length=32, elap=0.004sec -> 201 Created
+<5352> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MKCOL /litmus/mvsrc/subcoll/" depth=0, elap=0.002sec -> 201 Created
+<1780> 192.168.178.28 - tester - [2010-01-03 16:30:30] "COPY /litmus/mvsrc/" dest="http://192.168.178.28/temp/litmus/mvdest2/", depth=infinity, overwrite=F, elap=0.083sec -> 201 Created
+<4152> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/mvsrc/" dest="http://192.168.178.28/temp/litmus/mvdest/", depth=infinity, overwrite=F, elap=0.014sec -> 201 Created
+<1308> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/mvdest/" dest="http://192.168.178.28/temp/litmus/mvdest2/", depth=infinity, overwrite=F, elap=0.002sec -> 412 Precondition Failed
+<4760> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/mvdest2/" dest="http://192.168.178.28/temp/litmus/mvdest/", depth=infinity, overwrite=T, elap=0.022sec -> 204 No Content
+<5472> 192.168.178.28 - tester - [2010-01-03 16:30:30] "COPY /litmus/mvdest/" dest="http://192.168.178.28/temp/litmus/mvdest2/", depth=infinity, overwrite=F, elap=0.090sec -> 201 Created
+<5068> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.0" depth=0, elap=0.002sec -> 204 No Content
+<5056> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.1" depth=0, elap=0.003sec -> 204 No Content
+<4436> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.2" depth=0, elap=0.004sec -> 204 No Content
+<288> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.3" depth=0, elap=0.002sec -> 204 No Content
+<5364> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.4" depth=0, elap=0.003sec -> 204 No Content
+<4292> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.5" depth=0, elap=0.002sec -> 204 No Content
+<4280> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.6" depth=0, elap=0.002sec -> 204 No Content
+<5048> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.7" depth=0, elap=0.002sec -> 204 No Content
+<4672> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.8" depth=0, elap=0.002sec -> 204 No Content
+<3572> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/foo.9" depth=0, elap=0.002sec -> 204 No Content
+<4996> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/subcoll/" depth=infinity, elap=0.020sec -> 204 No Content
+<3616> 192.168.178.28 - tester - [2010-01-03 16:30:30] "MOVE /litmus/mvdest2/" dest="http://192.168.178.28/temp/litmus/mvnoncoll", depth=infinity, overwrite=T, elap=0.016sec -> 204 No Content
+<5800> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest/" depth=infinity, elap=0.003sec -> 204 No Content
+<5788> 192.168.178.28 - tester - [2010-01-03 16:30:30] "DELETE /litmus/mvdest2/" elap=0.001sec -> 404 Not Found
+<2444> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/mvnoncoll" depth=infinity, elap=0.028sec -> 204 No Content
+<5968> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:31] "DELETE /litmus/" elap=0.000sec -> 401 Not Authorized
+<380> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/" depth=infinity, elap=0.002sec -> 204 No Content
+<5156> 192.168.178.28 - tester - [2010-01-03 16:30:31] "MKCOL /litmus/" depth=0, elap=0.009sec -> 201 Created
+<4692> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/" length=5, depth=0, elap=0.001sec -> 400 Bad Request
+<5188> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/" length=80, depth=0, elap=0.003sec -> 400 Bad Request
+<3944> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/" length=304, depth=0, elap=0.004sec -> 207 Multistatus
+<4164> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/prop" elap=0.001sec -> 404 Not Found
+<268> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PUT /litmus/prop" length=32, elap=0.003sec -> 201 Created
+<4912> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop" length=1033, depth=0, elap=0.004sec -> 207 Multistatus
+<5528> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop" length=578, depth=0, elap=0.002sec -> 207 Multistatus
+<6104> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop" length=92, depth=infinity, elap=0.003sec -> 207 Multistatus
+<4544> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/prop2" elap=0.001sec -> 404 Not Found
+<4764> 192.168.178.28 - tester - [2010-01-03 16:30:31] "MOVE /litmus/prop" dest="http://192.168.178.28/temp/litmus/prop2", depth=0, overwrite=F, elap=0.004sec -> 201 Created
+moveProperties: /temp/litmus/prop /temp/litmus/prop2
+<4368> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=578, depth=0, elap=0.002sec -> 207 Multistatus
+<5016> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=1033, depth=0, elap=0.006sec -> 207 Multistatus
+<5636> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=578, depth=0, elap=0.001sec -> 207 Multistatus
+<1908> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=1048, depth=0, elap=0.005sec -> 207 Multistatus
+<5888> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=578, depth=0, elap=0.003sec -> 207 Multistatus
+<5960> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=156, depth=0, elap=0.003sec -> 207 Multistatus
+<3812> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=112, depth=0, elap=0.012sec -> 207 Multistatus
+<5112> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=186, depth=0, elap=0.003sec -> 207 Multistatus
+<4852> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=144, depth=0, elap=0.002sec -> 207 Multistatus
+<3144> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=343, depth=0, elap=0.002sec -> 207 Multistatus
+<4276> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=141, depth=0, elap=0.002sec -> 207 Multistatus
+<5536> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=255, depth=0, elap=0.003sec -> 207 Multistatus
+<4316> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=141, depth=0, elap=0.002sec -> 207 Multistatus
+<672> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop2" length=203, depth=0, elap=0.002sec -> 207 Multistatus
+<5696> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop2" length=138, depth=infinity, elap=0.002sec -> 207 Multistatus
+<4124> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/prop" elap=0.001sec -> 404 Not Found
+<2956> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PUT /litmus/prop" length=32, elap=0.013sec -> 201 Created
+<6040> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/prop" length=1070, depth=0, elap=0.006sec -> 207 Multistatus
+<4092> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/prop" length=535, depth=0, elap=0.002sec -> 207 Multistatus
+<5212> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/prop" depth=0, elap=0.003sec -> 204 No Content
+<4304> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:31] "DELETE /litmus/" elap=0.000sec -> 401 Not Authorized
+<5612> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/" depth=infinity, elap=0.004sec -> 204 No Content
+<5264> 192.168.178.28 - tester - [2010-01-03 16:30:31] "MKCOL /litmus/" depth=0, elap=0.004sec -> 201 Created
+<4468> 192.168.178.28 - tester - [2010-01-03 16:30:31] "OPTIONS /litmus/" elap=0.001sec -> 200 OK
+<5956> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PUT /litmus/lockme" length=32, elap=0.005sec -> 201 Created
+<4128> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PUT /litmus/notlocked" length=32, elap=0.004sec -> 201 Created
+<5276> 192.168.178.28 - tester - [2010-01-03 16:30:31] "LOCK /litmus/lockme" length=174, depth=0, elap=0.002sec -> 200 OK
+<5196> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPFIND /litmus/lockme" length=118, depth=0, elap=0.005sec -> 207 Multistatus
+<3592> 192.168.178.28 - tester - [2010-01-03 16:30:31] "LOCK /litmus/lockme" depth=0, elap=0.008sec -> 200 OK
+<1192> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:31] "DELETE /litmus/lockme" elap=0.000sec -> 401 Not Authorized
+<4228> 192.168.178.28 - tester - [2010-01-03 16:30:31] "DELETE /litmus/lockme" depth=0, elap=0.001sec -> 423 Locked
+<3256> 192.168.178.28 - tester - [2010-01-03 16:30:31] "MOVE /litmus/lockme" dest="http://192.168.178.28/temp/litmus/whocares", depth=0, overwrite=F, elap=0.002sec -> 423 Locked
+<648> 192.168.178.28 - tester - [2010-01-03 16:30:31] "COPY /litmus/notlocked" dest="http://192.168.178.28/temp/litmus/lockme", depth=0, overwrite=T, elap=0.002sec -> 423 Locked
+<2420> [17:30:31.963] wsgidav:  Reading 1 bytes from potentially unread POST body: '<'...
+<2420> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PROPPATCH /litmus/lockme" length=188, depth=0, elap=0.002sec -> 423 Locked
+<3784> [17:30:31.973] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<3784> 192.168.178.28 - tester - [2010-01-03 16:30:31] "PUT /litmus/lockme" length=32, elap=0.002sec -> 423 Locked
+<4312> 192.168.178.28 - tester - [2010-01-03 16:30:31] "UNLOCK /litmus/lockme" elap=0.002sec -> 409 Conflict
+<3168> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockme" length=170, depth=0, elap=0.001sec -> 423 Locked
+<5688> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.003sec -> 204 No Content
+<1604> 192.168.178.28 - tester - [2010-01-03 16:30:32] "DELETE /litmus/lockme" depth=0, elap=0.001sec -> 423 Locked
+<4384> 192.168.178.28 - tester - [2010-01-03 16:30:32] "MOVE /litmus/lockme" dest="http://192.168.178.28/temp/litmus/whocares", depth=0, overwrite=F, elap=0.002sec -> 423 Locked
+<1340> 192.168.178.28 - tester - [2010-01-03 16:30:32] "COPY /litmus/notlocked" dest="http://192.168.178.28/temp/litmus/lockme", depth=0, overwrite=T, elap=0.002sec -> 423 Locked
+<5588> [17:30:32.82] wsgidav:  Reading 1 bytes from potentially unread POST body: '<'...
+<5588> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PROPPATCH /litmus/lockme" length=188, depth=0, elap=0.001sec -> 423 Locked
+<5308> [17:30:32.92] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<5308> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.001sec -> 423 Locked
+<4380> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockme" elap=0.001sec -> 409 Conflict
+<5076> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockme" length=170, depth=0, elap=0.002sec -> 423 Locked
+<5020> 192.168.178.28 - tester - [2010-01-03 16:30:32] "DELETE /litmus/lockme-copydest" elap=0.000sec -> 404 Not Found
+<5380> 192.168.178.28 - tester - [2010-01-03 16:30:32] "COPY /litmus/lockme" dest="http://192.168.178.28/temp/litmus/lockme-copydest", depth=0, overwrite=T, elap=0.011sec -> 201 Created
+<5812> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PROPFIND /litmus/lockme-copydest" length=118, depth=0, elap=0.002sec -> 207 Multistatus
+<4592> 192.168.178.28 - tester - [2010-01-03 16:30:32] "DELETE /litmus/lockme-copydest" depth=0, elap=0.003sec -> 204 No Content
+<4524> 192.168.178.28 - tester - [2010-01-03 16:30:32] "HEAD /litmus/lockme" depth=0, elap=0.002sec -> 200 OK
+<3820> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.005sec -> 204 No Content
+<1456> 192.168.178.28 - tester - [2010-01-03 16:30:32] "HEAD /litmus/lockme" depth=0, elap=0.004sec -> 200 OK
+<4656> [17:30:32.267] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<4656> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.003sec -> 412 Precondition Failed
+<2332> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.003sec -> 204 No Content
+<3600> [17:30:32.311] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<3600> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.002sec -> 423 Locked
+<4944> 192.168.178.28 - tester - [2010-01-03 16:30:32] "HEAD /litmus/lockme" depth=0, elap=0.001sec -> 200 OK
+<2788> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.003sec -> 204 No Content
+<5880> 192.168.178.28 - tester - [2010-01-03 16:30:32] "HEAD /litmus/lockme" depth=0, elap=0.001sec -> 200 OK
+<4300> [17:30:32.361] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<4300> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.002sec -> 412 Precondition Failed
+<4620> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockme" elap=0.002sec -> 204 No Content
+<4352> [17:30:32.404] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<4352> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.008sec -> 412 Precondition Failed
+<5608> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockme" length=171, depth=0, elap=0.007sec -> 200 OK
+<5772> 192.168.178.28 - tester - [2010-01-03 16:30:32] "DELETE /litmus/lockme" depth=0, elap=0.002sec -> 423 Locked
+<1284> 192.168.178.28 - tester - [2010-01-03 16:30:32] "MOVE /litmus/lockme" dest="http://192.168.178.28/temp/litmus/whocares", depth=0, overwrite=F, elap=0.003sec -> 423 Locked
+<248> 192.168.178.28 - tester - [2010-01-03 16:30:32] "COPY /litmus/notlocked" dest="http://192.168.178.28/temp/litmus/lockme", depth=0, overwrite=T, elap=0.002sec -> 423 Locked
+<5164> [17:30:32.490] wsgidav:  Reading 1 bytes from potentially unread POST body: '<'...
+<5164> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PROPPATCH /litmus/lockme" length=188, depth=0, elap=0.002sec -> 423 Locked
+<6020> [17:30:32.500] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<6020> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.001sec -> 423 Locked
+<4624> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockme" elap=0.002sec -> 409 Conflict
+<5032> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockme" length=170, depth=0, elap=0.002sec -> 423 Locked
+<4960> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.003sec -> 204 No Content
+<1316> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockme" length=181, depth=0, elap=0.005sec -> 200 OK
+<2088> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockme" elap=0.001sec -> 204 No Content
+<4688> 192.168.178.28 - tester - [2010-01-03 16:30:32] "DELETE /litmus/lockme" depth=0, elap=0.001sec -> 423 Locked
+<5000> 192.168.178.28 - tester - [2010-01-03 16:30:32] "MOVE /litmus/lockme" dest="http://192.168.178.28/temp/litmus/whocares", depth=0, overwrite=F, elap=0.002sec -> 423 Locked
+<5480> 192.168.178.28 - tester - [2010-01-03 16:30:32] "COPY /litmus/notlocked" dest="http://192.168.178.28/temp/litmus/lockme", depth=0, overwrite=T, elap=0.003sec -> 423 Locked
+<2948> [17:30:32.674] wsgidav:  Reading 1 bytes from potentially unread POST body: '<'...
+<2948> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PROPPATCH /litmus/lockme" length=188, depth=0, elap=0.001sec -> 423 Locked
+<4420> [17:30:32.700] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<4420> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockme" length=32, elap=0.007sec -> 423 Locked
+<252> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockme" elap=0.002sec -> 409 Conflict
+<3352> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockme" length=170, depth=0, elap=0.005sec -> 423 Locked
+<3560> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockme" elap=0.001sec -> 204 No Content
+<4528> 192.168.178.28 - tester - [2010-01-03 16:30:32] "MKCOL /litmus/lockcoll/" depth=0, elap=0.003sec -> 201 Created
+<4388> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockcoll/" length=174, depth=infinity, elap=0.004sec -> 200 OK
+<2216> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockcoll/lockme.txt" length=32, elap=0.003sec -> 201 Created
+<6052> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockcoll/lockme.txt" length=32, elap=0.002sec -> 204 No Content
+<1628> 192.168.178.28 - tester - [2010-01-03 16:30:32] "DELETE /litmus/lockcoll/lockme.txt" depth=0, elap=0.003sec -> 423 Locked
+<4348> 192.168.178.28 - tester - [2010-01-03 16:30:32] "MOVE /litmus/lockcoll/lockme.txt" dest="http://192.168.178.28/temp/litmus/whocares", depth=0, overwrite=F, elap=0.002sec -> 423 Locked
+<4724> 192.168.178.28 - tester - [2010-01-03 16:30:32] "COPY /litmus/notlocked" dest="http://192.168.178.28/temp/litmus/lockcoll/lockme.txt", depth=0, overwrite=T, elap=0.002sec -> 423 Locked
+<5260> [17:30:32.888] wsgidav:  Reading 1 bytes from potentially unread POST body: '<'...
+<5260> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PROPPATCH /litmus/lockcoll/lockme.txt" length=188, depth=0, elap=0.002sec -> 423 Locked
+<4148> [17:30:32.905] wsgidav:  Reading 1 bytes from potentially unread POST body: 'T'...
+<4148> 192.168.178.28 - tester - [2010-01-03 16:30:32] "PUT /litmus/lockcoll/lockme.txt" length=32, elap=0.002sec -> 423 Locked
+<6068> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockcoll/" depth=0, elap=0.003sec -> 200 OK
+<2832> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/lockcoll/lockme.txt" depth=0, elap=0.013sec -> 200 OK
+<5004> 192.168.178.28 - tester - [2010-01-03 16:30:32] "UNLOCK /litmus/lockcoll/" elap=0.002sec -> 204 No Content
+<3904> 192.168.178.28 - tester - [2010-01-03 16:30:32] "LOCK /litmus/unmapped_url" length=174, depth=0, elap=0.004sec -> 201 Created
+<4988> 192.168.178.28 - tester - [2010-01-03 16:30:33] "UNLOCK /litmus/unmapped_url" elap=0.001sec -> 204 No Content
+<4876> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:33] "DELETE /litmus/" elap=0.001sec -> 401 Not Authorized
+<1088> 192.168.178.28 - tester - [2010-01-03 16:30:33] "DELETE /litmus/" depth=infinity, elap=0.012sec -> 204 No Content
+<1464> 192.168.178.28 - tester - [2010-01-03 16:30:33] "MKCOL /litmus/" depth=0, elap=0.004sec -> 201 Created
+<4860> [17:30:33.153] wsgidav:  -> read 1 byte failed: (10035, 'The socket operation could not complete without blocking')
+<4860> 192.168.178.28 - (anonymous) - [2010-01-03 16:30:33] "PUT /litmus/expect100" length=100, elap=0.001sec -> 401 Not Authorized
