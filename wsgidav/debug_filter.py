@@ -5,7 +5,7 @@ debug_filter
 ============
 
 :Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 WSGI middleware used for debugging (optional).
 

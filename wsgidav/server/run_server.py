@@ -5,7 +5,7 @@ run_server
 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Standalone server that runs WsgiDAV.
 
@@ -80,7 +80,7 @@ If no config file is found, a default FilesystemProvider is used."""
 #paste.httpserver, wsgiref.simple_server) or uses our built-in
 #ext_wsgiutils_server.py."""
 
-#    epilog = """Licensed under LGPL.
+#    epilog = """Licensed under the MIT license.
 #See http://wsgidav.googlecode.com for additional information."""
             
     parser = OptionParser(usage=usage, 

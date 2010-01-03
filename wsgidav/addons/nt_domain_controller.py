@@ -1,6 +1,6 @@
 """
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Implementation of a domain controller that allows users to authenticate against 
 a Windows NT domain or a local computer (used by HTTPAuthenticator).

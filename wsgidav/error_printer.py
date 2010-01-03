@@ -4,7 +4,7 @@ error_printer
 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 
 WSGI middleware to catch application thrown DAVErrors and return proper 

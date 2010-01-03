@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 """
 :Author: Martin Wendt
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 DAV provider that publishes a Mercurial repository.
 

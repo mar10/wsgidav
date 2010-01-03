@@ -4,7 +4,7 @@ dav_provider
 
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 This module implements DAVResource and DAVProvider objects.
 

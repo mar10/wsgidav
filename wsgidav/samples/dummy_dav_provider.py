@@ -1,6 +1,6 @@
 """
 :Author: Martin Wendt
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Sample implementation of a DAV provider that does nothing.
 

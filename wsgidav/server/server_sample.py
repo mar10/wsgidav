@@ -4,7 +4,7 @@ server_sample
 =============
 
 :Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 

@@ -5,7 +5,7 @@ TUTORIAL
 :Module: pyfileserver
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com
 :Project: PyFileServer, http://pyfilesync.berlios.de/
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Purpose
 =======

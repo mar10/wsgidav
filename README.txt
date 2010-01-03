@@ -5,7 +5,7 @@ README
 :Authors: - Ho Chun Wei, fuzzybr80(at)gmail.com (original PyFileServer)
           - Martin Wendt
 :Project: WsgiDAV, http://wsgidav.googlecode.com/
-:Copyright: Lesser GNU Public License, see LICENSE file attached with package
+:Copyright: Licensed under the MIT license, see LICENSE file in this package.
 :Abstract: This document gives a brief introduction to the WsgiDAV application package.
 
 
