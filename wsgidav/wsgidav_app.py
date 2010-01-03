@@ -1,60 +1,43 @@
 # -*- coding: iso-8859-1 -*-
-
 """
-wsgidav_app
-===========
-
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
-
 WSGI container, that handles the HTTP requests. This object is passed to the 
 WSGI server and represents our WsgiDAV application to the outside. 
 
+On init:
 
-Configuration
--------------
+    Use the configuration dictionary to initialize lock manager, property manager,
+    domain controller. 
 
-provider_mapping
-    Type: dictionary, default: {}
-    {shareName: DAVProvider,
-    }
-user_mapping
-    Type: dictionary, default: {}
-host
-    Type: str, default: 'localhost'
-port
-    Type: int, default: 8080 
-ext_servers
-    Type: string list
-enable_loggers
-    List
-propsmanager
-    Default: None (no property manager)                    
-locksmanager
-    Default: True (use lock_manager.LockManager)                   
-domaincontroller
-    Default: None (use domain_controller.WsgiDAVDomainController(user_mapping))
-verbose
-    Type: int, default: 2
-    0 no output (excepting application exceptions)         
-    1 - show single line request summaries (for HTTP logging)
-    2 - show additional events
-    3 - show full request/response header info (HTTP Logging) request body and GET response bodies not shown
+    Create a dictionary of share-to-provider mappings.         
 
-# HTTP Authentication Options
-"acceptbasic": True,    # Allow basic authentication, True or False
-"acceptdigest": True,   # Allow digest authentication, True or False
-"defaultdigest": True,  # True (default digest) or False (default basic)
+    Initialize middleware objects and RequestResolver and setup the WSGI 
+    application stack.
+      
+For every request:
 
-# Organizational Information - printed as a footer on html output
-"response_trailer": None,
+    Find the registered DAV provider for the current request.   
+    
+    Add or modify info in the WSGI ``environ``:
+    
+        environ["SCRIPT_NAME"]
+            Mount-point of the current share.            
+        environ["PATH_INFO"]
+            Resource path, relative to the mount path.
+        environ["wsgidav.provider"]
+            DAVProvider object that is registered for handling the current 
+            request. 
+        environ["wsgidav.config"]
+            Configuration dictionary.
+        environ["wsgidav.verbose"]
+            Debug level [0-3].
 
+    Log the HTTP request, then pass the request to the first middleware.
 
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
-
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
+    Note: The OPTIONS method for the '*' path is handled directly.
 """
 from fs_dav_provider import FilesystemProvider
 from wsgidav.dir_browser import WsgiDavDirBrowser

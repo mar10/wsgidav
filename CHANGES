@@ -7,7 +7,12 @@ CHANGES
 <Not yet started> 
 
 
-0.4.0
-=====
+0.4.0.b1
+========
+- Added Sphinx docs
+- Added Mercurial provider
 
+
+Until 0.4.0 alpha
+=================
 See http://code.google.com/p/wsgidav/wiki/ChangeLog04
