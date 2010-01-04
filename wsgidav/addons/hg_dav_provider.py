@@ -567,7 +567,7 @@ class HgResourceProvider(DAVProvider):
                  "filedict": filedict,
                  }
         caches[str(rev)] = cache
-        util.note("_getRepoInfo(%s) took %s" % (rev, time.time() - start_time)
+        util.note("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time)
 #                  , var=cache
                   )
         return cache

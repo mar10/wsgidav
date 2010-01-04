@@ -217,7 +217,7 @@ class WsgiDAVApp(object):
 
     def __call__(self, environ, start_response):
 
-        util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
+#        util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
         
         # We unquote PATH_INFO here, although this should already be done by
         # the server.
@@ -279,9 +279,9 @@ class WsgiDAVApp(object):
 
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):
-             # HOTFIX: issue 13, issue 23
+            # HOTFIX: issue 13, issue 23
             util.readOneByteFromInput(environ)
-           # Log request
+            # Log request
             if self._verbose >= 1:
                 threadInfo = ""
                 userInfo = environ.get("http_authenticator.username")

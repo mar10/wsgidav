@@ -64,6 +64,9 @@ __docformat__ = "reStructuredText"
 BASE_LOGGER_NAME = "wsgidav"
 _logger = logging.getLogger(BASE_LOGGER_NAME)
 
+#DUMP_RAW_REQUESTS = None
+#DUMP_RAW_RESPONSES = None
+#DUMP_XML_RESPONSES = None
 
 #===============================================================================
 # String handling
@@ -331,10 +334,10 @@ def traceCall(msg=None):
         print "%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg)
 
 
-def isVerboseMode(environ):
-    if environ["wsgidav.verbose"] >= 1 and environ["REQUEST_METHOD"] in environ.get("wsgidav.debug_methods", []):
-        return True
-    return False
+#def isVerboseMode(environ):
+#    if environ["wsgidav.verbose"] >= 1 and environ["REQUEST_METHOD"] in environ.get("wsgidav.debug_methods", []):
+#        return True
+#    return False
 
 
 #===============================================================================
@@ -476,8 +479,12 @@ def readOneByteFromInput(environ):
     environ["wsgidav.consumed_body"] = 1
     
     input = environ["wsgi.input"]
+    # TODO: better check for ducktyping (is it a socket?)
+#    if hasattr(input, "_sock"): ...
+    # TODO: make it work for Paste
+    #       http://groups.google.com/group/paste-users/browse_thread/thread/fc0c9476047e9a47/aa4a3aa416016729?hl=en&lnk=gst&q=.input#aa4a3aa416016729
+    # TODO: check if still required after issue 24 is fixed 
     if environ.get("wsgidav.is_builtin_server"):
-#    if hasattr(input, "_sock"):
         try:
             # Set socket to non-blocking
             sock = input._sock
@@ -696,8 +703,12 @@ def parseXmlBody(environ, allowEmpty=False):
     except Exception, e:
         raise DAVError(HTTP_BAD_REQUEST, "Invalid XML format.", srcexception=e)   
     
-    if environ["wsgidav.verbose"] >= 1 and environ["REQUEST_METHOD"] in environ.get("wsgidav.debug_methods", []):
-        print "XML request for %s:\n%s" % (environ["REQUEST_METHOD"], etree.tostring(rootEL, pretty_print=True))
+    # If dumps of the body are desired, then this is the place to do it pretty:
+    if environ.get("wsgidav.dump_request_body"):
+        write("%s XML request body:\n%s" % (environ["REQUEST_METHOD"], 
+                                            xmlToString(rootEL, pretty_print=True)))
+        environ["wsgidav.dump_request_body"] = False
+
     return rootEL
     
 
@@ -723,15 +734,20 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     start_response("207 Multistatus", [("Content-Type", "application/xml"), 
                                        ("Date", getRfc1123Time()),
                                        ])
+    # If dumps of the body are desired, then this is the place to do it pretty:
+    if environ.get("wsgidav.dump_response_body"):
+        xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
+                                             xmlToString(multistatusEL, pretty_print=True)) 
+#        write("%s XML response body:\n%s" % (environ["REQUEST_METHOD"], xml))
+#        environ["wsgidav.dump_response_body"] = False
+        environ["wsgidav.dump_response_body"] = xml 
+        
+
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
-    if __debug__: 
-        xml = xmlToString(multistatusEL, pretty_print=True) 
-        log(xml)
     pretty_print = False
-    return [#"<?xml version='1.0' encoding='UTF-8' ?>",
-            xmlToString(multistatusEL, pretty_print=pretty_print) ]
+    return [ xmlToString(multistatusEL, pretty_print=pretty_print) ]
         
             
 def sendSimpleResponse(environ, start_response, status):
@@ -745,8 +761,6 @@ def sendSimpleResponse(environ, start_response, status):
         return [ "" ]
     assert status == HTTP_OK or isinstance(status, DAVError)
     html = status.getHtmlResponse()
-    if __debug__: 
-        log(html)
     start_response(s, [("Content-Type", "text/html"),
                        ("Content-Length", str(len(html))),
                        ("Date", getRfc1123Time()),
@@ -792,8 +806,6 @@ def addPropertyResponse(multistatusEL, href, propList):
         propDict.setdefault(status, []).append( (name, value) )
 
     # <response>
-#    responseEL = etree.SubElement(multistatusEL, "{DAV:}response", 
-#                            nsmap=nsMap) 
     responseEL = makeSubElement(multistatusEL, "{DAV:}response", 
                                 nsmap=nsMap) 
     

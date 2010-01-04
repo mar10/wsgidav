@@ -193,5 +193,4 @@ class RequestResolver(object):
         app = RequestServer(provider)
         for v in app(environ, start_response):
             yield v
-            util.log("Response", v)
         return

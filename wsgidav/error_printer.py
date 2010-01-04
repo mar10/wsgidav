@@ -113,7 +113,7 @@ class ErrorPrinter(object):
                     yield v
 #            except GeneratorExit:
 #                # TODO: required?
-#                util.debug("sc", "GeneratorExit")
+#                util.debug("GeneratorExit", module="sc")
 #                raise
             except DAVError, e:
                 _logger.debug("re-raising %s" % e)
@@ -152,7 +152,7 @@ class ErrorPrinter(object):
                 # TODO: added html body, to see if this fixes 'connection closed' bug  
                 respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1></body></html>"
 
-            util.debug("sc", "Return error html %s: %s" % (respcode, respbody))
+            util.debug("Return error html %s: %s" % (respcode, respbody), module="sc")
             start_response(respcode, [("Content-Type", "text/html"), 
                                       ("Date", datestr)
                                       ],

@@ -20,6 +20,12 @@ import threading
 __docformat__ = "reStructuredText"
 
 
+#class StartResponseWrapper(object):
+#    def __init__(self, environ):
+#        self.environ = environ
+#    def __call__(self, status, response_headers, exc_info=None):
+        
+
 class WsgiDavDebugFilter(object):
 
     def __init__(self, application):
@@ -28,22 +34,11 @@ class WsgiDavDebugFilter(object):
         self.out = sys.stderr
         self.passedLitmus = {}
         
-        self._dumpheaders = [
-#                              "HTTP_IF",
-#                              "HTTP_IF_MODIFIED_SINCE",
-#                              "HTTP_IF_UNMODIFIED_SINCE",
-#                              "HTTP_IF_MATCH",
-#                              "HTTP_IF_NONE_MATCH",
-#                              "HTTP_LOCK_TOKEN",
-#                              "HTTP_DEPTH",
-#                              "HTTP_DESTINATION",
-#                              "HTTP_AUTHORIZATION",
-                              ]
-
+        # These methods boost verbose=2 to verbose=3
         self._debugmethods = [
 #                              "PROPPATCH",
-#                              "PROPFIND",
-#                              "GET",
+##                              "PROPFIND",
+##                              "GET",
 #                              "HEAD",
 #                              "DELETE",
 #                              "PUT",
@@ -53,6 +48,7 @@ class WsgiDavDebugFilter(object):
 #                              "UNLOCK",
                               ]
 
+        # Litmus tests containing these string boost verbose=2 to verbose=3
         self._debuglitmus = [
 #                             "lock_excl",
 #                             "notowner_modify",
@@ -63,7 +59,7 @@ class WsgiDavDebugFilter(object):
 #                             "basic: 9",
 #                             "basic: 14",
 #                             "props: 16",
-                             "props: 18",
+#                             "props: 18",
 #                             "locks: 9",
 #                             "locks: 12",
 #                             "locks: 13",
@@ -77,6 +73,7 @@ class WsgiDavDebugFilter(object):
 #                             "http: 2",
                             ]
 
+        # Exit server, as soon as this litmus test has finished
         self._break_after_litmus = [
 #                             "locks: 15",
                             ]
@@ -88,6 +85,8 @@ class WsgiDavDebugFilter(object):
         # TODO: pass srvcfg with constructor instead?
         srvcfg = environ["wsgidav.config"]
         verbose = srvcfg.get("verbose", 2)
+        method = environ["REQUEST_METHOD"]
+
         debugBreak = False
         dumpRequest = False
         dumpResponse = False
@@ -122,56 +121,75 @@ class WsgiDavDebugFilter(object):
                     self.passedLitmus[litmusSubstring] = True
                 
         # Turn on max. debugging for selected request methods
-        if verbose >= 2 and environ["REQUEST_METHOD"] in self._debugmethods:
+        if verbose >= 2 and method in self._debugmethods:
             verbose = 3
             debugBreak = True
             dumpRequest = True
             dumpResponse = True
 
-        if dumpRequest:      
-            print >> self.out, "<======== Request from <%s> %s" % (threading._get_ident(), threading.currentThread())
-            for k, v in environ.items():
-                if k == k.upper():
-                    print >> self.out, "%20s: »%s«" % (k, v)
-            print >> self.out, "\n"
-        elif verbose >= 2:
-            # Dump selected headers
-            printedHeader = False
-            for k, v in environ.items():
-                if k in self._dumpheaders:
-                    if not printedHeader:
-                        printedHeader = True
-                        print >> self.out, "<======== Request from <%s> %s" % (threading._get_ident(), threading.currentThread())
-                    print >> self.out, "%20s: »%s«" % (k, v)
-
         # Set debug options to environment
         environ["wsgidav.verbose"] = verbose
         environ["wsgidav.debug_methods"] = self._debugmethods
         environ["wsgidav.debug_break"] = debugBreak
+        environ["wsgidav.dump_request_body"] = dumpRequest
+        environ["wsgidav.dump_response_body"] = dumpResponse
 
-        # TODO: add timings and byte/request conters 
-         
+        # Dump request headers
+        if dumpRequest:      
+            print >> self.out, "<%s> --- %s Request ---" % (threading._get_ident(), method)
+            for k, v in environ.items():
+                if k == k.upper():
+                    print >> self.out, "%20s: '%s'" % (k, v)
+            print >> self.out, "\n"
+
         # Call parent application and return it's response
-        def start_response_wrapper(respcode, headers, exc_info=None):
+        def start_response_wrapper(status, response_headers, exc_info=None):
             # TODO: not fully understood: 
-#            assert exc_info is None   
             if exc_info is not None:
-                util.log("DebugFilter got exception arg", exc_info)
-#                raise exc_info
-            if dumpResponse:
-                print >> self.out, "=========> Response from <%s> %s" % (threading._get_ident(), threading.currentThread())
+                util.log("DebugFilter got exc_info", exc_info)
 
-                print >> self.out, "Response code:", respcode
-                headersdict = dict(headers)
-                for envitem in headersdict.keys():
-                    print >> self.out, "\t", envitem, ":\t", repr(headersdict[envitem]) 
-                print >> self.out, "\n"
-            return start_response(respcode, headers, exc_info)
+#            # Dump response headers
+#            if dumpResponse:
+#                print >> self.out, "<%s> --- %s Response(%s): ---" % (threading._get_ident(), method, status)
+#                headersdict = dict(response_headers)
+#                for envitem in headersdict.keys():
+#                    print >> self.out, "\t%s:\t'%s'" % (envitem, repr(headersdict[envitem])) 
+#                print >> self.out, "\n"
+            # Store response headers
+            environ["wsgidav.response_status"] = status
+            environ["wsgidav.response_headers"] = response_headers
+            return start_response(status, response_headers, exc_info)
 
+        nbytes = 0
+        firstyield = True
         for v in iter(self._application(environ, start_response_wrapper)):
-#            util.log("debug_filter: yield response chunk (%s bytes)" % len(v))
-            if dumpResponse and environ["REQUEST_METHOD"] != "GET":
-                print >> self.out, v
+            # Dump response headers
+            if firstyield and dumpResponse:
+                print >> self.out, "<%s> --- %s Response(%s): ---" % (threading._get_ident(), 
+                                                                      method, 
+                                                                      environ.get("wsgidav.response_status"))
+                headersdict = dict(environ.get("wsgidav.response_headers"))
+                for envitem in headersdict.keys():
+                    print >> self.out, "%s: %s" % (envitem, repr(headersdict[envitem])) 
+                print >> self.out, ""
+
+            drb = environ.get("wsgidav.dump_response_body")
+            if type(drb) is str:
+                # Middleware provided a formatted body representation 
+                print >> self.out, drb
+                drb = environ["wsgidav.dump_response_body"] = None
+            elif drb is True:
+                # Else dump what we get, (except for long GET responses) 
+                if method == "GET":
+                    if firstyield:
+                        print >> self.out, v[:50], "..."
+                elif len(v) > 0:
+                    print >> self.out, v
+
+            nbytes += len(v) 
+            firstyield = False
             yield v
 
+        if dumpResponse:
+            print >> self.out, "\n<%s> --- End of %s Response (%i bytes) ---" % (threading._get_ident(), method, nbytes)
         return 

@@ -59,10 +59,10 @@ class RequestServer(object):
         self._davProvider = davProvider
         self.allowPropfindInfinite = True
         self._verbose = 2
-        util.debug("sc", "RequestServer: __init__")
+        util.debug("RequestServer: __init__", module="sc")
 
     def __del__(self):
-        util.debug("sc", "RequestServer: __del__")
+        util.debug("RequestServer: __del__", module="sc")
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
@@ -292,8 +292,8 @@ class RequestServer(object):
         # --- Build list of resource URIs 
         
         reslist = res.getDescendants(depth=environ["HTTP_DEPTH"], addSelf=True)
-        if environ["wsgidav.verbose"] >= 3:
-            pprint(reslist, indent=4)
+#        if environ["wsgidav.verbose"] >= 3:
+#            pprint(reslist, indent=4)
         
         multistatusEL = util.makeMultistatusEL()
         responsedescription = []
