@@ -1,17 +1,60 @@
 # -*- coding: iso-8859-1 -*-
 
 """
-debug_filter
-============
-
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 WSGI middleware used for debugging (optional).
 
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
+This module dumps request and response information to the console, depending
+on current debug configuration.
 
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
+On init:
+    Define HTTP methods and litmus tests, that should turn on the verbose mode
+    (currently hard coded).              
+For every request:
+    Increase value of ``environ['verbose']``, if the request should be debugged.
+    Also dump request and response headers and body.
+    
+    Then pass the request to the next middleware.  
+
+These configuration settings are evaluated:
+
+`verbose`
+    This is also used by other modules. This filter adds additional information
+    depending on the value.
+
+    =======  ===================================================================
+    verbose  Effect  
+    =======  ===================================================================
+     0        No additional output.
+     1        No additional output (only standard request logging).
+     2        Dump headers of all requests and responses.
+     3        Dump headers and bodies of all requests and responses. 
+    =======  ===================================================================
+
+`debug_methods`
+    Boost verbosity to 3 while processing certain request methods. This option 
+    is ignored, when ``verbose < 2``.
+
+    Configured like::
+
+        debug_methods = ["PROPPATCH", "PROPFIND", "GET", "HEAD","DELETE",
+                         "PUT", "COPY", "MOVE", "LOCK", "UNLOCK",
+                         ]
+ 
+`debug_litmus`
+    Boost verbosity to 3 while processing litmus tests that contain certain 
+    substrings. This option is ignored, when ``verbose < 2``.
+
+    Configured like::
+    
+        debug_litmus = ["notowner_modify", "props: 16", ]
+
+ 
+See DEVELOPERS_ for more information about the WsgiDAV architecture.
+
+.. _DEVELOPERS: http://docs.wsgidav.googlecode.com/hg/html/develop/architecture.html  
 """
 from wsgidav import util
 import sys
@@ -20,71 +63,29 @@ import threading
 __docformat__ = "reStructuredText"
 
 
-#class StartResponseWrapper(object):
-#    def __init__(self, environ):
-#        self.environ = environ
-#    def __call__(self, status, response_headers, exc_info=None):
-        
 
 class WsgiDavDebugFilter(object):
 
-    def __init__(self, application):
-
+    def __init__(self, application, config):
         self._application = application
+        self._config = config
         self.out = sys.stderr
         self.passedLitmus = {}
-        
         # These methods boost verbose=2 to verbose=3
-        self._debugmethods = [
-#                              "PROPPATCH",
-##                              "PROPFIND",
-##                              "GET",
-#                              "HEAD",
-#                              "DELETE",
-#                              "PUT",
-#                              "COPY",
-#                              "MOVE",
-#                              "LOCK",
-#                              "UNLOCK",
-                              ]
-
+        self.debug_methods = config.get("debug_methods", [])
         # Litmus tests containing these string boost verbose=2 to verbose=3
-        self._debuglitmus = [
-#                             "lock_excl",
-#                             "notowner_modify",
-#                             "cond_put_corrupt_token",
-#                             "copy_coll",
-#                             "fail_cond_put_unlocked",
-#                             "fail_complex_cond_put",
-#                             "basic: 9",
-#                             "basic: 14",
-#                             "props: 16",
-#                             "props: 18",
-#                             "locks: 9",
-#                             "locks: 12",
-#                             "locks: 13",
-#                             "locks: 14",
-#                             "locks: 15",
-#                             "locks: 16",
-#                             "locks: 18",
-#                             "locks: 27",
-#                             "locks: 34",
-#                             "locks: 36",
-#                             "http: 2",
-                            ]
-
+        self.debug_litmus = config.get("debug_litmus", [])
         # Exit server, as soon as this litmus test has finished
-        self._break_after_litmus = [
-#                             "locks: 15",
-                            ]
-
+        self.break_after_litmus = [
+#                                   "locks: 15",
+                                   ]
 
 
     def __call__(self, environ, start_response):
         """"""
-        # TODO: pass srvcfg with constructor instead?
-        srvcfg = environ["wsgidav.config"]
-        verbose = srvcfg.get("verbose", 2)
+#        srvcfg = environ["wsgidav.config"]
+        verbose = self._config.get("verbose", 2)
+
         method = environ["REQUEST_METHOD"]
 
         debugBreak = False
@@ -106,14 +107,14 @@ class WsgiDavDebugFilter(object):
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 2:
             print >> self.out, "----\nRunning litmus test '%s'..." % litmusTag
-            for litmusSubstring in self._debuglitmus:
+            for litmusSubstring in self.debug_litmus: 
                 if litmusSubstring in litmusTag:
                     verbose = 3
                     debugBreak = True
                     dumpRequest = True
                     dumpResponse = True
                     break
-            for litmusSubstring in self._break_after_litmus:
+            for litmusSubstring in self.break_after_litmus:
                 if litmusSubstring in self.passedLitmus and litmusSubstring not in litmusTag:
                     print >> self.out, " *** break after litmus %s" % litmusTag
                     sys.exit(-1)
@@ -121,7 +122,7 @@ class WsgiDavDebugFilter(object):
                     self.passedLitmus[litmusSubstring] = True
                 
         # Turn on max. debugging for selected request methods
-        if verbose >= 2 and method in self._debugmethods:
+        if verbose >= 2 and method in self.debug_methods:
             verbose = 3
             debugBreak = True
             dumpRequest = True
@@ -129,7 +130,7 @@ class WsgiDavDebugFilter(object):
 
         # Set debug options to environment
         environ["wsgidav.verbose"] = verbose
-        environ["wsgidav.debug_methods"] = self._debugmethods
+#        environ["wsgidav.debug_methods"] = self.debug_methods
         environ["wsgidav.debug_break"] = debugBreak
         environ["wsgidav.dump_request_body"] = dumpRequest
         environ["wsgidav.dump_response_body"] = dumpResponse

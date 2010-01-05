@@ -210,7 +210,7 @@ class WsgiDAVApp(object):
                                    server_descriptor=response_trailer,
                                    catchall=False)
 
-        application = WsgiDavDebugFilter(application)
+        application = WsgiDavDebugFilter(application, config)
         
         self._application = application
 
