@@ -15,7 +15,6 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
 .. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
-from pprint import pprint
 from urlparse import urlparse
 from wsgidav.dav_error import HTTP_OK
 import socket
