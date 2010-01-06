@@ -1,9 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 
 """
-lock_manager
-============
-
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
@@ -45,14 +42,13 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 """
 from pprint import pprint
 from dav_error import DAVError, \
-    HTTP_LOCKED, PRECONDITION_CODE_LockConflict, HTTP_FORBIDDEN,\
-    HTTP_PRECONDITION_FAILED
+    HTTP_LOCKED, PRECONDITION_CODE_LockConflict, HTTP_FORBIDDEN
+from wsgidav.dav_error import DAVErrorCondition
 import os
 import sys
 import util
 import shelve
 import random
-import re
 import time
 from rw_lock import ReadWriteLock
 
@@ -82,9 +78,6 @@ class LockManager(object):
     """
     LOCK_TIME_OUT_DEFAULT = 604800 # 1 week, in seconds
 
-    # any numofsecs above the following limit is regarded as infinite
-    MAX_FINITE_TIMEOUT_LIMIT = 10*365*24*60*60  #approx 10 years
-
     def __init__(self):
         self._loaded = False      
         self._dict = None
@@ -97,7 +90,6 @@ class LockManager(object):
 
 
     def __del__(self):
-#        if self._loaded and hasattr(self._dict, "close"):
         self._close()   
 
 
@@ -257,22 +249,19 @@ class LockManager(object):
                 lockowner, timeout, user, tokenList):
         """Check for permissions and acquire a lock.
         
-        On success return 2-tuple (newLockDict, None)
-        
-        On error return 2-tuple (None, conflictList)
-        See self.checkLockPermission for the format.
+        On success return new lock dictionary.
+        On error raise a DAVError with an embedded DAVErrorCondition.
         """
         self._lock.acquireWrite()
         try:
             if not self._loaded:
                 self._lazyOpen()
-            conflictList = self.checkLockPermission(lockroot, locktype, lockscope, lockdepth, tokenList, user)
-            if len(conflictList) > 0:
-#                return conflictList
-                return (None, conflictList)
-            lockDict = self._generateLock(user, locktype, lockscope, lockdepth, lockowner, lockroot, timeout)
-#            return [ (lockDict, None) ]
-            return (lockDict, None)
+#            conflictList = self.checkLockPermission(lockroot, locktype, lockscope, lockdepth, tokenList, user)
+            # Raises DAVError on conflict:
+            self.checkLockPermission(lockroot, locktype, lockscope, lockdepth, tokenList, user)
+#            lockDict = self._generateLock(user, locktype, lockscope, lockdepth, lockowner, lockroot, timeout)
+#            return (lockDict, None)
+            return self._generateLock(user, locktype, lockscope, lockdepth, lockowner, lockroot, timeout)
         finally:
             self._lock.release()
         
@@ -412,14 +401,6 @@ class LockManager(object):
         return len(lockList) > 0
 
         
-#    def getUrlLockScope(self, url):
-#        lockList = self.getUrlLockList(url)
-#        # either one exclusive lock, or many shared locks - first lock will give lock scope
-#        if len(lockList) > 0:
-#            return lockList[0].get("scope")
-#        return None 
-
-
     def isUrlLockedByToken(self, url, locktoken):
         """Check, if url (or any of it's parents) is locked by locktoken."""
         lockUrl = self.getLock(locktoken, "root")
@@ -437,30 +418,28 @@ class LockManager(object):
 
 
     def checkLockPermission(self, lockroot, locktype, lockscope, lockdepth, tokenList, user):
-        """Check, if <user> can lock <lockroot>, otherwise return a list of conflicting locks.
+        """Check, if <user> can lock <lockroot>, otherwise raise an error.
         
-        An empty list is returned, if the lock would be granted.
-        Otherwise a list of 2-tuples (lockDict, DAVError) is returned.
-
-        If <lockroot> is already locked directly or indirectly (i.e. by a 
-        locked parent), this lock is returned together with HTTP_LOCKED.
-        
-        Otherwise (and if depth=infinity) we check all children for conflicting 
-        locks, and return them togeher with HTTP_PRECONDITION_FAILED. 
+        If locking <lockroot> would create a conflict, a DAVError(HTTP_LOCKED) 
+        is raised.
+        An embedded DAVErrorCondition contains the conflicting resource. 
 
         @see http://www.webdav.org/specs/rfc4918.html#lock-model
 
         TODO: verify assumptions:
         
         - Parent locks WILL NOT be conflicting, if they are depth-0.
-        - Exclusive depth-infinity parent locks WILL be conflicting, even if they 
-          are owned by <user>.
-        - Exclusive child locks WILL be conflicting, even if they are owned by <user>. (7.7)
+        - Exclusive depth-infinity parent locks WILL be conflicting, even if 
+          they are owned by <user>.
+        - Child locks WILL NOT be conflicting, if we request a depth-0 lock.
+        - Exclusive child locks WILL be conflicting, even if they are owned by 
+          <user>. (7.7)
         - It is not enough to check whether a lock is owned by <user>, but also 
           the token must be passed with the request. (Because <user> may run two 
           different applications on his client.)
         - TODO: Can <user> lock-exclusive, if she holds a parent shared-lock?
-          (currently NO; it would only make sense, if he was the only shared-lock holder)
+          (currently NO; it would only make sense, if he was the only 
+          shared-lock holder)
         - TODO: litmus tries to acquire a shared lock on one resource twice (locks: 27 'double_sharedlock')
           and fails, when we return HTTP_LOCKED. So we allow multi shared locks 
           on a resource even for the same principal
@@ -475,9 +454,6 @@ class LockManager(object):
 
         @return: [] or a list of 2-tuples (lockDict, DAVError)
         """
-
-        # TODO: this should be resourceAL.checkLockPermission(lockroot, locktype, lockscope, lockdepth, user)
-         
         assert locktype == "write"
         assert lockscope in ("shared", "exclusive")
         assert lockdepth in ("0", "infinity")
@@ -486,50 +462,49 @@ class LockManager(object):
 
         self._lock.acquireRead()
         try:
-            conflictLockList = []
-    
             # Check lockroot and all parents for conflicting locks
             u = lockroot 
             while u:
-                # TODO: check, if expired
                 ll = self.getUrlLockList(u)
                 for l in ll:
                     _logger.debug("    check parent %s, %s" % (u, l))
                     if u != lockroot and l["depth"] != "infinity":
-                        continue  # We only consider parents with Depth: infinity
-                    elif l["scope"] == "shared" and lockscope == "shared": # and user != l["principal"]:
-                        continue  # Only compatible with shared locks (even by same principal) 
-                    # Return first lock as a list (in a sane system there can be max. one anyway)
+                        # We only consider parents with Depth: infinity
+                        continue
+                    elif l["scope"] == "shared" and lockscope == "shared":
+                        # Only compatible with shared locks (even by same principal)
+                        continue   
+                    # Lock conflict: Return HTTP_LOCKED for the root, but also
+                    # pass conflicting resource with 'no-conflicting-lock'
+                    # precondition 
                     _logger.debug(" -> DENIED due to locked parent %s" % _lockString(l))
-                    return [ (l, DAVError(HTTP_LOCKED)) ]
+                    errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
+                    errcond.add_href(l["root"])
+                    raise DAVError(HTTP_LOCKED, errcondition=errcond)
                 # TODO: this also will check the realm level itself
                 u = util.getUriParent(u)
     
             if lockdepth == "0":
-                return conflictLockList
-            
-            # TODO: we could exit also, if lockroot is not a collection or assert that depth=0 in this case
+                return
             
             # Check child urls for conflicting locks
             prefix = "URL2TOKEN:" + lockroot   
             if not prefix.endswith("/"):
                 prefix += "/"  
     
-            for u, ll in self._dict.items():
+            for u, ltoks in self._dict.items():
                 if not u.startswith(prefix): 
                     continue  # Not a child
-                # TODO: check, if expired
-                
-                for l in ll:
-                    lockDict = self.getLock(l)
-                    _logger.debug("    check child %s, %s" % (u, l))
-                    # TODO: no-conflicting-lock can pass a list of href elements too:
-                    conflictLockList.append((lockDict, 
-                                             DAVError(HTTP_PRECONDITION_FAILED,
-                                                      preconditionCode=PRECONDITION_CODE_LockConflict)
-                                             ))
-                    _logger.debug(" -> DENIED due to locked child %s" % _lockString(lockDict))
-            return conflictLockList
+                for tok in ltoks:
+                    l = self.getLock(tok)
+                    _logger.debug(" -> DENIED due to locked child %s" % _lockString(l))
+                    # Lock conflict: Return HTTP_LOCKED for the root, but also
+                    # pass conflicting resource with 'no-conflicting-lock'
+                    # precondition 
+                    errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
+                    errcond.add_href(l["root"])
+                    raise DAVError(HTTP_LOCKED, errcondition=errcond)
+            return
         finally:
             self._lock.release()               
 
@@ -588,14 +563,16 @@ class LockManager(object):
                         continue  # User owns this lock 
                     elif l["token"] in tokenList:
                         # Token is owned by another user
-                        conflictLockList.append((l, DAVError(HTTP_FORBIDDEN)))
                         _logger.debug(" -> DENIED due to locked parent %s" % _lockString(l))
+                        conflictLockList.append((l, DAVError(HTTP_FORBIDDEN)))
                     else:
                         # Token is owned by user, but not passed with lock list
-                        # TODO: no-conflicting-lock can pass a list of href elements too:
-                        conflictLockList.append((l, DAVError(HTTP_LOCKED,
-                                                             preconditionCode=PRECONDITION_CODE_LockConflict)))
                         _logger.debug(" -> DENIED due to locked parent %s" % _lockString(l))
+                        # TODO: no-conflicting-lock can pass a list of href elements too:
+                        errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
+                        errcond.add_href(l["root"])
+                        conflictLockList.append((l, DAVError(HTTP_LOCKED,
+                                                             errcondition=errcond)))
                 u = util.getUriParent(u)
     
             if accessdepth == "0":
@@ -612,14 +589,14 @@ class LockManager(object):
             for u, ll in self._dict.items():
                 if not u.startswith(prefix): 
                     continue  # Not a child
-                # TODO: check, if expired
                 
                 for tok in ll:
                     l = self.getLock(tok)
-                    # TODO: no-conflicting-lock can pass a list of href elements too:
+                    errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
+                    errcond.add_href(l["root"])
                     conflictLockList.append((l,
-                                             DAVError(HTTP_LOCKED,
-                                                      preconditionCode=PRECONDITION_CODE_LockConflict)
+                                             DAVError(HTTP_LOCKED, 
+                                                      errcondition=errcond)
                                              ))
                     _logger.debug(" -> DENIED due to locked child %s" % _lockString(l))
              
@@ -689,27 +666,6 @@ class ShelveLockManager(LockManager):
 #===============================================================================
 # Tool functions
 #===============================================================================
-
-reSecondsReader = re.compile(r'second\-([0-9]+)', re.I)
-
-def readTimeoutValueHeader(timeoutvalue):
-    """Return -1 if infinite, else return numofsecs."""
-    timeoutsecs = 0
-    timeoutvaluelist = timeoutvalue.split(",")   
-    for timeoutspec in timeoutvaluelist:
-        timeoutspec = timeoutspec.strip()
-        if timeoutspec.lower() == "infinite":
-            return -1
-        else:
-            listSR = reSecondsReader.findall(timeoutspec)
-            for secs in listSR:
-                timeoutsecs = long(secs)
-                if timeoutsecs > LockManager.MAX_FINITE_TIMEOUT_LIMIT:
-                    return -1          
-                if timeoutsecs != 0:
-                    return timeoutsecs
-    return None
-
 
 def _lockString(lockDict):
     """Return readable rep."""

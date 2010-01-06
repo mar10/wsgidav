@@ -17,6 +17,12 @@ import traceback
 import datetime
 import cgi
 import sys
+
+import xml_tools
+## Trick PyDev to do intellisense and don't produce warnings:
+from xml_tools import etree #@UnusedImport
+if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
+
 __docformat__ = "reStructuredText"
 
 #===============================================================================
@@ -117,17 +123,105 @@ ERROR_RESPONSES = {
 
 
 #===============================================================================
-# @see: http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
+# Condition codes
+# http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
 #===============================================================================
-PRECONDITION_CODE_ProtectedProperty = "cannot-modify-protected-property"
-PRECONDITION_CODE_MissingLockToken = "lock-token-submitted"
-PRECONDITION_CODE_LockTokenMismatch = "lock-token-matches-request-uri"
-PRECONDITION_CODE_LockConflict = "no-conflicting-lock"
-PRECONDITION_CODE_PropfindFiniteDepth = "propfind-finite-depth"
+
+PRECONDITION_CODE_ProtectedProperty = "{DAV:}cannot-modify-protected-property"
+PRECONDITION_CODE_MissingLockToken = "{DAV:}lock-token-submitted"
+PRECONDITION_CODE_LockTokenMismatch = "{DAV:}lock-token-matches-request-uri"
+PRECONDITION_CODE_LockConflict = "{DAV:}no-conflicting-lock"
+PRECONDITION_CODE_PropfindFiniteDepth = "{DAV:}propfind-finite-depth"
 
 
-def makePreconditionError(preconditionCode):
-    return """<error><%s/></error>""" % preconditionCode
+class DAVErrorCondition(object):
+    def __init__(self, conditionCode):
+        self.conditionCode = conditionCode
+        self.hrefs = []
+        
+    def add_href(self, href):
+        assert href.startswith("/")
+        assert self.conditionCode in (PRECONDITION_CODE_LockConflict,
+                                      PRECONDITION_CODE_MissingLockToken)
+        if not href in self.hrefs:
+            self.hrefs.append(href)
+            
+    def as_xml(self):
+        if self.conditionCode == PRECONDITION_CODE_MissingLockToken:
+            assert len(self.hrefs) > 0, "lock-token-submitted requires at least one href"
+        errorEL = etree.Element("{DAV:}error")
+        condEL = etree.SubElement(errorEL, self.conditionCode)
+        for href in self.hrefs:
+            etree.SubElement(condEL, "{DAV:}href").text = href
+        return errorEL
+    
+    def as_string(self):
+        return xml_tools.xmlToString(self.as_xml(), True)
+
+
+
+#===============================================================================
+# DAVError
+#===============================================================================
+# @@: I prefer having a separate exception type for each response,
+#     as in paste.httpexceptions.  This way you can catch just the exceptions
+#     you want (or you can catch an abstract superclass to get any of them)
+
+class DAVError(Exception):
+    # TODO: Ian Bicking proposed to add an additional 'comment' arg, but 
+    #       couldn't we use the existing 'contextinfo'?
+    # @@: This should also take some message value, for a detailed error message.
+    #     This would be helpful for debugging.
+    def __init__(self, 
+                 statusCode, 
+                 contextinfo=None, 
+                 srcexception=None,
+                 errcondition=None):  # allow passing of Pre- and Postconditions, see http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
+        self.value = int(statusCode)
+        self.contextinfo = contextinfo
+        self.srcexception = srcexception
+        self.errcondition = errcondition
+        if type(errcondition) is str:
+            self.errcondition = DAVErrorCondition(errcondition)
+        assert self.errcondition is None or type(self.errcondition) is DAVErrorCondition
+
+    def __repr__(self):
+        return "DAVError(%s)" % self.getUserInfo()
+    
+    def __str__(self): # Required for 2.4
+        return self.__repr__()
+
+    def getUserInfo(self):
+        """Return readable string."""
+        if self.value in ERROR_DESCRIPTIONS:
+            s = "%s" % ERROR_DESCRIPTIONS[self.value]
+        else:
+            s = "%s" % self.value
+
+        if self.contextinfo:
+            s+= ": %s" % self.contextinfo
+        elif self.value in ERROR_RESPONSES:
+            s += ": %s" % ERROR_RESPONSES[self.value]
+        
+        if self.srcexception:
+            s += "\n    Source exception: '%s'" % self.srcexception
+
+        if self.errcondition:
+            s += "\n    Error condition: '%s'" % self.errcondition
+        return s
+
+    def getHtmlResponse(self):
+        respcode = getHttpStatusString(self)
+        html = []
+        html.append("<html><head>") 
+        html.append("<title>%s</title>" % respcode) 
+        html.append("</head><body>") 
+        html.append("<h1>%s</h1>" % respcode) 
+        html.append("<p>%s</p>" % cgi.escape(self.getUserInfo()))         
+        html.append("<hr>")
+        html.append("<p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
+        html.append("</body></html>")
+        return "\n".join(html)
 
 
 def getHttpStatusCode(v):
@@ -140,10 +234,6 @@ def getHttpStatusCode(v):
 
 def getHttpStatusString(v):
     """Return HTTP response string, e.g. '204 No Content'."""
-#    if hasattr(v, "value"):
-#        status = str(v.value)  # v is a DAVError
-#    else:  
-#        status = str(v)
     code = getHttpStatusCode(v)
     try:
         return ERROR_DESCRIPTIONS[code]
@@ -165,57 +255,8 @@ def asDAVError(e):
 
 
 
-# @@: I prefer having a separate exception type for each response,
-#     as in paste.httpexceptions.  This way you can catch just the exceptions
-#     you want (or you can catch an abstract superclass to get any of them)
-
-class DAVError(Exception):
-    # TODO: Ian Bicking proposed to add an additional 'comment' arg, but couldn't we use the existing 'contextinfo'?
-    # @@: This should also take some message value, for a detailed error message.
-    #     This would be helpful for debugging.
-    def __init__(self, 
-                 statusCode, 
-                 contextinfo=None, 
-                 srcexception=None,
-                 preconditionCode=None):  # allow passing of Pre- and Postconditions, see http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
-        self.value = int(statusCode)
-        self.contextinfo = contextinfo
-        self.srcexception = srcexception
-        self.preconditionCode = preconditionCode
-        
-    def __repr__(self):
-#        return repr(self.value)
-        return "DAVError(%s)" % self.getUserInfo()
-    
-    def __str__(self): # Required for 2.4
-        return self.__repr__()
-
-    def getUserInfo(self):
-        """Return readable string."""
-        if self.value in ERROR_DESCRIPTIONS:
-            s = "%s" % ERROR_DESCRIPTIONS[self.value]
-        else:
-            s = "%s" % self.value
-
-        if self.contextinfo:
-            s+= ": %s" % self.contextinfo
-        elif self.value in ERROR_RESPONSES:
-            s += ": %s" % ERROR_RESPONSES[self.value]
-        
-        if self.srcexception:
-            s += "\n    Source exception: '%s'" % self.srcexception
-
-        return s
-
-    def getHtmlResponse(self):
-        respcode = getHttpStatusString(self)
-        html = []
-        html.append("<html><head>") 
-        html.append("<title>%s</title>" % respcode) 
-        html.append("</head><body>") 
-        html.append("<h1>%s</h1>" % respcode) 
-        html.append("<p>%s</p>" % cgi.escape(self.getUserInfo()))         
-        html.append("<hr>")
-        html.append("<p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
-        html.append("</body></html>")
-        return "\n".join(html)
+if __name__ == "__main__":
+    dec = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
+    print dec.as_string()
+    dec.add_href("/dav/a")
+    print dec.as_string()

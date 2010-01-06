@@ -84,7 +84,7 @@ import sys
 import time
 import traceback
 import urllib
-from wsgidav import util
+from wsgidav import util, xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
 from util import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
@@ -549,7 +549,7 @@ class DAVResource(object):
                 
                 etree.SubElement(activelockEL, "{DAV:}depth").text = lock["depth"]
                 # lock["owner"] is an XML string
-                ownerEL = util.stringToXML(lock["owner"])
+                ownerEL = xml_tools.stringToXML(lock["owner"])
 
                 activelockEL.append(ownerEL)
                 
@@ -628,8 +628,7 @@ class DAVResource(object):
         if pm:
             value = pm.getProperty(refUrl, propname)
             if value is not None:
-#                return etree.XML(value)
-                return util.stringToXML(value) 
+                return xml_tools.stringToXML(value) 
 
         # No persistence available, or property not found
         raise DAVError(HTTP_NOT_FOUND)               
@@ -664,7 +663,7 @@ class DAVResource(object):
         if propname in _lockPropertyNames:
             # Locking properties are always read-only
             raise DAVError(HTTP_FORBIDDEN,  
-                           preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
+                           errcondition=PRECONDITION_CODE_ProtectedProperty)  
 
         # Dead property
         pm = self.provider.propManager
@@ -850,7 +849,7 @@ class DAVResource(object):
             Note that this may only occur, if supportRecursiveDelete is True.
           - For recursive deletes, return a list of error tuples for all failed 
             resource paths.
-          - removes associated locks
+          - removes associated direct locks
           - removes associated dead properties
           - raises HTTP_FORBIDDEN for read-only resources
           - raises HTTP_INTERNAL_ERROR on error

@@ -17,6 +17,7 @@ See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 """
 from urlparse import urlparse
 from wsgidav.dav_error import HTTP_OK
+from wsgidav import xml_tools
 import socket
 import util
 import urllib
@@ -35,7 +36,7 @@ from dav_error import DAVError, asDAVError, \
     HTTP_PRECONDITION_FAILED, HTTP_BAD_GATEWAY, HTTP_NO_CONTENT, HTTP_CREATED,\
     HTTP_RANGE_NOT_SATISFIABLE
 
-import lock_manager
+#import lock_manager
 
 # Trick PyDev to do intellisense and don't produce warnings:
 from util import etree #@UnusedImport
@@ -96,12 +97,12 @@ class RequestServer(object):
 #        return method(environ, start_response)
 
 
-    def _fail(self, value, contextinfo=None, srcexception=None, preconditionCode=None):
+    def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):
         """Wrapper to raise (and log) DAVError."""
         if isinstance(value, Exception):
             e = asDAVError(value)
         else:  
-            e = DAVError(value, contextinfo, srcexception, preconditionCode)
+            e = DAVError(value, contextinfo, srcexception, errcondition)
         util.log("Raising DAVError %s" % e.getUserInfo())
         raise e
 
@@ -124,7 +125,7 @@ class RequestServer(object):
             return util.sendSimpleResponse(environ, start_response, errorList[0][1])
         
         # Multiple errors, or error on one single child
-        multistatusEL = util.makeMultistatusEL()
+        multistatusEL = xml_tools.makeMultistatusEL()
         
         for refurl, e in errorList:
 #            assert refurl.startswith("http:")
@@ -243,7 +244,7 @@ class RequestServer(object):
         if environ["HTTP_DEPTH"] == "infinity" and not self.allowPropfindInfinite:
             self._fail(HTTP_FORBIDDEN, 
                        "PROPFIND 'infinite' was disabled for security reasons.",
-                       preconditionCode=PRECONDITION_CODE_PropfindFiniteDepth)    
+                       errcondition=PRECONDITION_CODE_PropfindFiniteDepth)    
 
         if res is None:
             self._fail(HTTP_NOT_FOUND)
@@ -294,7 +295,7 @@ class RequestServer(object):
 #        if environ["wsgidav.verbose"] >= 3:
 #            pprint(reslist, indent=4)
         
-        multistatusEL = util.makeMultistatusEL()
+        multistatusEL = xml_tools.makeMultistatusEL()
         responsedescription = []
         
         for child in reslist:
@@ -413,7 +414,7 @@ class RequestServer(object):
                     responsedescription.append(e.getUserInfo())
 
         # Generate response XML
-        multistatusEL = util.makeMultistatusEL()
+        multistatusEL = xml_tools.makeMultistatusEL()
 #        href = util.makeCompleteUrl(environ, path) 
         href = res.getHref()
         util.addPropertyResponse(multistatusEL, href, propResponseList)
@@ -1001,7 +1002,7 @@ class RequestServer(object):
         
         self._evaluateIfHeaders(res, environ)
 
-        timeoutsecs = lock_manager.readTimeoutValueHeader(environ.get("HTTP_TIMEOUT", ""))
+        timeoutsecs = util.readTimeoutValueHeader(environ.get("HTTP_TIMEOUT", ""))
         submittedTokenList = environ["wsgidav.ifLockTokenList"]
 
         lockinfoEL = util.parseXmlBody(environ, allowEmpty=True)
@@ -1023,7 +1024,10 @@ class RequestServer(object):
                 self._fail(HTTP_BAD_REQUEST, 
                            "Expected a lock token (only one lock may be refreshed at a time).")
             elif not lockMan.isUrlLockedByToken(res.getRefUrl(), submittedTokenList[0]):
-                self._fail(HTTP_BAD_REQUEST, "Lock token does not match URL.")
+#                self._fail(HTTP_BAD_REQUEST, "Lock token does not match URL.")
+                self._fail(HTTP_PRECONDITION_FAILED, 
+                           "Lock token does not match URL.",
+                           errcondition=PRECONDITION_CODE_LockTokenMismatch)
             # TODO: test, if token is owned by user
 
             lock = lockMan.refresh(submittedTokenList[0], timeoutsecs)
@@ -1032,19 +1036,19 @@ class RequestServer(object):
             lockPath = provider.refUrlToPath(lock["root"])
             lockRes = provider.getResourceInst(lockPath, environ)
             
-            propEL = util.makePropEL()
+            propEL = xml_tools.makePropEL()
             # TODO: handle exceptions in getPropertyValue
             lockdiscoveryEL = lockRes.getPropertyValue("{DAV:}lockdiscovery")
             propEL.append(lockdiscoveryEL)
                
 #            print "LOCK", lockPath
-#            print util.xmlToString(propEL, pretty_print=True)
+#            print xml_tools.xmlToString(propEL, pretty_print=True)
 
             # Lock-Token header is not returned 
             start_response("200 OK", [("Content-Type","application/xml"),
                                       ("Date", util.getRfc1123Time()),
                                       ])
-            return [ util.xmlToString(propEL, pretty_print=True) ]
+            return [ xml_tools.xmlToString(propEL, pretty_print=True) ]
             
         # --- Standard case: parse xml body ------------------------------------ 
         
@@ -1072,7 +1076,7 @@ class RequestServer(object):
 
             elif linode.tag == "{DAV:}owner":
                 # Store whole <owner> tag, so we can use etree.XML() later
-                lockowner = util.xmlToString(linode, pretty_print=False)
+                lockowner = xml_tools.xmlToString(linode, pretty_print=False)
 
             else:
                 self._fail(HTTP_BAD_REQUEST, "Invalid node '%s'." % linode.tag)
@@ -1082,71 +1086,79 @@ class RequestServer(object):
         if not locktype:
             self._fail(HTTP_BAD_REQUEST, "Missing or invalid locktype.") 
         
+        if environ.get("wsgidav.debug_break"):
+            pass # break point
+
+        # TODO: check for locked parents BEFORE creating an empty child
+        
         # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.4    
         # Locking unmapped URLs: must create an empty resource
         createdNewResource = False
         if res is None:
             parentRes = provider.getResourceInst(util.getUriParent(path), environ)
-            if not parentRes.isCollection:
+            if not parentRes or not parentRes.isCollection:
                 self._fail(HTTP_CONFLICT, "LOCK-0 parent must be a collection")
             res = parentRes.createEmptyResource(util.getUriName(path))
             createdNewResource = True
 
         # --- Check, if path is already locked ---------------------------------
 
-        (lock, conflictList) = lockMan.acquire(res.getRefUrl(), 
-                                               locktype, lockscope, lockdepth, 
-                                               lockowner, timeoutsecs, 
-                                               environ["wsgidav.username"], 
-                                               submittedTokenList)
-
-        if environ.get("wsgidav.debug_break"):
-            pass # break point
+        # May raise DAVError(HTTP_LOCKED):
+        lock = lockMan.acquire(res.getRefUrl(), 
+                               locktype, lockscope, lockdepth, 
+                               lockowner, timeoutsecs, 
+                               environ["wsgidav.username"], 
+                               submittedTokenList)
             
-        if lock is not None:
-            # Lock succeeded
-            propEL = util.makePropEL()
-            # TODO: handle exceptions in getPropertyValue
-            lockdiscoveryEL = res.getPropertyValue("{DAV:}lockdiscovery")
-            propEL.append(lockdiscoveryEL)
-               
-            respcode = "200 OK"
-            if createdNewResource:
-                respcode = "201 Created"
-    
-            start_response(respcode, [("Content-Type", "application/xml"),
-                                      ("Lock-Token", lock["token"]),
-                                      ("Date", util.getRfc1123Time()),
-                                      ])
-            return [ util.xmlToString(propEL, pretty_print=True) ]
+        # Lock succeeded
+        propEL = xml_tools.makePropEL()
+        # TODO: handle exceptions in getPropertyValue
+        lockdiscoveryEL = res.getPropertyValue("{DAV:}lockdiscovery")
+        propEL.append(lockdiscoveryEL)
+           
+        respcode = "200 OK"
+        if createdNewResource:
+            respcode = "201 Created"
 
-        # --- Locking FAILED: return fault response 
-        if len(conflictList) == 1 and conflictList[0][0]["root"] == res.getRefUrl():
-            # If there is only one error for the root URL, send as simple error response
-            return util.sendSimpleResponse(environ, start_response, conflictList[0][1]) 
-         
-        dictStatus = {}
+        start_response(respcode, [("Content-Type", "application/xml"),
+                                  ("Lock-Token", lock["token"]),
+                                  ("Date", util.getRfc1123Time()),
+                                  ])
+        return [ xml_tools.xmlToString(propEL, pretty_print=True) ]
 
-        for lockDict, e in conflictList:
-            dictStatus[lockDict["root"]] = e
-
-        if not res.getRefUrl() in dictStatus:
-            dictStatus[res.getRefUrl()] = DAVError(HTTP_FAILED_DEPENDENCY)
-
-        # Return multi-status fault response
-        multistatusEL = util.makeMultistatusEL()
-        for nu, e in dictStatus.items():
-            responseEL = etree.SubElement(multistatusEL, "{DAV:}response") 
-            etree.SubElement(responseEL, "{DAV:}href").text = nu
-            etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
-            # TODO: all responses should have this(?):
-            if e.contextinfo:
-                etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = e.contextinfo
+        # TODO: LOCK may also fail with HTTP_FORBIDDEN.
+        #       In this case we should return 207 multi-status.
+        #       http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.9
+        #       Checking this would require to call res.preventLocking()
+        #       recursively.
         
-#        if responsedescription:
-#            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = "\n".join(responsedescription)
-        
-        return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
+#        # --- Locking FAILED: return fault response 
+#        if len(conflictList) == 1 and conflictList[0][0]["root"] == res.getRefUrl():
+#            # If there is only one error for the root URL, send as simple error response
+#            return util.sendSimpleResponse(environ, start_response, conflictList[0][1]) 
+#         
+#        dictStatus = {}
+#
+#        for lockDict, e in conflictList:
+#            dictStatus[lockDict["root"]] = e
+#
+#        if not res.getRefUrl() in dictStatus:
+#            dictStatus[res.getRefUrl()] = DAVError(HTTP_FAILED_DEPENDENCY)
+#
+#        # Return multi-status fault response
+#        multistatusEL = xml_tools.makeMultistatusEL()
+#        for nu, e in dictStatus.items():
+#            responseEL = etree.SubElement(multistatusEL, "{DAV:}response") 
+#            etree.SubElement(responseEL, "{DAV:}href").text = nu
+#            etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
+#            # TODO: all responses should have this(?):
+#            if e.contextinfo:
+#                etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = e.contextinfo
+#        
+##        if responsedescription:
+##            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = "\n".join(responsedescription)
+#        
+#        return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
 
 
 
@@ -1176,7 +1188,7 @@ class RequestServer(object):
         if not lockMan.isUrlLockedByToken(refUrl, lockToken):
             self._fail(HTTP_CONFLICT,
                        "Resource is not locked by token.",
-                       preconditionCode=PRECONDITION_CODE_LockTokenMismatch)
+                       errcondition=PRECONDITION_CODE_LockTokenMismatch)
             
         if not lockMan.isTokenLockedByUser(lockToken, environ["wsgidav.username"]):
             # TODO: there must be a way to allow this for admins.

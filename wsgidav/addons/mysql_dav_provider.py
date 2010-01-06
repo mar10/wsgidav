@@ -276,7 +276,7 @@ class MySQLBrowserResource(DAVResource):
         See DAVResource.setPropertyValue()
         """
         raise DAVError(HTTP_FORBIDDEN,  
-                       preconditionCode=PRECONDITION_CODE_ProtectedProperty)  
+                       errcondition=PRECONDITION_CODE_ProtectedProperty)  
 
 #===============================================================================
 # MySQLBrowserProvider

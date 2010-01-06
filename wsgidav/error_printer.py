@@ -129,32 +129,40 @@ class ErrorPrinter(object):
                     raise
         except DAVError, e:
             _logger.debug("caught %s" % e)
-            evalue = e.value
             respcode = getHttpStatusString(e)
             datestr = util.getRfc1123Time()
-            
-            if evalue == HTTP_INTERNAL_ERROR:
+
+            # Dump internal errors to console
+            if e.value == HTTP_INTERNAL_ERROR:
                 print >>sys.stderr, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
                 traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
                 print >>sys.stderr, "e.srcexception:\n%s" % e.srcexception
 
-            if evalue in ERROR_RESPONSES:                  
-                respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1>" 
-                respbody = respbody + "<p>" + ERROR_RESPONSES[evalue] + "</p>"         
-                if e.contextinfo:
-                    respbody +=  "%s\n" % e.contextinfo
-                respbody += "<hr>\n"
-                if self._server_descriptor:
-                    respbody = respbody + self._server_descriptor + "<hr>"
-                respbody = respbody + datestr + "</body></html>"        
-            else:
-                # TODO: added html body, to see if this fixes 'connection closed' bug  
-                respbody = "<html><head><title>" + respcode + "</title></head><body><h1>" + respcode + "</h1></body></html>"
+            # If exception has pre-/post-condition: return as XML response 
+            if e.errcondition:
+                start_response(respcode, [("Content-Type", "application/xml"), 
+                                          ("Date", datestr)
+                                          ]) 
+                yield e.errcondition.as_string()
+                return
 
-            util.debug("Return error html %s: %s" % (respcode, respbody), module="sc")
+            # Else return as HTML 
+            respbody = [] 
+            respbody.append("<html><head><title>" + respcode + "</title></head>") 
+            respbody.append("<body><h1>" + respcode + "</h1>") 
+            if e.value in ERROR_RESPONSES:                  
+                respbody.append("<p>" + ERROR_RESPONSES[e.value] + "</p>")         
+            if e.contextinfo:
+                respbody.append("%s" % e.contextinfo)
+            respbody.append("<hr>") 
+            if self._server_descriptor:
+                respbody.append(self._server_descriptor + "<hr>")
+            respbody.append(datestr) 
+            respbody.append("</body></html>") 
+
             start_response(respcode, [("Content-Type", "text/html"), 
                                       ("Date", datestr)
                                       ],
 #                          sys.exc_info() # TODO: Always provide exc_info when beginning an error response?
                            ) 
-            yield respbody
+            yield "\n".join(respbody)

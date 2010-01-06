@@ -272,7 +272,7 @@ class PropertyManager(object):
                         d = url.replace(srcurl, desturl)
                         self._dict[d] = self._dict[url]
                         del self._dict[url]
-                        print "moveProperties:", url, d
+#                        print "moveProperties:", url, d
             elif srcurl in self._dict:
                 # Move srcurl only      
                 self._dict[desturl] = self._dict[srcurl]

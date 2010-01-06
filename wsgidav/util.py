@@ -18,6 +18,7 @@ from pprint import pformat
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
+from wsgidav.xml_tools import xmlToString, makeSubElement
 import urllib
 import socket
 
@@ -39,34 +40,18 @@ from email.utils import formatdate, parsedate
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from StringIO import StringIO #@UnusedImport
 
-# Import XML support
-useLxml = False
-try:
-    from lxml import etree
-    useLxml = True
-except ImportError:
-    try:    
-        # Try xml module (Python 2.5 or later) 
-        from xml.etree import ElementTree as etree
-        print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
-    except ImportError:
-        try:
-            # Try elementtree (http://effbot.org/zone/element-index.htm) 
-            from elementtree import ElementTree as etree
-        except ImportError:
-            print "ERROR: Could not import lxml, xml, nor elementtree. Consider installing lxml from http://codespeak.net/lxml/ or update to Python 2.5 or later."
-            raise
+#import xml_tools
+## Trick PyDev to do intellisense and don't produce warnings:
+from xml_tools import etree #@UnusedImport
+if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"
 
 BASE_LOGGER_NAME = "wsgidav"
 _logger = logging.getLogger(BASE_LOGGER_NAME)
 
-#DUMP_RAW_REQUESTS = None
-#DUMP_RAW_RESPONSES = None
-#DUMP_XML_RESPONSES = None
 
 #===============================================================================
 # String handling
@@ -304,26 +289,7 @@ def debug(msg, var=None, module=None, flush=True):
     """Log if --debug."""
     _write(msg, var, module, logging.DEBUG, flush)
 
-#def debug(module, msg, var=None):
-#    """Shortcut for logging.getLogger('wsgidav.MODULE').debug(msg)
-#    
-#    This message will only display, if the module logger was enabled and 
-#    verbose >= 2.
-#    If module is None, the base logger is used, so the message is only displayed
-#    if verbose >= 3. 
-#    """
-#    if module:
-#        logger = logging.getLogger(BASE_LOGGER_NAME+"."+module)
-#        # Disable debug messages for module loggers by default
-#        if logger.level == logging.NOTSET:
-#            logger.setLevel(logging.INFO)
-#    else:
-#        logger = _logger
-#    logger.debug(msg)
-#    if var and logging.DEBUG >= logger.getEffectiveLevel():
-#        pprint(var, sys.stderr, indent=4)
 
-        
 def traceCall(msg=None):
     """Return name of calling function."""
     if __debug__:
@@ -332,12 +298,6 @@ def traceCall(msg=None):
             msg = ": %s"
         else: msg = ""
         print "%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg)
-
-
-#def isVerboseMode(environ):
-#    if environ["wsgidav.verbose"] >= 1 and environ["REQUEST_METHOD"] in environ.get("wsgidav.debug_methods", []):
-#        return True
-#    return False
 
 
 #===============================================================================
@@ -586,52 +546,6 @@ def makeCompleteUrl(environ, localUri=None):
 # XML
 #===============================================================================
 
-def stringToXML(text):
-    """Convert XML string into etree.Element."""
-    try:
-        return etree.XML(text)
-    except:
-        # TODO:
-        # litmus fails, when xml is used instead of lxml
-        # 18. propget............... FAIL (PROPFIND on `/temp/litmus/prop2': Could not read status line: connection was closed by server)
-        # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
-        raise
-
-
-def xmlToString(element, encoding="UTF-8", pretty_print=False):
-    """Wrapper for etree.tostring, that takes care of unsupported pretty_print 
-    option and prepends an encoding header."""
-    assert encoding == "UTF-8" # TODO: remove this
-    if useLxml:
-        xml = etree.tostring(element, encoding=encoding, 
-                             xml_declaration=True, pretty_print=pretty_print)
-    else:
-        xml = etree.tostring(element, encoding)
-    assert xml.startswith("<?xml ") 
-    return xml
-
-
-def makeMultistatusEL():
-    """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
-    if useLxml:
-        return etree.Element("{DAV:}multistatus", nsmap={"D": "DAV:"})
-    return etree.Element("{DAV:}multistatus")
-
-
-def makePropEL():
-    """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
-    if useLxml:
-        return etree.Element("{DAV:}prop", nsmap={"D": "DAV:"})
-    return etree.Element("{DAV:}prop")
-
-
-def makeSubElement(parent, tag, nsmap=None):
-    """Wrapper for etree.SubElement, that takes care of unsupported nsmap option."""
-    if useLxml:
-        return etree.SubElement(parent, tag, nsmap=nsmap)
-    return etree.SubElement(parent, tag)
-
-
 def parseXmlBody(environ, allowEmpty=False):
     """Read request body XML into an etree.Element.
     
@@ -712,23 +626,6 @@ def parseXmlBody(environ, allowEmpty=False):
     return rootEL
     
 
-def elementContentAsString(element):
-    """Serialize etree.Element.
-    
-    Note: element may contain more than one child or only text (i.e. no child 
-          at all). Therefore the resulting string may raise an exception, when
-          passed back to etree.XML(). 
-    """
-    if len(element) == 0:
-        return element.text or ""  # Make sure, None is returned as '' 
-    stream = StringIO()
-    for childnode in element:
-        print >>stream, xmlToString(childnode, pretty_print=False)
-    s = stream.getvalue()
-    stream.close()
-    return s
-
-
 def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # Send response
     start_response("207 Multistatus", [("Content-Type", "application/xml"), 
@@ -768,7 +665,6 @@ def sendSimpleResponse(environ, start_response, status):
     return [ html ]
     
     
-    
 def addPropertyResponse(multistatusEL, href, propList):
     """Append <response> element to <multistatus> element.
 
@@ -806,8 +702,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         propDict.setdefault(status, []).append( (name, value) )
 
     # <response>
-    responseEL = makeSubElement(multistatusEL, "{DAV:}response", 
-                                nsmap=nsMap) 
+    responseEL = makeSubElement(multistatusEL, "{DAV:}response", nsmap=nsMap) 
     
 #    log("href value:%s" % (stringRepr(href)))
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
@@ -833,7 +728,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         # <status>
         etree.SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
     
-    
+
 #===============================================================================
 # ETags
 #===============================================================================
@@ -934,6 +829,31 @@ def obtainContentRanges(rangetext, filesize):
         totallength = totallength + rlastpos - rfirstpos + 1
 
     return (listReturn2, totallength)
+
+#===============================================================================
+# 
+#===============================================================================
+# any numofsecs above the following limit is regarded as infinite
+MAX_FINITE_TIMEOUT_LIMIT = 10*365*24*60*60  #approx 10 years
+reSecondsReader = re.compile(r'second\-([0-9]+)', re.I)
+
+def readTimeoutValueHeader(timeoutvalue):
+    """Return -1 if infinite, else return numofsecs."""
+    timeoutsecs = 0
+    timeoutvaluelist = timeoutvalue.split(",")   
+    for timeoutspec in timeoutvaluelist:
+        timeoutspec = timeoutspec.strip()
+        if timeoutspec.lower() == "infinite":
+            return -1
+        else:
+            listSR = reSecondsReader.findall(timeoutspec)
+            for secs in listSR:
+                timeoutsecs = long(secs)
+                if timeoutsecs > MAX_FINITE_TIMEOUT_LIMIT:
+                    return -1          
+                if timeoutsecs != 0:
+                    return timeoutsecs
+    return None
 
 
 #===============================================================================
@@ -1152,6 +1072,7 @@ def testLogging():
     note("util.note()")
     debug("util.debug()")
     
+
 if __name__ == "__main__":
     testLogging()
     pass

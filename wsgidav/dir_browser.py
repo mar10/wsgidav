@@ -65,9 +65,9 @@ class WsgiDavDirBrowser(object):
         return self._application(environ, start_response)
 
 
-    def _fail(self, value, contextinfo=None, srcexception=None, preconditionCode=None):
+    def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):
         """Wrapper to raise (and log) DAVError."""
-        e = DAVError(value, contextinfo, srcexception, preconditionCode)
+        e = DAVError(value, contextinfo, srcexception, errcondition)
         if self._verbose >= 2:
             print >>sys.stderr, "Raising DAVError %s" % e.getUserInfo()
         raise e

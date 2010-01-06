@@ -350,7 +350,7 @@ class VirtualResource(_VirtualResource):
         elif propname in VirtualResource._supportedProps:
             # Supported property, but read-only    
             raise DAVError(HTTP_FORBIDDEN,  
-                           preconditionCode=PRECONDITION_CODE_ProtectedProperty)
+                           errcondition=PRECONDITION_CODE_ProtectedProperty)
         else:
             # Unsupported property    
             raise DAVError(HTTP_FORBIDDEN)
