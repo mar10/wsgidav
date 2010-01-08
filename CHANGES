@@ -9,10 +9,11 @@ CHANGES
 
 0.4.0.b1
 ========
+- Using HTTP/1.1 with keep-alive (Stéphane KLEIN)
+- Correctly return pre- and postconditions on lock conflicts.
 - Added Sphinx docs
 - Added Mercurial provider
 - Changed configuration: no property manager used by default
-
 
 Until 0.4.0 alpha
 =================
