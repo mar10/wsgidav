@@ -279,8 +279,26 @@ class WsgiDAVApp(object):
 
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):
+            # Postprocess response headers
+            headerDict = {}
+            for header, value in response_headers:
+                if header in headerDict:
+                    util.warn("Duplicate header in response: %s" % header)
+                headerDict[header.lower()] = value
+            if not type(headerDict.get("content-length")) is str:
+                util.warn("Missing or invalid Content-Length header in response: %s" % headerDict.get("content-length"))
+            
             # HOTFIX: issue 13, issue 23
             util.readOneByteFromInput(environ)
+
+            # Make sure the socket is not reused, unless we are 100% sure all 
+            # current input was consumed
+            if(util.getContentLength(environ) != 0 
+               and not environ.get("wsgidav.all_input_read")
+               and not "connection" in headerDict):
+                util.warn("Adding 'Connection: close' header")
+                response_headers.append(("Connection", "close"))
+                
             # Log request
             if self._verbose >= 1:
                 threadInfo = ""
@@ -302,14 +320,14 @@ class WsgiDAVApp(object):
                     extra.append("overwrite=%s" % environ.get("HTTP_OVERWRITE"))
 #                if "HTTP_EXPECT" in environ:
 #                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
-                if self._verbose >= 1 and "HTTP_CONNECTION" in environ:
+                if self._verbose >= 2 and "HTTP_CONNECTION" in environ:
                     extra.append('connection="%s"' % environ.get("HTTP_CONNECTION"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
                 if self._verbose >= 1:
                     extra.append('elap=%.3fsec' % (time.time() - start_time))
                 extra = ", ".join(extra)
-
+                        
 #               This is the CherryPy format:     
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"
                 print >>sys.stderr, '%s - %s - [%s] "%s" %s -> %s' % (
@@ -319,7 +337,7 @@ class WsgiDAVApp(object):
                                         environ.get("REQUEST_METHOD") + " " + environ.get("PATH_INFO", ""),
                                         extra, 
                                         status,
-                                        # response Content-Length
+#                                        response_headers.get(""), # response Content-Length
                                         # referer
                                      )
  

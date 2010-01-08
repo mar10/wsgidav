@@ -244,19 +244,21 @@ def _runPaste(app, config, mode):
     """
     try:
         from paste import httpserver
-        if config["verbose"] >= 2:
-            print "Running WsgiDAV %s on paste.httpserver..." % __version__
+        version = "WsgiDAV/%s %s" % (__version__, httpserver.WSGIHandler.server_version)
+        if config["verbose"] >= 1:
+            print "Running %s..." % version
 
         # See http://pythonpaste.org/modules/httpserver.html for more options
         httpserver.serve(app,
                          host=config["host"], 
                          port=config["port"],
-                         server_version="WsgiDAV/%s" % __version__,
+                         server_version=version,
+                         # This option enables handling of keep-alive 
+                         # and expect-100:
+                         protocol_version="HTTP/1.1",
                          )
-        # TODO: is this better? 
-        #httpserver.server_runner(app, serverOpts)
     except ImportError, e:
-        if config["verbose"] >= 2:
+        if config["verbose"] >= 1:
             print "Could not import paste.httpserver."
         return False
     return True
@@ -269,12 +271,14 @@ def _runCherryPy(app, config, mode):
     try:
         # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
         from cherrypy import wsgiserver
-        if config["verbose"] >= 2:
-            print "Running WsgiDAV %s on wsgiserver.CherryPyWSGIServer..." % __version__
+        from cherrypy import __version__ as cp_version
+        version = "WsgiDAV/%s CherryPyWSGIServer/%s" % (__version__, cp_version)
+        if config["verbose"] >= 1:
+            print "Running %s..." % version
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,
-            server_name="WsgiDAV/%s" % __version__)
+            server_name="WsgiDAV/%s CherryPyWSGIServer" % __version__)
         server.start()
     except ImportError, e:
         if config["verbose"] >= 1:
@@ -318,9 +322,12 @@ def _runSimpleServer(app, config, mode):
     """Run WsgiDAV using wsgiref.simple_server, on Python 2.5+."""
     try:
         # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
-        from wsgiref.simple_server import make_server
-        if config["verbose"] >= 2:
-            print "Running WsgiDAV %s on wsgiref.simple_server (single threaded)..." % __version__
+        from wsgiref.simple_server import make_server, software_version
+#        if config["verbose"] >= 1:
+#            print "Running WsgiDAV %s on wsgiref.simple_server (single threaded)..." % __version__
+        version = "WsgiDAV/%s %s" % (__version__, software_version)
+        if config["verbose"] >= 1:
+            print "Running %s..." % version
         httpd = make_server(config["host"], config["port"], app)
 #        print "Serving HTTP on port 8000..."
         httpd.serve_forever()

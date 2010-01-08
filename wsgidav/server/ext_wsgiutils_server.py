@@ -89,11 +89,19 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     
     _SUPPORTED_METHODS = ["HEAD","GET","PUT","POST","OPTIONS","TRACE","DELETE","PROPFIND","PROPPATCH","MKCOL","COPY","MOVE","LOCK","UNLOCK"]
     
+    # Enable automatic keep-alive:
+    protocol_version = "HTTP/1.1"
+    
+    server_version = "WsgiDAV/%s %s" % (__version__,
+                                        BaseHTTPServer.BaseHTTPRequestHandler.server_version)
+
     def log_message (self, *args):
         pass
+#        BaseHTTPServer.BaseHTTPRequestHandler.log_message(self, *args)
         
     def log_request (self, *args):
         pass
+#        BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, *args)
         
     def getApp (self):
         # We want fragments to be returned as part of <path> 

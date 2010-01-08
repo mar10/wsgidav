@@ -1,7 +1,4 @@
 """
-http_authenticator
-==================
-
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
@@ -147,9 +144,6 @@ class HTTPAuthenticator(object):
     def __call__(self, environ, start_response):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"], environ)
         
-#        if environ.get("REQUEST_METHOD") == "PUT" and environ["CONTENT_LENGTH"] > 0:
-#            pass # breakpoint
-        
         if not self._domaincontroller.requireAuthentication(realmname, environ):
             # no authentication needed
             _logger.debug("No authorization required for realm '%s'" % realmname)
@@ -172,10 +166,12 @@ class HTTPAuthenticator(object):
                 return self.authBasicAuthRequest(environ, start_response)
 
             util.log("HTTPAuthenticator: respond with 400 Bad request; Auth-Method: %s" % authmethod)
+            
             start_response("400 Bad Request", [("Content-Length", "0"),
                                                ("Date", util.getRfc1123Time()),
                                                ])
             return [""]
+        
                                    
         if self._defaultdigest:
             return self.sendDigestAuthResponse(environ, start_response)
@@ -186,11 +182,14 @@ class HTTPAuthenticator(object):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"] , environ)
         _logger.info("401 Not Authorized for realm '%s' (basic)" % realmname)
         wwwauthheaders = "Basic realm=\"" + realmname + "\"" 
+        
+        body = self.getErrorMessage()
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
+                                              ("Content-Length", str(len(body))),
                                               ("Date", util.getRfc1123Time()),
                                               ])
-        return [ self.getErrorMessage() ]
+        return [ body ]
 
 
     def authBasicAuthRequest(self, environ, start_response):
@@ -221,11 +220,14 @@ class HTTPAuthenticator(object):
         wwwauthheaders = "Digest realm=\"" + realmname + "\", nonce=\"" + nonce + \
             "\", algorithm=\"MD5\", qop=\"auth\""                 
         _logger.info("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
+
+        body = self.getErrorMessage()
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
+                                              ("Content-Length", str(len(body))),
                                               ("Date", util.getRfc1123Time()),
                                               ])
-        return [ self.getErrorMessage() ]
+        return [ body ]
         
 
     def authDigestAuthRequest(self, environ, start_response):  

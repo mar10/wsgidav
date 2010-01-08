@@ -52,7 +52,7 @@ class WsgiDavDirBrowser(object):
                            "The server does not handle any body content.")
             
             if environ["REQUEST_METHOD"] == "HEAD":
-                return util.sendSimpleResponse(environ, start_response, HTTP_OK)
+                return util.sendStatusResponse(environ, start_response, HTTP_OK)
             
 #            if True:
 #                from cProfile import Profile
@@ -137,8 +137,10 @@ class WsgiDavDirBrowser(object):
             o_list.append("%s\n" % trailer)
         o_list.append("<hr/>\n<a href='http://wsgidav.googlecode.com/'>WsgiDAV server</a> - %s\n" % util.getRfc1123Time())
         o_list.append("</body></html>")
+        body = "\n".join(o_list) 
 
         start_response("200 OK", [("Content-Type", "text/html"), 
+                                  ("Content-Length", str(len(body))),
                                   ("Date", util.getRfc1123Time()),
                                   ])
-        return [ "\n".join(o_list) ] 
+        return [ body ] 

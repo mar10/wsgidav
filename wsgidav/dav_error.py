@@ -210,18 +210,27 @@ class DAVError(Exception):
             s += "\n    Error condition: '%s'" % self.errcondition
         return s
 
-    def getHtmlResponse(self):
-        respcode = getHttpStatusString(self)
+    def getResponsePage(self):
+        """Return an tuple (content-type, response page)."""
+        # If it has pre- or post-condition: return as XML response 
+        if self.errcondition:
+            return ("application/xml", self.errcondition.as_string())
+
+        # Else return as HTML 
+        status = getHttpStatusString(self)
         html = []
         html.append("<html><head>") 
-        html.append("<title>%s</title>" % respcode) 
+        html.append("  <title>%s</title>" % status) 
         html.append("</head><body>") 
-        html.append("<h1>%s</h1>" % respcode) 
-        html.append("<p>%s</p>" % cgi.escape(self.getUserInfo()))         
-        html.append("<hr>")
-        html.append("<p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
+        html.append("  <h1>%s</h1>" % status) 
+        html.append("  <p>%s</p>" % cgi.escape(self.getUserInfo()))         
+        html.append("  <hr>")
+        html.append("  <p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
+#        if self._server_descriptor:
+#            respbody.append(self._server_descriptor + "<hr>")
         html.append("</body></html>")
-        return "\n".join(html)
+        html = "\n".join(html)
+        return ("text/html", html)
 
 
 def getHttpStatusCode(v):
@@ -233,12 +242,20 @@ def getHttpStatusCode(v):
 
 
 def getHttpStatusString(v):
-    """Return HTTP response string, e.g. '204 No Content'."""
+    """Return HTTP response string, e.g. 204 -> ('204 No Content').
+    
+    `v`: status code or DAVError 
+    """
     code = getHttpStatusCode(v)
     try:
         return ERROR_DESCRIPTIONS[code]
     except:
         return str(code)
+
+
+def getResponsePage(v):
+    v = asDAVError(v)
+    return v.getResponsePage()
 
 
 def asDAVError(e):

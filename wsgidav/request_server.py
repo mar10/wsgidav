@@ -119,10 +119,10 @@ class RequestServer(object):
         assert successCode in (HTTP_CREATED, HTTP_NO_CONTENT, HTTP_OK)
         if not errorList:
             # Status OK
-            return util.sendSimpleResponse(environ, start_response, successCode)
+            return util.sendStatusResponse(environ, start_response, successCode)
         if len(errorList) == 1 and errorList[0][0] == rootRes.getHref():
             # Only one error that occurred on the root resource
-            return util.sendSimpleResponse(environ, start_response, errorList[0][1])
+            return util.sendStatusResponse(environ, start_response, errorList[0][1])
         
         # Multiple errors, or error on one single child
         multistatusEL = xml_tools.makeMultistatusEL()
@@ -460,7 +460,7 @@ class RequestServer(object):
 
         parentRes.createCollection(util.getUriName(path))
 
-        return util.sendSimpleResponse(environ, start_response, HTTP_CREATED)
+        return util.sendStatusResponse(environ, start_response, HTTP_CREATED)
 
 
 
@@ -618,13 +618,14 @@ class RequestServer(object):
 
         ## Start Content Processing
         # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.) 
-        WORKAROUND_BAD_LENGTH = True
+#        WORKAROUND_BAD_LENGTH = True
         try:
             contentlength = max(-1, long(environ.get("CONTENT_LENGTH", -1)))
         except ValueError: 
             contentlength = -1
         
-        if contentlength < 0 and not WORKAROUND_BAD_LENGTH:
+#        if contentlength < 0 and not WORKAROUND_BAD_LENGTH:
+        if contentlength < 0:
             self._fail(HTTP_BAD_REQUEST, 
                        "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
         
@@ -634,12 +635,13 @@ class RequestServer(object):
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
                 l = int(environ["wsgi.input"].readline(), 16)
-                environ["wsgidav.consumed_body"] = 1
+                environ["wsgidav.some_input_read"] = 1
                 while l > 0:
                     buf = environ["wsgi.input"].read(l)
                     fileobj.write(buf)
                     environ["wsgi.input"].readline()
                     l = int(environ["wsgi.input"].readline(), 16)
+                environ["wsgidav.all_input_read"] = 1
                     
             elif contentlength == 0:
                 # TODO: review this
@@ -647,23 +649,23 @@ class RequestServer(object):
                 # before LOCK and the real PUT. So we have to accept this. 
                 _logger.info("PUT: Content-Length == 0. Creating empty file...")
                 
-            elif contentlength < 0:
-                # TODO: review this
-                # If CONTENT_LENGTH is invalid, we may try to workaround this
-                # by reading until the end of the stream. This may block however!
-                # The iterator produced small chunks of varying size, but not
-                # sure, if we always get everything before it times out.
-                _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
-                nb = 0
-                try:
-                    for s in environ["wsgi.input"]:
-                        environ["wsgidav.consumed_body"] = 1
-                        _logger.debug("PUT: read from wsgi.input.__iter__, len=%s" % len(s))
-                        fileobj.write(s)
-                        nb += len (s)
-                except socket.timeout:
-                    _logger.warning("PUT: input timed out after writing %s bytes" % nb)
-                    hasErrors = True                    
+#            elif contentlength < 0:
+#                # TODO: review this
+#                # If CONTENT_LENGTH is invalid, we may try to workaround this
+#                # by reading until the end of the stream. This may block however!
+#                # The iterator produced small chunks of varying size, but not
+#                # sure, if we always get everything before it times out.
+#                _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
+#                nb = 0
+#                try:
+#                    for s in environ["wsgi.input"]:
+#                        environ["wsgidav.some_input_read"] = 1
+#                        _logger.debug("PUT: read from wsgi.input.__iter__, len=%s" % len(s))
+#                        fileobj.write(s)
+#                        nb += len (s)
+#                except socket.timeout:
+#                    _logger.warning("PUT: input timed out after writing %s bytes" % nb)
+#                    hasErrors = True                    
             else:
                 assert contentlength > 0
                 contentremain = contentlength
@@ -675,9 +677,12 @@ class RequestServer(object):
                     if not len(readbuffer) > 0:
                         util.warn("input.read(%s) returned 0 bytes" % n)
                         break
-                    environ["wsgidav.consumed_body"] = 1
+                    environ["wsgidav.some_input_read"] = 1
                     fileobj.write(readbuffer)
                     contentremain -= len(readbuffer)
+                
+                if contentremain == 0:
+                    environ["wsgidav.all_input_read"] = 1
                      
             fileobj.close()
 
@@ -689,8 +694,8 @@ class RequestServer(object):
         res.endWrite(hasErrors)
 
         if isnewfile:
-            return util.sendSimpleResponse(environ, start_response, HTTP_CREATED)
-        return util.sendSimpleResponse(environ, start_response, HTTP_NO_CONTENT)
+            return util.sendStatusResponse(environ, start_response, HTTP_CREATED)
+        return util.sendStatusResponse(environ, start_response, HTTP_NO_CONTENT)
 
 
 
@@ -731,7 +736,7 @@ class RequestServer(object):
             # Still clients may send it (e.g. DAVExplorer 0.9.1 File-Copy) sends 
             # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
             body = environ["wsgi.input"].read(util.getContentLength(environ))
-            environ["wsgidav.consumed_body"] = 1
+            environ["wsgidav.all_input_read"] = 1
             _logger.info("Ignored copy/move  body: '%s'..." % body[:50])
         
         if srcRes.isCollection:
@@ -1044,12 +1049,14 @@ class RequestServer(object):
 #            print "LOCK", lockPath
 #            print xml_tools.xmlToString(propEL, pretty_print=True)
 
-            # Lock-Token header is not returned 
-            start_response("200 OK", [("Content-Type","application/xml"),
+            # Lock-Token header is not returned
+            xml = xml_tools.xmlToString(propEL) 
+            start_response("200 OK", [("Content-Type", "application/xml"),
+                                      ("Content-Length", str(len(xml))),
                                       ("Date", util.getRfc1123Time()),
                                       ])
-            return [ xml_tools.xmlToString(propEL, pretty_print=True) ]
-            
+            return [ xml ]
+             
         # --- Standard case: parse xml body ------------------------------------ 
         
         if lockinfoEL.tag != "{DAV:}lockinfo":
@@ -1120,11 +1127,13 @@ class RequestServer(object):
         if createdNewResource:
             respcode = "201 Created"
 
+        xml = xml_tools.xmlToString(propEL)
         start_response(respcode, [("Content-Type", "application/xml"),
+                                  ("Content-Length", str(len(xml))),
                                   ("Lock-Token", lock["token"]),
                                   ("Date", util.getRfc1123Time()),
                                   ])
-        return [ xml_tools.xmlToString(propEL, pretty_print=True) ]
+        return [ xml ]
 
         # TODO: LOCK may also fail with HTTP_FORBIDDEN.
         #       In this case we should return 207 multi-status.
@@ -1135,7 +1144,7 @@ class RequestServer(object):
 #        # --- Locking FAILED: return fault response 
 #        if len(conflictList) == 1 and conflictList[0][0]["root"] == res.getRefUrl():
 #            # If there is only one error for the root URL, send as simple error response
-#            return util.sendSimpleResponse(environ, start_response, conflictList[0][1]) 
+#            return util.sendStatusResponse(environ, start_response, conflictList[0][1]) 
 #         
 #        dictStatus = {}
 #
@@ -1198,7 +1207,7 @@ class RequestServer(object):
         # TODO: Is this correct?: unlock(a/b/c) will remove Lock for 'a/b' 
         lockMan.release(lockToken)
 
-        return util.sendSimpleResponse(environ, start_response, HTTP_NO_CONTENT)
+        return util.sendStatusResponse(environ, start_response, HTTP_NO_CONTENT)
 
 
 

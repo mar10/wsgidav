@@ -1,16 +1,9 @@
 # -*- coding: iso-8859-1 -*-
 """
-server_sample
-=============
-
 :Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
-
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
-
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 from tempfile import gettempdir
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -44,6 +37,6 @@ httpserver.serve(app,
                  server_version="WsgiDAV/%s" % __version__,
                  )
 
-# Or use default the server that is part of the WsgiDAV package:
+# Or we could use default the server that is part of the WsgiDAV package:
 #from wsgidav.server import ext_wsgiutils_server
 #ext_wsgiutils_server.serve(config, app)

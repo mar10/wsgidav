@@ -421,48 +421,62 @@ def getContentLength(environ):
 def readOneByteFromInput(environ):
     """Read 1 byte from wsgi.input, if this has not been done yet.
     
-    Returning a response without reading from an request body might confuse the 
+    Returning a response without reading from a request body might confuse the 
     WebDAV client.  
-    See issue 13, issue 23
-    See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
-
     This may happen, if an exception like '401 Not authorized', or 
     '500 Internal error' was raised BEFORE anything was read from the request 
     stream.
-    Also, if the HTTPAuthenticator middleware rejects such a request.
+
+    See issue 13, issue 23
+    See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
+    
+    Note that with persistent sessions (HTTP/1.1) we must make sure, that the
+    'Connection: closed' header is set with the response, to prvent reusing
+    the current stream.
     """
     cl = getContentLength(environ)
     if cl < 1:
         return 
-    if environ.get("wsgidav.consumed_body"):
+    if environ.get("wsgidav.some_input_read") or environ.get("wsgidav.all_input_read"):
         return
-    environ["wsgidav.consumed_body"] = 1
+
+    environ["wsgidav.some_input_read"] = 1
     
-    input = environ["wsgi.input"]
-    # TODO: better check for ducktyping (is it a socket?)
-#    if hasattr(input, "_sock"): ...
-    # TODO: make it work for Paste
-    #       http://groups.google.com/group/paste-users/browse_thread/thread/fc0c9476047e9a47/aa4a3aa416016729?hl=en&lnk=gst&q=.input#aa4a3aa416016729
+    wsgi_input = environ["wsgi.input"]
+
     # TODO: check if still required after issue 24 is fixed 
-    if environ.get("wsgidav.is_builtin_server"):
+    if hasattr(wsgi_input, "_consumed") and hasattr(wsgi_input, "length"): 
+        # Seems to be Paste's httpserver.LimitedLengthFile
+        # see http://groups.google.com/group/paste-users/browse_thread/thread/fc0c9476047e9a47/aa4a3aa416016729?hl=en&lnk=gst&q=.input#aa4a3aa416016729
+        # Consume something if nothing was consumed *and* work
+        # around a bug where paste.httpserver allows negative lengths
+        if wsgi_input._consumed == 0 and wsgi_input.length > 0:
+            # This seems to work even if there's 10K of input.
+            n = 1 #wsgi_input.length
+            body = wsgi_input.read(n) 
+            write("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (n, body[:50]))
+
+#    elif environ.get("wsgidav.is_builtin_server"):
+    elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
+        # Seems to be a socket
         try:
             # Set socket to non-blocking
-            sock = input._sock
+            sock = wsgi_input._sock
             timeout = sock.gettimeout()
             sock.settimeout(0)
             # Read one byte
             try:
-                n = 1 # cl
-                _c = input.read(1)
-#                _c = input.read(cl)
-                write("Reading %s bytes from potentially unread POST body: '%s'..." % (n, _c[:50]))
+                n = 1
+                body = wsgi_input.read(n)
+                write("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
             except socket.error, se:
                 # se(10035, 'The socket operation could not complete without blocking')
                 warn("-> read 1 byte failed: %s" % se)
             # Restore socket settings
             sock.settimeout(timeout)
         except:
-            warn("--> input.read(1): %s" % sys.exc_info())
+            warn("--> wsgi_input.read(1): %s" % sys.exc_info())
+
 
 
 #===============================================================================
@@ -604,7 +618,7 @@ def parseXmlBody(environ, allowEmpty=False):
             requestbody = ""
         else:
             requestbody = environ["wsgi.input"].read(contentLength)
-            environ["wsgidav.consumed_body"] = 1
+            environ["wsgidav.all_input_read"] = 1
 
     if requestbody == "":
         if allowEmpty:
@@ -626,45 +640,73 @@ def parseXmlBody(environ, allowEmpty=False):
     return rootEL
     
 
+#def sendResponse(environ, start_response, body, content_type):
+#    """Send a WSGI response for a HTML or XML string.""" 
+#    assert content_type in ("application/xml", "text/html")
+#
+#    start_response(status, [("Content-Type", content_type), 
+#                            ("Date", getRfc1123Time()),
+#                            ("Content-Length", str(len(body))),
+#                            ]) 
+#    return [ body ]
+    
+    
+def sendStatusResponse(environ, start_response, e):
+    """Start a WSGI response for a DAVError or status code.""" 
+    status = getHttpStatusString(e)
+    headers = [] 
+#    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
+#        headers += [
+#            ('Connection', 'keep-alive'),
+#        ]
+
+    if e in (HTTP_CREATED, HTTP_NO_CONTENT):
+        # See paste.lint: these code don't have content
+        start_response(status, [("Content-Length", "0"),
+                                ("Date", getRfc1123Time()),
+                                ] + headers)
+        return [ "" ]
+    
+    if e == HTTP_OK:
+        e = DAVError(e)
+    assert isinstance(e, DAVError)
+    
+    content_type, body = e.getResponsePage()            
+
+    start_response(status, [("Content-Type", content_type), 
+                            ("Date", getRfc1123Time()),
+                            ("Content-Length", str(len(body))),
+                            ] + headers) 
+    return [ body ]
+    
+    
 def sendMultiStatusResponse(environ, start_response, multistatusEL):
-    # Send response
-    start_response("207 Multistatus", [("Content-Type", "application/xml"), 
-                                       ("Date", getRfc1123Time()),
-                                       ])
-    # If dumps of the body are desired, then this is the place to do it pretty:
+    # If logging of the body is desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
                                              xmlToString(multistatusEL, pretty_print=True)) 
-#        write("%s XML response body:\n%s" % (environ["REQUEST_METHOD"], xml))
-#        environ["wsgidav.dump_response_body"] = False
         environ["wsgidav.dump_response_body"] = xml 
         
-
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
-    pretty_print = False
-    return [ xmlToString(multistatusEL, pretty_print=pretty_print) ]
+    xml_data = xmlToString(multistatusEL, pretty_print=False)
+    
+    headers = [
+        ("Content-Type", "application/xml"),
+        ("Date", getRfc1123Time()),
+        ('Content-Length', str(len(xml_data))),
+    ]
+
+#    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
+#        headers += [
+#            ('Connection', 'keep-alive'),
+#        ]
+
+    start_response("207 Multistatus", headers)
+    return [ xml_data ]
         
             
-def sendSimpleResponse(environ, start_response, status):
-    """Start a WSGI response for a DAVError or status code.""" 
-    s = getHttpStatusString(status)
-    if status in (HTTP_CREATED, HTTP_NO_CONTENT):
-        # See paste.lint: these code don't have content
-        start_response(s, [("Content-Length", "0"),
-                           ("Date", getRfc1123Time()),
-                           ])
-        return [ "" ]
-    assert status == HTTP_OK or isinstance(status, DAVError)
-    html = status.getHtmlResponse()
-    start_response(s, [("Content-Type", "text/html"),
-                       ("Content-Length", str(len(html))),
-                       ("Date", getRfc1123Time()),
-                       ])
-    return [ html ]
-    
-    
 def addPropertyResponse(multistatusEL, href, propList):
     """Append <response> element to <multistatus> element.
 

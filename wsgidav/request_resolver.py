@@ -180,8 +180,8 @@ class RequestResolver(object):
                                       ("DAV", "1,2"),
                                       ("Server", "DAV/2"),
                                       ("Date", util.getRfc1123Time()),
-                                      ])        
-            yield ""
+                                      ])
+            yield ""        
             return
    
         provider = environ["wsgidav.provider"]
