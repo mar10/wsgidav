@@ -101,10 +101,10 @@ class ServerTest(unittest.TestCase):
         data2 = "this is another file\nwith three lines\nsee?"
         # Big file with 10 MB
         lines = []
-        line = "." * (1000-6)
+        line = "." * (1000-6-len("\n"))
         for i in xrange(10*1000):
-            lines.append("%04i: %s" % (i, line))
-        data3 = "\n".join(lines)
+            lines.append("%04i: %s\n" % (i, line))
+        data3 = "".join(lines)
 
         # Remove old test files
         app.delete("/file1.txt", expect_errors=True)
