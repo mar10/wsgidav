@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 import urlparse, httplib, copy, base64, StringIO
-import urllib
 
 try:
     from xml.etree import ElementTree
@@ -248,13 +247,20 @@ class DAVClient(object):
         
         if set_props is not None:
             prop_set = ElementTree.SubElement(root, '{DAV:}set')
+#            for prop in set_props:
+#                object_to_etree(prop_set, {set_props, namespace=namespace)                 
             object_to_etree(prop_set, set_props, namespace=namespace)
         if remove_props is not None:
             prop_remove = ElementTree.SubElement(root, '{DAV:}remove')
             object_to_etree(prop_remove, remove_props, namespace=namespace)
         
         tree = ElementTree.ElementTree(root)
-        
+        # Etree won't just return a normal string, so we have to do this
+        body = StringIO.StringIO()
+        tree.write(body)
+        body = body.getvalue()
+
+        print body
         # Add proper headers
         if headers is None:
             headers = {}
@@ -263,7 +269,7 @@ class DAVClient(object):
         self._request('PROPPATCH', path, body=unicode('<?xml version="1.0" encoding="utf-8" ?>\n'+body, 'utf-8'), headers=headers)
         
         
-    def set_lock(self, path, owner, locktype='exclusive', lockscope='write', depth=None, headers=None):
+    def set_lock(self, path, owner, locktype='write', lockscope='exclusive', depth=None, headers=None):
         """Set a lock on a dav resource"""
         root = ElementTree.Element('{DAV:}lockinfo')
         object_to_etree(root, {'locktype':locktype, 'lockscope':lockscope, 'owner':{'href':owner}}, namespace='DAV:')
@@ -277,9 +283,14 @@ class DAVClient(object):
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
         headers['Timeout'] = 'Infinite, Second-4100000000'
         
+        # Etree won't just return a normal string, so we have to do this
+        body = StringIO.StringIO()
+        tree.write(body)
+        body = body.getvalue()
+                
         self._request('LOCK', path, body=unicode('<?xml version="1.0" encoding="utf-8" ?>\n'+body, 'utf-8'), headers=headers)
         
-        locks = self.response.etree.finall('.//{DAV:}locktoken')
+        locks = self.response.tree.findall('.//{DAV:}locktoken')
         lock_list = []
         for lock in locks:
             lock_list.append(lock.getchildren()[0].text.strip().strip('\n'))
@@ -301,12 +312,6 @@ class DAVClient(object):
         """Unlock DAV resource with token"""
         if headers is None:
             headers = {}
-        headers['Lock-Tocken'] = '<%s>' % token
+        headers['Lock-Token'] = '<%s>' % token
         
         self._request('UNLOCK', path, body=None, headers=headers)
-        
-
-
-
-
-
