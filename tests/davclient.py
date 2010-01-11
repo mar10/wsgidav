@@ -12,6 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Modified 2010-11-02, Martin Wendt:
+# - Fixed set_lock, proppatch
+# - Added (tag, value) syntax to object_to_etree 
+
 import urlparse, httplib, copy, base64, StringIO
 
 try:
@@ -46,6 +50,10 @@ def object_to_etree(parent, obj, namespace=''):
         # If the object is a list parse it and send it back recursively
         for item in obj:
             object_to_etree(parent, item, namespace=namespace)
+            
+    elif type(obj) is tuple and len(obj) == 2:
+        # If the object is a a tuple, assume (tag_name, value)
+        ElementTree.SubElement(parent, obj[0]).text = str(obj[1])
             
     else:
         # If it's none of previous types then raise
@@ -152,9 +160,12 @@ class DAVClient(object):
             
         self._request('COPY', source, body=body, headers=headers)
         
-        
     def copy_collection(self, source, destination, depth='infinity', overwrite=True, headers=None):
-        """Copy DAV collection"""
+        """Copy DAV collection.
+        
+        Note: support for the 'propertybehavior' request body for COPY and MOVE 
+              has been removed with RFC4918
+        """
         body = '<?xml version="1.0" encoding="utf-8" ?><d:propertybehavior xmlns:d="DAV:"><d:keepalive>*</d:keepalive></d:propertybehavior>'
         
         # Add proper headers
@@ -180,7 +191,11 @@ class DAVClient(object):
         
         
     def move_collection(self, source, destination, depth='infinity', overwrite=True, headers=None):
-        """Move DAV collection and copy all properties"""
+        """Move DAV collection and copy all properties.
+
+        Note: support for the 'propertybehavior' request body for COPY and MOVE 
+              has been removed with RFC4918
+        """
         body = '<?xml version="1.0" encoding="utf-8" ?><d:propertybehavior xmlns:d="DAV:"><d:keepalive>*</d:keepalive></d:propertybehavior>'
         
         # Add proper headers
@@ -247,12 +262,16 @@ class DAVClient(object):
         
         if set_props is not None:
             prop_set = ElementTree.SubElement(root, '{DAV:}set')
-#            for prop in set_props:
-#                object_to_etree(prop_set, {set_props, namespace=namespace)                 
-            object_to_etree(prop_set, set_props, namespace=namespace)
+#            object_to_etree(prop_set, set_props, namespace=namespace)
+            for p in set_props:
+                prop_prop = ElementTree.SubElement(prop_set, '{DAV:}prop')
+                object_to_etree(prop_prop, p, namespace=namespace)                 
         if remove_props is not None:
             prop_remove = ElementTree.SubElement(root, '{DAV:}remove')
-            object_to_etree(prop_remove, remove_props, namespace=namespace)
+#            object_to_etree(prop_remove, remove_props, namespace=namespace)
+            for p in remove_props:
+                prop_prop = ElementTree.SubElement(prop_remove, '{DAV:}prop')
+                object_to_etree(prop_prop, p, namespace=namespace)                 
         
         tree = ElementTree.ElementTree(root)
         # Etree won't just return a normal string, so we have to do this
