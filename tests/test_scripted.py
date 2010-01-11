@@ -45,10 +45,10 @@ class WsgiDAVServerThread(Thread):
             "host": "localhost",
             "port": 8080,
             "enable_loggers": [],
-            "propsmanager": None,      # None: no property manager                    
+            "propsmanager": True,      # None: no property manager                    
             "locksmanager": True,      # True: use lock_manager.LockManager                   
             "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
-            "verbose": 2,
+            "verbose": 3,
             })
 
         if withAuthentication:
@@ -67,14 +67,19 @@ class WsgiDAVServerThread(Thread):
         self.ext_server = ExtServer((config["host"], config["port"]), 
                                     {"": app})
         print "serve_forever"
-        self.ext_server.serve_forever()
+        self.ext_server.serve_forever_stoppable()
         print "server_done"
         self.ext_server = None
 
     def shutdown(self):
         if self.ext_server:
             print "shutting down"
-            self.ext_server.shutdown()
+            self.ext_server.stop_serve_forever()
+#            try:
+#                # since Python 2.6
+#                self.ext_server.shutdown()
+#            except AttributeError:
+#                pass
             print "shut down"
             self.ext_server = None
 
