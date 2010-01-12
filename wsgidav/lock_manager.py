@@ -275,7 +275,10 @@ class LockManager(object):
             lock = self.getLock(locktoken)
             _logger.debug("refresh %s" % _lockString(lock))
             if lock:
-                lock["timeout"] = time.time() + timeout
+                if timeout < 0:
+                    lock["timeout"] = -1
+                else:
+                    lock["timeout"] = time.time() + timeout
                 self._dict[locktoken] = lock 
                 self._sync()
             return lock
@@ -296,10 +299,12 @@ class LockManager(object):
                 self._lazyOpen()
             lock = self._dict.get(locktoken)
             if lock is None: # Lock not found: purge dangling URL2TOKEN entries
+                _logger.debug("Lock purged dangling: %s" % lock)
                 self.release(locktoken)      
                 return None
             timeout = lock["timeout"]
             if timeout >= 0 and timeout < time.time():
+                _logger.debug("Lock timed-out(%s): %s" % (timeout, lock))
                 self.release(locktoken)   
                 return None
             if key is None:
@@ -389,7 +394,6 @@ class LockManager(object):
                     if username == l["principal"]:
                         lockList.append(l)
                 u = util.getUriParent(u)
-    #        _logger.debug("getIndirectUrlLockList(%s, %s): %s" % (url, username, lockList))
             return lockList
         finally:
             self._lock.release()
