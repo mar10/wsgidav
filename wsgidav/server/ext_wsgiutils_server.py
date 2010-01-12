@@ -58,6 +58,7 @@ flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe
 
 """
 from wsgidav.version import __version__
+import time
 import httplib
 import socket
 import threading
@@ -89,7 +90,9 @@ SERVER_ERROR = """\
 
 class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     
-    _SUPPORTED_METHODS = ["HEAD","GET","PUT","POST","OPTIONS","TRACE","DELETE","PROPFIND","PROPPATCH","MKCOL","COPY","MOVE","LOCK","UNLOCK"]
+    _SUPPORTED_METHODS = ["HEAD", "GET", "PUT", "POST", "OPTIONS", "TRACE",
+                          "DELETE", "PROPFIND", "PROPPATCH", "MKCOL", "COPY", 
+                          "MOVE", "LOCK", "UNLOCK"]
     
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
@@ -97,16 +100,6 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WsgiDAV/%s %s" % (__version__,
                                         BaseHTTPServer.BaseHTTPRequestHandler.server_version)
 
-    def do_SHUTDOWN (self):
-        """Send 200 OK response, and set server.stop to True.
-        
-        http://code.activestate.com/recipes/336012/
-        """
-        print "got SHUTDOWN" 
-        self.send_response(200)
-        self.end_headers()
-        self.server.stop = True
-    
     def log_message (self, *args):
         pass
 #        BaseHTTPServer.BaseHTTPRequestHandler.log_message(self, *args)
@@ -167,7 +160,6 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                "wsgi.multithread": 1,
                "wsgi.multiprocess": 0,
                "wsgi.run_once": 0,
-#               "wsgidav.is_builtin_server": 1,
                "REQUEST_METHOD": self.command,
                "SCRIPT_NAME": scriptName,
                "PATH_INFO": pathInfo,
@@ -182,7 +174,6 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         for httpHeader, httpValue in self.headers.items():
             if not httpHeader.lower() in ("content-type", "content-length"):
                 env ["HTTP_%s" % httpHeader.replace ("-", "_").upper()] = httpValue
-#        print env["REQUEST_METHOD"], env.get("HTTP_AUTHORIZATION")
 
         # Setup the state
         self.wsgiSentHeaders = 0
@@ -275,30 +266,57 @@ class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         print >>sys.stderr, request
 #        BaseHTTPServer.HTTPServer.handle_error(self, request, client_address)
 
+
     def stop_serve_forever(self):
         """Stop serve_forever_stoppable()."""
-        assert hasattr(self, "stop"), "serve_forever_stoppable() must be called"
-        (host, port) = self.server_address
-
-        # Unlike http://code.activestate.com/recipes/336012/, we need this line
-        self.stop = True
+        assert hasattr(self, "stop_request"), "serve_forever_stoppable() must be called before"
+        assert not self.stop_request, "stop_serve_forever() must only be called once"
         
-        # send request, so socket is unblocked
-        print "stopping serve_forever_stoppable... Sending %s:%s/ SHUTDOWN" % (host, port)
+#        # Flag stop request
+        self.stop_request = True
+        time.sleep(.01)
+        if self.stopped:
+#            print "stop_serve_forever() 'stopped'."
+            return
+        
+        # Add a do_SHUTDOWN method to to the ExtHandler class
+        def _shutdownHandler(self):
+            """Send 200 OK response, and set server.stop_request to True.
+            
+            http://code.activestate.com/recipes/336012/
+            """
+#            print "Handling do_SHUTDOWN request" 
+            self.send_response(200)
+            self.end_headers()
+            self.server.stop_request = True
+        if not hasattr(ExtHandler, "do_SHUTDOWN"): 
+            setattr(ExtHandler, "do_SHUTDOWN", _shutdownHandler)
+
+        # Send request, so socket is unblocked
+        (host, port) = self.server_address
+#        print "stop_serve_forever() sending %s:%s/ SHUTDOWN..." % (host, port)
         conn = httplib.HTTPConnection("%s:%d" % (host, port))
         conn.request("SHUTDOWN", "/")
+#        print "stop_serve_forever() sent SHUTDOWN request, reading response..."
         conn.getresponse()
-        print "serve_forever_stoppable... stopped.", self.stop
+#        print "stop_serve_forever() received SHUTDOWN response."
+        assert self.stop_request
         
+    
     def serve_forever_stoppable(self):
         """Handle one request at a time until stop_serve_forever().
         
         http://code.activestate.com/recipes/336012/
         """
-        self.stop = False
-        while not self.stop:
+        self.stop_request = False
+        self.stopped = False
+        
+        while not self.stop_request:
             self.handle_request()
-        print "serve_forever_stoppable received stop request"
+
+#        print "serve_forever_stoppable() stopped."
+        self.stopped = True
+
 
     def __init__ (self, serverAddress, wsgiApplications, serveFiles=1):
         BaseHTTPServer.HTTPServer.__init__ (self, serverAddress, ExtHandler)
