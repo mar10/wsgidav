@@ -11,10 +11,11 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
+#
 # Modified 2010-11-02, Martin Wendt:
 # - Fixed set_lock, proppatch
 # - Added (tag, value) syntax to object_to_etree 
+# - Added checkResponse()
 
 import urlparse, httplib, copy, base64, StringIO
 
@@ -24,6 +25,9 @@ except:
     from elementtree import ElementTree
 
 __all__ = ['DAVClient']
+
+class AppError(Exception):
+    pass
 
 def object_to_etree(parent, obj, namespace=''):
     """This function takes in a python object, traverses it, and adds it to an existing etree object"""
@@ -69,19 +73,25 @@ class DAVClient(object):
         
         self.headers = {'Host':self._url[1], 
                         'User-Agent': 'python.davclient.DAVClient/0.1'} 
-        
+
         
     def _request(self, method, path='', body=None, headers=None):
         """Internal request method"""
         self.response = None
-        
+
         if headers is None:
             headers = copy.copy(self.headers)
         else:
             new_headers = copy.copy(self.headers)
             new_headers.update(headers)
             headers = new_headers
-        
+
+        # keep request info for later checks
+        self.request = {"method": method,
+                        "path": path,
+                        "headers": headers,
+                        }
+
         if self._url.scheme == 'http':
             self._connection = httplib.HTTPConnection(self._url[1])
         elif self._url.scheme == 'https':
@@ -92,7 +102,7 @@ class DAVClient(object):
         self._connection.request(method, path, body, headers)
             
         self.response = self._connection.getresponse()
-        
+
         self.response.body = self.response.read()
         
         # Try to parse and get an etree
@@ -334,3 +344,32 @@ class DAVClient(object):
         headers['Lock-Token'] = '<%s>' % token
         
         self._request('UNLOCK', path, body=None, headers=headers)
+
+
+    def checkResponse(self, status=None):
+        """Raise an error, if self.response doesn't match expected status.
+        
+        Inspired by paste.fixture
+        """
+        __tracebackhide__ = True
+        res = self.response
+        full_status = "%s %s" % (res.status, res.reason)
+
+        if status == '*':
+            return
+        if isinstance(status, (list, tuple)):
+            if res.status not in status:
+                raise AppError(
+                    "Bad response: %s (not one of %s for %s %s)\n%s"
+                    % (full_status, ', '.join(map(str, status)),
+                       self.request["method"], self.request["path"], res.body))
+            return
+        if status is None:
+            if res.status >= 200 and res.status < 400:
+                return
+            raise AssertionError(
+                "Bad response: %s (not 200 OK or 3xx redirect for %s %s)\n%s"
+                % (full_status, self.request["method"], self.request["path"],
+                   res.body))
+        if status != res.status:
+            raise AppError("Bad response: %s (not %s)" % (full_status, status))
