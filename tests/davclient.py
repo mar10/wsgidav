@@ -272,13 +272,11 @@ class DAVClient(object):
         
         if set_props is not None:
             prop_set = ElementTree.SubElement(root, '{DAV:}set')
-#            object_to_etree(prop_set, set_props, namespace=namespace)
             for p in set_props:
                 prop_prop = ElementTree.SubElement(prop_set, '{DAV:}prop')
                 object_to_etree(prop_prop, p, namespace=namespace)                 
         if remove_props is not None:
             prop_remove = ElementTree.SubElement(root, '{DAV:}remove')
-#            object_to_etree(prop_remove, remove_props, namespace=namespace)
             for p in remove_props:
                 prop_prop = ElementTree.SubElement(prop_remove, '{DAV:}prop')
                 object_to_etree(prop_prop, p, namespace=namespace)                 
@@ -289,7 +287,6 @@ class DAVClient(object):
         tree.write(body)
         body = body.getvalue()
 
-        print body
         # Add proper headers
         if headers is None:
             headers = {}
@@ -355,6 +352,12 @@ class DAVClient(object):
         res = self.response
         full_status = "%s %s" % (res.status, res.reason)
 
+        # Check response Content_Length
+        content_length = long(res.getheader("content-length", 0))
+        if content_length and len(res.body) != content_length:
+            raise AppError("Mismatch: Content_Length(%s) != len(body)(%s)" % (content_length, len(res.body)))
+
+        # From paste.fixture:
         if status == '*':
             return
         if isinstance(status, (list, tuple)):
