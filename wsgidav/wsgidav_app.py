@@ -294,6 +294,7 @@ class WsgiDAVApp(object):
             # Make sure the socket is not reused, unless we are 100% sure all 
             # current input was consumed
             if(util.getContentLength(environ) != 0 
+#               or True
                and not environ.get("wsgidav.all_input_read")
                and not "connection" in headerDict):
                 util.warn("Adding 'Connection: close' header")

@@ -58,7 +58,6 @@ Project home: http://wsgidav.googlecode.com/
                      ],
       keywords = "web wsgi webdav application server", 
 #      platforms=["Unix", "Windows"],
-#      license = "LGPL",
       license = "The MIT License",
 #      install_requires = ["lxml"],
       packages = find_packages(exclude=[]),

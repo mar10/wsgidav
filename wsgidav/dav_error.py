@@ -139,6 +139,9 @@ class DAVErrorCondition(object):
         self.conditionCode = conditionCode
         self.hrefs = []
         
+    def __str__(self):
+        return "%s(%s)" % (self.conditionCode, self.hrefs)
+    
     def add_href(self, href):
         assert href.startswith("/")
         assert self.conditionCode in (PRECONDITION_CODE_LockConflict,

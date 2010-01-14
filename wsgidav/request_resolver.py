@@ -164,7 +164,7 @@ class RequestResolver(object):
         # We want to answer OPTIONS(*), even if no handler was registered for 
         # the top-level realm (e.g. required to map drive letters). 
 
-        # Hotfix for WinXP / Vista: check for '/' also
+        # Hotfix for WinXP / Vista: accept '/' for a '*'
         if environ["REQUEST_METHOD"] == "OPTIONS" and path in ("/", "*"):
             # Answer HTTP 'OPTIONS' method on server-level.
             # From RFC 2616:

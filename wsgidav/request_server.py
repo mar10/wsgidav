@@ -235,7 +235,8 @@ class RequestServer(object):
         path = environ["PATH_INFO"]
         res = self._davProvider.getResourceInst(path, environ)
 
-        # RFC: By default, the PROPFIND method without a Depth header MUST act as if a "Depth: infinity" header was included.
+        # RFC: By default, the PROPFIND method without a Depth header MUST act 
+        # as if a "Depth: infinity" header was included.
         environ.setdefault("HTTP_DEPTH", "infinity")
         if not environ["HTTP_DEPTH"] in ("0", "1", "infinity"):            
             self._fail(HTTP_BAD_REQUEST, 
@@ -1034,8 +1035,10 @@ class RequestServer(object):
                            "Lock token does not match URL.",
                            errcondition=PRECONDITION_CODE_LockTokenMismatch)
             # TODO: test, if token is owned by user
-
+            
             lock = lockMan.refresh(submittedTokenList[0], timeoutsecs)
+#            print "lock", lock
+#            lockMan._dump("after")
             
             # The lock root may be <path>, or a parent of <path>.
             lockPath = provider.refUrlToPath(lock["root"])
