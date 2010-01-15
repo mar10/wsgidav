@@ -93,6 +93,12 @@ import util
 
 _logger = util.getModuleLogger(__name__, True)
 
+# HOTFIX for Windows XP (Microsoft-WebDAV-MiniRedir/5.1.2600):
+# When accessing a share '/dav/', XP sometimes sends digests for '/'.
+# With this fix turned on, we allow '/' digests, when a matching '/dav' account
+# is present. 
+HOTFIX_WINXP_AcceptRootShareLogin = True
+
 
 class SimpleDomainController(object):
     """SimpleDomainController : Simple domain controller for HTTPAuthenticator."""
@@ -183,10 +189,18 @@ class HTTPAuthenticator(object):
         _logger.info("401 Not Authorized for realm '%s' (basic)" % realmname)
         wwwauthheaders = "Basic realm=\"" + realmname + "\"" 
         
+        # HOTFIX for Vista and Windows 7: issue 23
+        # Even though WsgiDAVApp makes sure to read 1 byte from input and set
+        # 'Connection: close', these clients sometimes do not resend requests 
+        # credentials after a 401, when big files are involved. (XP is fine).
+        # So we read everything:
+#        util.readAllInput(environ)
+        
         body = self.getErrorMessage()
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
+#                                              ("Connection", "close"),
                                               ("Date", util.getRfc1123Time()),
                                               ])
         return [ body ]
@@ -221,10 +235,19 @@ class HTTPAuthenticator(object):
             "\", algorithm=\"MD5\", qop=\"auth\""                 
         _logger.info("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
 
+        # HOTFIX for Vista and Windows 7: issue 23
+        # Even though WsgiDAVApp makes sure to read 1 byte from input and set
+        # 'Connection: close', these clients sometimes do not resend requests 
+        # with credentials after a 401, when big files are involved. 
+        # (XP is fine).
+        # So we read everything:
+#        util.readAllInput(environ)
+
         body = self.getErrorMessage()
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
+#                                              ("Connection", "close"),
                                               ("Date", util.getRfc1123Time()),
                                               ])
         return [ body ]
@@ -246,12 +269,13 @@ class HTTPAuthenticator(object):
             authheadervalue = authheader[1].strip().strip("\"")
             authheaderdict[authheaderkey] = authheadervalue
 
-        _logger.info("authDigestAuthRequest: %s" % authheaderdict)
+        _logger.info("authDigestAuthRequest: %s" % environ["HTTP_AUTHORIZATION"])
+        _logger.info("  -> %s" % authheaderdict)
          
         if "username" in authheaderdict:
             req_username = authheaderdict["username"]
             req_username_org = req_username 
-            # Fix for Windows XP:
+            # Hotfix for Windows XP:
             #   net use W: http://127.0.0.1/dav /USER:DOMAIN\tester tester
             # will send the name with double backslashes ('DOMAIN\\tester')
             # but send the digest for the simple name ('DOMAIN\tester').  
@@ -264,12 +288,18 @@ class HTTPAuthenticator(object):
         else:
             isinvalidreq = True
 
-        # TODO: Chun added this comments
+        # TODO: Chun added this comments, but code was commented out
         # Do not do realm checking - a hotfix for WinXP using some other realm's
         # auth details for this realm - if user/password match
-        #if 'realm' in authheaderdict:
-        #    if authheaderdict["realm"].upper() != realmname.upper():
-        #        isinvalidreq = True
+#        print authheaderdict.get("realm"), realmname
+        if 'realm' in authheaderdict:
+            if authheaderdict["realm"].upper() != realmname.upper():
+                if HOTFIX_WINXP_AcceptRootShareLogin:
+                    # Hotfix: also accept '/'
+                    if authheaderdict["realm"].upper() != "/":
+                        isinvalidreq = True
+                else:  
+                    isinvalidreq = True
         
         if "algorithm" in authheaderdict:
             if authheaderdict["algorithm"].upper() != "MD5":
@@ -320,7 +350,15 @@ class HTTPAuthenticator(object):
             
             if required_digest != req_response:
                 _logger.warning("computeDigestResponse('%s', '%s', ...): %s != %s" % (realmname, req_username, required_digest, req_response))
-                isinvalidreq = True
+                if HOTFIX_WINXP_AcceptRootShareLogin:
+                    # Hotfix: also accept '/' digest
+                    root_digest = self.computeDigestResponse(req_username, "/", req_password, req_method, req_uri, req_nonce, req_cnonce, req_qop, req_nc)
+                    if root_digest == req_response:
+                        _logger.warning("authDigestAuthRequest: HOTFIX: accepting '/' login for '%s'." % realmname)
+                    else:
+                        isinvalidreq = True
+                else:
+                    isinvalidreq = True
             else:
 #                _logger.debug("digest succeeded for realm '%s', user '%s'" % (realmname, req_username))
                 pass

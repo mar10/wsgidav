@@ -418,6 +418,17 @@ def getContentLength(environ):
         return 0
 
 
+def readAllInput(environ):
+    """Read and discard all from from wsgi.input, if this has not been done yet."""
+    cl = getContentLength(environ)
+    if environ.get("wsgidav.all_input_read") or cl == 0:
+        return
+    assert not environ.get("wsgidav.some_input_read")
+    write("Reading and discarding %s bytes input." % cl)
+    environ["wsgi.input"].read(cl)
+    environ["wsgidav.all_input_read"] = 1
+
+
 def readOneByteFromInput(environ):
     """Read 1 byte from wsgi.input, if this has not been done yet.
     
@@ -431,14 +442,15 @@ def readOneByteFromInput(environ):
     See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
     
     Note that with persistent sessions (HTTP/1.1) we must make sure, that the
-    'Connection: closed' header is set with the response, to prvent reusing
+    'Connection: closed' header is set with the response, to prevent reusing
     the current stream.
     """
-    cl = getContentLength(environ)
-    if cl < 1:
-        return 
     if environ.get("wsgidav.some_input_read") or environ.get("wsgidav.all_input_read"):
         return
+    cl = getContentLength(environ)
+    assert cl >= 0
+    if cl == 0:
+        return 
 
     environ["wsgidav.some_input_read"] = 1
     
@@ -456,7 +468,6 @@ def readOneByteFromInput(environ):
             body = wsgi_input.read(n) 
             write("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (n, body[:50]))
 
-#    elif environ.get("wsgidav.is_builtin_server"):
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
         try:
@@ -467,6 +478,7 @@ def readOneByteFromInput(environ):
             # Read one byte
             try:
                 n = 1
+#                n = cl
                 body = wsgi_input.read(n)
                 write("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
             except socket.error, se:
@@ -475,7 +487,7 @@ def readOneByteFromInput(environ):
             # Restore socket settings
             sock.settimeout(timeout)
         except:
-            warn("--> wsgi_input.read(1): %s" % sys.exc_info())
+            warn("--> wsgi_input.read(): %s" % sys.exc_info())
 
 
 

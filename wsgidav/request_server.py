@@ -1249,10 +1249,10 @@ class RequestServer(object):
 
         # TODO: should we have something like provider.isReadOnly() and then omit MKCOL PUT DELETE PROPPATCH COPY MOVE?
         # TODO: LOCK UNLOCK is only available, if lockmanager not None
-        if res.isCollection:
+        if res and res.isCollection:
             # Existing collection
             headers.append( ("Allow", "OPTIONS HEAD GET DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
-        elif res.isResource():
+        elif res:
             # Existing resource
             headers.append( ("Allow", "OPTIONS HEAD GET PUT DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
             if res.supportRanges(): 

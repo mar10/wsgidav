@@ -186,7 +186,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             try:
                 for data in result:
                     if data:
-                        self.wsgiWriteData (data)
+                        self.wsgiWriteData(data)
                     else:
                         _logger.debug("runWSGIApp empty data")
             finally:
@@ -229,7 +229,8 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.wsgiSentHeaders = 1
         # Send the data
         try:
-            self.wfile.write (data)
+            _logger.debug("wsgiWriteData: write %s bytes: '%s'..." % (len(data), data[:50]))
+            self.wfile.write(data)
         except socket.error, e:
             # Suppress stack trace when client aborts connection disgracefully:
             # 10053: Software caused connection abort

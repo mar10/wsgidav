@@ -13,14 +13,28 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 #from wsgidav.server import ext_wsgiutils_server
 #from wsgidav import util
 from wsgidav.server.ext_wsgiutils_server import ExtServer
+from pprint import pprint
 import time
 import os
 import unittest
 import davclient #@UnresolvedImport
 from threading import Thread
 
+
 #===============================================================================
-# WsgiDAVServer
+# EXTERNAL_SERVER_ADDRESS
+# <None> means 'start WsgiDAV as parallel thread'
+#
+# When the PyDev Debugger is running, then davclient requests will block 
+# (i.e. will not be handled by WsgiDAVServerThread)
+# In this case, run WsgiDAV as external process and specify the URL here.
+# This is also recommended when doing benchmarks
+#===============================================================================
+EXTERNAL_SERVER_ADDRESS = None
+#EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
+
+#===============================================================================
+# WsgiDAVServerThread
 #===============================================================================
 class WsgiDAVServerThread(Thread):
     """WsgiDAV server that can be run in a parallel thread."""
@@ -44,11 +58,12 @@ class WsgiDAVServerThread(Thread):
             "user_mapping": {},
             "host": "localhost",
             "port": 8080,
-            "enable_loggers": [],
-            "propsmanager": True,      # None: no property manager                    
+            "enable_loggers": [ ],
+            "debug_methods": [ ],
+            "propsmanager": True,      # True: use lock_manager.LockManager           
             "locksmanager": True,      # True: use lock_manager.LockManager                   
             "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
-            "verbose": 3,
+            "verbose": 2,
             })
 
         if withAuthentication:
@@ -66,22 +81,24 @@ class WsgiDAVServerThread(Thread):
         
         self.ext_server = ExtServer((config["host"], config["port"]), 
                                     {"": app})
-        print "serve_forever"
+
         self.ext_server.serve_forever_stoppable()
-        print "server_done"
         self.ext_server = None
+#        print "WsgiDAVServerThread.run() terminated"
 
     def shutdown(self):
         if self.ext_server:
-            print "shutting down"
+#            print "WsgiDAVServerThread.shutdown()..."
+            # let server process pending requests, otherwise shutdown might lock
+            time.sleep(.1)
             self.ext_server.stop_serve_forever()
 #            try:
 #                # since Python 2.6
 #                self.ext_server.shutdown()
 #            except AttributeError:
 #                pass
-            print "shut down"
             self.ext_server = None
+#            print "WsgiDAVServerThread.shutdown()... complete"
 
 #===============================================================================
 # ServerTest
@@ -99,25 +116,30 @@ class ServerTest(unittest.TestCase):
 
 
     def setUp(self):
-        print "setUp"
-        self.server_thread = WsgiDAVServerThread()
-        self.server_thread.start()
-        # let server start the loop, otherwise shutdown might lock
-        time.sleep(.1)
+#        print "setUp"
+        if EXTERNAL_SERVER_ADDRESS:
+            self.server_thread = None
+            self.client = davclient.DAVClient(EXTERNAL_SERVER_ADDRESS)
+        else:
+            self.server_thread = WsgiDAVServerThread()
+            self.server_thread.start()
+            # let server start the loop, otherwise shutdown might lock
+            time.sleep(.1)
+            self.client = davclient.DAVClient("http://127.0.0.1:8080/")
 
-        self.client = davclient.DAVClient("http://127.0.0.1:8080/")
         self.client.set_basic_auth("tester", "tester")
 #        self.client.headers['new_header_for_session'] = "useful_example"
 
 
     def tearDown(self):
-        print "tearDown"
-        # Only in Python 2.6?
-        # try http://code.activestate.com/recipes/336012/
-        self.server_thread.shutdown()
-        self.server_thread.join()
-        self.server_thread = None         
-        print "tearDown joined"
+#        print "tearDown"
+        del self.client
+        if self.server_thread:
+            self.server_thread.shutdown()
+    #        print "tearDown join..."
+            self.server_thread.join()
+            self.server_thread = None         
+    #        print "tearDown joined"
 #        os.rmdir(self.rootpath)
 
 
@@ -129,7 +151,7 @@ class ServerTest(unittest.TestCase):
     def testGetPut(self):                          
         """Read and write file contents."""
         client = self.client
-        print "tgp"
+
         # Prepare file content
         data1 = "this is a file\nwith two lines"
         data2 = "this is another file\nwith three lines\nsee?"
@@ -140,49 +162,69 @@ class ServerTest(unittest.TestCase):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
 
-
+        # Cleanup
         client.delete("/test/")
         client.mkcol("/test/")
-        client.put("/test/put1.txt", data3)
+        client.checkResponse(201)
+
+        # PUT files
+        client.put("/test/file1.txt", data1)
+        client.checkResponse(201)
+        client.put("/test/file2.txt", data2)
+        client.checkResponse(201)
+        client.put("/test/bigfile.txt", data3)
+        client.checkResponse(201)
+
+        # PUT with overwrite must return 204 No Content, instead of 201 Created
+        client.put("/test/file2.txt", data2)
+        client.checkResponse(204)
+
+        client.mkcol("/test/folder")
+        client.checkResponse(201)
+        
         locks = client.set_lock("/test/lock-0", 
                                 owner="test-bench", 
                                 locktype="write", 
                                 lockscope="exclusive", 
                                 depth="infinity")
-        print "locks:", locks
+        client.checkResponse(201)
+        assert len(locks) == 1, "LOCK failed"
         token = locks[0]
         client.refresh_lock("/test/lock-0", token)
+        client.checkResponse()
         client.unlock("/test/lock-0", token)         
+        client.checkResponse(204)
+        client.unlock("/test/lock-0", token)         
+#        client.checkResponse()
          
-        client.proppatch("/test/put1.txt", 
+        client.proppatch("/test/file1.txt", 
                          set_props=[("{testns:}testname", "testval"),
                                     ], 
                          remove_props=None)
+        client.checkResponse()
 
-        client.copy("/test/put1.txt", 
-                    "/test/put2.txt", 
+        client.copy("/test/file1.txt", 
+                    "/test/file2.txt", 
                     depth='infinity', overwrite=True) 
+        client.checkResponse()
+
         client.move("/test/put2.txt", 
                     "/test/put2_moved.txt", 
                     depth='infinity', overwrite=True) 
+        client.checkResponse()
 
         client.propfind("/", 
                         properties="allprop", 
                         namespace='DAV:', 
                         depth=None, 
                         headers=None)
+        client.checkResponse()
         
-        print client.response.status
-        print client.response.getheaders()
-        print client.response.body
-        print client.response.tree
+#        print client.response.tree
         
         print dict(client.response.getheaders())
          
 #        # Remove old test files
-#        app.delete("/file1.txt", expect_errors=True)
-#        app.delete("/file2.txt", expect_errors=True)
-#        app.delete("/file3.txt", expect_errors=True)
 #        
 #        # Access unmapped resource (expect '404 Not Found')
 #        app.delete("/file1.txt", status=404)
@@ -233,6 +275,10 @@ def suite():
 
 
 if __name__ == "__main__":
-#    unittest.main()   
+#    unittest.main()
+#    global EXTERNAL_SERVER_ADDRESS
+#    EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
+#    print "Using external server to enable debugging: ", EXTERNAL_SERVER_ADDRESS
+    
     suite = suite()
     unittest.TextTestRunner(descriptions=1, verbosity=2).run(suite)
