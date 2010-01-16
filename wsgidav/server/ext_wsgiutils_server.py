@@ -202,9 +202,11 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.wsgiStartResponse("500 Server Error", [("Content-type", "text/html")])
             self.wsgiWriteData(SERVER_ERROR)
         
-        if (not self.wsgiSentHeaders):
+        if not self.wsgiSentHeaders:
+            # issue 29 sending one byte, when content-length is '0' seems wrong
             # We must write out something!
-            self.wsgiWriteData (" ")
+#            self.wsgiWriteData (" ")
+            self.wsgiWriteData("")
         return
 
     def wsgiStartResponse (self, response_status, response_headers, exc_info=None):
