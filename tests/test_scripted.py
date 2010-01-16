@@ -175,6 +175,10 @@ class ServerTest(unittest.TestCase):
         client.put("/test/bigfile.txt", data3)
         client.checkResponse(201)
 
+        body = client.get("/test/file1.txt")
+        client.checkResponse(200)
+        print body
+
         # PUT with overwrite must return 204 No Content, instead of 201 Created
         client.put("/test/file2.txt", data2)
         client.checkResponse(204)
@@ -208,8 +212,8 @@ class ServerTest(unittest.TestCase):
                     depth='infinity', overwrite=True) 
         client.checkResponse()
 
-        client.move("/test/put2.txt", 
-                    "/test/put2_moved.txt", 
+        client.move("/test/file2.txt", 
+                    "/test/file2_moved.txt", 
                     depth='infinity', overwrite=True) 
         client.checkResponse()
 
