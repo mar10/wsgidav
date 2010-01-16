@@ -200,9 +200,12 @@ class FileResource(DAVResource):
         See DAVResource.getContent()
         """
         assert not self.isCollection
-        mime = self.getContentType()
-        if mime.startswith("text"):
-            return file(self._filePath, "r", BUFFER_SIZE)
+        # issue 28: if we open in text mode, \r\n is converted to one byte.
+        # So the file size reported by Windows differs from len(..), thus
+        # content-length will be wrong. 
+#        mime = self.getContentType()
+#        if mime.startswith("text"):
+#            return file(self._filePath, "r", BUFFER_SIZE)
         return file(self._filePath, "rb", BUFFER_SIZE)
    
 
