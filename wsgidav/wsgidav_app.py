@@ -288,8 +288,14 @@ class WsgiDAVApp(object):
             if not type(headerDict.get("content-length")) is str:
                 util.warn("Missing or invalid Content-Length header in response: %s" % headerDict.get("content-length"))
             
-            # HOTFIX: issue 13, issue 23
-            util.readOneByteFromInput(environ)
+            # HOTFIX for Vista and Windows 7 (issue 13, issue 23)
+            # It ssems that we must read *all* of the request body, otherwise
+            # clients may miss the response.
+            # For example Vista MiniRedir didn't understand a 401 response, 
+            # when trying an anonymous PUT of big files. As a consequence, it
+            # doesn't retry with credentials and the file copy fails. 
+            # (XP is fine however).
+            util.readAndDiscardInput(environ)
 
             # Make sure the socket is not reused, unless we are 100% sure all 
             # current input was consumed
@@ -319,8 +325,8 @@ class WsgiDAVApp(object):
                     extra.append("range=%s" % environ.get("HTTP_RANGE"))
                 if "HTTP_OVERWRITE" in environ:
                     extra.append("overwrite=%s" % environ.get("HTTP_OVERWRITE"))
-#                if "HTTP_EXPECT" in environ:
-#                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
+                if self._verbose >= 1 and "HTTP_EXPECT" in environ:
+                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
                 if self._verbose >= 2 and "HTTP_CONNECTION" in environ:
                     extra.append('connection="%s"' % environ.get("HTTP_CONNECTION"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:

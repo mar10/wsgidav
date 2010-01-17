@@ -194,6 +194,7 @@ class HTTPAuthenticator(object):
         # 'Connection: close', these clients sometimes do not resend requests 
         # credentials after a 401, when big files are involved. (XP is fine).
         # So we read everything:
+        # Now handled by wsgidav_app _start_response_wrapper():
 #        util.readAllInput(environ)
         
         body = self.getErrorMessage()
@@ -241,6 +242,7 @@ class HTTPAuthenticator(object):
         # with credentials after a 401, when big files are involved. 
         # (XP is fine).
         # So we read everything:
+        # Now handled by wsgidav_app _start_response_wrapper():
 #        util.readAllInput(environ)
 
         body = self.getErrorMessage()

@@ -418,18 +418,18 @@ def getContentLength(environ):
         return 0
 
 
-def readAllInput(environ):
-    """Read and discard all from from wsgi.input, if this has not been done yet."""
-    cl = getContentLength(environ)
-    if environ.get("wsgidav.all_input_read") or cl == 0:
-        return
-    assert not environ.get("wsgidav.some_input_read")
-    write("Reading and discarding %s bytes input." % cl)
-    environ["wsgi.input"].read(cl)
-    environ["wsgidav.all_input_read"] = 1
+#def readAllInput(environ):
+#    """Read and discard all from from wsgi.input, if this has not been done yet."""
+#    cl = getContentLength(environ)
+#    if environ.get("wsgidav.all_input_read") or cl == 0:
+#        return
+#    assert not environ.get("wsgidav.some_input_read")
+#    write("Reading and discarding %s bytes input." % cl)
+#    environ["wsgi.input"].read(cl)
+#    environ["wsgidav.all_input_read"] = 1
 
 
-def readOneByteFromInput(environ):
+def readAndDiscardInput(environ):
     """Read 1 byte from wsgi.input, if this has not been done yet.
     
     Returning a response without reading from a request body might confuse the 
@@ -452,7 +452,12 @@ def readOneByteFromInput(environ):
     if cl == 0:
         return 
 
+    READ_ALL = True
+    
     environ["wsgidav.some_input_read"] = 1
+    if READ_ALL:
+        environ["wsgidav.all_input_read"] = 1
+        
     
     wsgi_input = environ["wsgi.input"]
 
@@ -464,9 +469,12 @@ def readOneByteFromInput(environ):
         # around a bug where paste.httpserver allows negative lengths
         if wsgi_input._consumed == 0 and wsgi_input.length > 0:
             # This seems to work even if there's 10K of input.
-            n = 1 #wsgi_input.length
+            if READ_ALL:
+                n = wsgi_input.length
+            else:
+                n = 1
             body = wsgi_input.read(n) 
-            write("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (n, body[:50]))
+            debug("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (n, body[:50]))
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
@@ -477,13 +485,15 @@ def readOneByteFromInput(environ):
             sock.settimeout(0)
             # Read one byte
             try:
-                n = 1
-#                n = cl
+                if READ_ALL:
+                    n = cl
+                else:
+                    n = 1
                 body = wsgi_input.read(n)
-                write("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
+                debug("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
             except socket.error, se:
                 # se(10035, 'The socket operation could not complete without blocking')
-                warn("-> read 1 byte failed: %s" % se)
+                warn("-> read %s bytes failed: %s" % (n, se))
             # Restore socket settings
             sock.settimeout(timeout)
         except:
