@@ -149,19 +149,10 @@ class RequestServer(object):
         if "wsgidav.conditions.if" not in environ:
             util.parseIfHeaderDict(environ)
 
-        conflictList = lockMan.checkAccessPermission(refUrl, 
-                                                     environ["wsgidav.ifLockTokenList"], 
-                                                     "write", 
-                                                     depth, 
-                                                     environ["wsgidav.username"])
-
-        # If any conflict was detected, raise one of them
-        for _lock, e in conflictList:
-#            _logger.debug("_checkWritePermission %s failed: %s" % (res, conflictList))
-            raise e
-        return
-
-
+        # raise HTTP_LOCKED if conflict exists
+        lockMan.checkWritePermission(refUrl, depth, 
+                                     environ["wsgidav.ifLockTokenList"], 
+                                     environ["wsgidav.username"])
 
 
     def _evaluateIfHeaders(self, res, environ):
@@ -1030,15 +1021,12 @@ class RequestServer(object):
                 self._fail(HTTP_BAD_REQUEST, 
                            "Expected a lock token (only one lock may be refreshed at a time).")
             elif not lockMan.isUrlLockedByToken(res.getRefUrl(), submittedTokenList[0]):
-#                self._fail(HTTP_BAD_REQUEST, "Lock token does not match URL.")
                 self._fail(HTTP_PRECONDITION_FAILED, 
                            "Lock token does not match URL.",
                            errcondition=PRECONDITION_CODE_LockTokenMismatch)
             # TODO: test, if token is owned by user
             
             lock = lockMan.refresh(submittedTokenList[0], timeoutsecs)
-#            print "lock", lock
-#            lockMan._dump("after")
             
             # The lock root may be <path>, or a parent of <path>.
             lockPath = provider.refUrlToPath(lock["root"])
@@ -1049,9 +1037,6 @@ class RequestServer(object):
             lockdiscoveryEL = lockRes.getPropertyValue("{DAV:}lockdiscovery")
             propEL.append(lockdiscoveryEL)
                
-#            print "LOCK", lockPath
-#            print xml_tools.xmlToString(propEL, pretty_print=True)
-
             # Lock-Token header is not returned
             xml = xml_tools.xmlToString(propEL) 
             start_response("200 OK", [("Content-Type", "application/xml"),

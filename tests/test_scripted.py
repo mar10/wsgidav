@@ -177,7 +177,7 @@ class ServerTest(unittest.TestCase):
 
         body = client.get("/test/file1.txt")
         client.checkResponse(200)
-        print body
+#        print body
 
         # PUT with overwrite must return 204 No Content, instead of 201 Created
         client.put("/test/file2.txt", data2)
@@ -226,7 +226,7 @@ class ServerTest(unittest.TestCase):
         
 #        print client.response.tree
         
-        print dict(client.response.getheaders())
+#        print dict(client.response.getheaders())
          
 #        # Remove old test files
 #        

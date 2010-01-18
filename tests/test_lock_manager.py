@@ -41,6 +41,16 @@ class BasicTest(TestCase):
         self.lm = None
 
 
+    def _acquire(self, url, locktype, lockscope, lockdepth, lockowner, timeout, 
+                principal, tokenList):
+        """Wrapper for lm.acquire, that returns None instead of raising DAVError."""
+        try:
+            return self.lm.acquire(url, locktype, lockscope, lockdepth, lockowner, 
+                                   timeout, principal, tokenList)
+        except DAVError:
+            return None
+
+    
     def _isLockDict(self, o):
         try:
             _ = o["root"]
@@ -185,37 +195,39 @@ class BasicTest(TestCase):
 
     def testConflict(self):                          
         """Locks should prevent conflicts."""
-        lm = self.lm
         tokenList = []
+                
         # Create a lock for '/dav/res/'
-        l, cl = lm.acquire("/dav/res/", "write", "exclusive", "infinity",
-                         self.owner, self.timeout, self.principal, tokenList)
-        assert self._isLockDict(l) and cl is None, "Could not acquire lock"
+        l = self._acquire("/dav/res/", "write", "exclusive", "infinity",
+                          self.owner, self.timeout, 
+                          self.principal, tokenList)
+        assert l, "Could not acquire lock"
 
         # Try to lock with a slightly different URL (without trailing '/')
-        l, cl = lm.acquire("/dav/res", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, "another principal", tokenList)
-        assert self._isLockResultFault(l, cl), "Could acquire a conflicting lock"
+        l = self._acquire("/dav/res", "write", "exclusive", "infinity",
+                          self.owner, self.timeout, 
+                          "another principal", tokenList)
+        assert l is None, "Could acquire a conflicting lock"
 
         # Try to lock with another principal
-        l, cl = lm.acquire("/dav/res/", "write", "exclusive", "infinity",
+        l = self._acquire("/dav/res/", "write", "exclusive", "infinity",
                           self.owner, self.timeout, "another principal", tokenList)
-        assert self._isLockResultFault(l, cl), "Could acquire a conflicting lock"
+        assert l is None, "Could acquire a conflicting lock"
 
         # Try to lock child with another principal
-        l, cl = lm.acquire("/dav/res/sub", "write", "exclusive", "infinity",
+        l = self._acquire("/dav/res/sub", "write", "exclusive", "infinity",
                           self.owner, self.timeout, "another principal", tokenList)
-        assert self._isLockResultFault(l, cl), "Could acquire a conflicting child lock"
+        assert l is None, "Could acquire a conflicting child lock"
 
         # Try to lock parent with same principal
-        l, cl = lm.acquire("/dav/", "write", "exclusive", "infinity",
+        l = self._acquire("/dav/", "write", "exclusive", "infinity",
                           self.owner, self.timeout, self.principal, tokenList)
-        assert self._isLockResultFault(l, cl), "Could acquire a conflicting parent lock"
+        assert l is None, "Could acquire a conflicting parent lock"
 
         # Try to lock child with same principal
-        l, cl = lm.acquire("/dav/res/sub", "write", "exclusive", "infinity",
+        l = self._acquire("/dav/res/sub", "write", "exclusive", "infinity",
                           self.owner, self.timeout, self.principal, tokenList)
-        assert self._isLockResultFault(l, cl), "Could acquire a conflicting child lock (same principal)"
+        assert l is None, "Could acquire a conflicting child lock (same principal)"
 
 
 #===============================================================================
