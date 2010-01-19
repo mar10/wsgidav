@@ -139,7 +139,10 @@ class RequestServer(object):
 
 
     def _checkWritePermission(self, res, depth, environ):
-        """Check, if write access is allowed, otherwise raise DAVError."""
+        """Raise DAVError(HTTP_LOCKED), if res is locked.
+        
+        If depth=='infinity', we also raise when child resources are locked.
+        """
         lockMan = self._davProvider.lockManager
         if lockMan is None or res is None:
             return True
@@ -327,7 +330,6 @@ class RequestServer(object):
             self._fail(HTTP_NOT_FOUND)
 
         self._evaluateIfHeaders(res, environ)
-        # TODO: some properties may not be affected by locks?
         self._checkWritePermission(res, "0", environ)
 
         # Parse request
@@ -497,7 +499,13 @@ class RequestServer(object):
                            "Only Depth: 0 or infinity are supported for non-collections.")         
 
         self._evaluateIfHeaders(res, environ)
-        self._checkWritePermission(res, environ["HTTP_DEPTH"], environ)
+        # We need write access on the parent collection. Also we check for 
+        # locked children
+        parentRes = provider.getResourceInst(util.getUriParent(path), environ)
+        if parentRes:
+            self._checkWritePermission(parentRes, environ["HTTP_DEPTH"], environ)
+        else:
+            self._checkWritePermission(res, environ["HTTP_DEPTH"], environ)
 
         # --- Let provider handle the request natively -------------------------
         
@@ -712,6 +720,7 @@ class RequestServer(object):
         srcPath = environ["PATH_INFO"]
         provider = self._davProvider
         srcRes = provider.getResourceInst(srcPath, environ)
+        srcParentRes = provider.getResourceInst(util.getUriParent(srcPath), environ)
 
         # --- Check source -----------------------------------------------------
         
@@ -793,8 +802,18 @@ class RequestServer(object):
 
         self._evaluateIfHeaders(srcRes, environ)
         self._evaluateIfHeaders(destRes, environ)
+        # Check permissions
+        # http://www.webdav.org/specs/rfc4918.html#rfc.section.7.4
         if isMove:
             self._checkWritePermission(srcRes, "infinity", environ)
+            # Cannot remove members from locked-0 collections
+            if srcParentRes: 
+                self._checkWritePermission(srcParentRes, "0", environ)
+
+        # Cannot create or new members in locked-0 collections
+        if not destExists: 
+            self._checkWritePermission(destParentRes, "0", environ)
+        # If target exists, it must not be locked
         self._checkWritePermission(destRes, "infinity", environ)
 
         if srcPath == destPath:
