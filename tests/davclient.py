@@ -376,3 +376,25 @@ class DAVClient(object):
                    res.body))
         if status != res.status:
             raise AppError("Bad response: %s (not %s)" % (full_status, status))
+
+
+    def checkMultiStatusResponse(self, status=200):
+        """"""
+        if type(status) is not tuple or type(status) is not list:
+            status = [status]
+        status = [int(s) for s in status]
+            
+        self.checkResponse(207)
+        if not hasattr(self.response, 'tree'):
+            raise AppError("Bad response: not XML")
+        responses = {}
+        for response in self.response.tree._children:
+            href = response.find('{DAV:}href')
+            pstat = response.find('{DAV:}propstat')
+            stat = pstat.find('{DAV:}status')
+            # 'HTTP/1.1 200 OK' -> 200
+            statuscode = int(stat.text.split(" ", 2)[1])
+            responses.setdefault(statuscode, []).append(href.text)
+        for statuscode, hrefs in responses.items():
+            if not statuscode in status:
+                raise AppError("Invalid multistatus %s for %s (expected %s)\n%s" % (statuscode, hrefs, status, responses))
