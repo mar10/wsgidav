@@ -13,7 +13,6 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 #from wsgidav.server import ext_wsgiutils_server
 #from wsgidav import util
 from wsgidav.server.ext_wsgiutils_server import ExtServer
-from pprint import pprint
 import time
 import os
 import unittest
@@ -58,7 +57,10 @@ class WsgiDAVServerThread(Thread):
             "user_mapping": {},
             "host": "localhost",
             "port": 8080,
-            "enable_loggers": [ ],
+            "enable_loggers": [
+#                               "http_authenticator",
+#                               "lock_manager",
+                               ],
             "debug_methods": [ ],
             "propsmanager": True,      # True: use lock_manager.LockManager           
             "locksmanager": True,      # True: use lock_manager.LockManager                   
@@ -68,6 +70,10 @@ class WsgiDAVServerThread(Thread):
 
         if withAuthentication:
             config["user_mapping"] = {"/": {"tester": {"password": "tester",
+                                                       "description": "",
+                                                       "roles": [],
+                                                       },
+                                            "tester2": {"password": "tester2",
                                                        "description": "",
                                                        "roles": [],
                                                        },
@@ -111,7 +117,8 @@ class ServerTest(unittest.TestCase):
         """Return test case suite (so we can control the order)."""
         suite = unittest.TestSuite()
         suite.addTest(cls("testPreconditions"))
-        suite.addTest(cls("testGetPut"))
+#        suite.addTest(cls("testGetPut"))
+        suite.addTest(cls("testLocking"))
         return suite
 
 
@@ -177,7 +184,8 @@ class ServerTest(unittest.TestCase):
 
         body = client.get("/test/file1.txt")
         client.checkResponse(200)
-#        print body
+        assert body == data1, "Put/Get produced different bytes"
+
 
         # PUT with overwrite must return 204 No Content, instead of 201 Created
         client.put("/test/file2.txt", data2)
@@ -267,7 +275,184 @@ class ServerTest(unittest.TestCase):
 #        app.put("/file1.txt", params=data1, status=201)
         
 
+    def _prepareTree0(self):
+        """Create a resource structure for testing.
+         
+        /test/a/
+                b/
+                  d
+                c
+              x/
+                y
+        """
+        client = self.client
+        data = "this is a file\nwith two lines"
 
+        client.delete("/test/")
+        client.mkcol("/test/")
+        client.mkcol("/test/a")
+        client.mkcol("/test/a/b")
+        client.mkcol("/test/x")
+        client.put("/test/a/c", data)
+        client.put("/test/a/b/d", data)
+        client.put("/test/x/y", data)
+        client.checkResponse(201)
+
+    
+    def _checkCommonLock(self, client2):
+        """Check for access when /test/a/ of our sample tree is locked.
+        
+        These operations must be protected when our sample tree is locked
+        either 0 or infinite depth, so we expect '423 Locked'.
+
+        Since all operations fail, the tree is unmodified.
+        
+        See http://www.webdav.org/specs/rfc4918.html#write.locks.and.collections
+        """
+        # DELETE a collection's direct internal member
+        client2.delete("/test/a/b")
+        client2.checkResponse(423)
+        client2.delete("/test/a/c")
+        client2.checkResponse(423)
+        # MOVE an internal member out of the collection
+        client2.move("/test/a/b", "/test/x/a")
+        client2.checkResponse(423)
+        client2.move("/test/a/c", "/test/x/c")
+        client2.checkResponse(423)
+        # MOVE an internal member into the collection
+        client2.move("/test/x/y", "/test/a")
+        client2.checkResponse(423)
+        client2.move("/test/x/y", "/test/a/y")
+        client2.checkResponse(423)
+        # MOVE to rename an internal member within a collection
+        client2.move("/test/a/c", "/test/a/c2")
+        client2.checkResponse(423)
+        # COPY an internal member into a collection
+        client2.copy("/test/x/y", "/test/a/y")
+        client2.checkResponse(423)
+        # PUT or MKCOL request that would create a new internal member        
+        client2.put("/test/a/x", "data")
+        client2.checkResponse(423)
+        client2.mkcol("/test/a/e")
+        client2.checkResponse(423)
+        # LOCK must fail
+        _locks = client2.set_lock("/test/a", 
+                                  owner="test-bench", 
+                                  depth="0")
+        client2.checkResponse(423)
+        _locks = client2.set_lock("/test/a", 
+                                  owner="test-bench", 
+                                  depth="infinity")
+        client2.checkResponse(423)
+        _locks = client2.set_lock("/test", 
+                                  owner="test-bench", 
+                                  depth="infinity")
+        client2.checkResponse(423)
+        # Modifying properties of the locked resource must fail
+        client2.proppatch("/test/a", 
+                          set_props=[("{testns:}testname", "testval")])
+        client2.checkResponse(423)
+
+    
+    def testLocking(self):                          
+        """Locking."""
+        client1 = self.client
+
+        client2 = davclient.DAVClient("http://127.0.0.1:8080/")
+        client2.set_basic_auth("tester2", "tester2")
+
+        self._prepareTree0()
+
+        # --- Check with deoth-infinity lock -----------------------------------
+        # LOCK-infinity parent collection and try to access members
+        locks = client1.set_lock("/test/a", 
+                                 owner="test-bench", 
+                                 locktype="write", 
+                                 lockscope="exclusive", 
+                                 depth="infinity")
+        client1.checkResponse(200)
+        assert len(locks) == 1, "LOCK failed"
+        token = locks[0]
+
+        # Unlock with correct token, but other principal: expect '403 Forbidden'
+        client2.unlock("/test/a", token)         
+        client2.checkResponse(403)
+
+        # Check that commonly protected operations fail
+        self._checkCommonLock(client2)
+
+        # Check operations that are only protected when /test/a is locked
+        # with depth-infinity
+         
+        locks = client2.set_lock("/test/a/b/c", 
+                                 owner="test-bench", 
+                                 locktype="write", 
+                                 lockscope="exclusive", 
+                                 depth="0")
+        client2.checkResponse(423)
+        
+        locks = client2.set_lock("/test/a/b/d", 
+                                 owner="test-bench", 
+                                 locktype="write", 
+                                 lockscope="exclusive", 
+                                 depth="infinity")
+        client2.checkResponse(423)
+
+        locks = client2.set_lock("/test/a/b/c", 
+                                 owner="test-bench", 
+                                 locktype="write", 
+                                 lockscope="exclusive", 
+                                 depth="0")
+        client2.checkResponse(423)
+        
+        # client1 can LOCK /a and /a/b/d at the same time, but must
+        # provide both tokens in order to access a/b/d
+        # TODO: correct?
+#        locks = client1.set_lock("/test/a/b/d", 
+#                                 owner="test-bench", 
+#                                 locktype="write", 
+#                                 lockscope="exclusive", 
+#                                 depth="0")
+#        client1.checkResponse(200)
+#        assert len(locks) == 1, "Locking inside below locked collection failed"
+#        tokenABD = locks[0]
+        
+
+        # --- Check with depth-0 lock ------------------------------------------
+        # LOCK-0 parent collection and try to access members
+        client1.unlock("/test/a", token)         
+        client1.checkResponse(204)
+
+        locks = client1.set_lock("/test/a", 
+                                 owner="test-bench", 
+                                 locktype="write", 
+                                 lockscope="exclusive", 
+                                 depth="0")
+        client1.checkResponse(200)
+        assert len(locks) == 1, "LOCK failed"
+        token = locks[0]
+        
+        # Check that commonly protected operations fail
+        self._checkCommonLock(client2)
+        
+        # These operations are allowed with depth-0
+        # Modifying member properties is allowed
+        client2.proppatch("/test/a/c", 
+                          set_props=[("{testns:}testname", "testval")])
+        client2.checkMultiStatusResponse(200)
+        # Modifying a member without creating a new resource is allowed
+        client2.put("/test/a/c", "data")
+        client2.checkResponse(204)
+        # Modifying non-internal member resources is allowed
+        client2.put("/test/a/b/f", "data")
+        client2.checkResponse(201)
+        client2.mkcol("/test/a/b/g")
+        client2.checkResponse(201)
+        client2.move("/test/a/b/g", "/test/a/b/g2")
+        client2.checkResponse(201)
+        client2.delete("/test/a/b/g2")
+        client2.checkResponse(204)
+        
 
 #===============================================================================
 # suite
