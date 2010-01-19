@@ -186,22 +186,13 @@ class HTTPAuthenticator(object):
 
     def sendBasicAuthResponse(self, environ, start_response):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"] , environ)
-        _logger.info("401 Not Authorized for realm '%s' (basic)" % realmname)
+        _logger.debug("401 Not Authorized for realm '%s' (basic)" % realmname)
         wwwauthheaders = "Basic realm=\"" + realmname + "\"" 
-        
-        # HOTFIX for Vista and Windows 7: issue 23
-        # Even though WsgiDAVApp makes sure to read 1 byte from input and set
-        # 'Connection: close', these clients sometimes do not resend requests 
-        # credentials after a 401, when big files are involved. (XP is fine).
-        # So we read everything:
-        # Now handled by wsgidav_app _start_response_wrapper():
-#        util.readAllInput(environ)
         
         body = self.getErrorMessage()
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
-#                                              ("Connection", "close"),
                                               ("Date", util.getRfc1123Time()),
                                               ])
         return [ body ]
@@ -234,22 +225,12 @@ class HTTPAuthenticator(object):
         nonce = base64.b64encode(timekey + md5(timekey + ":" + etagkey + ":" + serverkey).hexdigest())
         wwwauthheaders = "Digest realm=\"" + realmname + "\", nonce=\"" + nonce + \
             "\", algorithm=\"MD5\", qop=\"auth\""                 
-        _logger.info("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
-
-        # HOTFIX for Vista and Windows 7: issue 23
-        # Even though WsgiDAVApp makes sure to read 1 byte from input and set
-        # 'Connection: close', these clients sometimes do not resend requests 
-        # with credentials after a 401, when big files are involved. 
-        # (XP is fine).
-        # So we read everything:
-        # Now handled by wsgidav_app _start_response_wrapper():
-#        util.readAllInput(environ)
+        _logger.debug("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
 
         body = self.getErrorMessage()
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
-#                                              ("Connection", "close"),
                                               ("Date", util.getRfc1123Time()),
                                               ])
         return [ body ]
@@ -271,8 +252,8 @@ class HTTPAuthenticator(object):
             authheadervalue = authheader[1].strip().strip("\"")
             authheaderdict[authheaderkey] = authheadervalue
 
-        _logger.info("authDigestAuthRequest: %s" % environ["HTTP_AUTHORIZATION"])
-        _logger.info("  -> %s" % authheaderdict)
+        _logger.debug("authDigestAuthRequest: %s" % environ["HTTP_AUTHORIZATION"])
+        _logger.debug("  -> %s" % authheaderdict)
          
         if "username" in authheaderdict:
             req_username = authheaderdict["username"]

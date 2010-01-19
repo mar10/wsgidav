@@ -518,7 +518,8 @@ class LockManager(object):
         also the token must be passed with the request. Because <principal> may 
         run two different applications.  
 
-        @see http://www.webdav.org/specs/rfc4918.html#lock-model
+        See http://www.webdav.org/specs/rfc4918.html#lock-model
+            http://www.webdav.org/specs/rfc4918.html#rfc.section.7.4
 
         TODO: verify assumptions:
         - Parent locks WILL NOT be conflicting, if they are depth-0.
@@ -651,9 +652,9 @@ def _lockString(lockDict):
     if lockDict["timeout"] < 0:
         timeout = "Infinite (%s)" % (lockDict["timeout"])
     else:
-        timeout = "%s (%s)" % (util.getRfc1123Time(lockDict["timeout"]), lockDict["timeout"])
+        timeout = "%s" % util.getLogTime(lockDict["timeout"])
 
-    return "Lock(<%s..>, '%s', %s, %s, depth-%s: %s" % (
+    return "Lock(<%s..>, '%s', %s, %s, depth-%s, until %s" % (
         lockDict.get("token","?"*30)[18:22], # first 4 significant token characters
         lockDict.get("root"),
         lockDict.get("principal"),
