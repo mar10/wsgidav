@@ -453,6 +453,25 @@ class ServerTest(unittest.TestCase):
         client2.delete("/test/a/b/g2")
         client2.checkResponse(204)
         
+        # --- Check root access, when a child is locked ------------------------
+        client1.unlock("/test/a", token)         
+        client1.checkResponse(204)
+
+        locks = client1.set_lock("/test/a/b/d", 
+                                 owner="test-bench", 
+                                 locktype="write", 
+                                 lockscope="exclusive", 
+                                 depth="0")
+        client1.checkResponse(200)
+        assert len(locks) == 1, "LOCK failed"
+        token = locks[0]
+        
+        # LOCK /a/b/d, then DELETE /a/b/  
+        # --> Must delete all but a/b/d (expect 423 Locked inside Multistatus)
+        client2.delete("/test/a/b")
+#        print client2.response.body
+        client2.checkMultiStatusResponse(423)
+
 
 #===============================================================================
 # suite

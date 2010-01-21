@@ -503,9 +503,11 @@ class RequestServer(object):
         # locked children
         parentRes = provider.getResourceInst(util.getUriParent(path), environ)
         if parentRes:
-            self._checkWritePermission(parentRes, environ["HTTP_DEPTH"], environ)
+#            self._checkWritePermission(parentRes, environ["HTTP_DEPTH"], environ)
+            self._checkWritePermission(parentRes, "0", environ)
         else:
-            self._checkWritePermission(res, environ["HTTP_DEPTH"], environ)
+#            self._checkWritePermission(res, environ["HTTP_DEPTH"], environ)
+            self._checkWritePermission(res, "0", environ)
 
         # --- Let provider handle the request natively -------------------------
         
