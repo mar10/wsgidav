@@ -1,8 +1,7 @@
 # -*- coding: iso-8859-1 -*-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-:Author: Martin Wendt
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 DAV provider that publishes a Mercurial repository.
 
 Note: This is **not** production code!

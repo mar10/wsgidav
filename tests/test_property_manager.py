@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
-
-"""Unit test for lock_manager.py"""
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+"""Unit test for property_manager.py"""
 from tempfile import gettempdir
 from unittest import TestCase, TestSuite, TextTestRunner
 import os

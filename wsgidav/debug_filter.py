@@ -1,9 +1,7 @@
-# -*- coding: iso-8859-1 -*-
-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 WSGI middleware used for debugging (optional).
 
 This module dumps request and response information to the console, depending
@@ -20,7 +18,7 @@ For every request:
 
 These configuration settings are evaluated:
 
-`verbose`
+*verbose*
     This is also used by other modules. This filter adds additional information
     depending on the value.
 
@@ -33,7 +31,7 @@ These configuration settings are evaluated:
      3        Dump headers and bodies of all requests and responses. 
     =======  ===================================================================
 
-`debug_methods`
+*debug_methods*
     Boost verbosity to 3 while processing certain request methods. This option 
     is ignored, when ``verbose < 2``.
 
@@ -43,7 +41,7 @@ These configuration settings are evaluated:
                          "PUT", "COPY", "MOVE", "LOCK", "UNLOCK",
                          ]
  
-`debug_litmus`
+*debug_litmus*
     Boost verbosity to 3 while processing litmus tests that contain certain 
     substrings. This option is ignored, when ``verbose < 2``.
 
@@ -52,9 +50,9 @@ These configuration settings are evaluated:
         debug_litmus = ["notowner_modify", "props: 16", ]
 
  
-See DEVELOPERS_ for more information about the WsgiDAV architecture.
+See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _DEVELOPERS: http://docs.wsgidav.googlecode.com/hg/html/develop/architecture.html  
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from wsgidav import util
 import sys

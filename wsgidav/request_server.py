@@ -1,24 +1,16 @@
-# -*- coding: iso-8859-1 -*-
-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-request_server
-==============
-
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
-
 WSGI application that handles one single WebDAV request.
 
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
+See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from urlparse import urlparse
 from wsgidav.dav_error import HTTP_OK
 from wsgidav import xml_tools
-import socket
 import util
 import urllib
 try:

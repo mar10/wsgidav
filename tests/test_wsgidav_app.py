@@ -1,6 +1,8 @@
 # -*- coding: iso-8859-1 -*-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-    Unit test for wsgidav.lock_manager.py
+    Unit test for wsgidav HTTP request functionality
     
     This test suite uses paste.fixture to send fake requests to the WSGI
     stack.

@@ -1,10 +1,13 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 WSGI middleware to catch application thrown DAVErrors and return proper 
 responses.
+
+See `Developers info`_ for more information about the WsgiDAV architecture.
+
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 __docformat__ = "reStructuredText"
 

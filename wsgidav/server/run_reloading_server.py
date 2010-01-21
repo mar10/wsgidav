@@ -1,11 +1,7 @@
-# -*- coding: iso-8859-1 -*-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-run_reloading_server
-====================
-
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 Wrapper for ``run_server``, that restarts the server when source code is 
 modified.
 """

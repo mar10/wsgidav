@@ -1,9 +1,7 @@
-# -*- coding: iso-8859-1 -*-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 WSGI container, that handles the HTTP requests. This object is passed to the 
 WSGI server and represents our WsgiDAV application to the outside. 
 
@@ -38,6 +36,10 @@ For every request:
     Log the HTTP request, then pass the request to the first middleware.
 
     Note: The OPTIONS method for the '*' path is handled directly.
+
+See `Developers info`_ for more information about the WsgiDAV architecture.
+
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from fs_dav_provider import FilesystemProvider
 from wsgidav.dir_browser import WsgiDavDirBrowser

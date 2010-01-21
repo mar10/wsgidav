@@ -1,11 +1,7 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-domain_controller
-=================
-
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 Implementation of a domain controller that uses realm/username/password mappings
 from the configuration file and uses the share path as realm name.
 
@@ -34,9 +30,9 @@ domaincontrollerinterface_
 .. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
 
 
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
+See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 import sys
 __docformat__ = "reStructuredText"

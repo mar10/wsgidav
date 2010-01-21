@@ -1,15 +1,11 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-dav_provider
-============
+Implements DAVResource and DAVProvider objects.
 
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
+**DAVResource**
 
-This module implements DAVResource and DAVProvider objects.
-
-DAVResource
------------
 Represents an existing (i.e. mapped) WebDAV resource or collection.
 A DAVResource object is created by a call to the DAVProvider.
 
@@ -26,8 +22,8 @@ Usage::
         print res.getName()
 
 
-DAVProvider
------------
+**DAVProvider**
+
 A DAV provider represents a shared WebDAV system.
 
 There is only one provider instance per share, which is created during 
@@ -53,13 +49,8 @@ This module serves these purposes:
 If no default implementation can be provided, then all write actions generate
 FORBIDDEN errors. Read requests generate NOT_IMPLEMENTED errors.
  
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
 
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
-
-
-Supporting Objects
-------------------
+**Supporting Objects**
 The DAVProvider takes two supporting objects:   
    
 propertyManager
@@ -79,6 +70,10 @@ lockmMnager
 
    See lock_manager.LockManager for a sample implementation
    using shelve.
+
+See `Developers info`_ for more information about the WsgiDAV architecture.
+
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 import sys
 import time

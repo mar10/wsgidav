@@ -1,8 +1,7 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 Implementation of a WebDAV provider that provides a very basic, read-only
 resource layer emulation of a MySQL database.
 
@@ -56,14 +55,9 @@ its limitations:
       Ideally there should be some sort of caching for metadata at least, to avoid
       unnecessary queries to the database.
 
+See `Developers info`_ for more information about the WsgiDAV architecture.
 
-Abstraction Layers must provide the methods as described in 
-abstractionlayerinterface_
-
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
-
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
-.. _abstractionlayerinterface : interfaces/abstractionlayerinterface.py
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from wsgidav.dav_provider import DAVProvider, DAVResource
 from wsgidav import util

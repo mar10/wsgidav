@@ -1,7 +1,7 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
 Implementation of a domain controller that allows users to authenticate against 
 a Windows NT domain or a local computer (used by HTTPAuthenticator).
 
@@ -69,9 +69,9 @@ Testability and caveats
 **Using for a network domain**
    This class is being tested for a network domain (I'm setting one up to test).
 
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
+See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from wsgidav import util
 

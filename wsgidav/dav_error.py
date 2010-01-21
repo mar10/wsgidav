@@ -1,17 +1,8 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-dav_error
-=========
-:Author: Martin Wendt, moogle(at)wwwendt.de 
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Copyright: Licensed under the MIT license, see LICENSE file in this package.
-
-Lesser GNU Public License, see LICENSE file attached with package
-
 Implements a DAVError class that is used to signal WebDAV and HTTP errors. 
-
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
-
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 import traceback
 import datetime

@@ -1,5 +1,6 @@
 # -*- coding: iso-8859-1 -*-
-
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """Unit tests for wsgidav.util"""
 
 from unittest import TestCase, TestSuite, TextTestRunner

@@ -1,8 +1,15 @@
+# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Running WsgiDAV
-===============
+ext_wsgiutils_server.py is an extension of the wsgiutils server in Paste. 
+It supports passing all of the HTTP and WebDAV (rfc 2518) methods.
 
-WsgiDAV comes bundled with a simple WSGI webserver.
+It includes code from the following sources:
+``wsgiServer.py`` from wsgiKit <http://www.owlfish.com/software/wsgiutils/> under PSF license, 
+``wsgiutils_server.py`` from Paste <http://pythonpaste.org> under PSF license, 
+flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618> under public domain. 
+
 
 Running as standalone server
 ----------------------------
@@ -43,20 +50,9 @@ Note: if you are using the paster development server (from Paste <http://pythonp
 copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use this server to run the 
 application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate paste 
 configuration.
-
-
-About ext_wsgiutils_server
---------------------------
-
-ext_wsgiutils_server.py is an extension of the wsgiutils server in Paste. 
-It supports passing all of the HTTP and WebDAV (rfc 2518) methods.
-
-It includes code from the following sources:
-``wsgiServer.py`` from wsgiKit <http://www.owlfish.com/software/wsgiutils/> under PSF license, 
-``wsgiutils_server.py`` from Paste <http://pythonpaste.org> under PSF license, 
-flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618> under public domain. 
-
 """
+__docformat__ = "reStructuredText"
+
 from wsgidav.version import __version__
 import time
 import httplib
