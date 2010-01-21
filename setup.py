@@ -44,7 +44,6 @@ Project home: http://wsgidav.googlecode.com/
                      "Intended Audience :: Information Technology",
                      "Intended Audience :: Developers",
                      "Intended Audience :: System Administrators",
-#                     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
                      "License :: OSI Approved :: MIT License",
                      "Operating System :: OS Independent",
                      "Programming Language :: Python",
