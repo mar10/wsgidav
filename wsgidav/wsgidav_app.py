@@ -44,6 +44,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from fs_dav_provider import FilesystemProvider
 from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.dav_provider import DAVProvider
+from wsgidav.lock_manager import LockManagerDictStorage
 import time
 import sys
 import threading
@@ -126,13 +127,15 @@ class WsgiDAVApp(object):
         response_trailer = config.get("response_trailer", "")
         self._verbose = config.get("verbose", 2)
 
-        locksManager = config.get("locksmanager") 
-        if not locksManager:
-            # Normalize False, 0 to None
-            locksManager = None
-        elif locksManager is True:
-            locksManager = LockManager()
+        lockStorage = config.get("locksmanager") 
+        if lockStorage is True:
+            lockStorage = LockManagerDictStorage()
             
+        if not lockStorage:
+            locksManager = None
+        else:
+            locksManager = LockManager(lockStorage)
+
         propsManager = config.get("propsmanager")     
         if not propsManager:
             # Normalize False, 0 to None

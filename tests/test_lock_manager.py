@@ -24,7 +24,7 @@ class BasicTest(TestCase):
         """Return test case suite (so we can control the order)."""
         suite = TestSuite()
         suite.addTest(cls("testPreconditions"))
-        suite.addTest(cls("testOpen"))
+#        suite.addTest(cls("testOpen"))
         suite.addTest(cls("testValidation"))
         suite.addTest(cls("testLock"))
         suite.addTest(cls("testTimeout"))
@@ -33,12 +33,13 @@ class BasicTest(TestCase):
 
             
     def setUp(self):
-        self.lm = lock_manager.LockManager()
+        storage = lock_manager.LockManagerDictStorage()
+        self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
         
 
     def tearDown(self):
-        self.lm._close()
+#        self.lm.close()
         self.lm = None
 
 
@@ -93,15 +94,15 @@ class BasicTest(TestCase):
         self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
 
 
-    def testOpen(self):                          
-        """Lock manager should be lazy opening on first access."""
-        lm = self.lm
-        assert not lm._loaded, "LM must only be opened after first access"
-        lm._generateLock(self.principal, "write", "exclusive", "infinity", 
-                        self.owner, 
-                        "/dav", 
-                        10)
-        assert lm._loaded, "LM must be opened after first access"
+#    def testOpen(self):                          
+#        """Lock manager should be lazy opening on first access."""
+#        lm = self.lm
+##        assert not lm._loaded, "LM must only be opened after first access"
+#        lm._generateLock(self.principal, "write", "exclusive", "infinity", 
+#                        self.owner, 
+#                        "/dav", 
+#                        10)
+#        assert lm._loaded, "LM must be opened after first access"
 
 
     def testValidation(self):                          
@@ -123,7 +124,7 @@ class BasicTest(TestCase):
                           lm._generateLock, lm, "write", "exclusive", "infinity", 
                                            self.owner, None, self.timeout)
 
-        assert lm._dict is None, "No locks should have been created by this test" 
+#        assert lm._dict is None, "No locks should have been created by this test" 
 
 
     def testLock(self):                          
@@ -159,11 +160,12 @@ class BasicTest(TestCase):
         # We locked "/dav/res", did we?
         assert lm.isTokenLockedByUser(tok, self.principal)
         
-        res = lm.getUrlLockList(url, self.principal)
+#        res = lm.getUrlLockList(url, self.principal)
+        res = lm.getUrlLockList(url)
         assert len(res) == 1
         
-        res = lm.getUrlLockList(url, "another user")
-        assert len(res) == 0
+#        res = lm.getUrlLockList(url, "another user")
+#        assert len(res) == 0
         
         assert lm.isUrlLockedByToken("/dav/res", tok), "url not directly locked by locktoken."
         assert lm.isUrlLockedByToken("/dav/res/", tok), "url not directly locked by locktoken."
@@ -241,11 +243,12 @@ class ShelveTest(BasicTest):
         self.path = os.path.join(gettempdir(), "wsgidav-locks.shelve")
         if os.path.exists(self.path):
             os.remove(self.path)
-        self.lm = lock_manager.ShelveLockManager(self.path)
+        storage = lock_manager.LockManagerShelveStorage(self.path)
+        self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
 
     def tearDown(self):
-        self.lm._close()
+#        self.lm._close()
         self.lm = None
 #        os.remove(self.path)
 
