@@ -9,6 +9,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 .. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
+from wsgidav.version import __version__
 import sys
 import urllib
 import util
@@ -117,7 +118,7 @@ class WsgiDavDirBrowser(object):
             <tr><td><a href="%(url)s">%(displayName)s</a></td>
             <td>%(displayType)s</td>
             <td class='right'>%(strSize)s</td>
-            <td class='right'>%(strModified)s</td></tr>\n""" % infoDict)
+            <td class='right'>%(strModified)s</td></tr>""" % infoDict)
             
         o_list.append("</table>\n")
 
@@ -127,9 +128,12 @@ class WsgiDavDirBrowser(object):
                              environ.get("http_authenticator.realm")))
 
         if trailer:
-            o_list.append("%s\n" % trailer)
-        o_list.append("<hr/>\n<a href='http://wsgidav.googlecode.com/'>WsgiDAV server</a> - %s\n" % util.getRfc1123Time())
+            o_list.append("%s" % trailer)
+        o_list.append("<hr/>") 
+        o_list.append("<a href='http://wsgidav.googlecode.com/'>WsgiDAV %s</a> - %s" 
+                      % (__version__, util.getRfc1123Time()))
         o_list.append("</body></html>")
+
         body = "\n".join(o_list) 
 
         start_response("200 OK", [("Content-Type", "text/html"), 
