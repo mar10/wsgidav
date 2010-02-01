@@ -222,7 +222,7 @@ class LockManagerDictStorage(object):
                 _logger.debug("Lock purged dangling: %s" % token)
                 self.delete(token)      
                 return None
-            expire = int(lock["expire"])
+            expire = float(lock["expire"])
             if expire >= 0 and expire < time.time():
                 _logger.debug("Lock timed-out(%s): %s" % (expire, lockString(lock)))
                 self.delete(token)   

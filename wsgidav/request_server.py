@@ -619,7 +619,10 @@ class RequestServer(object):
             contentlength = -1
         
 #        if contentlength < 0 and not WORKAROUND_BAD_LENGTH:
-        if contentlength < 0:
+        if (
+            (contentlength < 0) and
+            (environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked")
+        ):
             self._fail(HTTP_BAD_REQUEST, 
                        "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
         
@@ -628,13 +631,22 @@ class RequestServer(object):
             fileobj = res.beginWrite(contentType=environ.get("CONTENT_TYPE"))
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
-                l = int(environ["wsgi.input"].readline(), 16)
+                buf = environ["wsgi.input"].readline()
+                if buf == '':
+                    l = 0
+                else:
+                    l = int(buf, 16)
+
                 environ["wsgidav.some_input_read"] = 1
                 while l > 0:
                     buf = environ["wsgi.input"].read(l)
                     fileobj.write(buf)
                     environ["wsgi.input"].readline()
-                    l = int(environ["wsgi.input"].readline(), 16)
+                    buf = environ["wsgi.input"].readline()
+                    if buf == '':
+                        l = 0
+                    else:
+                        l = int(buf, 16)
                 environ["wsgidav.all_input_read"] = 1
                     
             elif contentlength == 0:
@@ -681,7 +693,7 @@ class RequestServer(object):
             fileobj.close()
 
         except Exception, e:
-            res.endWrite(hasErrors=True)
+            res.endWrite(withErrors=True)
             _logger.exception("PUT: byte copy failed")
             self._fail(e)
 

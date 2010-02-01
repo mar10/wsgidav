@@ -44,6 +44,9 @@ from wsgidav.wsgidav_app import DEFAULT_CONFIG
 import traceback
 import sys
 import os
+
+from wsgidav import util
+
 try:
     from wsgidav.version import __version__
     from wsgidav.wsgidav_app import WsgiDAVApp
@@ -242,6 +245,7 @@ def _runPaste(app, config, mode):
     
     See http://pythonpaste.org/modules/httpserver.html for more options
     """
+    _logger = util.getModuleLogger(__name__, True)
     try:
         from paste import httpserver
         version = "WsgiDAV/%s %s" % (__version__, httpserver.WSGIHandler.server_version)
@@ -249,14 +253,46 @@ def _runPaste(app, config, mode):
             print "Running %s..." % version
 
         # See http://pythonpaste.org/modules/httpserver.html for more options
-        httpserver.serve(app,
+        server = httpserver.serve(app,
                          host=config["host"], 
                          port=config["port"],
                          server_version=version,
                          # This option enables handling of keep-alive 
                          # and expect-100:
                          protocol_version="HTTP/1.1",
+                         start_loop=False
                          )
+
+        if config["verbose"] >=3:
+            __handle_one_request = server.RequestHandlerClass.handle_one_request
+            def handle_one_request(self):
+                __handle_one_request(self)
+                if self.close_connection == 1:
+                    _logger.debug("HTTP Connection : close")
+                else:
+                    _logger.debug("HTTP Connection : continue")
+
+            server.RequestHandlerClass.handle_one_request = handle_one_request
+
+            __handle = server.RequestHandlerClass.handle
+            def handle(self):
+                _logger.debug("open HTTP connection")
+                __handle(self)
+
+            server.RequestHandlerClass.handle_one_request = handle_one_request
+
+
+        host, port = server.server_address
+        if host == '0.0.0.0':
+            print 'serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % \
+                (port, 'http', port)
+        else:
+            print "serving on %s://%s:%s" % ('http', host, port)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            # allow CTRL+C to shutdown
+            pass
     except ImportError, e:
         if config["verbose"] >= 1:
             print "Could not import paste.httpserver."
