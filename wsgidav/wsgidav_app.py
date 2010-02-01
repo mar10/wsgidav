@@ -273,6 +273,7 @@ class WsgiDAVApp(object):
             environ["PATH_INFO"] = path[len(share):]
 #        util.log("--> SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
+        assert isinstance(path, str)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty
