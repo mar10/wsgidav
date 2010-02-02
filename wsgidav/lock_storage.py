@@ -180,7 +180,7 @@ class LockStorageDict(object):
             lock["root"] = path
     
             # Normalize timeout from ttl to expire-date
-            timeout = int(lock.get("timeout"))
+            timeout = float(lock.get("timeout"))
             if timeout is None:
                 timeout = LockStorageDict.LOCK_TIME_OUT_DEFAULT
             elif timeout < 0 or timeout > LockStorageDict.LOCK_TIME_OUT_MAX:
@@ -252,7 +252,7 @@ class LockStorageDict(object):
         self._lock.acquireWrite()
         try:
             lock = self._dict.get(token)
-            _logger.debug("release %s" % lockString(lock))
+            _logger.debug("delete %s" % lockString(lock))
             if lock is None:
                 return False
             # Remove url to lock mapping
@@ -272,6 +272,7 @@ class LockStorageDict(object):
             self._flush()
         finally:
             self._lock.release()
+        return True
     
     
     def getLockList(self, path, includeRoot, includeChildren, tokenOnly):

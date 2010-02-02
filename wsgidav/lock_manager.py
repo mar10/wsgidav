@@ -69,7 +69,7 @@ def normalizeLockRoot(path):
 
 
 def isLockExpired(lock):
-    expire = int(lock["expire"])
+    expire = float(lock["expire"])
     return expire >= 0 and expire < time.time()
 
 
@@ -102,7 +102,7 @@ def validateLock(lock):
     assert lock["depth"] in ("0", "infinity")
     assert type(lock["owner"]) is str
     # raises TypeError:
-    timeout = int(lock["timeout"])
+    timeout = float(lock["timeout"])
     assert timeout > 0 or timeout == -1, "timeout must be positive or -1"
     assert type(lock["principal"]) is str
     if "token" in lock:
@@ -173,7 +173,7 @@ class LockManager(object):
 
 
     def _generateLock(self, principal, 
-                      locktype, lockscope, lockdepth, lockowner, path, ttl):
+                      locktype, lockscope, lockdepth, lockowner, path, timeout):
         """Acquire lock and return lockDict.
 
         principal
@@ -188,22 +188,22 @@ class LockManager(object):
             String identifying the owner.
         path
             Resource URL.
-        ttl
+        timeout
             Seconds to live
             
         This function does NOT check, if the new lock creates a conflict!
         """
-        if ttl is None:
-            ttl = LockManager.LOCK_TIME_OUT_DEFAULT
-        elif ttl < 0:
-            ttl = -1      
+        if timeout is None:
+            timeout = LockManager.LOCK_TIME_OUT_DEFAULT
+        elif timeout < 0:
+            timeout = -1      
         
         lockDict = {"root": path,
                     "type": locktype,
                     "scope": lockscope,
                     "depth": lockdepth,
                     "owner": lockowner,
-                    "timeout": ttl,
+                    "timeout": timeout,
                     "principal": principal, 
                     }
         #
@@ -211,7 +211,7 @@ class LockManager(object):
         return lockDict
 
 
-    def acquire(self, url, locktype, lockscope, lockdepth, lockowner, ttl, 
+    def acquire(self, url, locktype, lockscope, lockdepth, lockowner, timeout, 
                 principal, tokenList):
         """Check for permissions and acquire a lock.
         
@@ -223,7 +223,7 @@ class LockManager(object):
         try:
             # Raises DAVError on conflict:
             self._checkLockPermission(url, locktype, lockscope, lockdepth, tokenList, principal)
-            return self._generateLock(principal, locktype, lockscope, lockdepth, lockowner, url, ttl)
+            return self._generateLock(principal, locktype, lockscope, lockdepth, lockowner, url, timeout)
         finally:
             self._lock.release()
         
@@ -385,7 +385,8 @@ class LockManager(object):
     
             if lockdepth == "infinity":
                 # Check child URLs for conflicting locks
-                childLocks = self.storage.getLockList(url, includeRoot=False, 
+                childLocks = self.storage.getLockList(url, 
+                                                      includeRoot=False, 
                                                       includeChildren=True, 
                                                       tokenOnly=False)
 
@@ -461,7 +462,8 @@ class LockManager(object):
     
             if depth == "infinity":
                 # Check child URLs for conflicting locks
-                childLocks = self.storage.getLockList(url, includeRoot=False, 
+                childLocks = self.storage.getLockList(url, 
+                                                      includeRoot=False, 
                                                       includeChildren=True, 
                                                       tokenOnly=False)
 

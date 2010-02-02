@@ -337,6 +337,8 @@ class WsgiDAVApp(object):
                     extra.append('connection="%s"' % environ.get("HTTP_CONNECTION"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
+                if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
+                    extra.append('transfer-enc=%s' % environ.get("HTTP_TRANSFER_ENCODING"))
                 if self._verbose >= 1:
                     extra.append('elap=%.3fsec' % (time.time() - start_time))
                 extra = ", ".join(extra)
