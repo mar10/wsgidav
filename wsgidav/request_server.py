@@ -9,7 +9,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 .. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from urlparse import urlparse
-from wsgidav.dav_error import HTTP_OK
+from wsgidav.dav_error import HTTP_OK, HTTP_LENGTH_REQUIRED
 from wsgidav import xml_tools
 import util
 import urllib
@@ -623,8 +623,14 @@ class RequestServer(object):
             (contentlength < 0) and
             (environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked")
         ):
-            self._fail(HTTP_BAD_REQUEST, 
-                       "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
+            # HOTFIX: not fully understood, but MS sends PUT without content-length,
+            # when creating new files 
+            if "Microsoft-WebDAV-MiniRedir" in environ.get("HTTP_USER_AGENT", ""):
+                _logger.warning("Setting misssing Content-Length to 0 for MS client")
+                contentlength = 0
+            else:
+                self._fail(HTTP_LENGTH_REQUIRED, 
+                           "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
         
         hasErrors = False
         try:      
