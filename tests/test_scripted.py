@@ -12,8 +12,6 @@
 from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
-#from wsgidav.server import ext_wsgiutils_server
-#from wsgidav import util
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 import time
 import os
@@ -483,12 +481,14 @@ def suite():
     return unittest.TestSuite([ServerTest.suite(), 
                                ])  
 
-
+def main():
+    _suite = suite()
+    unittest.TextTestRunner(descriptions=1, verbosity=2).run(_suite)
+    
 if __name__ == "__main__":
 #    unittest.main()
 #    global EXTERNAL_SERVER_ADDRESS
 #    EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
 #    print "Using external server to enable debugging: ", EXTERNAL_SERVER_ADDRESS
     
-    suite = suite()
-    unittest.TextTestRunner(descriptions=1, verbosity=2).run(suite)
+    main()

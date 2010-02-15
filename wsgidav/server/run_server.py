@@ -126,6 +126,10 @@ If no config file is found, a default FilesystemProvider is used."""
                       action="store_true", dest="reload", 
                       help="Restart server when source files are changed. Used by run_reloading_server. (Requires paste.reloader.)")
 
+#    parser.add_option("", "--profile",
+#                      action="store_true", dest="profile", 
+#                      help="Profile ")
+
    
     (options, args) = parser.parse_args()
 
@@ -211,6 +215,8 @@ def _initConfig():
         config["host"] = cmdLineOpts.get("host")
     if cmdLineOpts.get("verbose") is not None:
         config["verbose"] = cmdLineOpts.get("verbose")
+    if cmdLineOpts.get("profile") is not None:
+        config["profile"] = True
 
     if cmdLineOpts.get("root_path"):
         root_path = os.path.abspath(cmdLineOpts.get("root_path"))
@@ -234,7 +240,7 @@ def _initConfig():
             reloader.watch_file(config_file)
 #        import pydevd
 #        pydevd.settrace()
-        
+
     return config
 
 
@@ -399,6 +405,43 @@ SUPPORTED_SERVERS = {"paste": _runPaste,
                      }
 
 
+#def _run_real(config):
+#    app = WsgiDAVApp(config)
+#    
+#    # Try running WsgiDAV inside the following external servers:
+#    res = False
+#    for e in config["ext_servers"]:
+#        fn = SUPPORTED_SERVERS.get(e)
+#        if fn is None:
+#            print "Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys()))
+#            
+#        elif fn(app, config, e):
+#            res = True
+#            break
+#    
+#    if not res:
+#        print "No supported WSGI server installed."   
+#
+#    
+#def run():
+#    config = _initConfig()
+#    if config.get("profile"):
+#        import cProfile, pstats, StringIO
+#        prof = cProfile.Profile()
+#        prof = prof.runctx("_run_real(config)", globals(), locals())
+#        stream = StringIO.StringIO()
+#        stats = pstats.Stats(prof, stream=stream)
+#        stats.sort_stats("time")  # Or cumulative
+#        stats.print_stats(80)  # 80 = how many to print
+#        # The rest is optional.
+#        # stats.print_callees()
+#        # stats.print_callers()
+##        logging.info("Profile data:\n%s", stream.getvalue())
+#        print stream.getvalue()
+#        return
+#    return _real_run(config) 
+
+
 def run():
     config = _initConfig()
     
@@ -410,6 +453,7 @@ def run():
         fn = SUPPORTED_SERVERS.get(e)
         if fn is None:
             print "Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys()))
+            
         elif fn(app, config, e):
             res = True
             break

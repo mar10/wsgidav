@@ -82,3 +82,59 @@ Test cases
       subfolder10-10/
         file10-10-1.txt -> 1k
 """
+import logging
+_benchmarks = [#"proppatch_many",
+               #"proppatch_big",
+               #"proppatch_deep",
+               "test_scripted",
+               ]
+
+
+def _real_run_bench(bench, opts):
+    if bench == "*":
+        for bench in _benchmarks:
+            run_bench(bench, opts)
+        return
+    
+    assert bench in _benchmarks
+    if bench == "test_scripted":
+        from tests import test_scripted
+        test_scripted.main()
+    else:
+        raise ValueError()
+
+
+def run_bench(bench, opts):
+    profile_benchmarks = opts["profile_benchmarks"]
+    if bench in profile_benchmarks:
+        # http://docs.python.org/library/profile.html#module-cProfile
+        import cProfile, pstats, StringIO
+        prof = cProfile.Profile()
+        prof = prof.runctx("_real_run_bench(bench, opts)", globals(), locals())
+        stream = StringIO.StringIO()
+        stats = pstats.Stats(prof, stream=stream)
+#        stats.sort_stats("time")  # Or cumulative
+        stats.sort_stats("cumulative")  # Or time
+        stats.print_stats(80)  # 80 = how many to print
+        # The rest is optional.
+        # stats.print_callees()
+        # stats.print_callers()
+        logging.warning("Profile data for '%s':\n%s" % (bench, stream.getvalue()))
+ 
+    else:
+        _real_run_bench(bench, opts)
+
+
+def bench_all(opts):
+    run_bench("*", opts)
+
+
+def main():
+    opts = {"num": 10,
+            "profile_benchmarks": ["*"],
+            }    
+    bench_all(opts)
+    
+
+if __name__ == "__main__":
+    main()
