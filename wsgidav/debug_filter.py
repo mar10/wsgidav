@@ -172,6 +172,11 @@ class WsgiDavDebugFilter(object):
                     print >> self.out, "%s: %s" % (envitem, repr(headersdict[envitem])) 
                 print >> self.out, ""
 
+            # Check, if response is a binary string, otherwise we probably have 
+            # calculated a wrong content-length
+            assert type(v) is str
+            
+            # Dump response body
             drb = environ.get("wsgidav.dump_response_body")
             if type(drb) is str:
                 # Middleware provided a formatted body representation 

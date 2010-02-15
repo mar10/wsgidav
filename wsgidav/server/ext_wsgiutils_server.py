@@ -214,20 +214,21 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         return self.wsgiWriteData
 
     def wsgiWriteData (self, data):
-        if (not self.wsgiSentHeaders):
+        if not self.wsgiSentHeaders:
             status, headers = self.wsgiHeaders
             # Need to send header prior to data
             statusCode = status [:status.find (" ")]
             statusMsg = status [status.find (" ") + 1:]
-            _logger.debug("wsgiWriteData: send headers '%s', %s" % (status, headers))
+            _logger.debug("wsgiWriteData: send headers '%r', %r" % (status, headers))
             self.send_response (int (statusCode), statusMsg)
             for header, value in headers:
                 self.send_header (header, value)
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
+        assert type(data) is str # If not, Content-Length is propably wrong!
         try:
-            _logger.debug("wsgiWriteData: write %s bytes: '%s'..." % (len(data), data[:50]))
+            _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), data[:50]))
             self.wfile.write(data)
         except socket.error, e:
             # Suppress stack trace when client aborts connection disgracefully:
