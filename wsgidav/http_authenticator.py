@@ -226,6 +226,7 @@ class HTTPAuthenticator(object):
         _logger.debug("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
 
         body = self.getErrorMessage()
+#        start_response("403 Forbidden", [("WWW-Authenticate", wwwauthheaders),
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
@@ -351,8 +352,6 @@ class HTTPAuthenticator(object):
         environ["http_authenticator.realm"] = realmname
         environ["http_authenticator.username"] = req_username
         return self._application(environ, start_response)                
-     
-        return self.sendDigestAuthResponse(environ, start_response)
 
 
     def computeDigestResponse(self, username, realm, password, method, uri, nonce, cnonce, qop, nc):

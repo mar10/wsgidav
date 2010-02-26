@@ -693,6 +693,7 @@ def sendStatusResponse(environ, start_response, e):
                             ("Date", getRfc1123Time()),
                             ("Content-Length", str(len(body))),
                             ] + headers) 
+    assert type(body) is str # If not, Content-Length is wrong!
     return [ body ]
     
     
@@ -720,6 +721,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
 #        ]
 
     start_response("207 Multistatus", headers)
+    assert type(xml_data) is str # If not, Content-Length is wrong!
     return [ xml_data ]
         
             

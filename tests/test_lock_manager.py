@@ -7,7 +7,7 @@ from wsgidav.dav_error import DAVError
 import os
 from time import sleep
 from unittest import TestCase, TestSuite, TextTestRunner
-from wsgidav import lock_manager
+from wsgidav import lock_manager, lock_storage
 
 #===============================================================================
 # BasicTest
@@ -33,7 +33,7 @@ class BasicTest(TestCase):
 
             
     def setUp(self):
-        storage = lock_manager.LockManagerDictStorage()
+        storage = lock_storage.LockStorageDict()
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
         
@@ -243,7 +243,7 @@ class ShelveTest(BasicTest):
         self.path = os.path.join(gettempdir(), "wsgidav-locks.shelve")
         if os.path.exists(self.path):
             os.remove(self.path)
-        storage = lock_manager.LockManagerShelveStorage(self.path)
+        storage = lock_storage.LockStorageShelve(self.path)
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
 

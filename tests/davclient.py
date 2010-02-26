@@ -13,6 +13,7 @@
 #   limitations under the License.
 #
 # Modified 2010-11-02, Martin Wendt:
+# Taken from http://chandlerproject.org/Projects/Davclient
 # - Fixed set_lock, proppatch
 # - Added (tag, value) syntax to object_to_etree 
 # - Added checkResponse()

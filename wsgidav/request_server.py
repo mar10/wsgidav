@@ -9,7 +9,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 .. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
 from urlparse import urlparse
-from wsgidav.dav_error import HTTP_OK
+from wsgidav.dav_error import HTTP_OK, HTTP_LENGTH_REQUIRED
 from wsgidav import xml_tools
 import util
 import urllib
@@ -629,22 +629,40 @@ class RequestServer(object):
             contentlength = -1
         
 #        if contentlength < 0 and not WORKAROUND_BAD_LENGTH:
-        if contentlength < 0:
-            self._fail(HTTP_BAD_REQUEST, 
-                       "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
+        if (
+            (contentlength < 0) and
+            (environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked")
+        ):
+            # HOTFIX: not fully understood, but MS sends PUT without content-length,
+            # when creating new files 
+            if "Microsoft-WebDAV-MiniRedir" in environ.get("HTTP_USER_AGENT", ""):
+                _logger.warning("Setting misssing Content-Length to 0 for MS client")
+                contentlength = 0
+            else:
+                self._fail(HTTP_LENGTH_REQUIRED, 
+                           "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
         
         hasErrors = False
         try:      
             fileobj = res.beginWrite(contentType=environ.get("CONTENT_TYPE"))
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
-                l = int(environ["wsgi.input"].readline(), 16)
+                buf = environ["wsgi.input"].readline()
+                if buf == '':
+                    l = 0
+                else:
+                    l = int(buf, 16)
+
                 environ["wsgidav.some_input_read"] = 1
                 while l > 0:
                     buf = environ["wsgi.input"].read(l)
                     fileobj.write(buf)
                     environ["wsgi.input"].readline()
-                    l = int(environ["wsgi.input"].readline(), 16)
+                    buf = environ["wsgi.input"].readline()
+                    if buf == '':
+                        l = 0
+                    else:
+                        l = int(buf, 16)
                 environ["wsgidav.all_input_read"] = 1
                     
             elif contentlength == 0:
@@ -691,7 +709,7 @@ class RequestServer(object):
             fileobj.close()
 
         except Exception, e:
-            res.endWrite(hasErrors=True)
+            res.endWrite(withErrors=True)
             _logger.exception("PUT: byte copy failed")
             self._fail(e)
 

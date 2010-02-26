@@ -44,7 +44,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from fs_dav_provider import FilesystemProvider
 from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.dav_provider import DAVProvider
-from wsgidav.lock_manager import LockManagerDictStorage
+from wsgidav.lock_storage import LockStorageDict
 import time
 import sys
 import threading
@@ -68,7 +68,7 @@ DEFAULT_CONFIG = {
     "host": "localhost",
     "port": 8080, 
     "ext_servers": [
-#                   "paste", 
+                   "paste", 
 #                   "cherrypy",
 #                   "wsgiref",
                    "wsgidav",
@@ -129,7 +129,7 @@ class WsgiDAVApp(object):
 
         lockStorage = config.get("locksmanager") 
         if lockStorage is True:
-            lockStorage = LockManagerDictStorage()
+            lockStorage = LockStorageDict()
             
         if not lockStorage:
             locksManager = None
@@ -186,8 +186,8 @@ class WsgiDAVApp(object):
             
 
         if self._verbose >= 2:
-            print "Using lock manager: %s" % locksManager
-            print "Using property manager: %s" % propsManager
+            print "Using lock manager: %r" % locksManager
+            print "Using property manager: %r" % propsManager
             print "Using domain controller: %s" % domainController
             print "Registered DAV providers:"
             for share, provider in self.providerMap.items():
@@ -273,6 +273,7 @@ class WsgiDAVApp(object):
             environ["PATH_INFO"] = path[len(share):]
 #        util.log("--> SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
+        assert isinstance(path, str)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty
@@ -336,6 +337,8 @@ class WsgiDAVApp(object):
                     extra.append('connection="%s"' % environ.get("HTTP_CONNECTION"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
+                if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
+                    extra.append('transfer-enc=%s' % environ.get("HTTP_TRANSFER_ENCODING"))
                 if self._verbose >= 1:
                     extra.append('elap=%.3fsec' % (time.time() - start_time))
                 extra = ", ".join(extra)
