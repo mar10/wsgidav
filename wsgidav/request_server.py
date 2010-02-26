@@ -83,6 +83,16 @@ class RequestServer(object):
         if environ.get("wsgidav.debug_break"):
             pass # Set a break point here
             
+        if environ.get("wsgidav.debug_profile"):
+            from cProfile import Profile
+            profile = Profile()
+            res = profile.runcall(method, environ, start_response)
+            # sort: 0:"calls",1:"time", 2: "cumulative"
+            profile.print_stats(sort=2)
+            for v in res:
+                yield v
+            return
+  
         for v in method(environ, start_response):
             yield v
         return
