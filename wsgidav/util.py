@@ -33,7 +33,7 @@ import stat
 try:
     from email.utils import formatdate, parsedate
 except ImportError, e:
-	# Python < 2.5
+    # Python < 2.5
     from email.Utils import formatdate, parsedate
 
 try:
