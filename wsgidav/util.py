@@ -29,7 +29,12 @@ import calendar
 import sys
 import time
 import stat
-from email.utils import formatdate, parsedate
+
+try:
+    from email.utils import formatdate, parsedate
+except ImportError, e:
+	# Python < 2.5
+    from email.Utils import formatdate, parsedate
 
 try:
     from cStringIO import StringIO
