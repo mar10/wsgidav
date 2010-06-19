@@ -676,14 +676,14 @@ def sendStatusResponse(environ, start_response, e):
 #            ('Connection', 'keep-alive'),
 #        ]
 
-    if e in (HTTP_CREATED, HTTP_NO_CONTENT):
+    if e in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
         # See paste.lint: these code don't have content
         start_response(status, [("Content-Length", "0"),
                                 ("Date", getRfc1123Time()),
                                 ] + headers)
         return [ "" ]
     
-    if e == HTTP_OK:
+    if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
     assert isinstance(e, DAVError)
     
