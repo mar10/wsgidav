@@ -47,7 +47,26 @@ class WsgiDavDirBrowser(object):
             
             if environ["REQUEST_METHOD"] == "HEAD":
                 return util.sendStatusResponse(environ, start_response, HTTP_OK)
+
+            # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
+            if environ["wsgidav.config"].get("davmount") and "davmount" in environ.get("QUERY_STRING"):
+#                collectionUrl = davres.getHref()
+                collectionUrl = util.makeCompleteUrl(environ)
+                collectionUrl = collectionUrl.split("?")[0]
+                res = """
+                    <dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
+                        <dm:url>%s</dm:url>
+                    </dm:mount>""" % (collectionUrl)
+                # TODO: support <dm:open>%s</dm:open>
+
+                start_response("200 OK", [("Content-Type", "application/davmount+xml"), 
+                                          ("Content-Length", str(len(res))),
+                                          ("Cache-Control", "private"),
+                                          ("Date", util.getRfc1123Time()),
+                                          ])
+                return [ res ]
             
+            # Profile calls
 #            if True:
 #                from cProfile import Profile
 #                profile = Profile()
@@ -87,9 +106,17 @@ class WsgiDavDirBrowser(object):
     td.right { text-align: right; padding: 2px 10px 2px 3px; }
     table { border: 0; }
     a.symlink { font-style: italic; }
+    
+    A {behavior: url(#default#AnchorClick);}
 </style>""")        
         o_list.append("</head><body>")
         o_list.append("<h1>%s</h1>" % displaypath)
+        if environ["wsgidav.config"].get("davmount"):
+            o_list.append("<a href='%s?davmount'>davmount</a>" % util.makeCompleteUrl(environ))
+        if environ["wsgidav.config"].get("msmount"):
+            o_list.append("<a href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
+#            o_list.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
+
         o_list.append("<hr/><table>")
 
         if davres.path in ("", "/"):
