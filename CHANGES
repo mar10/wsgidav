@@ -9,6 +9,7 @@ CHANGES
 
 0.4.0.b4
 ========
+- Added copyright notes for original PyFileServer
 - New method DAVResource.getMemberList() replaces getMemberNames().
   Reduces backend access, when browsing collections.
 - New class DAVCollection allows for more efficient implementation of custom
