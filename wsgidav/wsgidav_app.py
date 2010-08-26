@@ -300,7 +300,7 @@ class WsgiDAVApp(object):
             contentLengthRequired = (environ["REQUEST_METHOD"] != "HEAD" 
                                      and statusCode >= 200
                                      and not statusCode in (204, 304))  
-            print environ["REQUEST_METHOD"], statusCode, contentLengthRequired
+#            print environ["REQUEST_METHOD"], statusCode, contentLengthRequired
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which  
                 # the provider doesn't know the length 

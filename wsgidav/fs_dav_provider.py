@@ -117,10 +117,10 @@ class FileResource(DAVResource):
     def supportRanges(self):
         return True
     
-    def getMemberNames(self):
-        """Return list of (direct) collection member names (UTF-8 byte strings).
+    def getMemberList(self):
+        """Return list of (direct) collection members (DAVResource or derived).
         
-        See DAVResource.getMemberNames()
+        See DAVResource.getMemberList()
         """
         # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result 
         # will be a list of Unicode objects. 
@@ -129,7 +129,7 @@ class FileResource(DAVResource):
         # instead of a special character. The name would then be unusable to
         # build a distinct URL that references this resource.
 
-        nameList = []
+        memberList = []
         # self._filePath is unicode, so os.listdir returns unicode as well
         assert isinstance(self._filePath, unicode) 
         for name in os.listdir(self._filePath):
@@ -140,8 +140,13 @@ class FileResource(DAVResource):
                 _logger.debug("Skipping non-file %s" % fp)
                 continue
             name = name.encode("utf8")
-            nameList.append(name)
-        return nameList
+            res = FileResource(self.provider, 
+                               util.joinUri(self.path, name), 
+                               os.path.isdir(fp), 
+                               self.environ, 
+                               fp)
+            memberList.append(res)
+        return memberList
 
 
     # --- Properties -----------------------------------------------------------

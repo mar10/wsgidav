@@ -7,6 +7,20 @@ CHANGES
 <Not yet started> 
 
 
+0.4.0.b4
+========
+- New method DAVResource.getMemberList() replaces getMemberNames().
+  Reduces backend access, when browsing collections.
+- New class DAVCollection allows for more efficient implementation of custom
+  providers.
+- Forcing 'Connection: close', when a required Content-Length is missing. 
+  So it's possible now to return GET responses without knowing the size. 
+  
+
+0.4.0.b3
+========
+- 
+
 0.4.0.b1
 ========
 - Using HTTP/1.1 with keep-alive (Stéphane KLEIN)

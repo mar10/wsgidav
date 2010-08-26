@@ -10,13 +10,18 @@
     See http://pythonpaste.org/testing-applications.html
     and http://pythonpaste.org/modules/fixture.html
 """
-from paste.fixture import TestApp  #@UnresolvedImport
 from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 #from wsgidav import util
 import os
 import unittest
+import sys
+
+try:
+    from paste.fixture import TestApp  #@UnresolvedImport
+except:
+    print >>sys.stderr, "Could not import paste.fixture.TestApp: tests will fail"
 
 #===============================================================================
 # ServerTest

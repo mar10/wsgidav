@@ -79,6 +79,7 @@ import sys
 import time
 import traceback
 import urllib
+from datetime import datetime
 from wsgidav import util, xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
 from util import etree #@UnusedImport
@@ -345,14 +346,30 @@ class DAVResource(object):
 #        return self.provider.getResourceInst(parentpath)
 
 
-    def getMemberNames(self):
-        """Return list of (direct) collection member names (UTF-8 byte strings).
-        
-        Every provider MUST override this method.
+    def getMemberList(self):
+        """Return a list of direct members (DAVResource/DAVCollection objects).
+
+        Every provider MUST provide this method, at least for collection 
+        resources.
+        This can be done by overriding this method.
+        Another way would be to derive collections from DAVCollection 
+        and override DAVCollection._getMemberList() (note the leading 
+        underscore).
         """
         raise NotImplementedError()
 
 
+    def getMemberNames(self):
+        """Return list of (direct) collection member names (UTF-8 byte strings).
+        
+        This default implementation for all DAVCollections calls getMemberList()
+        to query the names.
+        """
+        members = self.getMemberList()
+        names = [ m.name for m in members ]
+        return names
+
+    
     def getDescendants(self, collections=True, resources=True, 
                        depthFirst=False, depth="infinity", addSelf=False):
         """Return a list DAVResource objects of a collection (children, grand-children, ...).
@@ -374,10 +391,7 @@ class DAVResource(object):
         if addSelf and not depthFirst:
             res.append(self)
         if depth != "0" and self.isCollection:
-            pathPrefix = self.path.rstrip("/") + "/"
-            for name in self.getMemberNames():
-                child = self.provider.getResourceInst(pathPrefix + name, self.environ)
-                assert child, "Could not read resource inst '%s'" % (pathPrefix + name)
+            for child in self.getMemberList():
                 want = (collections and child.isCollection) or (resources and not child.isCollection)
                 if want and not depthFirst: 
                     res.append(child)
@@ -388,18 +402,6 @@ class DAVResource(object):
         if addSelf and depthFirst:
             res.append(self)
         return res
-
-        
-    def getDirInfo(self):
-        """Return list of dictionaries describing direct collection members.
-        
-        This method is called by dir_browser middleware, and may be used to
-        provide the directory listing info in a efficient way.
-        
-        CURRENTLY NOT USED.
-        """
-        assert self.isCollection
-        raise NotImplementedError()
 
 
     # --- Properties -----------------------------------------------------------
@@ -414,7 +416,7 @@ class DAVResource(object):
         This default implementation returns a combination of:
         
         - Supported standard live properties in the {DAV:} namespace, if the 
-          using related getter method returns not None.
+          related getter method returns not None.
         - {DAV:}lockdiscovery and {DAV:}supportedlock, if a lock manager is 
           present
         - If a property manager is present, then a list of dead properties is 
@@ -1021,6 +1023,137 @@ class DAVResource(object):
         """
         raise DAVError(HTTP_FORBIDDEN)               
 
+
+#===============================================================================
+# DAVCollection
+#===============================================================================
+class DAVCollection(DAVResource):
+    """
+    A DAVCollection is a DAVResource, that has additional methods for 
+    addressing member resources.
+    
+    A DAVCollecion 'knows' it's members, and how to obtain them from the backend 
+    storage.
+    There is also optional built-in support for caching the list of members.
+
+    
+    A custom provider does not neccessarily has to use DAVCollections, although
+    it 
+    """
+    def __init__(self, provider, path, environ):
+        DAVResource.__init__(self, provider, path, True, environ)
+
+        # TODO: DAVResource should not have isInstance as argument to the constructor
+        
+        # Allow caching of members
+        self.memberCache = {"enabled": False,
+                            "expire": 10,  # Purge, if not used for n seconds
+                            "maxAge": 60,  # Force purge, if older than n seconds
+                            "created": None,
+                            "lastUsed": None,
+                            "members": None, 
+                            }
+
+    def _cacheSet(self, members):
+        if self.memberCache["enabled"]:
+            if not members:
+                # We cannot cache None, because _cacheGet() == None means 'not in cache'
+                members = []
+            self.memberCache["created"] = self.memberCache["lastUsed"] = datetime.now()
+            self.memberCache["members"] = members
+    
+    def _cacheGet(self):
+        if not self.memberCache["enabled"]:
+            return None
+        now = datetime.now() 
+        if (now - self.memberCache["lastUsed"]) > self.memberCache["expire"]:
+            return None  
+        elif (now - self.memberCache["created"]) > self.memberCache["maxAge"]:
+            return None  
+        self.memberCache["lastUsed"] = datetime.now()
+        return self.memberCache["members"]
+
+    def _cachePurge(self):
+        self.memberCache["created"] = self.memberCache["lastUsed"] = self.memberCache["members"] = None
+    
+    def _getMember(self, name):
+        """Return child resource with a given name (None, if not found).
+        
+        This method COULD be overridden by a derived class, for performance 
+        reasons.
+        If not implemented, _getMemberList() is called instead, and searched 
+        for the name. 
+        """
+        raise NotImplementedError
+
+    def getMember(self, name):
+        """Return child resource with a given name (None, if not found).
+        
+        This method implements caching and calls _getMember().
+        If _getMember() is not implemented, _getMemberList() is used instead
+        (slower).
+        """
+        if self.memberCache["enabled"]:
+            # TODO: if caching is enabled, we should always use _getMemberList()
+            # even if _getMemberName is implemented?
+            raise NotImplementedError
+        res = None
+        try:
+            # Implementation of _getMember is optional 
+            res = self._getMember(name)
+        except NotImplementedError:
+            members = self.getMemberList()
+            for m in members:
+                if m.name == name:
+                    return m
+        return res
+
+    def _getMemberList(self):
+        """Return a list of direct members (DAVResource/DAVCollection objects).
+
+        Return an empty list, if no members are available.
+        
+        This method MUST be implemented.
+        """
+        raise NotImplementedError
+    
+    def getMemberList(self):
+        """Return a list of direct members (DAVResource/DAVCollection objects).
+
+        This method implements caching and calls _getMemberList().
+        """
+        members = self._cacheGet()
+        if members is None:
+            members = self._getMemberList()
+            self._cacheSet(members)
+        return members
+
+    def getMemberNames(self):
+        """@see DAVResource.getMemberNames().
+        
+        This default implementation for all DAVCollections calls getMemberList()
+        to query the names.
+        """
+        # getMemberList returns a list of child DAVCollection objects.
+        members = self.getMemberList()
+        names = [ m.name for m in members ]
+        return names
+
+    def resolve(self, scriptName, pathInfo):
+        """Return a DAVResource object for the path (None, if not found).
+        
+        `pathInfo`: is a URL relative to this object.
+        """
+        if pathInfo in ("", "/"):
+            return self
+        assert pathInfo.startswith("/")
+        name, rest = util.popPath(pathInfo)
+        res = self.getMember(name)
+        if not res or rest in ("", "/"):
+            return res
+        assert res.isCollection, "resolve(%r, %r): rest: %r" % (scriptName, pathInfo, rest)
+        return res.resolve(util.joinUri(scriptName, name), rest)
+    
 
 #===============================================================================
 # DAVProvider
