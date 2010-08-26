@@ -1,5 +1,5 @@
 # (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
-# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 WSGI middleware that handles GET requests on collections to display directories.
@@ -125,17 +125,14 @@ class WsgiDavDirBrowser(object):
             parentUrl = util.getUriParent(davres.getHref())
             o_list.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
 
-        # TODO: getDescendants() can be very slow (namely MySQLBrowserProvider)
         childList = davres.getDescendants(depth="1", addSelf=False)
         for res in childList:
-
             infoDict = {"url": res.getHref(),
                         "displayName": res.getDisplayName(),
                         "displayType": res.displayType(),
                         "strModified": "",
                         "strSize": "",
                         }
-
             if res.getLastModified() is not None:
                 infoDict["strModified"] = util.getRfc1123Time(res.getLastModified())
             if res.getContentLength() is not None and not res.isCollection:

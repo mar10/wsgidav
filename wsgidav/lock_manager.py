@@ -1,8 +1,8 @@
 # (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
-# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Implements the `LockManager` object that implements the locking functionality.
+Implements the `LockManager` object that provides the locking functionality.
 
 The LockManager requires a LockStorage object to implement persistence.  
 Two alternative lock storage classes are defined in the lock_storage module:

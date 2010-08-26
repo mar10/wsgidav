@@ -1,5 +1,5 @@
 # (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
-# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implementation of a WebDAV provider that provides a very basic, read-only
@@ -157,28 +157,40 @@ class MySQLBrowserResource(DAVResource):
         return self._getInfo("modified")
 
     
-    def getMemberNames(self):
+    def getMemberList(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
         
-        See DAVResource.getMemberNames()
+        See DAVResource.getMemberList()
         """
+        members = []
         conn = self.provider._initConnection()
-        tableName, primKey = self.provider._splitPath(self.path)
-        if tableName is None:
-            retlist = self.provider._listTables(conn)         
-        elif primKey is None:
-            pri_key = self.provider._findPrimaryKey(conn, tableName)
-            if pri_key is not None:
-                retlist = self.provider._listFields(conn, tableName, pri_key)      
-            else:
-                retlist = []
-            retlist[0:0] = ["_ENTIRE_CONTENTS"]
-        else:
-            retlist = []      
-        conn.close()
-        return retlist
-        
-
+        try:
+            tableName, primKey = self.provider._splitPath(self.path)
+            if tableName is None:
+                retlist = self.provider._listTables(conn)         
+                for name in retlist:
+                    members.append(MySQLBrowserResource(self.provider, 
+                                                        util.joinUri(self.path, name), 
+                                                        True, 
+                                                        self.environ))
+            elif primKey is None:
+                pri_key = self.provider._findPrimaryKey(conn, tableName)
+                if pri_key is not None:
+                    retlist = self.provider._listFields(conn, tableName, pri_key)      
+                    for name in retlist:
+                        members.append(MySQLBrowserResource(self.provider, 
+                                                            util.joinUri(self.path, name), 
+                                                            False, 
+                                                            self.environ))
+                members.insert(0, MySQLBrowserResource(self.provider, 
+                                                       util.joinUri(self.path, "_ENTIRE_CONTENTS"), 
+                                                       False, 
+                                                       self.environ))
+        finally:      
+            conn.close()
+        return members
+    
+    
     def getContent(self):
         """Open content as a stream for reading.
          
@@ -489,7 +501,7 @@ class MySQLBrowserProvider(DAVProvider):
             return None
         _tableName, primKey = self._splitPath(path)
         isCollection = primKey is None 
-        return MySQLBrowserResource(self, path, isCollection)
+        return MySQLBrowserResource(self, path, isCollection, environ)
     
 
     def exists(self, path, environ):

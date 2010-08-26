@@ -1,5 +1,5 @@
 # (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
-# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 WSGI container, that handles the HTTP requests. This object is passed to the 
@@ -288,14 +288,30 @@ class WsgiDAVApp(object):
             # Postprocess response headers
             headerDict = {}
             for header, value in response_headers:
-                if header in headerDict:
+                if header.lower() in headerDict:
                     util.warn("Duplicate header in response: %s" % header)
                 headerDict[header.lower()] = value
-            if not type(headerDict.get("content-length")) is str:
-                util.warn("Missing or invalid Content-Length header in response: %s" % headerDict.get("content-length"))
+
+            # Check if we should close the connection after this request. 
+            # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.4
+            forceCloseConnection = False
+            currentContentLength = headerDict.get("content-length") 
+            statusCode = int(status.split(" ", 1)[0]) 
+            contentLengthRequired = (environ["REQUEST_METHOD"] != "HEAD" 
+                                     and statusCode >= 200
+                                     and not statusCode in (204, 304))  
+#            print environ["REQUEST_METHOD"], statusCode, contentLengthRequired
+            if contentLengthRequired and currentContentLength in (None, ""):
+                # A typical case: a GET request on a virtual resource, for which  
+                # the provider doesn't know the length 
+                util.warn("Missing required Content-Length header in %s-response: closing connection" % statusCode)
+                forceCloseConnection = True
+            elif not type(currentContentLength) is str:
+                util.warn("Invalid Content-Length header in response (%r): closing connection" % headerDict.get("content-length"))
+                forceCloseConnection = True
             
             # HOTFIX for Vista and Windows 7 (issue 13, issue 23)
-            # It ssems that we must read *all* of the request body, otherwise
+            # It seems that we must read *all* of the request body, otherwise
             # clients may miss the response.
             # For example Vista MiniRedir didn't understand a 401 response, 
             # when trying an anonymous PUT of big files. As a consequence, it
@@ -306,12 +322,14 @@ class WsgiDAVApp(object):
             # Make sure the socket is not reused, unless we are 100% sure all 
             # current input was consumed
             if(util.getContentLength(environ) != 0 
-#               or True
-               and not environ.get("wsgidav.all_input_read")
-               and not "connection" in headerDict):
+               and not environ.get("wsgidav.all_input_read")):
+                util.warn("Input stream not completely consumed: closing connection")
+                forceCloseConnection = True
+                
+            if forceCloseConnection and headerDict.get("connection") != "close":    
                 util.warn("Adding 'Connection: close' header")
                 response_headers.append(("Connection", "close"))
-                
+            
             # Log request
             if self._verbose >= 1:
                 threadInfo = ""

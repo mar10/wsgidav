@@ -1,5 +1,5 @@
 # (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
-# Author of original PyFileServer: Ho Chun Wei, fuzzybr80(at)gmail.com
+# Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Miscellaneous support functions for WsgiDAV.
@@ -681,14 +681,14 @@ def sendStatusResponse(environ, start_response, e):
 #            ('Connection', 'keep-alive'),
 #        ]
 
-    if e in (HTTP_CREATED, HTTP_NO_CONTENT):
+    if e in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
         # See paste.lint: these code don't have content
         start_response(status, [("Content-Length", "0"),
                                 ("Date", getRfc1123Time()),
                                 ] + headers)
         return [ "" ]
     
-    if e == HTTP_OK:
+    if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
     assert isinstance(e, DAVError)
     
