@@ -13,7 +13,7 @@ __docformat__ = "reStructuredText"
 
 import util
 from dav_error import DAVError, getHttpStatusString, asDAVError,\
-    HTTP_INTERNAL_ERROR
+    HTTP_INTERNAL_ERROR, HTTP_NOT_MODIFIED, HTTP_NO_CONTENT
 import traceback
 import sys
 
@@ -52,18 +52,26 @@ class ErrorPrinter(object):
         except DAVError, e:
             _logger.debug("caught %s" % e)
 
+            status = getHttpStatusString(e)
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
                 print >>sys.stderr, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
                 traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
                 print >>sys.stderr, "e.srcexception:\n%s" % e.srcexception
+            elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
+#                util.log("ErrorPrinter: forcing empty error response for %s" % e.value)
+                # See paste.lint: these code don't have content
+                start_response(status, [("Content-Length", "0"),
+                                        ("Date", util.getRfc1123Time()),
+                                        ])
+                yield ""
+                return
 
             # If exception has pre-/post-condition: return as XML response, 
             # else return as HTML 
             content_type, body = e.getResponsePage()            
 
             # TODO: provide exc_info=sys.exc_info()?
-            status = getHttpStatusString(e)
             start_response(status, [("Content-Type", content_type), 
                                     ("Content-Length", str(len(body))),
                                     ("Date", util.getRfc1123Time()),
