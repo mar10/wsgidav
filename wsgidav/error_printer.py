@@ -23,9 +23,10 @@ _logger = util.getModuleLogger(__name__)
 # ErrorPrinter
 #===============================================================================
 class ErrorPrinter(object):
-    def __init__(self, application, server_descriptor=None, catchall=False):
+#    def __init__(self, application, server_descriptor=None, catchall=False):
+    def __init__(self, application, catchall=False):
         self._application = application
-        self._server_descriptor = server_descriptor
+#        self._server_descriptor = server_descriptor
         self._catch_all_exceptions = catchall
 
     def __call__(self, environ, start_response):      

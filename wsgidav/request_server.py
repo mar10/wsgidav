@@ -1325,7 +1325,7 @@ class RequestServer(object):
             self._fail(HTTP_NOT_FOUND)         
         elif res.isCollection: 
             self._fail(HTTP_FORBIDDEN, 
-                       "Directory browsing not supported (try the WsgiDavDirBrowser middleware).")         
+                       "Directory browsing not enabled (WsgiDavDirBrowser middleware may be enabled using the dir_browser option).")         
 
         self._evaluateIfHeaders(res, environ)
 

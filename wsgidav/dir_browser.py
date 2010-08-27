@@ -49,7 +49,8 @@ class WsgiDavDirBrowser(object):
                 return util.sendStatusResponse(environ, start_response, HTTP_OK)
 
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
-            if environ["wsgidav.config"].get("davmount") and "davmount" in environ.get("QUERY_STRING"):
+            dirConfig = environ["wsgidav.config"].get("dir_browser", {})
+            if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING"):
 #                collectionUrl = davres.getHref()
                 collectionUrl = util.makeCompleteUrl(environ)
                 collectionUrl = collectionUrl.split("?")[0]
@@ -92,8 +93,9 @@ class WsgiDavDirBrowser(object):
         """
         assert davres.isCollection
         
+        dirConfig = environ["wsgidav.config"].get("dir_browser", {})
         displaypath = urllib.unquote(davres.getHref())
-        trailer = environ.get("wsgidav.config", {}).get("response_trailer")
+        trailer = environ.get("wsgidav.config", {}).get("dir_browser", {}).get("response_trailer")
         
         o_list = []
         o_list.append("<html><head>")
@@ -111,9 +113,9 @@ class WsgiDavDirBrowser(object):
 </style>""")        
         o_list.append("</head><body>")
         o_list.append("<h1>%s</h1>" % displaypath)
-        if environ["wsgidav.config"].get("davmount"):
+        if dirConfig.get("davmount"):
             o_list.append("<a href='%s?davmount'>davmount</a>" % util.makeCompleteUrl(environ))
-        if environ["wsgidav.config"].get("msmount"):
+        if dirConfig.get("msmount"):
             o_list.append("<a href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
 #            o_list.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
 
@@ -154,7 +156,7 @@ class WsgiDavDirBrowser(object):
         if trailer:
             o_list.append("%s" % trailer)
         o_list.append("<hr/>") 
-        o_list.append("<a href='http://wsgidav.googlecode.com/'>WsgiDAV %s</a> - %s" 
+        o_list.append("<a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a> - %s" 
                       % (__version__, util.getRfc1123Time()))
         o_list.append("</body></html>")
 
