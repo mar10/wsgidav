@@ -310,17 +310,22 @@ def _runPaste(app, config, mode):
 
 def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver, if CherryPy is installed."""
+    assert mode in ("cherrypy", "cherrypy-bundled")
     try:
-        # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
-        from cherrypy import wsgiserver
-        from cherrypy import __version__ as cp_version
-        version = "WsgiDAV/%s CherryPyWSGIServer/%s" % (__version__, cp_version)
+        if mode == "cherrypy-bundled":
+            from wsgidav.server import cherrypy_wsgiserver as wsgiserver
+        else:
+            # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
+            from cherrypy import wsgiserver, __version__ as cp_version
+        version = "WsgiDAV/%s %s" % (__version__, wsgiserver.CherryPyWSGIServer.version)
+        wsgiserver.CherryPyWSGIServer.version = version
         if config["verbose"] >= 1:
             print "Running %s..." % version
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,
-            server_name="WsgiDAV/%s CherryPyWSGIServer" % __version__)
+#            server_name=version
+            )
         server.start()
     except ImportError, e:
         if config["verbose"] >= 1:
@@ -343,8 +348,9 @@ def _runFlup(app, config, mode):
             raise ValueError    
 
         if config["verbose"] >= 2:
-            print "Running WsgiDAV %s on %s..." % (__version__,
-                                                   WSGIServer.__module__)
+            print "Running WsgiDAV/%s %s/%s..." % (__version__,
+                                                   WSGIServer.__module__,
+                                                   flupver)
         server = WSGIServer(app,
                             bindAddress=(config["host"], config["port"]),
 #                            bindAddress=("127.0.0.1", 8001),
@@ -398,6 +404,7 @@ def _runBuiltIn(app, config, mode):
 
 SUPPORTED_SERVERS = {"paste": _runPaste,
                      "cherrypy": _runCherryPy,
+                     "cherrypy-bundled": _runCherryPy,
                      "wsgiref": _runSimpleServer,
                      "flup-fcgi": _runFlup,
                      "flup-fcgi_fork": _runFlup,

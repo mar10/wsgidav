@@ -1,4 +1,4 @@
-# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2010 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -23,9 +23,10 @@ _logger = util.getModuleLogger(__name__)
 # ErrorPrinter
 #===============================================================================
 class ErrorPrinter(object):
-    def __init__(self, application, server_descriptor=None, catchall=False):
+#    def __init__(self, application, server_descriptor=None, catchall=False):
+    def __init__(self, application, catchall=False):
         self._application = application
-        self._server_descriptor = server_descriptor
+#        self._server_descriptor = server_descriptor
         self._catch_all_exceptions = catchall
 
     def __call__(self, environ, start_response):      

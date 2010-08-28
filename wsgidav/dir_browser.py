@@ -1,4 +1,4 @@
-# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2010 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -49,7 +49,8 @@ class WsgiDavDirBrowser(object):
                 return util.sendStatusResponse(environ, start_response, HTTP_OK)
 
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
-            if environ["wsgidav.config"].get("davmount") and "davmount" in environ.get("QUERY_STRING"):
+            dirConfig = environ["wsgidav.config"].get("dir_browser", {})
+            if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING"):
 #                collectionUrl = davres.getHref()
                 collectionUrl = util.makeCompleteUrl(environ)
                 collectionUrl = collectionUrl.split("?")[0]
@@ -92,8 +93,9 @@ class WsgiDavDirBrowser(object):
         """
         assert davres.isCollection
         
+        dirConfig = environ["wsgidav.config"].get("dir_browser", {})
         displaypath = urllib.unquote(davres.getHref())
-        trailer = environ.get("wsgidav.config", {}).get("response_trailer")
+        trailer = environ.get("wsgidav.config", {}).get("dir_browser", {}).get("response_trailer")
         
         html = []
         html.append("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>");
@@ -113,9 +115,9 @@ class WsgiDavDirBrowser(object):
 </style>""")        
         html.append("</head><body>")
         html.append("<h1>%s</h1>" % displaypath)
-        if environ["wsgidav.config"].get("davmount"):
+        if dirConfig.get("davmount"):
             html.append("<a href='%s?davmount'>davmount</a>" % util.makeCompleteUrl(environ))
-        if environ["wsgidav.config"].get("msmount"):
+        if dirConfig.get("msmount"):
             html.append("<a href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
 #            html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
 
@@ -157,7 +159,7 @@ class WsgiDavDirBrowser(object):
         if trailer:
             html.append("%s" % trailer)
         html.append("<hr>") 
-        html.append("<p><a href='http://wsgidav.googlecode.com/'>WsgiDAV %s</a> - %s</p>" 
+        html.append("<p><a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a> - %s</p>" 
                       % (__version__, util.getRfc1123Time()))
         html.append("</body></html>")
 

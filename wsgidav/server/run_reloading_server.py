@@ -1,5 +1,4 @@
-# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
-# Original PyFileServer (c) 2005 Ho Chun Wei.
+# (c) 2009-2010 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Wrapper for ``run_server``, that restarts the server when source code is 

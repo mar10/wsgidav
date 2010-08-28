@@ -1,4 +1,4 @@
-# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2010 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -1325,7 +1325,7 @@ class RequestServer(object):
             self._fail(HTTP_NOT_FOUND)         
         elif res.isCollection: 
             self._fail(HTTP_FORBIDDEN, 
-                       "Directory browsing not supported (try the WsgiDavDirBrowser middleware).")         
+                       "Directory browsing not enabled (WsgiDavDirBrowser middleware may be enabled using the dir_browser option).")         
 
         self._evaluateIfHeaders(res, environ)
 

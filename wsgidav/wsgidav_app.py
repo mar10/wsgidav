@@ -1,4 +1,4 @@
-# (c) 2009 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2010 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -57,6 +57,7 @@ from request_resolver import RequestResolver
 from domain_controller import WsgiDAVDomainController
 from property_manager import PropertyManager
 from lock_manager import LockManager
+from wsgidav.version import __version__
 
 __docformat__ = "reStructuredText"
 
@@ -71,6 +72,7 @@ DEFAULT_CONFIG = {
                    "paste", 
 #                   "cherrypy",
 #                   "wsgiref",
+                   "cherrypy-bundled",
                    "wsgidav",
                    ],
 
@@ -94,9 +96,12 @@ DEFAULT_CONFIG = {
                          # 3 - show full request/response header info (HTTP Logging)
                          #     request body and GET response bodies not shown
     
-    
-    # Organizational Information - printed as a footer on html output
-    "response_trailer": None,
+    "dir_browser": {
+        "enable": True,          # Render HTML listing for GET requests on collections
+        "response_trailer": "",  # Raw HTML code, appended as footer
+        "davmount": False,       # Send <dm:mount> response if request URL contains '?davmount'
+        "msmount": False,        # Add an 'open as webfolder' link (requires Windows)
+    }
 }
 
 
@@ -205,15 +210,16 @@ class WsgiDAVApp(object):
 
         # Define WSGI application stack
         application = RequestResolver()
-        application = WsgiDavDirBrowser(application)
+        
+        if config.get("dir_browser") and config["dir_browser"].get("enable", True):
+            application = WsgiDavDirBrowser(application)
+
         application = HTTPAuthenticator(application, 
                                         domainController, 
                                         authacceptbasic, 
                                         authacceptdigest, 
                                         authdefaultdigest)      
-        application = ErrorPrinter(application, 
-                                   server_descriptor=response_trailer,
-                                   catchall=False)
+        application = ErrorPrinter(application, catchall=False)
 
         application = WsgiDavDebugFilter(application, config)
         
