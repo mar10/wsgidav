@@ -95,11 +95,13 @@ class WsgiDavDirBrowser(object):
         displaypath = urllib.unquote(davres.getHref())
         trailer = environ.get("wsgidav.config", {}).get("response_trailer")
         
-        o_list = []
-        o_list.append("<html><head>")
-        o_list.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />")
-        o_list.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
-        o_list.append("""\
+        html = []
+        html.append("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>");
+        html.append("<html>")
+        html.append("<head>")
+        html.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
+        html.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
+        html.append("""\
 <style type="text/css">
     img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
     td  { font-family: monospace; padding: 2px 3px; vertical-align: bottom; white-space: pre; }
@@ -109,21 +111,22 @@ class WsgiDavDirBrowser(object):
     
     A {behavior: url(#default#AnchorClick);}
 </style>""")        
-        o_list.append("</head><body>")
-        o_list.append("<h1>%s</h1>" % displaypath)
+        html.append("</head><body>")
+        html.append("<h1>%s</h1>" % displaypath)
         if environ["wsgidav.config"].get("davmount"):
-            o_list.append("<a href='%s?davmount'>davmount</a>" % util.makeCompleteUrl(environ))
+            html.append("<a href='%s?davmount'>davmount</a>" % util.makeCompleteUrl(environ))
         if environ["wsgidav.config"].get("msmount"):
-            o_list.append("<a href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
-#            o_list.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
+            html.append("<a href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
+#            html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
 
-        o_list.append("<hr/><table>")
+        html.append("<hr>")
+        html.append("<table>")
 
         if davres.path in ("", "/"):
-            o_list.append("<tr><td colspan='4'>Top level share</td></tr>")
+            html.append("<tr><td colspan='4'>Top level share</td></tr>")
         else:
             parentUrl = util.getUriParent(davres.getHref())
-            o_list.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
+            html.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
 
         childList = davres.getDescendants(depth="1", addSelf=False)
         for res in childList:
@@ -138,27 +141,27 @@ class WsgiDavDirBrowser(object):
             if res.getContentLength() is not None and not res.isCollection:
                 infoDict["strSize"] = util.byteNumberString(res.getContentLength())
  
-            o_list.append("""\
+            html.append("""\
             <tr><td><a href="%(url)s">%(displayName)s</a></td>
             <td>%(displayType)s</td>
             <td class='right'>%(strSize)s</td>
             <td class='right'>%(strModified)s</td></tr>""" % infoDict)
             
-        o_list.append("</table>\n")
+        html.append("</table>")
 
         if "http_authenticator.username" in environ:
-            o_list.append("<p>Authenticated user: '%s', realm: '%s'.</p>" 
+            html.append("<p>Authenticated user: '%s', realm: '%s'.</p>" 
                           % (environ.get("http_authenticator.username"),
                              environ.get("http_authenticator.realm")))
 
         if trailer:
-            o_list.append("%s" % trailer)
-        o_list.append("<hr/>") 
-        o_list.append("<a href='http://wsgidav.googlecode.com/'>WsgiDAV %s</a> - %s" 
+            html.append("%s" % trailer)
+        html.append("<hr>") 
+        html.append("<p><a href='http://wsgidav.googlecode.com/'>WsgiDAV %s</a> - %s</p>" 
                       % (__version__, util.getRfc1123Time()))
-        o_list.append("</body></html>")
+        html.append("</body></html>")
 
-        body = "\n".join(o_list) 
+        body = "\n".join(html) 
 
         start_response("200 OK", [("Content-Type", "text/html"), 
                                   ("Content-Length", str(len(body))),

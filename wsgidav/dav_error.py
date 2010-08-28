@@ -213,7 +213,9 @@ class DAVError(Exception):
         # Else return as HTML 
         status = getHttpStatusString(self)
         html = []
+        html.append("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>");
         html.append("<html><head>") 
+        html.append("  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
         html.append("  <title>%s</title>" % status) 
         html.append("</head><body>") 
         html.append("  <h1>%s</h1>" % status) 
