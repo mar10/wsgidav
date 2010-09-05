@@ -67,7 +67,8 @@ class WsgiDavDebugFilter(object):
     def __init__(self, application, config):
         self._application = application
         self._config = config
-        self.out = sys.stderr
+#        self.out = sys.stderr
+        self.out = sys.stdout
         self.passedLitmus = {}
         # These methods boost verbose=2 to verbose=3
         self.debug_methods = config.get("debug_methods", [])

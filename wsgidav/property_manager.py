@@ -132,7 +132,7 @@ class PropertyManager(object):
                         print >>out, "        %s: ERROR %s" % (k2, e)
             out.flush()
         except Exception, e:
-            print >>sys.stderr, "PropertyManager._dump()  ERROR: %s" % e            
+            util.warn("PropertyManager._dump()  ERROR: %s" % e)
 
 
     def getProperties(self, normurl):

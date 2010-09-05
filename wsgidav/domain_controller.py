@@ -54,13 +54,13 @@ class WsgiDAVDomainController(object):
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                print >>sys.stderr, "getDomainRealm(%s): '%s'" %(inputURL, None)
+                print >>sys.stdout, "getDomainRealm(%s): '%s'" %(inputURL, None)
             return None
         realm = davProvider.sharePath
         if realm == "":
             realm = "/"
 #        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stderr, "getDomainRealm(%s): '%s'" %(inputURL, realm)
+#            print >>sys.stdout, "getDomainRealm(%s): '%s'" %(inputURL, realm)
         return realm
 
     
@@ -75,7 +75,7 @@ class WsgiDAVDomainController(object):
     def isRealmUser(self, realmname, username, environ):
         """Returns True if this username is valid for the realm, False otherwise."""
 #        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stderr, "isRealmUser('%s', '%s'): %s" %(realmname, username, realmname in self.userMap and username in self.userMap[realmname])
+#            print >>sys.stdout, "isRealmUser('%s', '%s'): %s" %(realmname, username, realmname in self.userMap and username in self.userMap[realmname])
         return realmname in self.userMap and username in self.userMap[realmname]
             
     

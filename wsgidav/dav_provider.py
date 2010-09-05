@@ -500,7 +500,7 @@ class DAVResource(object):
             except Exception, e:
                 propList.append( (name, asDAVError(e)) )
                 if self.provider.verbose >= 2:
-                    traceback.print_exc(10, sys.stderr)  
+                    traceback.print_exc(10, sys.stdout)  
                     
         return propList
 

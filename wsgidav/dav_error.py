@@ -263,7 +263,7 @@ def asDAVError(e):
     if isinstance(e, DAVError):
         return e
     elif isinstance(e, Exception):
-        print >>sys.stderr, "asHTTPRequestException: %s" % e
+#        print >>sys.stderr, "asDAVError: %s" % e
 #        traceback.print_exception(type(e), e)
         traceback.print_exc()
         return DAVError(HTTP_INTERNAL_ERROR, srcexception=e)

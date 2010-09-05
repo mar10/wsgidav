@@ -57,7 +57,7 @@ from request_resolver import RequestResolver
 from domain_controller import WsgiDAVDomainController
 from property_manager import PropertyManager
 from lock_manager import LockManager
-from wsgidav.version import __version__
+#from wsgidav.version import __version__
 
 __docformat__ = "reStructuredText"
 
@@ -129,7 +129,7 @@ class WsgiDAVApp(object):
         # Evaluate configuration and set defaults
         _checkConfig(config)
         provider_mapping = self.config["provider_mapping"]
-        response_trailer = config.get("response_trailer", "")
+#        response_trailer = config.get("response_trailer", "")
         self._verbose = config.get("verbose", 2)
 
         lockStorage = config.get("locksmanager") 
@@ -164,7 +164,7 @@ class WsgiDAVApp(object):
         wdcName = "NTDomainController"
         if domainController.__class__.__name__ == wdcName:
             if authacceptdigest or authdefaultdigest or not authacceptbasic:
-                print >>sys.stderr, "WARNING: %s requires basic authentication.\n\tSet acceptbasic=True, acceptdigest=False, defaultdigest=False" % wdcName
+                util.warn("WARNING: %s requires basic authentication.\n\tSet acceptbasic=True, acceptdigest=False, defaultdigest=False" % wdcName)
                 
         # Instantiate DAV resource provider objects for every share
         self.providerMap = {}
@@ -369,7 +369,8 @@ class WsgiDAVApp(object):
                         
 #               This is the CherryPy format:     
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"
-                print >>sys.stderr, '%s - %s - [%s] "%s" %s -> %s' % (
+#                print >>sys.stderr, '%s - %s - [%s] "%s" %s -> %s' % (
+                print >>sys.stdout, '%s - %s - [%s] "%s" %s -> %s' % (
                                         threadInfo + environ.get("REMOTE_ADDR",""),                                                         
                                         userInfo,
                                         util.getLogTime(), 

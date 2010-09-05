@@ -44,10 +44,10 @@ class ErrorPrinter(object):
                 # Caught a non-DAVError 
                 if self._catch_all_exceptions:
                     # Catch all exceptions to return as 500 Internal Error
-                    traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr) 
-                    raise asDAVError(e)               
+                    traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
+                    raise asDAVError(e)
                 else:
-                    util.log("ErrorPrinter: caught Exception")
+                    util.warn("ErrorPrinter: caught Exception")
                     traceback.print_exc(10, sys.stderr) 
                     raise
         except DAVError, e:
@@ -56,9 +56,9 @@ class ErrorPrinter(object):
             status = getHttpStatusString(e)
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
-                print >>sys.stderr, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
-                traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
-                print >>sys.stderr, "e.srcexception:\n%s" % e.srcexception
+                print >>sys.stdout, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
+                traceback.print_exc(10, environ.get("wsgi.errors") or sys.stdout)
+                print >>sys.stdout, "e.srcexception:\n%s" % e.srcexception
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
 #                util.log("ErrorPrinter: forcing empty error response for %s" % e.value)
                 # See paste.lint: these code don't have content

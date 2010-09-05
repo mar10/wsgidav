@@ -83,7 +83,7 @@ class WsgiDavDirBrowser(object):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self._verbose >= 2:
-            print >>sys.stderr, "Raising DAVError %s" % e.getUserInfo()
+            print >>sys.stdout, "Raising DAVError %s" % e.getUserInfo()
         raise e
 
     

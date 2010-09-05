@@ -130,7 +130,7 @@ def _parsegmtime(timestring):
 def initLogging(verbose=2, enable_loggers=[]):
     """Initialize base logger named 'wsgidav'.
 
-    The base logger is filtered by the *verbose* configuration option.
+    The base logger is filtered by the `verbose` configuration option.
     Log entries will have a time stamp and thread id.
     
     :Parameters:
@@ -144,7 +144,7 @@ def initLogging(verbose=2, enable_loggers=[]):
     Module loggers (e.g 'wsgidav.lock_manager') are named loggers, that can be
     independently switched to DEBUG mode.
     
-    Except for verbosity, they will will inherit settings from the base logger.
+    Except for verbosity, they will inherit settings from the base logger.
 
     They will suppress DEBUG level messages, unless they are enabled by passing 
     their name to util.initLogging().
@@ -164,7 +164,7 @@ def initLogging(verbose=2, enable_loggers=[]):
     .. python::
         enable_loggers = ["lock_manager",
                           "property_manager",
-                      ]
+                         ]
         util.initLogging(2, enable_loggers)
 
     
@@ -186,7 +186,8 @@ def initLogging(verbose=2, enable_loggers=[]):
                                   "%H:%M:%S")
     
     # Define handlers
-    consoleHandler = logging.StreamHandler(sys.stderr)
+    consoleHandler = logging.StreamHandler(sys.stdout)
+#    consoleHandler = logging.StreamHandler(sys.stderr)
     consoleHandler.setFormatter(formatter)
     consoleHandler.setLevel(logging.DEBUG)
 
@@ -1117,19 +1118,19 @@ def testLogging():
     _baseLogger.info("_baseLogger.info")  
     _baseLogger.warning("_baseLogger.warning")  
     _baseLogger.error("_baseLogger.error")  
-    print >>sys.stderr, ""
+    print 
 
     _enabledLogger.debug("_enabledLogger.debug")  
     _enabledLogger.info("_enabledLogger.info")  
     _enabledLogger.warning("_enabledLogger.warning")  
     _enabledLogger.error("_enabledLogger.error")  
-    print >>sys.stderr, ""
+    print 
     
     _disabledLogger.debug("_disabledLogger.debug")  
     _disabledLogger.info("_disabledLogger.info")  
     _disabledLogger.warning("_disabledLogger.warning")  
     _disabledLogger.error("_disabledLogger.error")  
-    print >>sys.stderr, ""
+    print 
 
     write("util.write()")
     warn("util.warn()")
