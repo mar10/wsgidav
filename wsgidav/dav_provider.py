@@ -1032,13 +1032,13 @@ class DAVCollection(DAVResource):
     A DAVCollection is a DAVResource, that has additional methods for 
     addressing member resources.
     
-    A DAVCollecion 'knows' it's members, and how to obtain them from the backend 
+    A DAVCollecion 'knows' its members, and how to obtain them from the backend 
     storage.
-    There is also optional built-in support for caching the list of members.
-
+    There is also optional built-in support for member caching.
     
-    A custom provider does not neccessarily has to use DAVCollections, although
-    it 
+    DAVCollection is only a convenience class. It is also possible to implement
+    custom providers by only using  DAVResource objects and set the 
+    ``res.isCollection`` attribute accordingly.
     """
     def __init__(self, provider, path, environ):
         DAVResource.__init__(self, provider, path, True, environ)

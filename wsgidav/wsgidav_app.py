@@ -69,7 +69,7 @@ DEFAULT_CONFIG = {
     "host": "localhost",
     "port": 8080, 
     "ext_servers": [
-                   "paste", 
+#                   "paste", 
 #                   "cherrypy",
 #                   "wsgiref",
                    "cherrypy-bundled",
