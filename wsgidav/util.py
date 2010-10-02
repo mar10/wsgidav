@@ -331,6 +331,21 @@ def popPath(path):
     return (first, "/"+rest)
 
 
+def popPath2(path):
+    """Return '/a/b/c' -> ('a', 'b', '/c')."""
+    if path in ("", "/"):
+        return ("", "", "")
+    first, rest = popPath(path)
+    second, rest = popPath(rest)
+    return (first, second, "/"+rest)
+
+
+def shiftPath(scriptName, pathInfo):
+    """Return ('/a', '/b/c') -> ('b', '/a/b', 'c')."""
+    segment, rest = popPath(pathInfo)
+    return (segment, joinUri(scriptName.rstrip("/"), segment), rest.rstrip("/"))
+
+
 def splitNamespace(clarkName):
     """Return (namespace, localname) tuple for a property name in Clark Notation.
     
@@ -511,6 +526,8 @@ def joinUri(uri, *segments):
     Example: joinUri("/a/b", "c", "d")
     """
     sub = "/".join(segments)
+    if not sub:
+        return uri
     return uri.rstrip("/") + "/" + sub
 
 

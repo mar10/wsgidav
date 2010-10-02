@@ -96,23 +96,24 @@ When accessed using WebDAV, the following URLs both return the same resource
     <share>/by_key/1
 """
 import urllib
-
-
 import stat
 import os
 import mimetypes
+from wsgidav.util import popPath, popPath2
 try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO #@UnusedImport
-from wsgidav.dav_provider import DAVProvider, DAVResource
+from wsgidav.dav_provider import DAVProvider, DAVResource, DAVCollection
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
-    PRECONDITION_CODE_ProtectedProperty
+    PRECONDITION_CODE_ProtectedProperty, HTTP_NOT_FOUND
 from wsgidav import util
 
 __docformat__ = "reStructuredText en"
 
 _logger = util.getModuleLogger(__name__)
+
+BUFFER_SIZE = 8192
 
 #===============================================================================
 # Fake hierarchical repository
@@ -123,14 +124,6 @@ VirtualResourceProvider.
 
 All files listed in resPathList are expected to exist in FILE_FOLDER.
 """
-_browsableCategories = ("by_orga",
-                        "by_tag",
-                        "by_status",
-                        )
-_realCategory = "by_key"
-_alllowedCategories = _browsableCategories + (_realCategory, )
-_artifactNames = [".Info.txt", ".Info.html", ".Description.txt" ] #, ".Admin.html"]
-
 FILE_FOLDER = r"c:\temp\virtfiles"
 
 _resourceData = [
@@ -186,53 +179,36 @@ def _getResByKey(key):
     
 
 
-
 #===============================================================================
-# _VirtualResource classes
+# FolderCollection
 #===============================================================================
-class _VirtualResource(DAVResource):
-    """Abstract base class for all resources."""
-    def __init__(self, provider, path, isCollection, environ):
-        super(_VirtualResource, self).__init__(provider, path, isCollection, environ)
-
-    def getContentLength(self):
-        return None
-    def getContentType(self):
-        return None
-    def getCreationDate(self):
-        return None
-    def getDisplayName(self):
-        return self.name
-    def displayType(self):
-        raise NotImplementedError()
-    def getEtag(self):
-        return None
-    def getLastModified(self):
-        return None
-    def supportRanges(self):
-        return False
-#    def handleDelete(self):
-#        raise DAVError(HTTP_FORBIDDEN)
-#    def handleMove(self, destPath):
-#        raise DAVError(HTTP_FORBIDDEN)
-#    def handleCopy(self, destPath, depthInfinity):
-#        raise DAVError(HTTP_FORBIDDEN)
-
-
-class VirtualResCollection(_VirtualResource):
-    """Collection resource, that contains a list of names."""
-    def __init__(self, provider, path, environ, nameList):
-        _VirtualResource.__init__(self, provider, path, True, environ)
-        self._nameList = nameList
+class FolderCollection(DAVCollection):
+    """DAVCollection that contains a list of static sub collections."""
+    def __init__(self, provider, path, environ, subCollectionNames):
+        DAVCollection.__init__(self, provider, path, environ)
+        self._subCollectionNames = subCollectionNames
     def displayType(self):
         return "Category"
-    def getMemberNames(self):
-        return self._nameList
+    def _getMemberList(self):
+        """Return a list of direct members (DAVResource/DAVCollection objects).
+
+        Return an empty list, if no members are available.
+        See DAVCollection.getMemberList()
+        """
+        memberList = [] 
+        for name in self._subCollectionNames:
+            res = DAVCollection(self.provider, 
+                                util.joinUri(self.path, name), self.environ)
+            memberList.append(res)
+        return memberList
     def preventLocking(self):
         return True
 
 
-class VirtualResource(_VirtualResource):
+#===============================================================================
+# VirtualResource
+#===============================================================================
+class VirtualResource(DAVCollection):
     """A virtual 'resource', displayed as a collection of artifacts and files."""
     _supportedProps = ["{virtres:}key",
                        "{virtres:}title",
@@ -242,11 +218,16 @@ class VirtualResource(_VirtualResource):
                        "{virtres:}description",
                        ]
     def __init__(self, provider, path, environ, data):
-        _VirtualResource.__init__(self, provider, path, True, environ)
+        DAVCollection.__init__(self, provider, path, environ)
         self._data = data
-        self._nameList = _artifactNames[:] # Use a copy
+        self._memberList = []
+        for name in _artifactNames:
+            self._memberList.append(VirtualArtifact(provider, util.joinUri(path, name), environ, 
+                                                    data, name))
         for f in data["resPathList"]:
-            self._nameList.append(os.path.basename(f))
+            name = os.path.basename(f)
+            self._memberList.append(VirtualResFile(provider, util.joinUri(path, name), environ, 
+                                                   data, f))
 
     def displayType(self):
         return "Resource folder"
@@ -295,8 +276,15 @@ class VirtualResource(_VirtualResource):
         refPath = "/by_key/%s" % self._data["key"] 
         return urllib.quote(self.provider.sharePath + refPath)
     
-    def getMemberNames(self):
-        return self._nameList
+#    def getMemberNames(self):
+#        return self._nameList
+    def _getMemberList(self):
+        """Return list of (direct) collection members (DAVResource or derived).
+        
+        See DAVResource.getMemberList()
+        """
+        return self._memberList
+
 
     def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
@@ -308,6 +296,7 @@ class VirtualResource(_VirtualResource):
         # Add custom live properties (report on 'allprop' and 'propnames')
         propNameList.extend(VirtualResource._supportedProps)
         return propNameList
+
 
     def getPropertyValue(self, propname):
         """Return the value of a property.
@@ -358,11 +347,46 @@ class VirtualResource(_VirtualResource):
               
 
 
-class VirtualArtifact(_VirtualResource):
+#===============================================================================
+# _VirtualNonCollection classes
+#===============================================================================
+class _VirtualNonCollection(DAVResource):
+    """Abstract base class for all non-collection resources."""
+    def __init__(self, provider, path, environ):
+        DAVResource.__init__(self, provider, path, False, environ)
+
+    def getContentLength(self):
+        return None
+    def getContentType(self):
+        return None
+    def getCreationDate(self):
+        return None
+    def getDisplayName(self):
+        return self.name
+    def displayType(self):
+        raise NotImplementedError()
+    def getEtag(self):
+        return None
+    def getLastModified(self):
+        return None
+    def supportRanges(self):
+        return False
+#    def handleDelete(self):
+#        raise DAVError(HTTP_FORBIDDEN)
+#    def handleMove(self, destPath):
+#        raise DAVError(HTTP_FORBIDDEN)
+#    def handleCopy(self, destPath, depthInfinity):
+#        raise DAVError(HTTP_FORBIDDEN)
+
+
+#===============================================================================
+# VirtualArtifact
+#===============================================================================
+class VirtualArtifact(_VirtualNonCollection):
     """A virtual file, containing resource descriptions."""
     def __init__(self, provider, path, environ, data, name):
-        assert name in _artifactNames
-        _VirtualResource.__init__(self, provider, path, False, environ)
+#        assert name in _artifactNames
+        _VirtualNonCollection.__init__(self, provider, path, environ)
         assert self.name == name
         self._data = data
 
@@ -432,11 +456,15 @@ class VirtualArtifact(_VirtualResource):
         return StringIO(html)
 
 
-class VirtualResFile(_VirtualResource):
+#===============================================================================
+# VirtualResFile
+#===============================================================================
+class VirtualResFile(_VirtualNonCollection):
     """Represents an existing file, that is a member of a VirtualResource."""
     def __init__(self, provider, path, environ, data, filePath):
-#        assert os.path.exists(filePath)
-        _VirtualResource.__init__(self, provider, path, False, environ)
+        if not os.path.exists(filePath):
+            util.warn("VirtualResFile(%r) does not exist." % filePath)
+        _VirtualNonCollection.__init__(self, provider, path, environ)
         self._data = data
         self.filePath = filePath
 
@@ -473,10 +501,110 @@ class VirtualResFile(_VirtualResource):
         
          
 #===============================================================================
+# Resolvers
+#===============================================================================
+_browsableCategories = ("by_orga",
+                        "by_tag",
+                        "by_status",
+                        )
+_artifactNames = (".Info.txt", 
+                  ".Info.html", 
+                  ".Description.txt",
+#                  ".Admin.html",
+                  )
+_realCategory = "by_key"
+_alllowedCategories = _browsableCategories + (_realCategory, )
+
+
+class DAVResolver(object):
+    """Return a DAVResource object for a path (None, if not found)."""
+    def __init__(self, parentResolver, name):
+        self.parentResolver = parentResolver
+        self.name = name
+    def resolve(self, path, environ):
+        raise NotImplementedError
+
+
+class RootResolver(DAVResolver):
+    """Resolve top-level requests '/'."""
+    def resolve(self, path, environ):
+        catType, rest = popPath(path)
+        if catType:
+            return CategoryResolver(self, catType).resolve(rest, environ)
+        # Accessing /: return all top level collections
+        return FolderCollection(environ["wsgidav.provider"], path, environ, _browsableCategories)
+
+
+class CategoryResolver(DAVResolver):
+    """Resolve '/catType' and '/catType/cat' URLs."""
+    def resolve(self, path, environ):
+        catType = self.name
+        if catType not in _alllowedCategories:
+            return None
+        cat, resName, rest = popPath2(path)
+        if catType == _realCategory:
+            # Accessing /by_key/<key>
+            resourceKey = cat 
+            return ResourceResolver(self, resourceKey).resolve(rest, environ)
+        elif resName:
+            # Accessing /catType/cat/resName
+            # In this example, we assume that the resource title is NOT unique,
+            # so we restrict the search to the category given 
+            resourceKey = None 
+            for data in _getResListByAttr(catType, cat):
+                if data["title"] == resName:
+                    resourceKey = data["key"]
+                    break
+            return ResourceResolver(self, resourceKey).resolve(rest, environ)
+        elif cat:
+            # Accessing /catType/cat: return all resources in this category
+            resList = _getResListByAttr(catType, cat)
+            nameList = [ data["title"] for data in resList ]
+            return FolderCollection(environ["wsgidav.provider"], path, environ, nameList)
+        # Accessing /catType/: return all possible category values
+        resList = []
+        for data in _resourceData:
+            if catType == "by_status":
+                if not data["status"] in resList:
+                    resList.append(data["status"])
+            elif catType == "by_orga":
+                if not data["orga"] in resList:
+                    resList.append(data["orga"])
+            elif catType == "by_tag":
+                for tag in data["tags"]:
+                    if not tag in resList:
+                        resList.append(tag)
+        return FolderCollection(environ["wsgidav.provider"], path, environ, resList)
+        
+        
+class ResourceResolver(DAVResolver):
+    """Resolve /<catType>/<cat>/<resName> or /<catType>/<cat>/<resName>/<artifactName>."""
+    def resolve(self, path, environ):
+        key = self.name
+        artifactName, rest = popPath(path)
+        if rest:
+            return None
+        res = _getResByKey(key)
+        if not res:
+            return None
+        # Accessing /<catType>/<cat>/<name>
+        if artifactName in _artifactNames:
+            # Accessing /<catType>/<cat>/<name>/.info.html, or similar
+            return VirtualArtifact(environ["wsgidav.provider"], util.joinUri(path, artifactName), environ, 
+                                   res, artifactName)
+        elif artifactName:
+            # Accessing /<catType>/<cat>/<name>/<file-name>
+            for f in res["resPathList"]:
+                if artifactName == os.path.basename(f):
+                    return VirtualResFile(environ["wsgidav.provider"], path, environ, res, f)
+            return None
+        # Accessing /<catType>/<cat>/<name>
+        return VirtualResource(environ["wsgidav.provider"], path, environ, res) 
+        
+        
+#===============================================================================
 # VirtualResourceProvider
 #===============================================================================
-BUFFER_SIZE = 8192
-
 class VirtualResourceProvider(DAVProvider):
     """
     DAV provider that serves a VirtualResource derived structure.
@@ -484,6 +612,7 @@ class VirtualResourceProvider(DAVProvider):
     def __init__(self):
         super(VirtualResourceProvider, self).__init__()
         self.resourceData = _resourceData
+        self.rootResolver = RootResolver(None, "/")
         
 
     def getResourceInst(self, path, environ):
@@ -496,69 +625,95 @@ class VirtualResourceProvider(DAVProvider):
 
         See DAVProvider.getResourceInst()
         """
+        _logger.info("getResourceInst('%s')" % path)
         self._count_getResourceInst += 1
+        return self.rootResolver.resolve(path, environ)
         
-        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
-    
-        _logger.info("getResourceInst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType, cat, resName))
-        
-        if catType and catType not in _alllowedCategories:
-            return None
-    
-        if catType == _realCategory:
-            # Accessing /by_key/<key>
-            data = _getResByKey(cat)
-            if data:
-                return VirtualResource(self, path, environ, data)
-            return None
-            
-        elif resName:
-            # Accessing /<catType>/<cat>/<name> or /<catType>/<cat>/<resName>/<artifactName>
-            res = None
-            for data in _getResListByAttr(catType, cat):
-                if data["title"] == resName:
-                    res = data
-                    break
-            if not res:
-                return None
-            # Accessing /<catType>/<cat>/<name>
-            if artifactName in _artifactNames:
-                # Accessing /<catType>/<cat>/<name>/.info.html, or similar
-                return VirtualArtifact(self, path, environ, res, artifactName)
-            elif artifactName:
-                # Accessing /<catType>/<cat>/<name>/<file-name>
-                for f in res["resPathList"]:
-                    if artifactName == os.path.basename(f):
-                        return VirtualResFile(self, path, environ, res, f)
-                return None
-            # Accessing /<catType>/<cat>/<name>
-            return VirtualResource(self, path, environ, data) 
-                 
-        elif cat:
-            # Accessing /catType/cat: return list of matching names
-            resList = _getResListByAttr(catType, cat)
-            nameList = [ data["title"] for data in resList ]
-            return VirtualResCollection(self, path, environ, nameList)
-        
-        elif catType: 
-            # Accessing /catType/: return all possible values for this catType
-            if catType in _browsableCategories:
-                resList = []
-                for data in _resourceData:
-                    if catType == "by_status":
-                        if not data["status"] in resList:
-                            resList.append(data["status"])
-                    elif catType == "by_orga":
-                        if not data["orga"] in resList:
-                            resList.append(data["orga"])
-                    elif catType == "by_tag":
-                        for tag in data["tags"]:
-                            if not tag in resList:
-                                resList.append(tag)
-                        
-                return VirtualResCollection(self, path, environ, resList)
-            # Known category type, but not browsable (e.g. 'by_key')
-            raise DAVError(HTTP_FORBIDDEN)
-                 
-        # Accessing /: return list of categories
-        return VirtualResCollection(self, path, environ, _browsableCategories)
+
+#class VirtualResourceProvider(DAVProvider):
+#    """
+#    DAV provider that serves a VirtualResource derived structure.
+#    """
+#    def __init__(self):
+#        super(VirtualResourceProvider, self).__init__()
+#        self.resourceData = _resourceData
+##        self.rootCollection = FolderCollection(self, "/", environ)
+#        
+#
+#    def getResourceInst(self, path, environ):
+#        """Return _VirtualResource object for path.
+#        
+#        path is expected to be 
+#            categoryType/category/name/artifact
+#        for example:
+#            'by_tag/cool/My doc 2/info.html'
+#
+#        See DAVProvider.getResourceInst()
+#        """
+#        self._count_getResourceInst += 1
+#        
+#        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
+#    
+#        _logger.info("getResourceInst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType, cat, resName))
+#        
+#        if catType and catType not in _alllowedCategories:
+#            return None
+#    
+#        if catType == _realCategory:
+#            # Accessing /by_key/<key>
+#            data = _getResByKey(cat)
+#            if data:
+#                return VirtualResource(self, path, environ, data)
+#            return None
+#            
+#        elif resName:
+#            # Accessing /<catType>/<cat>/<name> or /<catType>/<cat>/<resName>/<artifactName>
+#            res = None
+#            for data in _getResListByAttr(catType, cat):
+#                if data["title"] == resName:
+#                    res = data
+#                    break
+#            if not res:
+#                return None
+#            # Accessing /<catType>/<cat>/<name>
+#            if artifactName in _artifactNames:
+#                # Accessing /<catType>/<cat>/<name>/.info.html, or similar
+#                return VirtualArtifact(self, util.joinUri(path, artifactName), environ, 
+#                                       res, artifactName)
+#            elif artifactName:
+#                # Accessing /<catType>/<cat>/<name>/<file-name>
+#                for f in res["resPathList"]:
+#                    if artifactName == os.path.basename(f):
+#                        return VirtualResFile(self, path, environ, res, f)
+#                return None
+#            # Accessing /<catType>/<cat>/<name>
+#            return VirtualResource(self, path, environ, data) 
+#                 
+#        elif cat:
+#            # Accessing /catType/cat: return list of matching names
+#            resList = _getResListByAttr(catType, cat)
+#            nameList = [ data["title"] for data in resList ]
+#            return FolderCollection(self, path, environ, nameList)
+#        
+#        elif catType: 
+#            # Accessing /catType/: return all possible values for this catType
+#            if catType in _browsableCategories:
+#                resList = []
+#                for data in _resourceData:
+#                    if catType == "by_status":
+#                        if not data["status"] in resList:
+#                            resList.append(data["status"])
+#                    elif catType == "by_orga":
+#                        if not data["orga"] in resList:
+#                            resList.append(data["orga"])
+#                    elif catType == "by_tag":
+#                        for tag in data["tags"]:
+#                            if not tag in resList:
+#                                resList.append(tag)
+#                        
+#                return FolderCollection(self, path, environ, resList)
+#            # Known category type, but not browsable (e.g. 'by_key')
+#            raise DAVError(HTTP_FORBIDDEN)
+#                 
+#        # Accessing /: return list of categories
+#        return FolderCollection(self, path, environ, _browsableCategories)

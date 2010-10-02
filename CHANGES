@@ -9,6 +9,9 @@ CHANGES
 
 0.4.0.b4
 ========
+- Support davmount (rfc 4709).
+- Added support for Microsoft FOLDER behavior.
+- Bundled with CherryPy standalone WSGI server
 - Added copyright notes for original PyFileServer
 - New method DAVResource.getMemberList() replaces getMemberNames().
   Reduces backend access, when browsing collections.

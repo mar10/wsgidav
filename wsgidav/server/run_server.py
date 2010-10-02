@@ -340,7 +340,7 @@ def _runFlup(app, config, mode):
     """Run WsgiDAV using flup.server.fcgi, if Flup is installed."""
     try:
         # http://trac.saddi.com/flup/wiki/FlupServers
-        if mode == "flup-fcgi":  
+        if mode == "flup-fcgi":
             from flup.server.fcgi import WSGIServer, __version__ as flupver
         elif mode == "flup-fcgi_fork":
             from flup.server.fcgi_fork import WSGIServer, __version__ as flupver

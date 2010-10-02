@@ -103,7 +103,8 @@ class WsgiDavDirBrowser(object):
         html.append("<head>")
         html.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
         html.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
-        html.append("""\
+        if dirConfig.get("msmount"):
+            html.append("""\
 <style type="text/css">
     img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
     td  { font-family: monospace; padding: 2px 3px; vertical-align: bottom; white-space: pre; }
@@ -115,11 +116,14 @@ class WsgiDavDirBrowser(object):
 </style>""")        
         html.append("</head><body>")
         html.append("<h1>%s</h1>" % displaypath)
+        links = []
         if dirConfig.get("davmount"):
-            html.append("<a href='%s?davmount'>davmount</a>" % util.makeCompleteUrl(environ))
+            links.append("<a title='Open this folder in a WebDAV client.' href='%s?davmount'>Mount</a>" % util.makeCompleteUrl(environ))
         if dirConfig.get("msmount"):
-            html.append("<a href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
-#            html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
+            links.append("<a title='Open as Web Folder (requires Microsoft Internet Explorer)' href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
+#                html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
+        if links:
+            html.append("<p>%s</p>" % " - ".join(links))
 
         html.append("<hr>")
         html.append("<table>")
@@ -151,14 +155,14 @@ class WsgiDavDirBrowser(object):
             
         html.append("</table>")
 
+        if trailer:
+            html.append("%s" % trailer)
+        html.append("<hr>") 
         if "http_authenticator.username" in environ:
             html.append("<p>Authenticated user: '%s', realm: '%s'.</p>" 
                           % (environ.get("http_authenticator.username"),
                              environ.get("http_authenticator.realm")))
 
-        if trailer:
-            html.append("%s" % trailer)
-        html.append("<hr>") 
         html.append("<p><a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a> - %s</p>" 
                       % (__version__, util.getRfc1123Time()))
         html.append("</body></html>")
