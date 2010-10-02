@@ -67,6 +67,17 @@ class BasicTest(TestCase):
         assert popPath("/") == ("", "")
         assert popPath("") == ("", "")
 
+        self.assertEqual(shiftPath("", "/a/b/c"),
+                         ("a", "/a", "/b/c"))
+        self.assertEqual(shiftPath("/a", "/b/c"),
+                         ("b", "/a/b", "/c"))
+        self.assertEqual(shiftPath("/a/b", "/c"),
+                         ("c", "/a/b/c", ""))
+        self.assertEqual(shiftPath("/a/b/c", "/"),
+                         ("", "/a/b/c", ""))
+        self.assertEqual(shiftPath("/a/b/c", ""),
+                         ("", "/a/b/c", ""))
+
 
 #===============================================================================
 # suite
