@@ -110,7 +110,7 @@ BUFFER_SIZE = 8192
 #===============================================================================
 class VirtualCollection(DAVResource):
     """Collection resource, that contains a list of member names."""
-    def __init__(self, provider, path, environ, memberNames):
+    def __init__(self, path, environ, memberNames):
         DAVResource.__init__(self, provider, path, True, environ)
         self._memberNames = memberNames
     def displayType(self):
@@ -127,7 +127,7 @@ class VirtualCollection(DAVResource):
 class HgResource(DAVResource):
     """Abstract base class for all resources."""
     def __init__(self, provider, path, isCollection, environ, rev, localHgPath):
-        super(HgResource, self).__init__(provider, path, isCollection, environ)
+        super(HgResource, self).__init__(path, isCollection, environ)
         self.rev = rev
         self.localHgPath = localHgPath 
         self.absFilePath = self._getFilePath() 

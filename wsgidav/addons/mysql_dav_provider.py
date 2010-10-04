@@ -83,7 +83,7 @@ class MySQLBrowserResource(DAVResource):
     See also DAVResource and MySQLBrowserProvider.
     """
     def __init__(self, provider, path, isCollection, environ):
-        super(MySQLBrowserResource, self).__init__(provider, path, isCollection, environ)
+        super(MySQLBrowserResource, self).__init__(path, isCollection, environ)
         self._dict = None
 
     

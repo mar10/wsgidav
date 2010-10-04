@@ -156,9 +156,11 @@ class DAVResource(object):
 
     See also DAVProvider.getResourceInst().
     """
-    def __init__(self, provider, path, isCollection, environ):
+#    def __init__(self, provider, path, isCollection, environ):
+    def __init__(self, path, isCollection, environ):
         assert path=="" or path.startswith("/")
-        self.provider = provider
+#        self.provider = provider
+        self.provider = environ["wsgidav.provider"]
         self.path = path
         self.isCollection = isCollection
         self.environ = environ
@@ -1040,8 +1042,8 @@ class DAVCollection(DAVResource):
     custom providers by only using  DAVResource objects and set the 
     ``res.isCollection`` attribute accordingly.
     """
-    def __init__(self, provider, path, environ):
-        DAVResource.__init__(self, provider, path, True, environ)
+    def __init__(self, path, environ):
+        DAVResource.__init__(self, path, True, environ)
 
         # TODO: DAVResource should not have isInstance as argument to the constructor
         
@@ -1134,7 +1136,7 @@ class DAVCollection(DAVResource):
         This default implementation for all DAVCollections calls getMemberList()
         to query the names.
         """
-        # getMemberList returns a list of child DAVCollection objects.
+        # getMemberList returns a list of child DAVResource objects.
         members = self.getMemberList()
         names = [ m.name for m in members ]
         return names

@@ -353,8 +353,7 @@ class VirtualResource(DAVCollection):
 class _VirtualNonCollection(DAVResource):
     """Abstract base class for all non-collection resources."""
     def __init__(self, provider, path, environ):
-        DAVResource.__init__(self, provider, path, False, environ)
-
+        DAVResource.__init__(self, path, False, environ)
     def getContentLength(self):
         return None
     def getContentType(self):

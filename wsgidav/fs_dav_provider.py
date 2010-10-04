@@ -40,8 +40,8 @@ class FileResource(DAVResource):
 
     See also DAVResource and FilesystemProvider.
     """
-    def __init__(self, provider, path, isCollection, environ, filePath):
-        super(FileResource, self).__init__(provider, path, isCollection, environ)
+    def __init__(self, path, isCollection, environ, filePath):
+        super(FileResource, self).__init__(path, isCollection, environ)
         self._filePath = filePath
         self._dict = None
         # Setting the name from the file path should fix the case on Windows
@@ -140,8 +140,7 @@ class FileResource(DAVResource):
                 _logger.debug("Skipping non-file %s" % fp)
                 continue
             name = name.encode("utf8")
-            res = FileResource(self.provider, 
-                               util.joinUri(self.path, name), 
+            res = FileResource(util.joinUri(self.path, name), 
                                os.path.isdir(fp), 
                                self.environ, 
                                fp)
@@ -338,4 +337,4 @@ class FilesystemProvider(DAVProvider):
         fp = self._locToFilePath(path)
         if not os.path.exists(fp):
             return None
-        return FileResource(self, path, os.path.isdir(fp), environ, fp)
+        return FileResource(path, os.path.isdir(fp), environ, fp)
