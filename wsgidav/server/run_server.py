@@ -320,7 +320,9 @@ def _runCherryPy(app, config, mode):
         version = "WsgiDAV/%s %s" % (__version__, wsgiserver.CherryPyWSGIServer.version)
         wsgiserver.CherryPyWSGIServer.version = version
         if config["verbose"] >= 1:
-            print "Running %s..." % version
+#            print "Running %s..." % version
+            print("Runing %s, listening on %s://%s:%s" 
+                  % (version, 'http', config["host"], config["port"]))
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,

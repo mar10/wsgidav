@@ -91,7 +91,7 @@ class DocResource(DAVResource):
         return "text/html"
     def supportRanges(self):
         return False
-    def displayName(self):
+    def getDisplayName(self):
         doc = self.doc
         if doc.get("_title"):
             return doc["_title"].encode("utf8")
@@ -115,6 +115,14 @@ class MongoResourceProvider(DAVProvider):
         self.conn = pymongo.Connection(options.get("host"), options.get("port"))
 #        util.log("Connected to MongoDB %s" % self.conn)
         print "Connected to MongoDB %s" % self.conn
+        # If credentials are passed, acquire root access
+        if options.get("user"):
+            db = self.conn["admin"]
+            res = db.authenticate(options.get("user"), options.get("pwd"))
+            if not res:
+                raise RuntimeError("Failed to logon to db %s as user %s" % 
+                                   (db.name, options.get("user")))
+            util.log("Logged on to mongo db '%s' as user '%s'" % (db.name, options.get("user")))
 
     def getResourceInst(self, path, environ):
         """Return DAVResource object for path.
