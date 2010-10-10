@@ -4,12 +4,24 @@
 Implementation of a WebDAV provider that provides a very basic, read-only
 resource layer emulation of a MongoDB database.
 
-Usage::
-    (see sample_wsgidav.conf)
+Usage: add the following entries to wsgidav.conf::
 
     from wsgidav.samples.mongo_dav_provider import MongoResourceProvider
-    mongo_opts = {}
-    addShare("mongo", MongoResourceProvider(mongo_opts))
+    mongo_dav_opts = {}
+    addShare("mongo", MongoResourceProvider(mongo_dav_opts))
+
+Valid options are (sample shows defaults)::
+
+    opts = {"host": "localhost",       # MongoDB server 
+            "port": 27017,             # MongoDB port
+            # This options are used with `mongod --auth`
+            # The user must be created in the admin db with 
+            # > use admin
+            # > db.addUser(username, password)
+            "user": None,              # Authenticate with this user
+            "pwd": None,               # ... and password
+            }
+
 """
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVResource
 from wsgidav import util
@@ -113,16 +125,15 @@ class MongoResourceProvider(DAVProvider):
         super(MongoResourceProvider, self).__init__()
         self.options = options
         self.conn = pymongo.Connection(options.get("host"), options.get("port"))
-#        util.log("Connected to MongoDB %s" % self.conn)
-        print "Connected to MongoDB %s" % self.conn
-        # If credentials are passed, acquire root access
         if options.get("user"):
+            # If credentials are passed, acquire root access
             db = self.conn["admin"]
             res = db.authenticate(options.get("user"), options.get("pwd"))
             if not res:
                 raise RuntimeError("Failed to logon to db %s as user %s" % 
                                    (db.name, options.get("user")))
             util.log("Logged on to mongo db '%s' as user '%s'" % (db.name, options.get("user")))
+        util.log("MongoResourceProvider connected to %s" % self.conn)
 
     def getResourceInst(self, path, environ):
         """Return DAVResource object for path.
