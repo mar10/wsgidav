@@ -178,13 +178,15 @@ def _readConfigFile(config_file, verbose):
                 continue
             conf[k] = v               
     except Exception, e:
-        if verbose >= 1:
-            traceback.print_exc() 
+#        if verbose >= 1:
+#            traceback.print_exc() 
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value) #@UndefinedVariable
         exceptiontext = ""
         for einfo in exceptioninfo:
             exceptiontext += einfo + "\n"   
-        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
+#        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
+        print >>sys.stderr, "Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext
+        raise
     
     return conf
 
