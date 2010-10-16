@@ -19,6 +19,9 @@ CHANGES
   providers.
 - Forcing 'Connection: close', when a required Content-Length is missing. 
   So it's possible now to return GET responses without knowing the size. 
+- New property manager based on CouchDB (addons.couch_property_manager)
+- New property manager based on MongoDB (addons.mongo_property_manager)
+- New sample DAV provider for MongoDBs (samples.mongo_dav_provider)
   
 
 0.4.0.b3
