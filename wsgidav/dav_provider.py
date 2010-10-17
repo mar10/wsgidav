@@ -239,7 +239,7 @@ class DAVResource(object):
         """
         return None
     
-    def displayType(self):
+    def getDisplayType(self):
         # TODO: remove this method
         if self.isCollection:
             return "Collection"

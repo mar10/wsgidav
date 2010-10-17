@@ -113,7 +113,7 @@ class VirtualCollection(DAVResource):
     def __init__(self, path, environ, memberNames):
         DAVResource.__init__(self, provider, path, True, environ)
         self._memberNames = memberNames
-    def displayType(self):
+    def getDisplayType(self):
         return "Virtual Collection"
     def getMemberNames(self):
         return self._memberNames
@@ -198,7 +198,7 @@ class HgResource(DAVResource):
         return self.fctx.date()[0]
     def supportRanges(self):
         return False
-    def displayType(self):
+    def getDisplayType(self):
         if self.isCollection:
             return "Directory"
         return "File"

@@ -59,7 +59,7 @@ class DbCollection(DAVCollection):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
         self.db = self.conn[self.name]
-    def displayType(self):
+    def getDisplayType(self):
         return "Mongo database"
     def getMemberList(self):
         res = []
@@ -76,7 +76,7 @@ class CollCollection(DAVCollection):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
         self.coll = coll
-    def displayType(self):
+    def getDisplayType(self):
         return "Mongo collection"
     def _getMember(self, name):
         doc = self.coll.find_one(ObjectId(name))
@@ -112,7 +112,7 @@ class DocResource(DAVResource):
         elif doc.get("_id"):
             return str(doc["_id"])
         return str(doc["key"])
-    def displayType(self):
+    def getDisplayType(self):
         return "Mongo document"
 
 

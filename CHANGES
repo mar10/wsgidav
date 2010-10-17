@@ -9,12 +9,11 @@ CHANGES
 
 0.4.0.b4
 ========
-- Support davmount (rfc 4709).
-- Added support for Microsoft FOLDER behavior.
 - Bundled with CherryPy standalone WSGI server
 - Added copyright notes for original PyFileServer
+- Changed signature of DAVProvider (and derived classes): provider argument was
+  removed
 - New method DAVResource.getMemberList() replaces getMemberNames().
-  Reduces backend access, when browsing collections.
 - New class DAVCollection allows for more efficient implementation of custom
   providers.
 - Forcing 'Connection: close', when a required Content-Length is missing. 
@@ -22,7 +21,11 @@ CHANGES
 - New property manager based on CouchDB (addons.couch_property_manager)
 - New property manager based on MongoDB (addons.mongo_property_manager)
 - New sample DAV provider for MongoDBs (samples.mongo_dav_provider)
-  
+- Debug output goes to stdout (was stderr)
+- Support davmount (rfc 4709).
+- Added support for Microsoft FOLDER behavior.
+- renamed displayType() -> getDisplayType()
+
 
 0.4.0.b3
 ========

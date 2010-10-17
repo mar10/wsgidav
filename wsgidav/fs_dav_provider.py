@@ -107,7 +107,7 @@ class FileResource(DAVResource):
         return self._getInfo("created")
     def getDisplayName(self):
         return self.name
-    def displayType(self):
+    def getDisplayType(self):
         return self._getInfo("displayType")
     def getEtag(self):
         return self._getInfo("etag")

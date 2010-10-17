@@ -28,7 +28,7 @@ class FolderCollection(DAVCollection):
         self.collectionNames = collectionNames
 #        self.displayType = displayType
 #        self.memberDisplayType = memberDisplayType
-    def displayType(self):
+    def getDisplayType(self):
         return "Collection"
     def _getMemberList(self):
         """Return a list of direct members (DAVResource/DAVCollection objects).
@@ -62,7 +62,7 @@ class _VirtualNonCollection(DAVResource):
         return None
     def getDisplayName(self):
         return self.name
-    def displayType(self):
+    def getDisplayType(self):
         raise NotImplementedError()
     def getEtag(self):
         return None
@@ -97,7 +97,7 @@ class VirtualTextResource(_VirtualNonCollection):
         return "text/html"
     def getDisplayName(self):
         return self.displayName or self.name
-    def displayType(self):
+    def getDisplayType(self):
         return self.displayType or "Virtual info file"
     def preventLocking(self):
         return True
@@ -132,7 +132,7 @@ class FileResource(_VirtualNonCollection):
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      
-    def displayType(self):
+    def getDisplayType(self):
         return "File"
     def getLastModified(self):
         statresults = os.stat(self.filePath)

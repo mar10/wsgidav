@@ -187,7 +187,7 @@ class FolderCollection(DAVCollection):
     def __init__(self, provider, path, environ, subCollectionNames):
         DAVCollection.__init__(self, provider, path, environ)
         self._subCollectionNames = subCollectionNames
-    def displayType(self):
+    def getDisplayType(self):
         return "Category"
     def _getMemberList(self):
         """Return a list of direct members (DAVResource/DAVCollection objects).
@@ -229,7 +229,7 @@ class VirtualResource(DAVCollection):
             self._memberList.append(VirtualResFile(provider, util.joinUri(path, name), environ, 
                                                    data, f))
 
-    def displayType(self):
+    def getDisplayType(self):
         return "Resource folder"
     
     def handleDelete(self):
@@ -362,7 +362,7 @@ class _VirtualNonCollection(DAVResource):
         return None
     def getDisplayName(self):
         return self.name
-    def displayType(self):
+    def getDisplayType(self):
         raise NotImplementedError()
     def getEtag(self):
         return None
@@ -395,7 +395,7 @@ class VirtualArtifact(_VirtualNonCollection):
         if self.name.endswith(".txt"):
             return "text/plain"
         return "text/html"
-    def displayType(self):
+    def getDisplayType(self):
         return "Virtual info file"
     def preventLocking(self):
         return True
@@ -480,7 +480,7 @@ class VirtualResFile(_VirtualNonCollection):
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      
-    def displayType(self):
+    def getDisplayType(self):
         return "Content file"
     def getLastModified(self):
         statresults = os.stat(self.filePath)
