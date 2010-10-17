@@ -24,7 +24,7 @@ CHANGES
 - Debug output goes to stdout (was stderr)
 - Support davmount (rfc 4709).
 - Added support for Microsoft FOLDER behavior.
-- renamed displayType() -> getDisplayType()
+- renamed displayType() -> getDirectoryInfo()
 
 
 0.4.0.b3

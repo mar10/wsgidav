@@ -239,14 +239,10 @@ class DAVResource(object):
         """
         return None
     
-    def getDisplayType(self):
-        # TODO: remove this method
+    def getDirectoryInfo(self):
         if self.isCollection:
-            return "Collection"
-        return "Non-Collection"
-
-#    def getDirectoryInfo(self):
-#        return False
+            return {"type": "Collection"}
+        return {"type": "Non-Collection"}
     
     def supportRanges(self):
         """Return True, if this non-resource supports Range on GET requests.

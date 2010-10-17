@@ -149,8 +149,8 @@ class MySQLBrowserResource(DAVResource):
         return self._getInfo("created")
     def getDisplayName(self):
         return self.name
-    def getDisplayType(self):
-        return self._getInfo("displayType")
+    def getDirectoryInfo(self):
+        return {"type": self._getInfo("displayType")}
     def getEtag(self):
         return self._getInfo("etag")
     def getLastModified(self):

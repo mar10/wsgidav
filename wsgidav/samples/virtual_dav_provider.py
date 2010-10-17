@@ -187,8 +187,8 @@ class FolderCollection(DAVCollection):
     def __init__(self, provider, path, environ, subCollectionNames):
         DAVCollection.__init__(self, provider, path, environ)
         self._subCollectionNames = subCollectionNames
-    def getDisplayType(self):
-        return "Category"
+    def getDirectoryInfo(self):
+        return {"type": "Category"}
     def _getMemberList(self):
         """Return a list of direct members (DAVResource/DAVCollection objects).
 
@@ -229,8 +229,8 @@ class VirtualResource(DAVCollection):
             self._memberList.append(VirtualResFile(provider, util.joinUri(path, name), environ, 
                                                    data, f))
 
-    def getDisplayType(self):
-        return "Resource folder"
+    def getDirectoryInfo(self):
+        return {"type": "Resource folder"}
     
     def handleDelete(self):
         """Change semantic of DELETE to remove resource tags."""
@@ -362,7 +362,7 @@ class _VirtualNonCollection(DAVResource):
         return None
     def getDisplayName(self):
         return self.name
-    def getDisplayType(self):
+    def getDirectoryInfo(self):
         raise NotImplementedError()
     def getEtag(self):
         return None
@@ -395,8 +395,8 @@ class VirtualArtifact(_VirtualNonCollection):
         if self.name.endswith(".txt"):
             return "text/plain"
         return "text/html"
-    def getDisplayType(self):
-        return "Virtual info file"
+    def getDirectoryInfo(self):
+        return {"type": "Virtual info file"}
     def preventLocking(self):
         return True
 
@@ -480,8 +480,8 @@ class VirtualResFile(_VirtualNonCollection):
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      
-    def getDisplayType(self):
-        return "Content file"
+    def getDirectoryInfo(self):
+        return {"type": "Content file"}
     def getLastModified(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_MTIME]      

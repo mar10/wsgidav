@@ -138,7 +138,7 @@ class WsgiDavDirBrowser(object):
         for res in childList:
             infoDict = {"url": res.getHref(),
                         "displayName": res.getDisplayName(),
-                        "displayType": res.getDisplayType(),
+                        "displayType": res.getDirectoryInfo().get("type"),
                         "strModified": "",
                         "strSize": "",
                         }
