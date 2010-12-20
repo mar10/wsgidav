@@ -117,6 +117,9 @@ def _checkConfig(config):
 
 
 
+#===============================================================================
+# WsgiDAVApp
+#===============================================================================
 class WsgiDAVApp(object):
 
     def __init__(self, config):
@@ -172,7 +175,7 @@ class WsgiDAVApp(object):
             # Make sure share starts with, or is, '/' 
             share = "/" + share.strip("/")
 
-            # We allow a simple string a 'provider'. In this case we interpret 
+            # We allow a simple string as 'provider'. In this case we interpret 
             # it as a file system root folder that is published. 
             if isinstance(provider, basestring):
                 provider = FilesystemProvider(provider)
@@ -338,10 +341,10 @@ class WsgiDAVApp(object):
             
             # Log request
             if self._verbose >= 1:
-                threadInfo = ""
                 userInfo = environ.get("http_authenticator.username")
                 if not userInfo:
                     userInfo = "(anonymous)"
+                threadInfo = ""
                 if self._verbose >= 1:
                     threadInfo = "<%s> " % threading._get_ident()
                 extra = []

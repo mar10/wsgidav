@@ -538,7 +538,7 @@ class RequestServer(object):
                                               depth=environ["HTTP_DEPTH"], 
                                               addSelf=True)
 
-        if res.supportRecursiveDelete():
+        if res.isCollection and res.supportRecursiveDelete():
             hasConflicts = False
             for childRes in reverseChildList:
                 try:
@@ -1394,6 +1394,7 @@ class RequestServer(object):
         else:
             start_response("200 OK", responseHeaders)
 
+        # Return empty body for HEAD requests
         if isHeadMethod:
             yield ""
             return

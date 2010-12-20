@@ -95,7 +95,7 @@ class WsgiDavDirBrowser(object):
         
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
         displaypath = urllib.unquote(davres.getHref())
-        trailer = environ.get("wsgidav.config", {}).get("dir_browser", {}).get("response_trailer")
+        trailer = dirConfig.get("response_trailer")
         
         html = []
         html.append("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>");
@@ -115,7 +115,9 @@ class WsgiDavDirBrowser(object):
     A {behavior: url(#default#AnchorClick);}
 </style>""")        
         html.append("</head><body>")
+        # Header
         html.append("<h1>%s</h1>" % displaypath)
+        # Add DAV-Mount link and Web-Folder link
         links = []
         if dirConfig.get("davmount"):
             links.append("<a title='Open this folder in a WebDAV client.' href='%s?davmount'>Mount</a>" % util.makeCompleteUrl(environ))
@@ -126,6 +128,7 @@ class WsgiDavDirBrowser(object):
             html.append("<p>%s</p>" % " - ".join(links))
 
         html.append("<hr>")
+        # Listing
         html.append("<table>")
 
         if davres.path in ("", "/"):
@@ -134,21 +137,39 @@ class WsgiDavDirBrowser(object):
             parentUrl = util.getUriParent(davres.getHref())
             html.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
 
-        childList = davres.getDescendants(depth="1", addSelf=False)
-        for res in childList:
-            infoDict = {"url": res.getHref(),
-                        "displayName": res.getDisplayName(),
-                        "displayType": res.getDirectoryInfo().get("type"),
-                        "strModified": "",
-                        "strSize": "",
-                        }
-            if res.getLastModified() is not None:
-                infoDict["strModified"] = util.getRfc1123Time(res.getLastModified())
-            if res.getContentLength() is not None and not res.isCollection:
-                infoDict["strSize"] = util.byteNumberString(res.getContentLength())
- 
+        # Ask collection for member info list
+        dirInfoList = davres.getDirectoryInfo()
+
+        if dirInfoList is None:
+            # No pre-build info: traverse members
+            dirInfoList = []
+            childList = davres.getDescendants(depth="1", addSelf=False)
+            for res in childList:
+                di = res.getDisplayInfo()
+                infoDict = {"href": res.getHref(),
+                            "displayName": res.getDisplayName(),
+                            "lastModified": res.getLastModified(),
+                            "isCollection": res.isCollection,
+                            "contentLength": res.getContentLength(),
+                            "displayType": di.get("type")
+                            }
+                dirInfoList.append(infoDict)
+        # 
+        for infoDict in dirInfoList:
+            lastModified = infoDict.get("lastModified")
+            if lastModified is None:
+                infoDict["strModified"] = ""
+            else:
+                infoDict["strModified"] = util.getRfc1123Time(lastModified)
+            
+            infoDict["strSize"] = ""
+            if not infoDict.get("isCollection"):
+                contentLength = infoDict.get("contentLength")
+                if contentLength is not None:
+                    infoDict["strSize"] = util.byteNumberString(contentLength)
+
             html.append("""\
-            <tr><td><a href="%(url)s">%(displayName)s</a></td>
+            <tr><td><a href="%(href)s">%(displayName)s</a></td>
             <td>%(displayType)s</td>
             <td class='right'>%(strSize)s</td>
             <td class='right'>%(strModified)s</td></tr>""" % infoDict)

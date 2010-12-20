@@ -2,12 +2,24 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Implements DAVResource and DAVProvider objects.
+Abstract base class for DAV resource providers.
 
-**DAVResource**
+This module serves these purposes:
+
+  1. Documentation of the DAVProvider interface
+  2. Common base class for all DAV providers
+  3. Default implementation for most functionality that a resource provider must
+     deliver.
+
+If no default implementation can be provided, then all write actions generate
+FORBIDDEN errors. Read requests generate NOT_IMPLEMENTED errors.
+ 
+
+**_DAVResource, DAVCollection, DAVNonCollection**
 
 Represents an existing (i.e. mapped) WebDAV resource or collection.
-A DAVResource object is created by a call to the DAVProvider.
+
+A _DAVResource object is created by a call to the DAVProvider.
 
 The resource may then be used to query different attributes like ``res.name``,
 ``res.isCollection``, ``res.getContentLength()``, and ``res.supportEtag()``. 
@@ -22,6 +34,7 @@ Usage::
         print res.getName()
 
 
+
 **DAVProvider**
 
 A DAV provider represents a shared WebDAV system.
@@ -33,22 +46,10 @@ can be accessed like this::
 
     provider = environ["wsgidav.provider"]
 
-The main purpose of the provider is to create DAVResource objects for URLs.
+The main purpose of the provider is to create _DAVResource objects for URLs::
 
+    res = provider.getResourceInst(path, environ)
 
-
-Abstract base class for DAV resource providers.
-
-This module serves these purposes:
-
-  1. Documentation of the DAVProvider interface
-  2. Common base class for all DAV providers
-  3. Default implementation for most functionality that a resource provider must
-     deliver.
-
-If no default implementation can be provided, then all write actions generate
-FORBIDDEN errors. Read requests generate NOT_IMPLEMENTED errors.
- 
 
 **Supporting Objects**
 The DAVProvider takes two supporting objects:   
@@ -83,6 +84,7 @@ from datetime import datetime
 from wsgidav import util, xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
 from util import etree #@UnusedImport
+import os
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
 from dav_error import DAVError, \
@@ -106,22 +108,30 @@ _standardLivePropNames = ["{DAV:}creationdate",
 _lockPropertyNames = ["{DAV:}lockdiscovery", 
                       "{DAV:}supportedlock"]
 
-DAVHRES_Continue = "continue"
-DAVHRES_Done = "done"
+#DAVHRES_Continue = "continue"
+#DAVHRES_Done = "done"
 
 #===============================================================================
-# DAVResource 
+# _DAVResource 
 #===============================================================================
-class DAVResource(object):
+class _DAVResource(object):
     """Represents a single existing DAV resource instance.
 
+    A resource may be a collection (aka 'folder') or a non-collection (aka 
+    'file').
+    _DAVResource is the common base class for the specialized classes::
+    
+        _DAVResource
+          +- DAVCollection
+          \- DAVNonCollection
+    
     Instances of this class are created through the DAVProvider::
         
         res = provider.getResourceInst(path, environ)
         if res and res.isCollection:
             print res.getDisplayName()
             
-    In the example above res will be ``None``, if the path cannot be mapped to
+    In the example above, res will be ``None``, if the path cannot be mapped to
     an existing resource.
     The following attributes and methods are considered 'cheap':: 
     
@@ -149,47 +159,42 @@ class DAVResource(object):
     These functions return ``None``, if the property is not available, or
     not supported.   
     
-    Note, that custom DAVProviders may choose different implementations and
-    return custom DAVResource objects, that do not use ``self._init()`` to
-    cache properties. Only make sure, that your DAVResource object implements 
-    the getters.  
-
     See also DAVProvider.getResourceInst().
     """
-#    def __init__(self, provider, path, isCollection, environ):
+
     def __init__(self, path, isCollection, environ):
         assert path=="" or path.startswith("/")
-#        self.provider = provider
         self.provider = environ["wsgidav.provider"]
         self.path = path
         self.isCollection = isCollection
         self.environ = environ
         self.name = util.getUriName(self.path)
     
-    
     def __repr__(self):
-#        d = getattr(self, "_customLiveProps", None)
-        return "%s(%s): %s" % (self.__class__.__name__, self.isCollection, self.path)
+        return "%s(%r)" % (self.__class__.__name__, self.path)
 
-
-    def getContentLanguage(self):
-        """Contains the Content-Language header returned by a GET without accept 
-        headers.
-        
-        The getcontentlanguage property MUST be defined on any DAV compliant 
-        resource that returns the Content-Language header on a GET.
-        """
-        return None
+#    def getContentLanguage(self):
+#        """Contains the Content-Language header returned by a GET without accept 
+#        headers.
+#        
+#        The getcontentlanguage property MUST be defined on any DAV compliant 
+#        resource that returns the Content-Language header on a GET.
+#        """
+#        raise NotImplementedError()
+    
     def getContentLength(self):
         """Contains the Content-Length header returned by a GET without accept 
         headers.
         
         The getcontentlength property MUST be defined on any DAV compliant 
         resource that returns the Content-Length header in response to a GET.
+        
+        This method MUST be implemented by non-collections only.
         """
         if self.isCollection:
             return None
         raise NotImplementedError()
+    
     def getContentType(self):
         """Contains the Content-Type header returned by a GET without accept 
         headers.
@@ -197,18 +202,36 @@ class DAVResource(object):
         This getcontenttype property MUST be defined on any DAV compliant 
         resource that returns the Content-Type header in response to a GET.
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getcontenttype
+
+        This method MUST be implemented by non-collections only.
         """
         if self.isCollection:
             return None
         raise NotImplementedError()
+    
     def getCreationDate(self):
         """Records the time and date the resource was created.
         
         The creationdate property should be defined on all DAV compliant 
         resources. If present, it contains a timestamp of the moment when the 
         resource was created (i.e., the moment it had non-null state).
+
+        This method SHOULD be implemented, especially by non-collections.
         """
         return None
+    
+    def getDirectoryInfo(self):
+        """Return a list of dictionaries with information for directory 
+        rendering.
+        
+        This default implementation return None, so the dir browser will
+        traverse all members. 
+
+        This method COULD be implemented for collection resources.
+        """
+        assert self.isCollection
+        return None
+    
     def getDisplayName(self):
         """Provides a name for the resource that is suitable for presentation to 
         a user.
@@ -217,13 +240,33 @@ class DAVResource(object):
         resources. If present, the property contains a description of the 
         resource that is suitable for presentation to a user.
         
+        This default implementation returns `name`, which is the last path
+        segment.
         """
         return self.name
+    
+    def getDisplayInfo(self):
+        """Return additional info dictionary for displaying (optional).
+        
+        This information is not part of the DAV specification, but meant for use 
+        by the dir browser middleware.
+        
+        This default implementation returns ``{'type': '...'}``
+        """
+        if self.isCollection:
+            return { "type": "Directory" }
+        elif os.extsep in self.name:
+            return { "type": "%s-File" % self.name.split(os.extsep)[-1].upper() }
+        return { "type": "File"  }
+        
     def getEtag(self):
         """
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getetag
+
+        This method SHOULD be implemented, especially by non-collections.
         """
         return None
+
     def getLastModified(self):
         """Contains the Last-Modified header returned by a GET method without 
         accept headers.
@@ -236,26 +279,37 @@ class DAVResource(object):
         cause the last-modified date to change. The getlastmodified property 
         MUST be defined on any DAV compliant resource that returns the 
         Last-Modified header in response to a GET.
+
+        This method SHOULD be implemented, especially by non-collections.
         """
         return None
-    
-    def getDirectoryInfo(self):
-        if self.isCollection:
-            return {"type": "Collection"}
-        return {"type": "Non-Collection"}
     
     def supportRanges(self):
         """Return True, if this non-resource supports Range on GET requests.
 
-        This method is only called for non-collections.
+        This method MUST be implemented by non-collections only.
         """
         raise NotImplementedError()
 
     def supportContentLength(self):
+        """Return True, if this resource supports Content-Length.
+        
+        This default implementation checks `self.getContentLength() is None`.
+        """
         return self.getContentLength() is not None
+ 
     def supportEtag(self):
+        """Return True, if this resource supports ETags.
+        
+        This default implementation checks `self.getEtag() is None`.
+        """
         return self.getEtag() is not None
+    
     def supportModified(self):
+        """Return True, if this resource supports last modified dates.
+        
+        This default implementation checks `self.getLastModified() is None`.
+        """
         return self.getLastModified() is not None
     
     def getPreferredPath(self):
@@ -280,7 +334,6 @@ class DAVResource(object):
         #     on windows we could use path.lower() or get the real case from the file system
         return self.path
 
-    
     def getRefUrl(self):
         """Return the quoted, absolute, unique URL of a resource, relative to appRoot.
         
@@ -301,7 +354,6 @@ class DAVResource(object):
         """
         return urllib.quote(self.provider.sharePath + self.getPreferredPath())
 
-    
 #    def getRefKey(self):
 #        """Return an unambigous identifier string for a resource.
 #        
@@ -316,7 +368,6 @@ class DAVResource(object):
 #            return refKey
 #        return refKey.rstrip("/")
 
-    
     def getHref(self):
         """Convert path to a URL that can be passed to XML responses.
         
@@ -334,7 +385,7 @@ class DAVResource(object):
 
 
 #    def getParent(self):
-#        """Return parent DAVResource or None.
+#        """Return parent _DAVResource or None.
 #        
 #        There is NO checking, if the parent is really a mapped collection.
 #        """
@@ -345,35 +396,34 @@ class DAVResource(object):
 
 
     def getMemberList(self):
-        """Return a list of direct members (DAVResource/DAVCollection objects).
+        """Return a list of direct members (_DAVResource or derived objects).
 
-        Every provider MUST provide this method, at least for collection 
-        resources.
-        This can be done by overriding this method.
-        Another way would be to derive collections from DAVCollection 
-        and override DAVCollection._getMemberList() (note the leading 
-        underscore).
+        This default implementation calls self.getMemberNames() and 
+        self.getMember() for each of them.
+        A provider COULD overwrite this for performance reasons.
         """
-        raise NotImplementedError()
+        if not self.isCollection:
+            raise NotImplementedError()
+        res = [ self.getMember(name) for name in self.getMemberNames() ]
+        return res
 
 
     def getMemberNames(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
         
-        This default implementation for all DAVCollections calls getMemberList()
-        to query the names.
+        Every provider MUST provide this method for collection resources.
         """
-        members = self.getMemberList()
-        names = [ m.name for m in members ]
-        return names
+        raise NotImplementedError()
 
     
     def getDescendants(self, collections=True, resources=True, 
                        depthFirst=False, depth="infinity", addSelf=False):
-        """Return a list DAVResource objects of a collection (children, grand-children, ...).
+        """Return a list _DAVResource objects of a collection (children, 
+        grand-children, ...).
 
-        This default implementation calls getMemberNames() and 
-        provider.getResourceInst() recursively.
+        This default implementation calls self.getMemberList() recursively.
+        
+        This function may also be called for non-collections (with addSelf=True).
         
         :Parameters:
             depthFirst : bool
@@ -390,6 +440,8 @@ class DAVResource(object):
             res.append(self)
         if depth != "0" and self.isCollection:
             for child in self.getMemberList():
+                if not child:
+                    _ = self.getMemberList()
                 want = (collections and child.isCollection) or (resources and not child.isCollection)
                 if want and not depthFirst: 
                     res.append(child)
@@ -564,6 +616,7 @@ class DAVResource(object):
 #                lockRoot = self.getHref(self.provider.refUrlToPath(lock["root"]))
                 lockPath = self.provider.refUrlToPath(lock["root"])
                 lockRes = self.provider.getResourceInst(lockPath, self.environ)
+                # FIXME: test for None
                 lockHref = lockRes.getHref()
 #                print "lockedRoot: %s -> href=%s" % (lockPath, lockHref)
 
@@ -615,7 +668,7 @@ class DAVResource(object):
             elif propname == "{DAV:}displayname" and self.getDisplayName() is not None:
                 return self.getDisplayName()
     
-            # Unsupported No persistence available, or property not found
+            # Unsupported, no persistence available, or property not found
             raise DAVError(HTTP_NOT_FOUND)               
         
         # Dead property
@@ -694,13 +747,11 @@ class DAVResource(object):
         """
         return False               
 
-    
     def isLocked(self):
         """Return True, if URI is locked."""
         if self.provider.lockManager is None:
             return False
         return self.provider.lockManager.isUrlLocked(self.getRefUrl())
-
 
     def removeAllLocks(self, recursive):
         if self.provider.lockManager:
@@ -816,17 +867,20 @@ class DAVResource(object):
         """
         return False               
 
-    
     def supportRecursiveDelete(self):
         """Return True, if delete() may be called on non-empty collections 
-        (see comments there)."""
-        return False
+        (see comments there).
+        
+        This method MUST be implemented for collections (not called on 
+        non-collections).
+        """
+        assert self.isCollection
+        raise NotImplementedError()
 
-    
     def delete(self):
         """Remove this resource (recursive).
         
-        Preconditions (to be ensured by caller):
+        Preconditions (ensured by caller):
         
           - there are no conflicting locks or If-headers
           - if supportRecursiveDelete() is False, and this is a collection,
@@ -852,8 +906,7 @@ class DAVResource(object):
         This method MUST be implemented by all providers that support write 
         access.
         """
-        raise DAVError(HTTP_FORBIDDEN)               
-
+        raise NotImplementedError()
     
     def handleCopy(self, destPath, depthInfinity):
         """Handle a COPY request natively.
@@ -890,13 +943,12 @@ class DAVResource(object):
          
         Implementation of this method is OPTIONAL.
         """
-        return False               
-
+        return False
     
     def copyMoveSingle(self, destPath, isMove):
         """Copy or move this resource to destPath (non-recursive).
         
-        Preconditions (to be ensured by caller):
+        Preconditions (ensured by caller):
         
           - there must not be any conflicting locks on destination
           - overwriting is only allowed (i.e. destPath exists), when source and 
@@ -908,12 +960,12 @@ class DAVResource(object):
         
           - Overwrites non-collections content, if destination exists.
           - MUST NOT copy collection members.
-          - MUST NOT copy locks
+          - MUST NOT copy locks.
           - SHOULD copy live properties, when appropriate.
             E.g. displayname should be copied, but creationdate should be
             reset if the target did not exist before.
             See http://www.webdav.org/specs/rfc4918.html#dav.properties
-          - SHOULD copy dead properties
+          - SHOULD copy dead properties.
           - raises HTTP_FORBIDDEN for read-only providers
           - raises HTTP_INTERNAL_ERROR on error
 
@@ -924,14 +976,12 @@ class DAVResource(object):
           - For collections, this function behaves like in copy-mode: 
             detination collection must be created and properties are copied.
             Members are NOT created.
-            The source collection MUST NOT be removed
+            The source collection MUST NOT be removed.
         
         This method MUST be implemented by all providers that support write 
         access.
         """
-        raise DAVError(HTTP_FORBIDDEN)               
-
-
+        raise NotImplementedError()
 
     def handleMove(self, destPath):
         """Handle a MOVE request natively.
@@ -944,7 +994,8 @@ class DAVResource(object):
         
         False:
             handleMove() did not do anything. WsgiDAV will process the request
-            by calling delete() and copyMoveSingle() for every resource, bottom-up.
+            by calling delete() and copyMoveSingle() for every resource, 
+            bottom-up.
         True:
             handleMove() has successfully performed the MOVE request.
             HTTP_NO_CONTENT/HTTP_CREATED will be reported to the DAV client.
@@ -968,13 +1019,12 @@ class DAVResource(object):
          
         Implementation of this method is OPTIONAL.
         """
-        return False               
-
+        return False
     
     def supportRecursiveMove(self, destPath):
         """Return True, if moveRecursive() is available (see comments there)."""
-        return False
-
+        assert self.isCollection
+        raise NotImplementedError()
     
     def moveRecursive(self, destPath):
         """Move this resource and members to destPath.
@@ -986,7 +1036,7 @@ class DAVResource(object):
         that are set at resource creation. For example, the DAV:creationdate 
         property value SHOULD remain the same after a MOVE.
 
-        Preconditions (to be ensured by caller):
+        Preconditions (ensured by caller):
         
           - there must not be any conflicting locks or If-header on source
           - there must not be any conflicting locks or If-header on destination
@@ -1021,124 +1071,254 @@ class DAVResource(object):
         """
         raise DAVError(HTTP_FORBIDDEN)               
 
+    def resolve(self, scriptName, pathInfo):
+        """Return a _DAVResource object for the path (None, if not found).
+        
+        `pathInfo`: is a URL relative to this object.
+        """
+#        if pathInfo in ("", "/"):
+#            return self
+#        elif not self.isCollection:
+##            raise DAVError(HTTP_NOT_FOUND, "Cannot resolve member of Non-Collection")
+#            return None
+#        assert pathInfo.startswith("/")
+#        name, rest = util.popPath(pathInfo)
+#        res = self.getMember(name)
+#        if res is None or rest in ("", "/"):
+#            return res
+##        assert res.isCollection, "resolve(%r, %r): rest: %r" % (scriptName, pathInfo, rest)
+#        return res.resolve(util.joinUri(scriptName, name), rest)
+        raise NotImplementedError()
+    
 
 #===============================================================================
 # DAVCollection
 #===============================================================================
-class DAVCollection(DAVResource):
+class DAVNonCollection(_DAVResource):
     """
-    A DAVCollection is a DAVResource, that has additional methods for 
-    addressing member resources.
+    A DAVNonCollection is a _DAVResource, that has content (like a 'file' on
+    a filesystem).
+
+    A DAVNonCollecion is able to read and write file content.
     
+    See also _DAVResource
+    """
+    def __init__(self, path, environ):
+        _DAVResource.__init__(self, path, False, environ)
+
+    def getContentLength(self):
+        """Returns the byte length of the content.
+        
+        MUST be implemented.
+        
+        See also _DAVResource.getContentLength()
+        """
+        raise NotImplementedError()
+
+    def getContentType(self):
+        """Contains the Content-Type header returned by a GET without accept 
+        headers.
+        
+        This getcontenttype property MUST be defined on any DAV compliant 
+        resource that returns the Content-Type header in response to a GET.
+        See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getcontenttype
+        """
+        raise NotImplementedError()
+    
+    def getContent(self):
+        """Open content as a stream for reading.
+
+        Returns a file-like object / stream containing the contents of the
+        resource specified.
+        The application will close() the stream.      
+         
+        This method MUST be implemented by all providers.
+        """
+        raise NotImplementedError()
+
+    def supportRanges(self):
+        """Return True, if this non-resource supports Range on GET requests.
+
+        This default implementation returns False.
+        """
+        return False
+
+    def beginWrite(self, contentType=None):
+        """Open content as a stream for writing.
+         
+        This method MUST be implemented by all providers that support write 
+        access.
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
+    
+    def endWrite(self, withErrors):
+        """Called when PUT has finished writing.
+         
+        This is only a notification that MAY be handled.
+        """
+        pass               
+
+    def resolve(self, scriptName, pathInfo):
+        """Return a _DAVResource object for the path (None, if not found).
+        
+        Since non-collection don't have members, we return None if path is not
+        empty.
+        """
+        if pathInfo in ("", "/"):
+            return self
+        return None
+    
+
+#===============================================================================
+# DAVCollection
+#===============================================================================
+class DAVCollection(_DAVResource):
+    """
+    A DAVCollection is a _DAVResource, that has members (like a 'folder' on
+    a filesystem).
+
     A DAVCollecion 'knows' its members, and how to obtain them from the backend 
     storage.
     There is also optional built-in support for member caching.
-    
-    DAVCollection is only a convenience class. It is also possible to implement
-    custom providers by only using  DAVResource objects and set the 
-    ``res.isCollection`` attribute accordingly.
+
+    See also _DAVResource
     """
     def __init__(self, path, environ):
-        DAVResource.__init__(self, path, True, environ)
+        _DAVResource.__init__(self, path, True, environ)
 
-        # TODO: DAVResource should not have isInstance as argument to the constructor
-        
         # Allow caching of members
-        self.memberCache = {"enabled": False,
-                            "expire": 10,  # Purge, if not used for n seconds
-                            "maxAge": 60,  # Force purge, if older than n seconds
-                            "created": None,
-                            "lastUsed": None,
-                            "members": None, 
-                            }
+#        self.memberCache = {"enabled": False,
+#                            "expire": 10,  # Purge, if not used for n seconds
+#                            "maxAge": 60,  # Force purge, if older than n seconds
+#                            "created": None,
+#                            "lastUsed": None,
+#                            "members": None, 
+#                            }
 
-    def _cacheSet(self, members):
-        if self.memberCache["enabled"]:
-            if not members:
-                # We cannot cache None, because _cacheGet() == None means 'not in cache'
-                members = []
-            self.memberCache["created"] = self.memberCache["lastUsed"] = datetime.now()
-            self.memberCache["members"] = members
+#    def _cacheSet(self, members):
+#        if self.memberCache["enabled"]:
+#            if not members:
+#                # We cannot cache None, because _cacheGet() == None means 'not in cache'
+#                members = []
+#            self.memberCache["created"] = self.memberCache["lastUsed"] = datetime.now()
+#            self.memberCache["members"] = members
+#    
+#    def _cacheGet(self):
+#        if not self.memberCache["enabled"]:
+#            return None
+#        now = datetime.now() 
+#        if (now - self.memberCache["lastUsed"]) > self.memberCache["expire"]:
+#            return None  
+#        elif (now - self.memberCache["created"]) > self.memberCache["maxAge"]:
+#            return None  
+#        self.memberCache["lastUsed"] = datetime.now()
+#        return self.memberCache["members"]
+#
+#    def _cachePurge(self):
+#        self.memberCache["created"] = self.memberCache["lastUsed"] = self.memberCache["members"] = None
     
-    def _cacheGet(self):
-        if not self.memberCache["enabled"]:
-            return None
-        now = datetime.now() 
-        if (now - self.memberCache["lastUsed"]) > self.memberCache["expire"]:
-            return None  
-        elif (now - self.memberCache["created"]) > self.memberCache["maxAge"]:
-            return None  
-        self.memberCache["lastUsed"] = datetime.now()
-        return self.memberCache["members"]
+#    def getContentLanguage(self):
+#        return None
 
-    def _cachePurge(self):
-        self.memberCache["created"] = self.memberCache["lastUsed"] = self.memberCache["members"] = None
+    def getContentLength(self):
+        return None
     
-    def _getMember(self, name):
-        """Return child resource with a given name (None, if not found).
+    def getContentType(self):
+        return None
+
+    def createEmptyResource(self, name):
+        """Create and return an empty (length-0) resource as member of self.
         
-        This method COULD be overridden by a derived class, for performance 
-        reasons.
-        If not implemented, _getMemberList() is called instead, and searched 
-        for the name. 
+        Called for LOCK requests on unmapped URLs.
+        
+        Preconditions (to be ensured by caller):
+        
+          - this must be a collection
+          - <self.path + name> must not exist  
+          - there must be no conflicting locks
+
+        Returns a DAVResuource.
+        
+        This method MUST be implemented by all providers that support write 
+        access.
+        This default implementation simply raises HTTP_FORBIDDEN.
         """
-        raise NotImplementedError
+        raise DAVError(HTTP_FORBIDDEN)               
+    
+    def createCollection(self, name):
+        """Create a new collection as member of self.
+        
+        Preconditions (to be ensured by caller):
+        
+          - this must be a collection
+          - <self.path + name> must not exist  
+          - there must be no conflicting locks
+
+        This method MUST be implemented by all providers that support write 
+        access.
+        This default implementation raises HTTP_FORBIDDEN.
+        """
+        assert self.isCollection
+        raise DAVError(HTTP_FORBIDDEN)               
 
     def getMember(self, name):
         """Return child resource with a given name (None, if not found).
         
-        This method implements caching and calls _getMember().
-        If _getMember() is not implemented, _getMemberList() is used instead
-        (slower).
+        This method COULD be overridden by a derived class, for performance 
+        reasons.
+        This default implementation calls self.provider.getResourceInst().
         """
-        if self.memberCache["enabled"]:
-            # TODO: if caching is enabled, we should always use _getMemberList()
-            # even if _getMemberName is implemented?
-            raise NotImplementedError
-        res = None
-        try:
-            # Implementation of _getMember is optional 
-            res = self._getMember(name)
-        except NotImplementedError:
-            members = self.getMemberList()
-            for m in members:
-                if m.name == name:
-                    return m
-        return res
+        assert self.isCollection
+        return self.provider.getResourceInst(util.joinUri(self.path, name), 
+                                             self.environ)
 
-    def _getMemberList(self):
-        """Return a list of direct members (DAVResource/DAVCollection objects).
-
-        Return an empty list, if no members are available.
+    def getMemberNames(self):
+        """Return list of (direct) collection member names (UTF-8 byte strings).
         
         This method MUST be implemented.
         """
-        raise NotImplementedError
+        assert self.isCollection
+        raise NotImplementedError()
     
-    def getMemberList(self):
-        """Return a list of direct members (DAVResource/DAVCollection objects).
-
-        This method implements caching and calls _getMemberList().
-        """
-        members = self._cacheGet()
-        if members is None:
-            members = self._getMemberList()
-            self._cacheSet(members)
-        return members
-
-    def getMemberNames(self):
-        """@see DAVResource.getMemberNames().
+    def supportRecursiveDelete(self):
+        """Return True, if delete() may be called on non-empty collections 
+        (see comments there).
         
-        This default implementation for all DAVCollections calls getMemberList()
-        to query the names.
+        This default implementation returns False.
         """
-        # getMemberList returns a list of child DAVResource objects.
-        members = self.getMemberList()
-        names = [ m.name for m in members ]
-        return names
+        return False
+    
+    def delete(self):
+        """Remove this resource (possibly recursive).
+                
+        This method MUST be implemented if resource allows write access.
+        
+        See _DAVResource.delete()
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
+
+    def copyMoveSingle(self, destPath, isMove):
+        """Copy or move this resource to destPath (non-recursive).
+
+        This method MUST be implemented if resource allows write access.
+
+        See _DAVResource.copyMoveSingle()
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
+
+    def supportRecursiveMove(self, destPath):
+        """Return True, if moveRecursive() is available (see comments there)."""
+        return False
+    
+    def moveRecursive(self, destPath):
+        """Move this resource and members to destPath.
+        
+        This method MAY be implemented in order to improve performance.
+        """
+        raise DAVError(HTTP_FORBIDDEN)               
 
     def resolve(self, scriptName, pathInfo):
-        """Return a DAVResource object for the path (None, if not found).
+        """Return a _DAVResource object for the path (None, if not found).
         
         `pathInfo`: is a URL relative to this object.
         """
@@ -1147,12 +1327,10 @@ class DAVCollection(DAVResource):
         assert pathInfo.startswith("/")
         name, rest = util.popPath(pathInfo)
         res = self.getMember(name)
-        if not res or rest in ("", "/"):
+        if res is None or rest in ("", "/"):
             return res
-        assert res.isCollection, "resolve(%r, %r): rest: %r" % (scriptName, pathInfo, rest)
         return res.resolve(util.joinUri(scriptName, name), rest)
     
-
 #===============================================================================
 # DAVProvider
 #===============================================================================
@@ -1173,10 +1351,8 @@ class DAVProvider(object):
         self._count_getResourceInstInit = 0
 #        self.caseSensitiveUrls = True
 
-    
     def __repr__(self):
         return self.__class__.__name__
-
 
     def setMountPath(self, mountPath):
         """Set application root for this resource provider.
@@ -1185,7 +1361,6 @@ class DAVProvider(object):
         """
         assert mountPath in ("", "/") or not mountPath.endswith("/")
         self.mountPath = mountPath
-
     
     def setSharePath(self, sharePath):
         """Set application location for this resource provider.
@@ -1200,19 +1375,14 @@ class DAVProvider(object):
         assert sharePath in ("", "/") or not sharePath.endswith("/")
         self.sharePath = sharePath
         
-
     def setLockManager(self, lockManager):
         assert not lockManager or hasattr(lockManager, "checkWritePermission"), "Must be compatible with wsgidav.lock_manager.LockManager"
-#        assert isinstance(lockManager, LockManager)
         self.lockManager = lockManager
-
 
     def setPropManager(self, propManager):
         assert not propManager or hasattr(propManager, "copyProperties"), "Must be compatible with wsgidav.property_manager.PropertyManager"
-#        assert isinstance(lockManager, PropManager)
         self.propManager = propManager
 
-        
     def refUrlToPath(self, refUrl):
         """Convert a refUrl to a path, by stripping the share prefix.
         
@@ -1220,9 +1390,8 @@ class DAVProvider(object):
         """
         return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
-
     def getResourceInst(self, path, environ):
-        """Return a DAVResource object for path.
+        """Return a _DAVResource object for path.
 
         Should be called only once per request and resource::
             
@@ -1233,29 +1402,27 @@ class DAVProvider(object):
         If <path> does not exist, None is returned.
         <environ> may be used by the provider to implement per-request caching.
         
-        See DAVResource for details.
+        See _DAVResource for details.
 
         This method MUST be implemented.
         """
         raise NotImplementedError()
 
-
     def exists(self, path, environ):
         """Return True, if path maps to an existing resource.
 
         This method should only be used, if no other information is queried
-        for <path>. Otherwise a DAVResource should be created first.
+        for <path>. Otherwise a _DAVResource should be created first.
         
         This method SHOULD be overridden by a more efficient implementation.
         """
         return self.getResourceInst(path, environ) is not None
 
-
     def isCollection(self, path, environ):
-        """Return True, if path maps to a collection resource.
+        """Return True, if path maps to an existing collection resource.
 
         This method should only be used, if no other information is queried
-        for <path>. Otherwise a DAVResource should be created first.
+        for <path>. Otherwise a _DAVResource should be created first.
         """
         res = self.getResourceInst(path, environ)
         return res and res.isCollection

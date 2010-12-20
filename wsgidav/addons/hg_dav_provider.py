@@ -74,6 +74,7 @@ Requirements:
 from pprint import pprint
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 import os
+from wsgidav.samples.dav_provider_tools import VirtualCollection
 try:
     from hashlib import md5
 except ImportError:
@@ -86,7 +87,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO #@UnusedImport
-from wsgidav.dav_provider import DAVProvider, DAVResource
+from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 
 try:
@@ -106,27 +107,11 @@ BUFFER_SIZE = 8192
 
 
 #===============================================================================
-# VirtualCollection
-#===============================================================================
-class VirtualCollection(DAVResource):
-    """Collection resource, that contains a list of member names."""
-    def __init__(self, path, environ, memberNames):
-        DAVResource.__init__(self, provider, path, True, environ)
-        self._memberNames = memberNames
-    def getDirectoryInfo(self):
-        return {"type": "Virtual Collection"}
-    def getMemberNames(self):
-        return self._memberNames
-
-
-
-
-#===============================================================================
 # HgResource
 #===============================================================================
-class HgResource(DAVResource):
+class HgResource(_DAVResource):
     """Abstract base class for all resources."""
-    def __init__(self, provider, path, isCollection, environ, rev, localHgPath):
+    def __init__(self, path, isCollection, environ, rev, localHgPath):
         super(HgResource, self).__init__(path, isCollection, environ)
         self.rev = rev
         self.localHgPath = localHgPath 
@@ -146,13 +131,11 @@ class HgResource(DAVResource):
 #        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (self.path, self.rev, self.localHgPath, self.fctx))
 #        util.status("HgResource: name=%s, dn=%s, abspath=%s" % (self.name, self.getDisplayName(), self.absFilePath))
 
-
     def _getFilePath(self, *addParts):
         parts = self.localHgPath.split("/")
         if addParts:
             parts.extend(addParts)
         return os.path.join(self.provider.repo.root, *parts)
-
 
     def _commit(self, message):
         user = self.environ.get("http_authenticator.username") or "Anonymous"
@@ -162,18 +145,17 @@ class HgResource(DAVResource):
                         user=user,
                         message=message)
 
-    
     def _checkWriteAccess(self):
         """Raise HTTP_FORBIDDEN, if resource is unwritable."""
         if self.rev is not None:
             # Only working directory may be edited 
             raise DAVError(HTTP_FORBIDDEN)
 
-    
     def getContentLength(self):
         if self.isCollection:
             return None
         return self.fctx.size()
+
     def getContentType(self):
         if self.isCollection:
             return None
@@ -181,29 +163,29 @@ class HgResource(DAVResource):
         if not mimetype:
             return "application/octet-stream" 
         return mimetype
+    
     def getCreationDate(self):
 #        statresults = os.stat(self._filePath)
 #        return statresults[stat.ST_CTIME]
         return None # TODO
+    
     def getDisplayName(self):
         if self.isCollection or self.fctx.filerev() is None:
             return self.name
         return "%s@%s" % (self.name, self.fctx.filerev())
+    
     def getEtag(self):
         return md5(self.path).hexdigest() + "-" + str(self.getLastModified()) + "-" + str(self.getContentLength())
+    
     def getLastModified(self):
         if self.isCollection:
             return None
         # (secs, tz-ofs)
         return self.fctx.date()[0]
+    
     def supportRanges(self):
         return False
     
-    def getDirectoryInfo(self):
-        if self.isCollection:
-            return {"type": "Directory"}
-        return {"type": "File"}
-
     def getMemberNames(self):
         assert self.isCollection
         cache = self.environ["wsgidav.hg.cache"][str(self.rev)]
@@ -213,7 +195,16 @@ class HgResource(DAVResource):
         return dirinfos[self.localHgPath][0] + dirinfos[self.localHgPath][1] 
 #        return self.provider._listMembers(self.path)
 
-    
+    def getMember(self, name):
+        # Rely on provider to get member oinstances
+        assert self.isCollection
+        return self.provider.getResourceInst(util.joinUri(self.path, name), 
+                                             self.environ)
+    def getDisplayInfo(self):
+        if self.isCollection:
+            return {"type": "Directory"}
+        return {"type": "File"}
+
     def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
         
@@ -231,7 +222,6 @@ class HgResource(DAVResource):
                                  "{hg:}user",
                                  ])
         return propNameList
-
     
     def getPropertyValue(self, propname):
         """Return the value of a property.
@@ -256,14 +246,12 @@ class HgResource(DAVResource):
         # Let base class implementation report live and dead properties
         return super(HgResource, self).getPropertyValue(propname)
     
-    
     def setPropertyValue(self, propname, value, dryRun=False):
         """Set or remove property value.
         
         See DAVResource.setPropertyValue()
         """
         raise DAVError(HTTP_FORBIDDEN)
-
 
     def preventLocking(self):
         """Return True, to prevent locking.
@@ -275,7 +263,6 @@ class HgResource(DAVResource):
             return True
         return False               
 
-    
     def createEmptyResource(self, name):
         """Create and return an empty (length-0) resource as member of self.
         
@@ -289,10 +276,9 @@ class HgResource(DAVResource):
         commands.add(self.provider.ui, self.provider.repo, filepath)
         # getResourceInst() won't work, because the cached manifest is outdated 
 #        return self.provider.getResourceInst(self.path.rstrip("/")+"/"+name, self.environ)
-        return HgResource(self.provider, self.path.rstrip("/")+"/"+name, False, 
+        return HgResource(self.path.rstrip("/")+"/"+name, False, 
                           self.environ, self.rev, self.localHgPath+"/"+name)
     
-
     def createCollection(self, name):
         """Create a new collection as member of self.
         
@@ -308,7 +294,6 @@ class HgResource(DAVResource):
         f.close()
         commands.add(self.provider.ui, self.provider.repo, filepath)
 
-
     def getContent(self):
         """Open content as a stream for reading.
          
@@ -318,7 +303,6 @@ class HgResource(DAVResource):
         d = self.fctx.data()
         return StringIO(d)
     
-
     def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
          
@@ -331,7 +315,6 @@ class HgResource(DAVResource):
             mode = "w"
         return file(self.absFilePath, mode, BUFFER_SIZE)
 
-    
     def endWrite(self, withErrors):
         """Called when PUT has finished writing.
 
@@ -340,7 +323,6 @@ class HgResource(DAVResource):
         if not withErrors:           
             commands.add(self.provider.ui, self.provider.repo, self.localHgPath)
 
-    
 #    def handleDelete(self):
 #        """Handle a DELETE request natively.
 #        
@@ -599,11 +581,9 @@ class HgResourceProvider(DAVProvider):
         cmd, rest = util.popPath(path)
         
         if cmd == "":
-            return VirtualCollection(self, path, environ, 
-                                     ["edit",
-                                      "released", 
-                                      "archive",
-                                      ])
+            return VirtualCollection(path, environ, 
+                                     "root",
+                                     ["edit", "released", "archive"])
         elif cmd == "edit":
             localHgPath = rest.strip("/")
             rev = None 
@@ -615,7 +595,7 @@ class HgResourceProvider(DAVProvider):
                 # Browse /archive: return a list of revision folders:
                 loglist = self._getLog(limit=10)
                 members = [ str(l["local_id"])  for l in loglist ] 
-                return VirtualCollection(self, path, environ, members)
+                return VirtualCollection(path, environ, "Revisions", members)
             revid, rest = util.popPath(rest)
             try:
                 int(revid)
@@ -633,9 +613,9 @@ class HgResourceProvider(DAVProvider):
         
         if localHgPath in cache["filedict"]:
             # It is a version controlled file
-            return HgResource(self, path, False, environ, rev, localHgPath)
+            return HgResource(path, False, environ, rev, localHgPath)
         
         if localHgPath in cache["dirinfos"] or localHgPath == "":
             # It is an existing folder
-            return HgResource(self, path, True, environ, rev, localHgPath)
+            return HgResource(path, True, environ, rev, localHgPath)
         return None

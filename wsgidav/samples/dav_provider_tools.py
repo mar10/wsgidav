@@ -11,7 +11,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO #@UnusedImport
-from wsgidav.dav_provider import DAVResource, DAVCollection
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection
 from wsgidav import util
 
 __docformat__ = "reStructuredText en"
@@ -19,41 +19,48 @@ __docformat__ = "reStructuredText en"
 _logger = util.getModuleLogger(__name__)
 
 #===============================================================================
-# FolderCollection
+# VirtualCollection
 #===============================================================================
-class FolderCollection(DAVCollection):
-    """DAVCollection that contains a list of static child collections."""
-    def __init__(self, path, environ, collectionNames):
-        DAVCollection.__init__(self, path, environ)
-        self.collectionNames = collectionNames
-#        self.displayType = displayType
-#        self.memberDisplayType = memberDisplayType
-    def getDirectoryInfo(self):
-        return {"type": "Collection"}
-    def _getMemberList(self):
-        """Return a list of direct members (DAVResource/DAVCollection objects).
 
-        Return an empty list, if no members are available.
-        See DAVCollection.getMemberList()
-        """
-        memberList = [] 
-        for name in self.collectionNames:
-            # make sure we create str, not unicode
-            name = name.encode("utf8")
-            res = DAVCollection(util.joinUri(self.path, name), self.environ)
-            memberList.append(res)
-        return memberList
+class VirtualCollection(DAVCollection):
+    """Abstract base class for collections that contain a list of static members.
+    
+    Member names are passed to the constructor.
+    getMember() is implemented by calling self.provider.getResourceInst()
+    """
+    def __init__(self, path, environ, displayInfo, memberNameList):
+        DAVCollection.__init__(self, path, environ)
+        if isinstance(displayInfo, basestring):
+            displayInfo = { "type": displayInfo }
+        assert type(displayInfo) is dict
+        assert type(memberNameList) is list
+        self.displayInfo = displayInfo
+        self.memberNameList = memberNameList
+        
+    def getDisplayInfo(self):
+        return self.displayInfo
+    
+    def getMemberNames(self):
+        return self.memberNameList
+    
     def preventLocking(self):
+        """Return True, since we don't want to lock virtual collections."""
         return True
+    
+    def getMember(self, name):
+#        raise NotImplementedError()
+        return self.provider.getResourceInst(util.joinUri(self.path, name), 
+                                             self.environ)
+
 
 
 #===============================================================================
 # _VirtualNonCollection classes
 #===============================================================================
-class _VirtualNonCollection(DAVResource):
+class _VirtualNonCollection(DAVNonCollection):
     """Abstract base class for all non-collection resources."""
     def __init__(self, path, environ):
-        DAVResource.__init__(self, path, False, environ)
+        DAVNonCollection.__init__(self, path, False, environ)
     def getContentLength(self):
         return None
     def getContentType(self):
@@ -62,7 +69,7 @@ class _VirtualNonCollection(DAVResource):
         return None
     def getDisplayName(self):
         return self.name
-    def getDirectoryInfo(self):
+    def getDisplayInfo(self):
         raise NotImplementedError()
     def getEtag(self):
         return None
@@ -97,7 +104,7 @@ class VirtualTextResource(_VirtualNonCollection):
         return "text/html"
     def getDisplayName(self):
         return self.displayName or self.name
-    def getDirectoryInfo(self):
+    def getDisplayInfo(self):
         return {"type": "Virtual info file"}
     def preventLocking(self):
         return True
@@ -132,7 +139,7 @@ class FileResource(_VirtualNonCollection):
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      
-    def getDirectoryInfo(self):
+    def getDisplayInfo(self):
         return {"type": "File"}
     def getLastModified(self):
         statresults = os.stat(self.filePath)

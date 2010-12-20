@@ -23,7 +23,7 @@ Valid options are (sample shows defaults)::
             }
 
 """
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVResource
+from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 from wsgidav import util
 import pymongo
 from wsgidav.util import joinUri
@@ -47,10 +47,12 @@ class ConnectionCollection(DAVCollection):
     def __init__(self, path, environ):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
-    def getMemberList(self):
-        dbNames = self.conn.database_names()
-        res = [ DbCollection(joinUri(self.path, name.encode("utf8")), self.environ) for name in dbNames ]
-        return res
+
+    def getMemberNames(self):
+        return [ name.encode("utf8") for name in self.conn.database_names() ]
+
+    def getMember(self, name):
+        return DbCollection(joinUri(self.path, name), self.environ)
     
 
 class DbCollection(DAVCollection):
@@ -59,15 +61,16 @@ class DbCollection(DAVCollection):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
         self.db = self.conn[self.name]
-    def getDirectoryInfo(self):
+
+    def getDisplayInfo(self):
         return {"type": "Mongo database"}
-    def getMemberList(self):
-        res = []
-        for name in self.db.collection_names():
-            coll = self.db[name]        
-            res.append(CollCollection(joinUri(self.path, name).encode("utf8"), 
-                                      self.environ, coll))
-        return res
+
+    def getMemberNames(self):
+        return [ name.encode("utf8") for name in self.db.collection_names() ]
+
+    def getMember(self, name):
+        coll = self.db[name]        
+        return CollCollection(joinUri(self.path, name), self.environ, coll)
     
 
 class CollCollection(DAVCollection):
@@ -76,23 +79,25 @@ class CollCollection(DAVCollection):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
         self.coll = coll
-    def getDirectoryInfo(self):
+    
+    def getDisplayInfo(self):
         return {"type": "Mongo collection"}
-    def _getMember(self, name):
-        doc = self.coll.find_one(ObjectId(name))
-        res = DocResource(joinUri(self.path, name), self.environ, doc)
-        return res
-    def _getMemberList(self):
+
+    def getMemberNames(self):
         res = []
         for doc in self.coll.find():
-            res.append(DocResource(joinUri(self.path, str(doc["_id"])), self.environ, doc))
+            res.append(str(doc["_id"]))
         return res
     
+    def getMember(self, name):
+        doc = self.coll.find_one(ObjectId(name))
+        return DocResource(joinUri(self.path, name), self.environ, doc)
 
-class DocResource(DAVResource):
+
+class DocResource(DAVNonCollection):
     """Mongo document, returned as virtual text resource."""
     def __init__(self, path, environ, doc):
-        DAVResource.__init__(self, path, False, environ)
+        DAVNonCollection.__init__(self, path, environ)
         self.doc = doc
     def getContent(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
@@ -101,8 +106,6 @@ class DocResource(DAVResource):
         return len(self.getContent().read())
     def getContentType(self):
         return "text/html"
-    def supportRanges(self):
-        return False
     def getDisplayName(self):
         doc = self.doc
         if doc.get("_title"):
@@ -112,7 +115,7 @@ class DocResource(DAVResource):
         elif doc.get("_id"):
             return str(doc["_id"])
         return str(doc["key"])
-    def getDirectoryInfo(self):
+    def getDisplayInfo(self):
         return {"type": "Mongo document"}
 
 
