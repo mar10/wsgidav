@@ -256,7 +256,9 @@ class _DAVResource(object):
         if self.isCollection:
             return { "type": "Directory" }
         elif os.extsep in self.name:
-            return { "type": "%s-File" % self.name.split(os.extsep)[-1].upper() }
+            ext = self.name.split(os.extsep)[-1].upper()
+            if len(ext) < 5:
+                return { "type": "%s-File" % ext }
         return { "type": "File"  }
         
     def getEtag(self):
