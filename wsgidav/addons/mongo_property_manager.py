@@ -6,7 +6,7 @@ Implements a property manager based on MongoDB.
 Usage: add this lines to wsgidav.conf::
 
     from wsgidav.addons.mongo_property_manager import MongoPropertyManager
-    prop_man_opts = {}
+    prop_man_opts = {} 
     propsmanager = MongoPropertyManager(prop_man_opts)
 
 Valid options are (sample shows defaults)::

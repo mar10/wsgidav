@@ -163,8 +163,6 @@ class CouchPropertyManager(object):
         self.db.save(doc)
 
     def removeProperty(self, normurl, propname, dryRun=False):
-        """
-        """
         _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
