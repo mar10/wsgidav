@@ -59,7 +59,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
 """
-from wsgidav.dav_provider import DAVProvider, DAVResource
+from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty
@@ -77,18 +77,18 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 
-class MySQLBrowserResource(DAVResource):
+class MySQLBrowserResource(_DAVResource):
     """Represents a single existing DAV resource instance.
 
     See also DAVResource and MySQLBrowserProvider.
     """
     def __init__(self, provider, path, isCollection, environ):
         super(MySQLBrowserResource, self).__init__(path, isCollection, environ)
-        self._dict = None
+        self._cache = None
 
     
     def _init(self):
-        """Read resource information into self._dict, for cached access.
+        """Read resource information into self._cache, for cached access.
         
         See DAVResource._init()
         """
@@ -98,7 +98,7 @@ class MySQLBrowserResource(DAVResource):
         tableName, primKey = self.provider._splitPath(self.path)
 
         displayType = "Unknown" 
-        displayRemarks = ""
+        displayTypeComment = ""
         contentType = "text/html"
 
 #        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
@@ -110,37 +110,38 @@ class MySQLBrowserResource(DAVResource):
             contentType = "text/csv"
             if primKey == "_ENTIRE_CONTENTS":
                 displayType = "Database Table Contents"
-                displayRemarks = "CSV Representation of Table Contents"
+                displayTypeComment = "CSV Representation of Table Contents"
             else:
                 displayType = "Database Record"
-                displayRemarks = "Attributes available as properties"
+                displayTypeComment = "Attributes available as properties"
 
         # Avoid calling isCollection, since it would call isExisting -> _initConnection 
         isCollection = primKey is None
         
-        self._dict = {"contentLength": None,
-                      "contentType": contentType,
-                      "created": time.time(),
-                      "displayName": self.name,
-                      "displayType": displayType,
-                      "etag": md5.new(self.path).hexdigest(),
-                      "modified": None,
-                      "supportRanges": False,
-                      }
+        self._cache = {"contentLength": None,
+                       "contentType": contentType,
+                       "created": time.time(),
+                       "displayName": self.name,
+                       "etag": md5.new(self.path).hexdigest(),
+                       "modified": None,
+                       "supportRanges": False,
+                       "displayInfo": {"type": displayType,
+                                       "typeComment": displayTypeComment,
+                                       },
+                       }
+
         # Some resource-only infos: 
         if not isCollection:
-            self._dict["modified"] = time.time()
+            self._cache["modified"] = time.time()
         _logger.debug("---> _init, nc=%s" % self.provider._count_initConnection)
 
     
     def _getInfo(self, info):
-        if self._dict is None:
+        if self._cache is None:
             self._init()
-        return self._dict.get(info)   
+        return self._cache.get(info)   
 
     # Getter methods for standard live properties     
-    def getContentLanguage(self):
-        return None
     def getContentLength(self):
         return self._getInfo("contentLength")
     def getContentType(self):
@@ -150,13 +151,12 @@ class MySQLBrowserResource(DAVResource):
     def getDisplayName(self):
         return self.name
     def getDisplayInfo(self):
-        return {"type": self._getInfo("displayType")}
+        return self._getInfo("displayInfo")
     def getEtag(self):
         return self._getInfo("etag")
     def getLastModified(self):
         return self._getInfo("modified")
 
-    
     def getMemberList(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
         
@@ -495,7 +495,7 @@ class MySQLBrowserProvider(DAVProvider):
         """
         # TODO: calling exists() makes directory browsing VERY slow.
         #       At least compared to PyFileServer, which simply used string 
-        #       functions to get displayType and displayRemarks  
+        #       functions to get displayType and displayTypeComment  
         self._count_getResourceInst += 1
         if not self.exists(path, environ):
             return None
@@ -506,10 +506,11 @@ class MySQLBrowserProvider(DAVProvider):
 
     def exists(self, path, environ):
         tableName, primKey = self._splitPath(path)
-        if path == "/":
+        if tableName is None:
             return True
 
         try:
+            conn = None
             conn = self._initConnection()
             # Check table existence:
             tbllist = self._listTables(conn)
@@ -520,7 +521,8 @@ class MySQLBrowserProvider(DAVProvider):
                 return self._existsRecordByPrimaryKey(conn, tableName, primKey) 
             return True 
         finally:
-            conn.close()
+            if conn:
+                conn.close()
 
     
     def isCollection(self, path, environ):

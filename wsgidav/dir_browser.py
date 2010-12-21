@@ -103,6 +103,7 @@ class WsgiDavDirBrowser(object):
         html.append("<head>")
         html.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
         html.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
+        
         if dirConfig.get("msmount"):
             html.append("""\
 <style type="text/css">
@@ -115,7 +116,8 @@ class WsgiDavDirBrowser(object):
     A {behavior: url(#default#AnchorClick);}
 </style>""")        
         html.append("</head><body>")
-        # Header
+
+        # Title
         html.append("<h1>%s</h1>" % displaypath)
         # Add DAV-Mount link and Web-Folder link
         links = []
@@ -135,7 +137,7 @@ class WsgiDavDirBrowser(object):
             html.append("<tr><td colspan='4'>Top level share</td></tr>")
         else:
             parentUrl = util.getUriParent(davres.getHref())
-            html.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Up to higher level</a></td></tr>")
+            html.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Parent folder</a></td></tr>")
 
         # Ask collection for member info list
         dirInfoList = davres.getDirectoryInfo()
@@ -151,7 +153,8 @@ class WsgiDavDirBrowser(object):
                             "lastModified": res.getLastModified(),
                             "isCollection": res.isCollection,
                             "contentLength": res.getContentLength(),
-                            "displayType": di.get("type")
+                            "displayType": di.get("type"),
+                            "displayTypeComment": di.get("typeComment"),
                             }
                 dirInfoList.append(infoDict)
         # 

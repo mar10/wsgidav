@@ -1073,21 +1073,11 @@ class _DAVResource(object):
 
     def resolve(self, scriptName, pathInfo):
         """Return a _DAVResource object for the path (None, if not found).
-        
+
         `pathInfo`: is a URL relative to this object.
+
+        DAVCollection.resolve() provides an implementation.
         """
-#        if pathInfo in ("", "/"):
-#            return self
-#        elif not self.isCollection:
-##            raise DAVError(HTTP_NOT_FOUND, "Cannot resolve member of Non-Collection")
-#            return None
-#        assert pathInfo.startswith("/")
-#        name, rest = util.popPath(pathInfo)
-#        res = self.getMember(name)
-#        if res is None or rest in ("", "/"):
-#            return res
-##        assert res.isCollection, "resolve(%r, %r): rest: %r" % (scriptName, pathInfo, rest)
-#        return res.resolve(util.joinUri(scriptName, name), rest)
         raise NotImplementedError()
     
 
@@ -1330,7 +1320,8 @@ class DAVCollection(_DAVResource):
         if res is None or rest in ("", "/"):
             return res
         return res.resolve(util.joinUri(scriptName, name), rest)
-    
+
+
 #===============================================================================
 # DAVProvider
 #===============================================================================
