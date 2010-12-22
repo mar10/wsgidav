@@ -96,7 +96,11 @@ class WsgiDavDirBrowser(object):
         displaypath = urllib.unquote(davres.getHref())
 
         trailer = dirConfig.get("response_trailer")
-        if not trailer:
+        if trailer:
+            trailer = trailer.replace("${version}", 
+                "<a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a>" % __version__)
+            trailer = trailer.replace("${time}", util.getRfc1123Time())
+        else:
             trailer = ("<a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a> - %s" 
                        % (__version__, util.getRfc1123Time()))
 
@@ -112,8 +116,11 @@ class WsgiDavDirBrowser(object):
         html.append("""\
 <style type="text/css">
     img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
-    td  { font-family: monospace; padding: 2px 3px; vertical-align: bottom; white-space: pre; }
-    td.right { text-align: right; padding: 2px 10px 2px 3px; }
+    th, td { padding: 2px 20px 2px 2px; }
+    th { text-align: left; }
+    th.right { text-align: right; }
+    td  { font-family: monospace; vertical-align: bottom; white-space: pre; }
+    td.right { text-align: right; }
     table { border: 0; }
     a.symlink { font-style: italic; }
     p.trailer { font-size: smaller; }
@@ -128,7 +135,7 @@ class WsgiDavDirBrowser(object):
         html.append("</head><body>")
 
         # Title
-        html.append("<h1>%s</h1>" % displaypath)
+        html.append("<h1>Index of %s</h1>" % displaypath)
         # Add DAV-Mount link and Web-Folder link
         links = []
         if dirConfig.get("davmount"):
@@ -143,11 +150,16 @@ class WsgiDavDirBrowser(object):
         # Listing
         html.append("<table>")
 
+        html.append("<thead>")
+        html.append("<tr><th>Name</th> <th>Type</th> <th class='right'>Size</th> <th class='right'>Last modified</th> </tr>")
+        html.append("</thead>")
+            
+        html.append("<tbody>")
         if davres.path in ("", "/"):
-            html.append("<tr><td colspan='4'>Top level share</td></tr>")
+            html.append("<tr><td>Top level share</td> <td></td> <td></td> <td></td> </tr>")
         else:
             parentUrl = util.getUriParent(davres.getHref())
-            html.append("<tr><td colspan='4'><a href='" + parentUrl + "'>Parent folder</a></td></tr>")
+            html.append("<tr><td><a href='" + parentUrl + "'>Parent Directory</a></td> <td></td> <td></td> <td></td> </tr>")
 
         # Ask collection for member info list
         dirInfoList = davres.getDirectoryInfo()
@@ -175,7 +187,7 @@ class WsgiDavDirBrowser(object):
             else:
                 infoDict["strModified"] = util.getRfc1123Time(lastModified)
             
-            infoDict["strSize"] = ""
+            infoDict["strSize"] = "-"
             if not infoDict.get("isCollection"):
                 contentLength = infoDict.get("contentLength")
                 if contentLength is not None:
@@ -187,6 +199,7 @@ class WsgiDavDirBrowser(object):
             <td class='right'>%(strSize)s</td>
             <td class='right'>%(strModified)s</td></tr>""" % infoDict)
             
+        html.append("</tbody>")
         html.append("</table>")
 
         html.append("<hr>") 
