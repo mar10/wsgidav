@@ -2,13 +2,8 @@
 CHANGES
 =======
 
-0.5.0
-=====
-<Not yet started> 
-
-
-0.4.0.b4
-========
+0.5.0 (not yet released)
+========================
 - Bundled with CherryPy standalone WSGI server
 - Added copyright notes for original PyFileServer
 - Changed signature of DAVProvider (and derived classes): provider argument was

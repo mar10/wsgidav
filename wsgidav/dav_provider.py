@@ -406,8 +406,12 @@ class _DAVResource(object):
         """
         if not self.isCollection:
             raise NotImplementedError()
-        res = [ self.getMember(name) for name in self.getMemberNames() ]
-        return res
+        memberList = [] 
+        for name in self.getMemberNames():
+            member = self.getMember(name) 
+            assert member is not None
+            memberList.append(member)
+        return memberList
 
 
     def getMemberNames(self):
@@ -805,15 +809,13 @@ class _DAVResource(object):
 
         Returns a file-like object / stream containing the contents of the
         resource specified.
-        The application will close() the stream.      
+        The calling application will close() the stream.      
          
         This method MUST be implemented by all providers.
         """
         assert not self.isCollection
         raise NotImplementedError()
     
-
-    # TODO: rename to beginWrite() and add endWrite(success)
     def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
          
@@ -822,7 +824,6 @@ class _DAVResource(object):
         """
         assert not self.isCollection
         raise DAVError(HTTP_FORBIDDEN)               
-
     
     def endWrite(self, withErrors):
         """Called when PUT has finished writing.
@@ -831,7 +832,6 @@ class _DAVResource(object):
         """
         pass               
 
-    
     def handleDelete(self):
         """Handle a DELETE request natively.
         
