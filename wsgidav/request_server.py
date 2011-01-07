@@ -1389,7 +1389,8 @@ class RequestServer(object):
             responseHeaders.append(("ETag", '"%s"' % entitytag))
  
         if ispartialranges:
-            responseHeaders.append(("Content-Ranges", "bytes " + str(rangestart) + "-" + str(rangeend) + "/" + str(rangelength)))
+#            responseHeaders.append(("Content-Ranges", "bytes " + str(rangestart) + "-" + str(rangeend) + "/" + str(rangelength)))
+            responseHeaders.append(("Content-Range", "bytes %s-%s/%s" % (rangestart, rangeend, filesize)))
             start_response("206 Partial Content", responseHeaders)   
         else:
             start_response("200 OK", responseHeaders)
