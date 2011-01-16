@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-0.5.0 (not yet released)
-========================
+0.5.0
+=====
 - Bundled with CherryPy standalone WSGI server
 - Added copyright notes for original PyFileServer
 - Changed signature of DAVProvider (and derived classes): provider argument was
@@ -20,6 +20,7 @@ CHANGES
 - Support davmount (rfc 4709).
 - Added support for Microsoft FOLDER behavior.
 - renamed displayType() -> getDirectoryInfo()
+- Fixed RANGE response 
 
 
 0.4.0.b3
