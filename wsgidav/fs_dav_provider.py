@@ -23,6 +23,7 @@ import os
 import mimetypes
 import shutil
 import stat
+import sys
 
 
 __docformat__ = "reStructuredText"
@@ -201,6 +202,8 @@ class FolderResource(DAVCollection):
         # self._filePath is unicode, so os.listdir returns unicode as well
         assert isinstance(self._filePath, unicode) 
         for name in os.listdir(self._filePath):
+            if not isinstance(name, unicode):
+                name = name.decode(sys.getfilesystemencoding())
             assert isinstance(name, unicode)
             # Skip non files (links and mount points)
             fp = os.path.join(self._filePath, name)
