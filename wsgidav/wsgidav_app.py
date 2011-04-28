@@ -215,7 +215,7 @@ class WsgiDAVApp(object):
         application = RequestResolver()
         
         if config.get("dir_browser") and config["dir_browser"].get("enable", True):
-            application = WsgiDavDirBrowser(application)
+            application = config["dir_browser"].get("app_class", WsgiDavDirBrowser)(application)
 
         application = HTTPAuthenticator(application, 
                                         domainController, 
