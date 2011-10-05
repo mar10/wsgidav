@@ -20,7 +20,7 @@ from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 
 import util
 import os
-import mimetypes
+#import mimetypes
 import shutil
 import stat
 
@@ -52,10 +52,13 @@ class FileResource(DAVNonCollection):
     def getContentLength(self):
         return self.filestat[stat.ST_SIZE]
     def getContentType(self):
-        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
-        if not mimetype:
-            mimetype = "application/octet-stream" 
-        return mimetype
+#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
+#        print "mimetype(%s): %r, %r" % (self.path, mimetype, _mimeencoding)   
+#        if not mimetype:
+#            mimetype = "application/octet-stream" 
+#        print "mimetype(%s): return %r" % (self.path, mimetype)   
+#        return mimetype
+        return util.guessMimeType(self.path)
     def getCreationDate(self):
         return self.filestat[stat.ST_CTIME]
     def getDisplayName(self):
