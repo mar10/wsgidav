@@ -98,7 +98,7 @@ When accessed using WebDAV, the following URLs both return the same resource
 import urllib
 import stat
 import os
-import mimetypes
+#import mimetypes
 from wsgidav.util import joinUri
 try:
     from cStringIO import StringIO
@@ -524,10 +524,11 @@ class VirtualResFile(_VirtualNonCollection):
     def getContentType(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
-        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath) 
-        if not mimetype:
-            mimetype = "application/octet-stream" 
-        return mimetype
+#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath) 
+#        if not mimetype:
+#            mimetype = "application/octet-stream" 
+#        return mimetype
+        return util.guessMimeType(self.filePath)
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      

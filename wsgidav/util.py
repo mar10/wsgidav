@@ -20,6 +20,7 @@ import socket
 import locale
 import logging
 import re
+import mimetypes
 try:
     from hashlib import md5
 except ImportError:
@@ -1122,6 +1123,30 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
 
 testIfHeaderDict.__test__ = False # Tell nose to ignore this function
 
+#===============================================================================
+# guessMimeType
+#===============================================================================
+_MIME_TYPES ={".oga": "audio/ogg",
+              ".ogg": "audio/ogg",
+              ".ogv": "video/ogg",
+              ".webm": "video/webm",
+              }
+def guessMimeType(url):
+    """Use the mimetypes module to lookup the type for an extension.
+    
+    This function also adds some extensions required for HTML5
+    """
+    (mimetype, _mimeencoding) = mimetypes.guess_type(url)
+#    print "mimetype(%s): %r, %r" % (url, mimetype, _mimeencoding)
+    if not mimetype:
+        ext = os.path.splitext(url)[1]
+        mimetype = _MIME_TYPES[ext]
+        debug("mimetype(%s): %r" % (url, mimetype))
+    if not mimetype:
+        mimetype = "application/octet-stream" 
+#    print "mimetype(%s): return %r" % (url, mimetype)   
+    return mimetype
+    
 #===============================================================================
 # TEST
 #===============================================================================

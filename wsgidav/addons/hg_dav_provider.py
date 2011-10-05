@@ -81,7 +81,7 @@ except ImportError:
     from md5 import md5
 import time
 import sys
-import mimetypes
+#import mimetypes
 
 try:
     from cStringIO import StringIO
@@ -159,10 +159,11 @@ class HgResource(_DAVResource):
     def getContentType(self):
         if self.isCollection:
             return None
-        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
-        if not mimetype:
-            return "application/octet-stream" 
-        return mimetype
+#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)  
+#        if not mimetype:
+#            return "application/octet-stream" 
+#        return mimetype
+        return util.guessMimeType(self.path)
     
     def getCreationDate(self):
 #        statresults = os.stat(self._filePath)

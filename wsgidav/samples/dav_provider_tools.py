@@ -6,7 +6,7 @@
 """
 import stat
 import os
-import mimetypes
+#import mimetypes
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -132,10 +132,11 @@ class FileResource(_VirtualNonCollection):
     def getContentType(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
-        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath) 
-        if not mimetype:
-            mimetype = "application/octet-stream" 
-        return mimetype
+#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath) 
+#        if not mimetype:
+#            mimetype = "application/octet-stream" 
+#        return mimetype
+        return util.guessMimeType(self.filePath)
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]      
