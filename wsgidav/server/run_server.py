@@ -330,7 +330,12 @@ def _runCherryPy(app, config, mode):
             app,
 #            server_name=version
             )
-        server.start()
+        try:
+            server.start()
+        except KeyboardInterrupt:
+            if config["verbose"] >= 1:
+                print "Caught Ctrl-C, shutting down..."
+            server.stop()
     except ImportError, e:
         if config["verbose"] >= 1:
             print "Could not import wsgiserver.CherryPyWSGIServer."
