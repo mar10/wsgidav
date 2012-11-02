@@ -1140,7 +1140,8 @@ def guessMimeType(url):
 #    print "mimetype(%s): %r, %r" % (url, mimetype, _mimeencoding)
     if not mimetype:
         ext = os.path.splitext(url)[1]
-        mimetype = _MIME_TYPES[ext]
+#        mimetype = _MIME_TYPES[ext]
+        mimetype = _MIME_TYPES.get(ext)
         debug("mimetype(%s): %r" % (url, mimetype))
     if not mimetype:
         mimetype = "application/octet-stream" 
