@@ -519,6 +519,32 @@ def readAndDiscardInput(environ):
             warn("--> wsgi_input.read(): %s" % sys.exc_info())
 
 
+class SubAppStartResponse(object):
+    def __init__(self):
+        self.__status = ''
+        self.__response_headers = []
+        self.__exc_info = None
+
+        super(SubAppStartResponse, self).__init__()
+
+    @property
+    def status(self):
+        return self.__status
+
+    @property
+    def response_headers(self):
+        return self.__response_headers
+
+    @property
+    def exc_info(self):
+        return self.__exc_info
+
+    def __call__(self, status, response_headers, exc_info=None):
+        self.__status = status
+        self.__response_headers = response_headers
+        self.__exc_info = exc_info
+
+
 
 #===============================================================================
 # URLs

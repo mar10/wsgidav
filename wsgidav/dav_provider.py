@@ -1347,6 +1347,9 @@ class DAVProvider(object):
     def __repr__(self):
         return self.__class__.__name__
 
+    def isReadOnly(self):
+        return false
+
     def setMountPath(self, mountPath):
         """Set application root for this resource provider.
         
