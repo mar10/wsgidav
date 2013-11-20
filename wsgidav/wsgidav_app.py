@@ -390,6 +390,6 @@ class WsgiDAVApp(object):
         app_iter = self._application(environ, _start_response_wrapper)
         for v in app_iter:
             yield v
-        if (hasattr(app_iter, 'close')):
+        if hasattr(app_iter, "close"):
             app_iter.close()
         return

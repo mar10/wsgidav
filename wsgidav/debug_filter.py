@@ -147,22 +147,19 @@ class WsgiDavDebugFilter(object):
         sub_app_start_response = util.SubAppStartResponse()
 
         nbytes = 0
-        firstyield = True
+        first_yield = True
         app_iter = self._application(environ, sub_app_start_response)
 
         for v in app_iter:
             # Start response (the first time)
-            #
-            if (firstyield):
+            if first_yield:
                 # Success!
-                #
                 start_response(sub_app_start_response.status,
-                        sub_app_start_response.response_headers,
-                        sub_app_start_response.exc_info
-                )
+                               sub_app_start_response.response_headers,
+                               sub_app_start_response.exc_info)
 
             # Dump response headers
-            if firstyield and dumpResponse:
+            if first_yield and dumpResponse:
                 print >> self.out, "<%s> --- %s Response(%s): ---" % (threading._get_ident(), 
                                                                       method, 
                                                                       sub_app_start_response.status)
@@ -184,26 +181,23 @@ class WsgiDavDebugFilter(object):
             elif drb is True:
                 # Else dump what we get, (except for long GET responses) 
                 if method == "GET":
-                    if firstyield:
+                    if first_yield:
                         print >> self.out, v[:50], "..."
                 elif len(v) > 0:
                     print >> self.out, v
 
             nbytes += len(v) 
-            firstyield = False
+            first_yield = False
             yield v
-        if (hasattr(app_iter, 'close')):
+        if hasattr(app_iter, "close"):
             app_iter.close()
 
         # Start response (if it hasn't been done yet)
-        #
-        if (firstyield):
+        if first_yield:
             # Success!
-            #
             start_response(sub_app_start_response.status,
-                    sub_app_start_response.response_headers,
-                    sub_app_start_response.exc_info
-            )
+                           sub_app_start_response.response_headers,
+                           sub_app_start_response.exc_info)
 
         if dumpResponse:
             print >> self.out, "\n<%s> --- End of %s Response (%i bytes) ---" % (threading._get_ident(), method, nbytes)

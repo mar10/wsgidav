@@ -519,9 +519,12 @@ def readAndDiscardInput(environ):
             warn("--> wsgi_input.read(): %s" % sys.exc_info())
 
 
+#===============================================================================
+# SubAppStartResponse
+#===============================================================================
 class SubAppStartResponse(object):
     def __init__(self):
-        self.__status = ''
+        self.__status = ""
         self.__response_headers = []
         self.__exc_info = None
 

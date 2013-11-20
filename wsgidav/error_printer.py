@@ -23,15 +23,13 @@ _logger = util.getModuleLogger(__name__)
 # ErrorPrinter
 #===============================================================================
 class ErrorPrinter(object):
-#    def __init__(self, application, server_descriptor=None, catchall=False):
+
     def __init__(self, application, catchall=False):
         self._application = application
-#        self._server_descriptor = server_descriptor
         self._catch_all_exceptions = catchall
 
     def __call__(self, environ, start_response):      
         # Intercept start_response
-        #
         sub_app_start_response = util.SubAppStartResponse()
 
         try:
@@ -43,32 +41,25 @@ class ErrorPrinter(object):
                 app_iter = self._application(environ, sub_app_start_response)
                 for v in app_iter:
                     # Start response (the first time)
-                    #
-                    if (not response_started):
+                    if not response_started:
                         # Success!
-                        #
                         start_response(sub_app_start_response.status,
-                                sub_app_start_response.response_headers,
-                                sub_app_start_response.exc_info
-                        )
+                                       sub_app_start_response.response_headers,
+                                       sub_app_start_response.exc_info)
                     response_started = True
 
                     yield v
 
                 # Close out iterator
-                #
-                if (hasattr(app_iter, 'close')):
+                if hasattr(app_iter, "close"):
                     app_iter.close()
 
                 # Start response (if it hasn't been done yet)
-                #
-                if (not response_started):
+                if not response_started:
                     # Success!
-                    #
                     start_response(sub_app_start_response.status,
-                            sub_app_start_response.response_headers,
-                            sub_app_start_response.exc_info
-                    )
+                                   sub_app_start_response.response_headers,
+                                   sub_app_start_response.exc_info)
 
                 return
             except DAVError, e:

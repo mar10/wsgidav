@@ -172,7 +172,11 @@ class RequestResolver(object):
             # type of method; it does nothing beyond allowing the client to test the 
             # capabilities of the server. For example, this can be used to test a 
             # proxy for HTTP/1.1 compliance (or lack thereof). 
-            dav_compliance_level = "1" if ((provider is None) or (provider.isReadOnly()) or (provider.lockManager is None)) else "1,2"
+            
+            dav_compliance_level = "1,2"
+            if provider is None or provider.isReadOnly() or provider.lockManager is None:
+                dav_compliance_level = "1"
+                
             start_response("200 OK", [("Content-Type", "text/html"),
                                       ("Content-Length", "0"),
                                       ("DAV", dav_compliance_level),
@@ -191,6 +195,6 @@ class RequestResolver(object):
         app_iter = app(environ, start_response)
         for v in app_iter:
             yield v
-        if (hasattr(app_iter, 'close')):
+        if hasattr(app_iter, "close"):
             app_iter.close()
         return
