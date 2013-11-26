@@ -80,7 +80,6 @@ import sys
 import time
 import traceback
 import urllib
-from datetime import datetime
 from wsgidav import util, xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
 from util import etree #@UnusedImport
@@ -1346,6 +1345,9 @@ class DAVProvider(object):
 
     def __repr__(self):
         return self.__class__.__name__
+
+    def isReadOnly(self):
+        return False
 
     def setMountPath(self, mountPath):
         """Set application root for this resource provider.

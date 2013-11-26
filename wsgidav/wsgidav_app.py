@@ -387,6 +387,9 @@ class WsgiDAVApp(object):
             return start_response(status, response_headers, exc_info)
             
         # Call next middleware
-        for v in self._application(environ, _start_response_wrapper):
+        app_iter = self._application(environ, _start_response_wrapper)
+        for v in app_iter:
             yield v
+        if hasattr(app_iter, "close"):
+            app_iter.close()
         return

@@ -53,6 +53,16 @@ class RequestServer(object):
         self._verbose = 2
         util.debug("RequestServer: __init__", module="sc")
 
+        self._possible_methods = [ "OPTIONS", "HEAD", "GET" ]
+        if self._davProvider.propManager is not None:
+            self._possible_methods.extend( [ "PROPFIND" ] )
+        if not self._davProvider.isReadOnly():
+            self._possible_methods.extend( [ "PUT", "DELETE", "COPY", "MOVE", "MKCOL" ] )
+            if self._davProvider.propManager is not None:
+                self._possible_methods.extend( [ "PROPPATCH" ] )
+            if self._davProvider.lockManager is not None:
+                self._possible_methods.extend( [ "LOCK", "UNLOCK" ] )
+
     def __del__(self):
         util.debug("RequestServer: __del__", module="sc")
 
@@ -76,7 +86,9 @@ class RequestServer(object):
             pass
         
         # Dispatch HTTP request methods to 'doMETHOD()' handlers
-        method = getattr(self, "do%s" % requestmethod, None)
+        method = None
+        if requestmethod in self._possible_methods:
+            method = getattr(self, "do%s" % requestmethod, None)
         if not method:
             self._fail(HTTP_METHOD_NOT_ALLOWED)
 
@@ -91,12 +103,16 @@ class RequestServer(object):
             profile.print_stats(sort=2)
             for v in res:
                 yield v
+            if hasattr(res, "close"):
+                res.close()
             return
   
-        for v in method(environ, start_response):
+        app_iter = method(environ, start_response)
+        for v in app_iter:
             yield v
+        if hasattr(app_iter, "close"):
+            app_iter.close()
         return
-#        return method(environ, start_response)
 
 
     def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):
@@ -1249,9 +1265,14 @@ class RequestServer(object):
         provider = self._davProvider
         res = provider.getResourceInst(path, environ)
 
+        dav_compliance_level = "1,2"
+        if provider is None or provider.isReadOnly() or provider.lockManager is None:
+            dav_compliance_level = "1"
+
         headers = [("Content-Type", "text/html"),
                    ("Content-Length", "0"),
-                   ("DAV", "1,2"),  # TODO: 10.1: 'OPTIONS MUST return DAV header with compliance class "1"'
+                   ("DAV", dav_compliance_level),
+                                    # TODO: 10.1: 'OPTIONS MUST return DAV header with compliance class "1"'
                                     # TODO: 10.1: In cases where WebDAV is only supported in part of the server namespace, an OPTIONS request to non-WebDAV resources (including "/") SHOULD NOT advertise WebDAV support
                    ("Server", "DAV/2"),
                    ("Date", util.getRfc1123Time()),
@@ -1273,22 +1294,41 @@ class RequestServer(object):
             start_response("200 OK", headers)        
             return [""]  
 
-        # TODO: should we have something like provider.isReadOnly() and then omit MKCOL PUT DELETE PROPPATCH COPY MOVE?
-        # TODO: LOCK UNLOCK is only available, if lockmanager not None
+        # Determine allowed request methods
+        allow = [ "OPTIONS" ]
         if res and res.isCollection:
             # Existing collection
-            headers.append( ("Allow", "OPTIONS HEAD GET DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
+            allow.extend( [ "HEAD", "GET" ] )
+            if provider.propManager is not None:
+                allow.extend( [ "PROPFIND" ] )
+            if not provider.isReadOnly():
+                allow.extend( [ "DELETE", "COPY", "MOVE" ] )
+                if provider.propManager is not None:
+                    allow.extend( [ "PROPPATCH" ] )
+                if provider.lockManager is not None:
+                    allow.extend( [ "LOCK", "UNLOCK" ] )
         elif res:
             # Existing resource
-            headers.append( ("Allow", "OPTIONS HEAD GET PUT DELETE PROPFIND PROPPATCH COPY MOVE LOCK UNLOCK") )
+            allow.extend( [ "HEAD", "GET" ] )
+            if provider.propManager is not None:
+                allow.extend( [ "PROPFIND" ] )
+            if not provider.isReadOnly():
+                allow.extend( [ "PUT", "DELETE", "COPY", "MOVE" ] )
+                if provider.propManager is not None:
+                    allow.extend( [ "PROPPATCH" ] )
+                if provider.lockManager is not None:
+                    allow.extend( [ "LOCK", "UNLOCK" ] )
             if res.supportRanges(): 
                 headers.append( ("Allow-Ranges", "bytes") )
         elif provider.isCollection(util.getUriParent(path), environ):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an non-existing resource
-            headers.append( ("Allow", "OPTIONS PUT MKCOL") ) 
+            if not provider.isReadOnly():
+                allow.extend( [ "PUT", "MKCOL" ] )
         else:
             self._fail(HTTP_NOT_FOUND)
+
+        headers.append( ("Allow", " ".join(allow)) )
 
         start_response("200 OK", headers)        
         return [""]

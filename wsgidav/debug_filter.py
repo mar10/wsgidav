@@ -142,33 +142,28 @@ class WsgiDavDebugFilter(object):
                     print >> self.out, "%20s: '%s'" % (k, v)
             print >> self.out, "\n"
 
-        # Call parent application and return it's response
-        def start_response_wrapper(status, response_headers, exc_info=None):
-            # TODO: not fully understood: 
-            if exc_info is not None:
-                util.log("DebugFilter got exc_info", exc_info)
-
-#            # Dump response headers
-#            if dumpResponse:
-#                print >> self.out, "<%s> --- %s Response(%s): ---" % (threading._get_ident(), method, status)
-#                headersdict = dict(response_headers)
-#                for envitem in headersdict.keys():
-#                    print >> self.out, "\t%s:\t'%s'" % (envitem, repr(headersdict[envitem])) 
-#                print >> self.out, "\n"
-            # Store response headers
-            environ["wsgidav.response_status"] = status
-            environ["wsgidav.response_headers"] = response_headers
-            return start_response(status, response_headers, exc_info)
+        # Intercept start_response
+        #
+        sub_app_start_response = util.SubAppStartResponse()
 
         nbytes = 0
-        firstyield = True
-        for v in iter(self._application(environ, start_response_wrapper)):
+        first_yield = True
+        app_iter = self._application(environ, sub_app_start_response)
+
+        for v in app_iter:
+            # Start response (the first time)
+            if first_yield:
+                # Success!
+                start_response(sub_app_start_response.status,
+                               sub_app_start_response.response_headers,
+                               sub_app_start_response.exc_info)
+
             # Dump response headers
-            if firstyield and dumpResponse:
+            if first_yield and dumpResponse:
                 print >> self.out, "<%s> --- %s Response(%s): ---" % (threading._get_ident(), 
                                                                       method, 
-                                                                      environ.get("wsgidav.response_status"))
-                headersdict = dict(environ.get("wsgidav.response_headers"))
+                                                                      sub_app_start_response.status)
+                headersdict = dict(sub_app_start_response.response_headers)
                 for envitem in headersdict.keys():
                     print >> self.out, "%s: %s" % (envitem, repr(headersdict[envitem])) 
                 print >> self.out, ""
@@ -186,14 +181,23 @@ class WsgiDavDebugFilter(object):
             elif drb is True:
                 # Else dump what we get, (except for long GET responses) 
                 if method == "GET":
-                    if firstyield:
+                    if first_yield:
                         print >> self.out, v[:50], "..."
                 elif len(v) > 0:
                     print >> self.out, v
 
             nbytes += len(v) 
-            firstyield = False
+            first_yield = False
             yield v
+        if hasattr(app_iter, "close"):
+            app_iter.close()
+
+        # Start response (if it hasn't been done yet)
+        if first_yield:
+            # Success!
+            start_response(sub_app_start_response.status,
+                           sub_app_start_response.response_headers,
+                           sub_app_start_response.exc_info)
 
         if dumpResponse:
             print >> self.out, "\n<%s> --- End of %s Response (%i bytes) ---" % (threading._get_ident(), method, nbytes)

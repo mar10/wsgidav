@@ -362,6 +362,9 @@ class FilesystemProvider(DAVProvider):
         return r  
 
     
+    def isReadOnly(self):
+        return self.readonly
+
     def getResourceInst(self, path, environ):
         """Return info dictionary for path.
 

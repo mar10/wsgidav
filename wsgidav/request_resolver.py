@@ -159,6 +159,8 @@ class RequestResolver(object):
         # We want to answer OPTIONS(*), even if no handler was registered for 
         # the top-level realm (e.g. required to map drive letters). 
 
+        provider = environ["wsgidav.provider"]
+
         # Hotfix for WinXP / Vista: accept '/' for a '*'
         if environ["REQUEST_METHOD"] == "OPTIONS" and path in ("/", "*"):
             # Answer HTTP 'OPTIONS' method on server-level.
@@ -170,22 +172,29 @@ class RequestResolver(object):
             # type of method; it does nothing beyond allowing the client to test the 
             # capabilities of the server. For example, this can be used to test a 
             # proxy for HTTP/1.1 compliance (or lack thereof). 
+            
+            dav_compliance_level = "1,2"
+            if provider is None or provider.isReadOnly() or provider.lockManager is None:
+                dav_compliance_level = "1"
+                
             start_response("200 OK", [("Content-Type", "text/html"),
                                       ("Content-Length", "0"),
-                                      ("DAV", "1,2"),
+                                      ("DAV", dav_compliance_level),
                                       ("Server", "DAV/2"),
                                       ("Date", util.getRfc1123Time()),
                                       ])
             yield ""        
             return
    
-        provider = environ["wsgidav.provider"]
         if provider is None:
             raise DAVError(HTTP_NOT_FOUND,
                            "Could not find resource provider for '%s'" % path)
 
         # Let the appropriate resource provider for the realm handle the request
         app = RequestServer(provider)
-        for v in app(environ, start_response):
+        app_iter = app(environ, start_response)
+        for v in app_iter:
             yield v
+        if hasattr(app_iter, "close"):
+            app_iter.close()
         return
