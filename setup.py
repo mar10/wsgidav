@@ -66,6 +66,7 @@ Project home: http://wsgidav.googlecode.com/
 #      include_package_data = True, # TODO: PP
       zip_safe = False,
       extras_require = {},
+      tests_require = ["Paste"],
       test_suite = "tests.test_all.run",
       entry_points = {
           "console_scripts" : ["wsgidav = wsgidav.server.run_server:run"],
