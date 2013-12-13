@@ -6,53 +6,52 @@ from tempfile import gettempdir
 from wsgidav.dav_error import DAVError
 import os
 from time import sleep
-from unittest import TestCase, TestSuite, TextTestRunner
+import unittest
 from wsgidav import lock_manager, lock_storage
 
 #===============================================================================
 # BasicTest
 #===============================================================================
-class BasicTest(TestCase):                          
+class BasicTest(unittest.TestCase):
     """Test lock_manager.LockManager()."""
     principal = "Joe Tester"
     owner = "joe.tester@example.com"
     root = "/dav/res"
     timeout = 10 * 60  # Default lock timeout 10 minutes
 
-    @classmethod
-    def suite(cls):
-        """Return test case suite (so we can control the order)."""
-        suite = TestSuite()
-        suite.addTest(cls("testPreconditions"))
-#        suite.addTest(cls("testOpen"))
-        suite.addTest(cls("testValidation"))
-        suite.addTest(cls("testLock"))
-        suite.addTest(cls("testTimeout"))
-        suite.addTest(cls("testConflict"))
-        return suite
+#     @classmethod
+#     def suite(cls):
+#         """Return test case suite (so we can control the order)."""
+#         suite = TestSuite()
+#         suite.addTest(cls("testPreconditions"))
+# #        suite.addTest(cls("testOpen"))
+#         suite.addTest(cls("testValidation"))
+#         suite.addTest(cls("testLock"))
+#         suite.addTest(cls("testTimeout"))
+#         suite.addTest(cls("testConflict"))
+#         return suite
 
-            
+
     def setUp(self):
         storage = lock_storage.LockStorageDict()
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
-        
+
 
     def tearDown(self):
-#        self.lm.close()
-        self.lm = None
+        del self.lm
 
 
-    def _acquire(self, url, locktype, lockscope, lockdepth, lockowner, timeout, 
+    def _acquire(self, url, locktype, lockscope, lockdepth, lockowner, timeout,
                 principal, tokenList):
         """Wrapper for lm.acquire, that returns None instead of raising DAVError."""
         try:
-            return self.lm.acquire(url, locktype, lockscope, lockdepth, lockowner, 
+            return self.lm.acquire(url, locktype, lockscope, lockdepth, lockowner,
                                    timeout, principal, tokenList)
         except DAVError:
             return None
 
-    
+
     def _isLockDict(self, o):
         try:
             _ = o["root"]
@@ -60,17 +59,17 @@ class BasicTest(TestCase):
             return False
         return True
 
-        
+
     def _isLockResultOK(self, resultTupleList):
         """Return True, if result is [ (lockDict, None) ]."""
         try:
             return (len(resultTupleList) == 1
-                    and len(resultTupleList) == 2 
-                    and self._isLockDict(resultTupleList[0][0]) 
+                    and len(resultTupleList) == 2
+                    and self._isLockDict(resultTupleList[0][0])
                     and resultTupleList[0][1] is None)
         except:
             return False
-        
+
 
     def _isLockResultFault(self, lock, conflictList, status=None):
         """Return True, if it is a valid result tuple containing a DAVError."""
@@ -79,7 +78,7 @@ class BasicTest(TestCase):
                 return False
             if len(conflictList) < 1:
                 return False
-            resultTuple = conflictList[0] 
+            resultTuple = conflictList[0]
             if len(resultTuple) != 2 or not self._isLockDict(resultTuple[0]) or not isinstance(resultTuple[1], DAVError):
                 return False
             elif status and status!=DAVError.value:
@@ -87,61 +86,61 @@ class BasicTest(TestCase):
             return True
         except:
             return False
-        
 
-    def testPreconditions(self):                          
+
+    def testPreconditions(self):
         """Environment must be set."""
         self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
 
 
-#    def testOpen(self):                          
+#    def testOpen(self):
 #        """Lock manager should be lazy opening on first access."""
 #        lm = self.lm
 ##        assert not lm._loaded, "LM must only be opened after first access"
-#        lm._generateLock(self.principal, "write", "exclusive", "infinity", 
-#                        self.owner, 
-#                        "/dav", 
+#        lm._generateLock(self.principal, "write", "exclusive", "infinity",
+#                        self.owner,
+#                        "/dav",
 #                        10)
 #        assert lm._loaded, "LM must be opened after first access"
 
 
-    def testValidation(self):                          
+    def testValidation(self):
         """Lock manager should raise errors on bad args."""
         lm = self.lm
-        self.assertRaises(AssertionError, 
-                          lm._generateLock, lm, "writeX", "exclusive", "infinity", 
+        self.assertRaises(AssertionError,
+                          lm._generateLock, lm, "writeX", "exclusive", "infinity",
                                            self.owner, self.root, self.timeout)
-        self.assertRaises(AssertionError, 
-                          lm._generateLock, lm, "write", "exclusiveX", "infinity", 
+        self.assertRaises(AssertionError,
+                          lm._generateLock, lm, "write", "exclusiveX", "infinity",
                                            self.owner, self.root, self.timeout)
-        self.assertRaises(AssertionError, 
-                          lm._generateLock, lm, "write", "exclusive", "infinityX", 
+        self.assertRaises(AssertionError,
+                          lm._generateLock, lm, "write", "exclusive", "infinityX",
                                            self.owner, self.root, self.timeout)
-        self.assertRaises(AssertionError, 
-                          lm._generateLock, lm, "write", "exclusive", "infinity", 
+        self.assertRaises(AssertionError,
+                          lm._generateLock, lm, "write", "exclusive", "infinity",
                                            None, self.root, self.timeout)
-        self.assertRaises(AssertionError, 
-                          lm._generateLock, lm, "write", "exclusive", "infinity", 
+        self.assertRaises(AssertionError,
+                          lm._generateLock, lm, "write", "exclusive", "infinity",
                                            self.owner, None, self.timeout)
 
-#        assert lm._dict is None, "No locks should have been created by this test" 
+#        assert lm._dict is None, "No locks should have been created by this test"
 
 
-    def testLock(self):                          
+    def testLock(self):
         """Lock manager should create and find locks."""
         lm = self.lm
         url = "/dav/res"
         # Create a new lock
-        lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity", 
+        lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity",
                                    self.owner, url, self.timeout)
         # Check returned dictionary
         assert lockDict is not None
-        assert lockDict["root"] == url 
-        assert lockDict["type"] == "write" 
-        assert lockDict["scope"] == "exclusive" 
-        assert lockDict["depth"] == "infinity" 
-        assert lockDict["owner"] == self.owner 
-        assert lockDict["principal"] == self.principal 
+        assert lockDict["root"] == url
+        assert lockDict["type"] == "write"
+        assert lockDict["scope"] == "exclusive"
+        assert lockDict["depth"] == "infinity"
+        assert lockDict["owner"] == self.owner
+        assert lockDict["principal"] == self.principal
 
         # Test lookup
         tok = lockDict.get("token")
@@ -150,23 +149,23 @@ class BasicTest(TestCase):
         lockDict = lm.getLock(tok)
 
         assert lockDict is not None
-        assert lockDict["root"] == url 
-        assert lockDict["type"] == "write" 
-        assert lockDict["scope"] == "exclusive" 
-        assert lockDict["depth"] == "infinity" 
-        assert lockDict["owner"] == self.owner 
-        assert lockDict["principal"] == self.principal 
+        assert lockDict["root"] == url
+        assert lockDict["type"] == "write"
+        assert lockDict["scope"] == "exclusive"
+        assert lockDict["depth"] == "infinity"
+        assert lockDict["owner"] == self.owner
+        assert lockDict["principal"] == self.principal
 
         # We locked "/dav/res", did we?
         assert lm.isTokenLockedByUser(tok, self.principal)
-        
+
 #        res = lm.getUrlLockList(url, self.principal)
         res = lm.getUrlLockList(url)
-        assert len(res) == 1
-        
+        self.assertEqual(len(res), 1)
+
 #        res = lm.getUrlLockList(url, "another user")
 #        assert len(res) == 0
-        
+
         assert lm.isUrlLockedByToken("/dav/res", tok), "url not directly locked by locktoken."
         assert lm.isUrlLockedByToken("/dav/res/", tok), "url not directly locked by locktoken."
         assert lm.isUrlLockedByToken("/dav/res/sub", tok), "child url not indirectly locked"
@@ -176,39 +175,39 @@ class BasicTest(TestCase):
         assert not lm.isUrlLockedByToken("/dav/", tok), "parent url reported as locked"
 
 
-    def testTimeout(self):                          
+    def testTimeout(self):
         """Locks should be purged after expiration date."""
         lm = self.lm
         timeout = 1
-        lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity", 
+        lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity",
                                    self.owner, self.root, timeout)
 
         assert lockDict is not None
         tok = lockDict.get("token")
         assert lm.getLock(tok, "root") == self.root
 
-        sleep(timeout - 0.5) 
+        sleep(timeout - 0.5)
         lockDict = lm.getLock(tok)
         assert lockDict is not None, "Lock expired too early"
 
-        sleep(1) 
+        sleep(1)
         lockDict = lm.getLock(tok)
         assert lockDict is None, "Lock has not expired"
 
 
-    def testConflict(self):                          
+    def testConflict(self):
         """Locks should prevent conflicts."""
         tokenList = []
-                
+
         # Create a lock for '/dav/res/'
         l = self._acquire("/dav/res/", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, 
+                          self.owner, self.timeout,
                           self.principal, tokenList)
         assert l, "Could not acquire lock"
 
         # Try to lock with a slightly different URL (without trailing '/')
         l = self._acquire("/dav/res", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, 
+                          self.owner, self.timeout,
                           "another principal", tokenList)
         assert l is None, "Could acquire a conflicting lock"
 
@@ -236,34 +235,36 @@ class BasicTest(TestCase):
 #===============================================================================
 # ShelveTest
 #===============================================================================
-class ShelveTest(BasicTest):                          
+class ShelveTest(BasicTest):
     """Test lock_manager.ShelveLockManager()."""
-    
+
     def setUp(self):
         self.path = os.path.join(gettempdir(), "wsgidav-locks.shelve")
-        if os.path.exists(self.path):
-            os.remove(self.path)
         storage = lock_storage.LockStorageShelve(self.path)
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
 
+
     def tearDown(self):
-#        self.lm._close()
+        self.lm.storage.clear()
         self.lm = None
-#        os.remove(self.path)
+        # Note: os.remove(self.path) does not work, because Shelve may append
+        # a file extension.
+#         if os.path.exists(self.path):
+#             os.remove(self.path)
 
 
 #===============================================================================
 # suite
 #===============================================================================
-def suite():
-    """Return suites of all test cases."""
-    return TestSuite([BasicTest.suite(), 
-                      ShelveTest.suite(),
-                      ])  
+# def suite():
+#     """Return suites of all test cases."""
+#     return TestSuite([BasicTest.suite(),
+#                       ShelveTest.suite(),
+#                       ])
 
 
 if __name__ == "__main__":
-#    unittest.main()   
-    suite = suite()
-    TextTestRunner(descriptions=0, verbosity=2).run(suite)
+    unittest.main()
+#     suite = suite()
+#     TextTestRunner(descriptions=0, verbosity=2).run(suite)

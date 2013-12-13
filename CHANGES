@@ -10,7 +10,8 @@ CHANGES
 - Fixed issue #43 Unicode error in Ubuntu
 - Allow Ctrl-C / SIGINT to stop CherryPyWSGIServer
 - Made mimetype guessing more robust
-- UpdateCherryPy standalone WSGI server to 3.2.4
+- Updated CherryPy standalone WSGI server to 3.2.4
+- Support 'setup.py test' which uses nosetests and includes litmus
 
 
 0.5.0 / 2011-01-16

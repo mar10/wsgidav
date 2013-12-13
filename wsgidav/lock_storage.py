@@ -3,15 +3,15 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implements two storage providers for `LockManager`.
- 
-Two alternative lock storage classes are defined here: one in-memory 
+
+Two alternative lock storage classes are defined here: one in-memory
 (dict-based), and one persistent low performance variant using shelve.
 
 See wsgidav.lock_manager.LockManager
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
+.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html
 """
 from wsgidav.lock_manager import normalizeLockRoot, lockString,\
     generateLockToken, validateLock
@@ -44,12 +44,12 @@ _logger = util.getModuleLogger(__name__)
 class LockStorageDict(object):
     """
     An in-memory lock manager storage implementation using a dictionary.
-    
+
     R/W access is guarded by a thread.lock object.
-    
+
     Also, to make it work with a Shelve dictionary, modifying dictionary
     members is done by re-assignment and we call a _flush() method.
-    
+
     This is obviously not persistent, but should be enough in some cases.
     For a persistent implementation, see lock_manager.LockStorageShelve().
 
@@ -58,8 +58,8 @@ class LockStorageDict(object):
         seconds until expiration).
 
     The dictionary is built like::
-    
-        { 'URL2TOKEN:/temp/litmus/lockme': ['opaquelocktoken:0x1d7b86...', 
+
+        { 'URL2TOKEN:/temp/litmus/lockme': ['opaquelocktoken:0x1d7b86...',
                                             'opaquelocktoken:0xd7d4c0...'],
           'opaquelocktoken:0x1d7b86...': { 'depth': '0',
                                            'owner': "<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">litmus test suite</owner>\\n",
@@ -94,36 +94,42 @@ class LockStorageDict(object):
 
 
     def __del__(self):
-        pass   
+        pass
 
 
     def _flush(self):
         """Overloaded by Shelve implementation."""
         pass
 
-    
+
     def open(self):
         """Called before first use.
-        
+
         May be implemented to initialize a storage.
         """
         assert self._dict is None
         self._dict = {}
 
-    
+
     def close(self):
         """Called on shutdown."""
         self._dict = None
 
-    
+
     def cleanup(self):
         """Purge expired locks (optional)."""
         pass
 
-    
+
+    def clear(self):
+        """Delete all entries."""
+        if self._dict is not None:
+            self._dict.clear()
+
+
     def get(self, token):
         """Return a lock dictionary for a token.
-        
+
         If the lock does not exist or is expired, None is returned.
 
         token:
@@ -136,31 +142,31 @@ class LockStorageDict(object):
         self._lock.acquireRead()
         try:
             lock = self._dict.get(token)
-            if lock is None: 
+            if lock is None:
                 # Lock not found: purge dangling URL2TOKEN entries
                 _logger.debug("Lock purged dangling: %s" % token)
-                self.delete(token)      
+                self.delete(token)
                 return None
             expire = float(lock["expire"])
             if expire >= 0 and expire < time.time():
                 _logger.debug("Lock timed-out(%s): %s" % (expire, lockString(lock)))
-                self.delete(token)   
+                self.delete(token)
                 return None
             return lock
         finally:
             self._lock.release()
-    
-    
+
+
     def create(self, path, lock):
         """Create a direct lock for a resource path.
-        
+
         path:
             Normalized path (utf8 encoded string, no trailing '/')
         lock:
-            lock dictionary, without a token entry 
+            lock dictionary, without a token entry
         Returns:
             New unique lock token.: <lock
-        
+
         **Note:** the lock dictionary may be modified on return:
 
         - lock['root'] is ignored and set to the normalized <path>
@@ -173,37 +179,37 @@ class LockStorageDict(object):
             assert lock.get("token") is None
             assert lock.get("expire") is None, "Use timeout instead of expire"
             assert path and "/" in path
-    
-            # Normalize root: /foo/bar 
+
+            # Normalize root: /foo/bar
             org_path = path
             path = normalizeLockRoot(path)
             lock["root"] = path
-    
+
             # Normalize timeout from ttl to expire-date
             timeout = float(lock.get("timeout"))
             if timeout is None:
                 timeout = LockStorageDict.LOCK_TIME_OUT_DEFAULT
             elif timeout < 0 or timeout > LockStorageDict.LOCK_TIME_OUT_MAX:
-                timeout = LockStorageDict.LOCK_TIME_OUT_MAX     
+                timeout = LockStorageDict.LOCK_TIME_OUT_MAX
 
             lock["timeout"] = timeout
             lock["expire"] = time.time() + timeout
-            
+
             validateLock(lock)
-            
+
             token = generateLockToken()
             lock["token"] = token
-            
+
             # Store lock
             self._dict[token] = lock
-            
+
             # Store locked path reference
             key = "URL2TOKEN:%s" % path
             if not key in self._dict:
                 self._dict[key] = [ token ]
             else:
-                # Note: Shelve dictionary returns copies, so we must reassign values: 
-                tokList = self._dict[key] 
+                # Note: Shelve dictionary returns copies, so we must reassign values:
+                tokList = self._dict[key]
                 tokList.append(token)
                 self._dict[key] = tokList
             self._flush()
@@ -211,20 +217,20 @@ class LockStorageDict(object):
 #            print("LockStorageDict.set(%r): %s" % (org_path, lockString(lock)))
             return lock
         finally:
-            self._lock.release()         
-    
-    
+            self._lock.release()
+
+
     def refresh(self, token, timeout):
         """Modify an existing lock's timeout.
-        
+
         token:
             Valid lock token.
         timeout:
             Suggested lifetime in seconds (-1 for infinite).
             The real expiration time may be shorter than requested!
         Returns:
-            Lock dictionary. 
-            Raises ValueError, if token is invalid. 
+            Lock dictionary.
+            Raises ValueError, if token is invalid.
         """
         assert token in self._dict, "Lock must exist"
         assert timeout == -1 or timeout > 0
@@ -233,20 +239,20 @@ class LockStorageDict(object):
 
         self._lock.acquireWrite()
         try:
-            # Note: shelve dictionary returns copies, so we must reassign values: 
+            # Note: shelve dictionary returns copies, so we must reassign values:
             lock = self._dict[token]
             lock["timeout"] = timeout
             lock["expire"] = time.time() + timeout
             self._dict[token] = lock
             self._flush()
         finally:
-            self._lock.release()         
+            self._lock.release()
         return lock
 
-    
+
     def delete(self, token):
         """Delete lock.
-        
+
         Returns True on success. False, if token does not exist, or is expired.
         """
         self._lock.acquireWrite()
@@ -261,25 +267,25 @@ class LockStorageDict(object):
 #                _logger.debug("    delete token %s from url %s" % (token, lock.get("root")))
                 tokList = self._dict[key]
                 if len(tokList) > 1:
-                    # Note: shelve dictionary returns copies, so we must reassign values: 
+                    # Note: shelve dictionary returns copies, so we must reassign values:
                     tokList.remove(token)
                     self._dict[key] = tokList
                 else:
-                    del self._dict[key]     
+                    del self._dict[key]
             # Remove the lock
-            del self._dict[token]       
+            del self._dict[token]
 
             self._flush()
         finally:
             self._lock.release()
         return True
-    
-    
+
+
     def getLockList(self, path, includeRoot, includeChildren, tokenOnly):
         """Return a list of direct locks for <path>.
 
         Expired locks are *not* returned (but may be purged).
-        
+
         path:
             Normalized path (utf8 encoded string, no trailing '/')
         includeRoot:
@@ -288,7 +294,7 @@ class LockStorageDict(object):
         includeChildren:
             True: Also check all sub-paths for existing locks.
         tokenOnly:
-            True: only a list of token is returned. This may be implemented 
+            True: only a list of token is returned. This may be implemented
             more efficiently by some providers.
         Returns:
             List of valid lock dictionaries (may be empty).
@@ -296,7 +302,7 @@ class LockStorageDict(object):
         assert path and path.startswith("/")
         assert includeRoot or includeChildren
         def __appendLocks(toklist):
-            # Since we can do this quickly, we use self.get() even if 
+            # Since we can do this quickly, we use self.get() even if
             # tokenOnly is set, so expired locks are purged.
             for token in toklist:
                 lock = self.get(token)
@@ -314,16 +320,16 @@ class LockStorageDict(object):
             lockList = []
             if includeRoot:
                 __appendLocks(tokList)
-                    
+
             if includeChildren:
                 for u, ltoks in self._dict.items():
-                    if util.isChildUri(key, u): 
+                    if util.isChildUri(key, u):
                         __appendLocks(ltoks)
-            
+
             return lockList
         finally:
-            self._lock.release()        
-    
+            self._lock.release()
+
 
 #===============================================================================
 # LockStorageShelve
@@ -340,7 +346,7 @@ class LockStorageShelve(LockStorageDict):
 
     def __repr__(self):
         return "LockStorageShelve(%r)" % self._storagePath
-        
+
 
     def _flush(self):
         """Write persistent dictionary to disc."""
@@ -349,12 +355,28 @@ class LockStorageShelve(LockStorageDict):
         try:
             self._dict.sync()
         finally:
-            self._lock.release()         
+            self._lock.release()
 
+
+    def clear(self):
+        """Delete all entries."""
+        self._lock.acquireWrite() # TODO: read access is enough?
+        try:
+            was_closed = self._dict is None
+            if was_closed:
+                self.open()
+            if len(self._dict):
+                self._dict.clear()
+                self._dict.sync()
+            if was_closed:
+                self.close()
+        finally:
+            self._lock.release()
+    
 
     def open(self):
         _logger.debug("open(%r)" % self._storagePath)
-        # Open with writeback=False, which is faster, but we have to be 
+        # Open with writeback=False, which is faster, but we have to be
         # careful to re-assign values to _dict after modifying them
         self._dict = shelve.open(self._storagePath, writeback=False)
 #        if __debug__ and self._verbose >= 2:
@@ -370,7 +392,7 @@ class LockStorageShelve(LockStorageDict):
                 self._dict.close()
                 self._dict = None
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
 #===============================================================================

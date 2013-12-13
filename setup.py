@@ -25,14 +25,14 @@ setup(name="WsgiDAV",
       url = "http://wsgidav.googlecode.com/",
       description = "Generic WebDAV server based on WSGI",
       long_description="""\
-WsgiDAV is a WebDAV server for sharing files and other resources over the web. 
+WsgiDAV is a WebDAV server for sharing files and other resources over the web.
 It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
 
 It comes bundled with a simple WSGI web server.
 
 *This package is based on PyFileServer by Ho Chun Wei.*
 
-Project home: http://wsgidav.googlecode.com/  
+Project home: http://wsgidav.googlecode.com/
 """,
 
         #Development Status :: 2 - Pre-Alpha
@@ -55,7 +55,7 @@ Project home: http://wsgidav.googlecode.com/
                      "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
                      "Topic :: Software Development :: Libraries :: Python Modules",
                      ],
-      keywords = "web wsgi webdav application server", 
+      keywords = "web wsgi webdav application server",
 #      platforms=["Unix", "Windows"],
       license = "The MIT License",
 #      install_requires = ["lxml"],
@@ -66,8 +66,11 @@ Project home: http://wsgidav.googlecode.com/
 #      include_package_data = True, # TODO: PP
       zip_safe = False,
       extras_require = {},
-      tests_require = ["Paste"],
-      test_suite = "tests.test_all.run",
+      tests_require = ["nose",   # run nosetests
+                       "Paste",  # paste.fixture.TestApp
+                       ],
+#      test_suite = "tests.test_all.run",
+      test_suite = "nose.collector",
       entry_points = {
           "console_scripts" : ["wsgidav = wsgidav.server.run_server:run"],
           },

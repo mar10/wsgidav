@@ -3,58 +3,61 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
     Unit test for wsgidav HTTP request functionality
-    
+
     This test suite uses paste.fixture to send fake requests to the WSGI
     stack.
-     
+
     See http://pythonpaste.org/testing-applications.html
     and http://pythonpaste.org/modules/fixture.html
 """
 from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
-#from wsgidav import util
 import os
 import unittest
 import sys
 
 try:
     from paste.fixture import TestApp  #@UnresolvedImport
-except:
-    print >>sys.stderr, "Could not import paste.fixture.TestApp: tests will fail"
+except ImportError:
+    print >>sys.stderr, "*" * 70
+    print >>sys.stderr, "Could not import paste.fixture.TestApp: some tests will fail."
+    print >>sys.stderr, "Try 'pip install Paste' or use 'python setup.py test' to run these tests."
+    print >>sys.stderr, "*" * 70
+    raise
 
 #===============================================================================
 # ServerTest
 #===============================================================================
-class ServerTest(unittest.TestCase):                          
+class ServerTest(unittest.TestCase):
     """Test wsgidav_app using paste.fixture."""
 
-    @classmethod
-    def suite(cls):
-        """Return test case suite (so we can control the order)."""
-        suite = unittest.TestSuite()
-        suite.addTest(cls("testPreconditions"))
-        suite.addTest(cls("testDirBrowser"))
-        suite.addTest(cls("testGetPut"))
-        suite.addTest(cls("testEncoding"))
-        suite.addTest(cls("testAuthentication"))
-        return suite
+#     @classmethod
+#     def suite(cls):
+#         """Return test case suite (so we can control the order)."""
+#         suite = unittest.TestSuite()
+#         suite.addTest(cls("testPreconditions"))
+#         suite.addTest(cls("testDirBrowser"))
+#         suite.addTest(cls("testGetPut"))
+#         suite.addTest(cls("testEncoding"))
+#         suite.addTest(cls("testAuthentication"))
+#         return suite
 
-    
+
     def _makeWsgiDAVApp(self, withAuthentication):
         self.rootpath = os.path.join(gettempdir(), "wsgidav-test")
         if not os.path.exists(self.rootpath):
             os.mkdir(self.rootpath)
         provider = FilesystemProvider(self.rootpath)
-                
+
         config = DEFAULT_CONFIG.copy()
         config.update({
             "provider_mapping": {"/": provider},
             "user_mapping": {},
             "verbose": 1,
             "enable_loggers": [],
-            "propsmanager": None,      # None: no property manager                    
-            "locksmanager": True,      # True: use lock_manager.LockManager                   
+            "propsmanager": None,      # None: no property manager
+            "locksmanager": True,      # True: use lock_manager.LockManager
             "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
             })
 
@@ -68,14 +71,14 @@ class ServerTest(unittest.TestCase):
             config["acceptbasic"] = True
             config["acceptdigest"] = False
             config["defaultdigest"] = False
-        
+
         return WsgiDAVApp(config)
-                
+
 
     def setUp(self):
         wsgi_app = self._makeWsgiDAVApp(False)
         self.app = TestApp(wsgi_app)
-                
+
 
     def tearDown(self):
 #        os.rmdir(self.rootpath)
@@ -83,7 +86,7 @@ class ServerTest(unittest.TestCase):
         self.app = None
 
 
-    def testPreconditions(self):                          
+    def testPreconditions(self):
         """Environment must be set."""
         self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
 
@@ -93,13 +96,13 @@ class ServerTest(unittest.TestCase):
         app = self.app
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
-        assert "WsgiDAV - Index of /" in res, "Could not list root share" 
+        assert "WsgiDAV - Index of /" in res, "Could not list root share"
 
         # Access unmapped resource (expect '404 Not Found')
         res = app.get("/not-existing-124/", status=404)
 
 
-    def testGetPut(self):                          
+    def testGetPut(self):
         """Read and write file contents."""
         app = self.app
 
@@ -117,20 +120,20 @@ class ServerTest(unittest.TestCase):
         app.delete("/file1.txt", expect_errors=True)
         app.delete("/file2.txt", expect_errors=True)
         app.delete("/file3.txt", expect_errors=True)
-        
+
         # Access unmapped resource (expect '404 Not Found')
         app.delete("/file1.txt", status=404)
         app.get("/file1.txt", status=404)
-        
+
         # PUT a small file (expect '201 Created')
         app.put("/file1.txt", params=data1, status=201)
-        
+
         res = app.get("/file1.txt", status=200)
         assert res.body == data1, "GET file content different from PUT"
 
         # PUT overwrites a small file (expect '204 No Content')
         app.put("/file1.txt", params=data2, status=204)
-        
+
         res = app.get("/file1.txt", status=200)
         assert res.body == data2, "GET file content different from PUT"
 
@@ -141,9 +144,9 @@ class ServerTest(unittest.TestCase):
         assert res.body == data3, "GET file content different from PUT"
 
         # Request must not contain a body (expect '415 Media Type Not Supported')
-        app.get("/file1.txt", 
+        app.get("/file1.txt",
                 headers={"Content-Length": str(len(data1))},
-                params=data1, 
+                params=data1,
                 status=415)
 
         # Delete existing resource (expect '204 No Content')
@@ -153,9 +156,9 @@ class ServerTest(unittest.TestCase):
 
         # PUT a small file (expect '201 Created')
         app.put("/file1.txt", params=data1, status=201)
-        
 
-    def testEncoding(self):                          
+
+    def testEncoding(self):
         """Handle special characters."""
         app = self.app
         uniData = u"This is a file with special characters:\n" \
@@ -165,7 +168,7 @@ class ServerTest(unittest.TestCase):
 
         data = uniData.encode("utf8")
 
-        def __testrw(filename):        
+        def __testrw(filename):
             # Write/read UTF-8 encoded file name
 #            print util.stringRepr(filename)
             app.delete(filename, expect_errors=True)
@@ -180,13 +183,13 @@ class ServerTest(unittest.TestCase):
         __testrw("/file male(\xE2\x99\x82).txt")
 
 
-    def testAuthentication(self):                          
+    def testAuthentication(self):
         """Require login."""
         # Re-create test app with authentication
         self.tearDown()
         wsgi_app = self._makeWsgiDAVApp(True)
         app = self.app = TestApp(wsgi_app)
-        
+
         # Anonymous access must fail (expect 401 Not Authorized)
         # Existing resource
         app.get("/file1.txt", status=401)
@@ -199,7 +202,7 @@ class ServerTest(unittest.TestCase):
         user = "tester"
         password = "tester"
         creds = (user + ":" + password).encode("base64").strip()
-        headers = {"Authorization": "Basic %s" % creds, 
+        headers = {"Authorization": "Basic %s" % creds,
                    }
         # Existing resource
         app.get("/file1.txt", headers=headers, status=200)
@@ -210,7 +213,7 @@ class ServerTest(unittest.TestCase):
 #===============================================================================
 # WsgiDAVServerTest
 #===============================================================================
-#class WsgiDAVServerTest(unittest.TestCase):                          
+#class WsgiDAVServerTest(unittest.TestCase):
 #    """Test the built-in WsgiDAV server with cadaver."""
 #
 #    @classmethod
@@ -221,67 +224,57 @@ class ServerTest(unittest.TestCase):
 #        suite.addTest(cls("testOpen"))
 #        return suite
 #
-#            
+#
 #    def setUp(self):
 #        config = DEFAULT_CONFIG.copy()
 #        config.update({
 #            "provider_mapping": {},
 #            "user_mapping": {},
 #            "host": "localhost",
-#            "port": 8080, 
+#            "port": 8080,
 #            "ext_servers": [
-#        #                   "paste", 
+#        #                   "paste",
 #        #                   "cherrypy",
 #        #                   "wsgiref",
 #                           "wsgidav",
 #                           ],
 #            "enable_loggers": [
 #                              ],
-#        
-#            "propsmanager": None,  # None: use properry_manager.PropertyManager                    
-#            "locksmanager": None,  # None: use lock_manager.LockManager                   
+#
+#            "propsmanager": None,  # None: use properry_manager.PropertyManager
+#            "locksmanager": None,  # None: use lock_manager.LockManager
 #            "domaincontroller": None,
 #            "verbose": 2,
 #            })
 #        self.app = WsgiDAVApp(config)
-#        
+#
 ##        from wsgidav.server.run_server import _runBuiltIn
 ##        _runBuiltIn(app, config)
-#        
+#
 #
 #    def tearDown(self):
 #        del self.app
 #        self.app = None
 #
 #
-#    def testPreconditions(self):                          
+#    def testPreconditions(self):
 #        """Environment must be set."""
 #        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
 #
 #
-#    def testOpen(self):                          
+#    def testOpen(self):
 #        """Property manager should be lazy opening on first access."""
 #        app = self.app
 #        conf = self.app.config
 #
 #
-#    def testValidation(self):                          
+#    def testValidation(self):
 #        """Property manager should raise errors on bad args."""
 #        conf = self.app.config
 
 
-
-
 #===============================================================================
-# suite
-#===============================================================================
-def suite():
-    """Return suites of all test cases."""
-    return unittest.TestSuite([ServerTest.suite(), 
-                               ])  
 
 
 if __name__ == "__main__":
-#    unittest.main()   
-    suite = suite()
-    unittest.TextTestRunner(descriptions=1, verbosity=2).run(suite)
+    unittest.main()
