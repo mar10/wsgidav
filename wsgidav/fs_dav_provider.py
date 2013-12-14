@@ -334,10 +334,15 @@ class FolderResource(DAVCollection):
 class FilesystemProvider(DAVProvider):
 
     def __init__(self, rootFolderPath, readonly=False):
+        # Expand leading '~' as user home dir; expand %VAR%, $Var, ..
+        rootFolderPath = os.path.expandvars(os.path.expanduser(rootFolderPath))
+        rootFolderPath = os.path.abspath(rootFolderPath)
         if not rootFolderPath or not os.path.exists(rootFolderPath):
             raise ValueError("Invalid root path: %s" % rootFolderPath)
+
         super(FilesystemProvider, self).__init__()
-        self.rootFolderPath = os.path.abspath(rootFolderPath)
+
+        self.rootFolderPath = rootFolderPath
         self.readonly = readonly
 
 
