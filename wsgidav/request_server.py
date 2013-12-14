@@ -1330,6 +1330,9 @@ class RequestServer(object):
 
         headers.append( ("Allow", " ".join(allow)) )
 
+        if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
+            headers.append( ("MS-Author-Via", "DAV") )
+
         start_response("200 OK", headers)        
         return [""]
 

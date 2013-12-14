@@ -174,15 +174,21 @@ class RequestResolver(object):
             # proxy for HTTP/1.1 compliance (or lack thereof). 
             
             dav_compliance_level = "1,2"
+
             if provider is None or provider.isReadOnly() or provider.lockManager is None:
                 dav_compliance_level = "1"
+
+            headers = [("Content-Type", "text/html"),
+                       ("Content-Length", "0"),
+                       ("DAV", dav_compliance_level),
+                       ("Server", "DAV/2"),
+                       ("Date", util.getRfc1123Time()),
+                       ]
+
+            if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
+                headers.append( ("MS-Author-Via", "DAV") )
                 
-            start_response("200 OK", [("Content-Type", "text/html"),
-                                      ("Content-Length", "0"),
-                                      ("DAV", dav_compliance_level),
-                                      ("Server", "DAV/2"),
-                                      ("Date", util.getRfc1123Time()),
-                                      ])
+            start_response("200 OK", headers)
             yield ""        
             return
    
