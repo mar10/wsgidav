@@ -1,4 +1,4 @@
-# (c) 2009-2011 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2013 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -1272,8 +1272,8 @@ class RequestServer(object):
         headers = [("Content-Type", "text/html"),
                    ("Content-Length", "0"),
                    ("DAV", dav_compliance_level),
-                                    # TODO: 10.1: 'OPTIONS MUST return DAV header with compliance class "1"'
-                                    # TODO: 10.1: In cases where WebDAV is only supported in part of the server namespace, an OPTIONS request to non-WebDAV resources (including "/") SHOULD NOT advertise WebDAV support
+        # TODO: 10.1: 'OPTIONS MUST return DAV header with compliance class "1"'
+        # TODO: 10.1: In cases where WebDAV is only supported in part of the server namespace, an OPTIONS request to non-WebDAV resources (including "/") SHOULD NOT advertise WebDAV support
                    ("Server", "DAV/2"),
                    ("Date", util.getRfc1123Time()),
                    ]

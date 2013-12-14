@@ -2,8 +2,20 @@
 CHANGES
 =======
 
-0.5.0
-=====
+0.6.0 / Unreleased
+==================
+- TODO: Support Microsoft Office (MS-Author-Via header)
+- Issue #55 Failure operating with litmus test suite, Mac OS X WebDAV Client, Windows 7 (thanks to Ben Allums)
+- Fixed issue #48 Allow the dirbrowser to be configured from the config file (thanks to Herman Grecco)
+- Fixed issue #43 Unicode error in Ubuntu
+- Allow Ctrl-C / SIGINT to stop CherryPyWSGIServer
+- Made mimetype guessing more robust
+- Updated CherryPy standalone WSGI server to 3.2.4
+- Support 'setup.py test' which uses nosetests and includes litmus
+
+
+0.5.0 / 2011-01-16
+==================
 - Bundled with CherryPy standalone WSGI server
 - Added copyright notes for original PyFileServer
 - Changed signature of DAVProvider (and derived classes): provider argument was
@@ -11,8 +23,8 @@ CHANGES
 - New method DAVResource.getMemberList() replaces getMemberNames().
 - New class DAVCollection allows for more efficient implementation of custom
   providers.
-- Forcing 'Connection: close', when a required Content-Length is missing. 
-  So it's possible now to return GET responses without knowing the size. 
+- Forcing 'Connection: close', when a required Content-Length is missing.
+  So it's possible now to return GET responses without knowing the size.
 - New property manager based on CouchDB (addons.couch_property_manager)
 - New property manager based on MongoDB (addons.mongo_property_manager)
 - New sample DAV provider for MongoDBs (samples.mongo_dav_provider)
@@ -20,7 +32,7 @@ CHANGES
 - Support davmount (rfc 4709).
 - Added support for Microsoft FOLDER behavior.
 - renamed displayType() -> getDirectoryInfo()
-- Fixed RANGE response 
+- Fixed RANGE response
 
 
 0.4.0.b3
@@ -29,14 +41,14 @@ CHANGES
 - Bugfixes
 
 
-0.4.0.b2
-========
+0.4.0.b2 / 2010-02-15
+=====================
 - Bugfixes
 
 
 0.4.0.b1
 ========
-- Using HTTP/1.1 with keep-alive (Stéphane KLEIN)
+- Using HTTP/1.1 with keep-alive (Stï¿½phane KLEIN)
 - Correctly return pre- and postconditions on lock conflicts.
 - Added Sphinx docs
 - Added Mercurial provider
