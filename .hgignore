@@ -8,4 +8,5 @@ glob:wsgidav.conf
 glob:dist
 glob:*.orig
 glob:.settings
-glob:Paste*.egg
+syntax: glob
+*.egg/
