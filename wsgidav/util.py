@@ -387,6 +387,10 @@ def stringRepr(s):
     return "%s" % s
 
 
+def getFileExtension(path):
+    ext = os.path.splitext(url)[1]
+    return ext
+
 
 def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, appendBytes=True):
     """Convert bytes into human-readable representation."""
@@ -1151,6 +1155,7 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
     return False
 
 testIfHeaderDict.__test__ = False # Tell nose to ignore this function
+
 
 #===============================================================================
 # guessMimeType

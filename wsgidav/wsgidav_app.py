@@ -97,11 +97,15 @@ DEFAULT_CONFIG = {
                          #     request body and GET response bodies not shown
     
     "dir_browser": {
-        "enable": True,          # Render HTML listing for GET requests on collections
-        "response_trailer": "",  # Raw HTML code, appended as footer
-        "davmount": False,       # Send <dm:mount> response if request URL contains '?davmount'
-        "msmount": False,        # Add an 'open as webfolder' link (requires Windows)
-    }
+        "enable": True,             # Render HTML listing for GET requests on collections
+        "response_trailer": "",     # Raw HTML code, appended as footer
+        "davmount": False,          # Send <dm:mount> response if request URL contains '?davmount'
+        "msmount": False,           # Add an 'open as webfolder' link (requires Windows)
+        "msSharepointUrls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+    },
+
+    # Addtional Options
+    "add_header_MS_Author_Via": False,
 }
 
 

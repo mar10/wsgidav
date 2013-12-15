@@ -10,11 +10,26 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
 from wsgidav.version import __version__
+import os
 import sys
 import urllib
 import util
 
 __docformat__ = "reStructuredText"
+
+
+
+msOfficeTypeToExtMap = {
+    "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
+    "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
+    "word": ("doc", "dot", "docm", "docx", "dotm", "dotx"),
+    "visio": ("vsd", "vsdm", "vsdx", "vstm", "vstx"),
+}
+msOfficeExtToTypeMap = {}
+for t, el in msOfficeTypeToExtMap.iteritems():
+    for e in el:
+        msOfficeExtToTypeMap[e] = t
+
 
 
 class WsgiDavDirBrowser(object):
@@ -94,6 +109,7 @@ class WsgiDavDirBrowser(object):
         
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
         displaypath = urllib.unquote(davres.getHref())
+        isReadOnly = environ["wsgidav.provider"].isReadOnly()
 
         trailer = dirConfig.get("response_trailer")
         if trailer:
@@ -170,7 +186,8 @@ class WsgiDavDirBrowser(object):
             childList = davres.getDescendants(depth="1", addSelf=False)
             for res in childList:
                 di = res.getDisplayInfo()
-                infoDict = {"href": res.getHref(),
+                href = res.getHref()
+                infoDict = {"href": href,
                             "displayName": res.getDisplayName(),
                             "lastModified": res.getLastModified(),
                             "isCollection": res.isCollection,
@@ -178,6 +195,13 @@ class WsgiDavDirBrowser(object):
                             "displayType": di.get("type"),
                             "displayTypeComment": di.get("typeComment"),
                             }
+
+                if not isReadOnly and not res.isCollection and dirConfig.get("msSharepointUrls"):
+                    ext = os.path.splitext(href)[1].lstrip(".").lower()
+                    officeType = msOfficeExtToTypeMap.get(ext)
+                    if officeType:
+                        infoDict["href"] = "ms-%s:ofe|u|%s" % (officeType, href)
+
                 dirInfoList.append(infoDict)
         # 
         for infoDict in dirInfoList:
