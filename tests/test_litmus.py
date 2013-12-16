@@ -85,13 +85,16 @@ class WsgiDAVLitmusTest(unittest.TestCase):
                                  0,
                                  "litmus suite failed: check the log")
             except OSError:
+                print "*" * 70
                 print "This test requires the litmus test suite."
                 print "See http://www.webdav.org/neon/litmus/"
+                print "*" * 70
                 raise
 
         finally:
             proc.terminate()
             proc.join()
+#             time.sleep(0.5)
 
 
     # This test with anonymous access fails here:

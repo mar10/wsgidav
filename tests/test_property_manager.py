@@ -82,12 +82,15 @@ class ShelveTest(BasicTest):
 
     def setUp(self):
         self.path = os.path.join(gettempdir(), "wsgidav-props.shelve")
-        if os.path.exists(self.path):
-            os.remove(self.path)
+        # Note: os.remove(self.path) does not work, because Shelve may append
+        # a file extension.
+#        if os.path.exists(self.path):
+#            os.remove(self.path)
         self.pm = property_manager.ShelvePropertyManager(self.path)
         self.pm._verbose = 1
 
     def tearDown(self):
+#        self.pm.storage.clear()
         self.pm._close()
         self.pm = None
 #        os.remove(self.path)
