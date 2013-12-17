@@ -76,8 +76,8 @@ DEFAULT_CONFIG = {
                    "wsgidav",
                    ],
 
-    "enable_loggers": [
-                      ],
+    "add_header_MS_Author_Via": False,
+#    "use_text_files": False,
 
     "propsmanager": None,  # True: use property_manager.PropertyManager                  
     "locksmanager": True,  # True: use lock_manager.LockManager    
@@ -89,6 +89,9 @@ DEFAULT_CONFIG = {
     "acceptdigest": True,     # Allow digest authentication, True or False
     "defaultdigest": True,    # True (default digest) or False (default basic)
     
+    "enable_loggers": [
+                      ],
+
     # Verbose Output
     "verbose": 2,        # 0 - no output (excepting application exceptions)         
                          # 1 - show single line request summaries (for HTTP logging)
@@ -97,15 +100,12 @@ DEFAULT_CONFIG = {
                          #     request body and GET response bodies not shown
     
     "dir_browser": {
-        "enable": True,             # Render HTML listing for GET requests on collections
-        "response_trailer": "",     # Raw HTML code, appended as footer
-        "davmount": False,          # Send <dm:mount> response if request URL contains '?davmount'
-        "msmount": False,           # Add an 'open as webfolder' link (requires Windows)
-        "msSharepointUrls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+        "enable": True,               # Render HTML listing for GET requests on collections
+        "response_trailer": "",       # Raw HTML code, appended as footer
+        "davmount": False,            # Send <dm:mount> response if request URL contains '?davmount'
+        "ms_mount": False,            # Add an 'open as webfolder' link (requires Windows)
+        "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
     },
-
-    # Addtional Options
-    "add_header_MS_Author_Via": False,
 }
 
 

@@ -142,7 +142,7 @@ class WsgiDavDirBrowser(object):
     p.trailer { font-size: smaller; }
 </style>""")        
         # Special CSS to enable MS Internet Explorer behaviour
-        if dirConfig.get("msmount"):
+        if dirConfig.get("ms_mount"):
             html.append("""\
 <style type="text/css">
     A {behavior: url(#default#AnchorClick);}
@@ -156,7 +156,7 @@ class WsgiDavDirBrowser(object):
         links = []
         if dirConfig.get("davmount"):
             links.append("<a title='Open this folder in a WebDAV client.' href='%s?davmount'>Mount</a>" % util.makeCompleteUrl(environ))
-        if dirConfig.get("msmount"):
+        if dirConfig.get("ms_mount"):
             links.append("<a title='Open as Web Folder (requires Microsoft Internet Explorer)' href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
 #                html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
         if links:
@@ -196,7 +196,7 @@ class WsgiDavDirBrowser(object):
                             "displayTypeComment": di.get("typeComment"),
                             }
 
-                if not isReadOnly and not res.isCollection and dirConfig.get("msSharepointUrls"):
+                if not isReadOnly and not res.isCollection and dirConfig.get("ms_sharepoint_urls"):
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:

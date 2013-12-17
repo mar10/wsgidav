@@ -4,6 +4,9 @@ CHANGES
 
 0.6.0 / Unreleased
 ==================
+- Renamed 'msmount' option to 'ms_mount'.
+- Files are always stored in binary mode.
+- Port and hostname can now be specified in config file (before: command line only).
 - TODO: Support Microsoft Office (MS-Author-Via header)
 - Issue #55 Failure operating with litmus test suite, Mac OS X WebDAV Client, Windows 7 (thanks to Ben Allums)
 - Fixed issue #48 Allow the dirbrowser to be configured from the config file (thanks to Herman Grecco)

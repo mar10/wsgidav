@@ -150,8 +150,9 @@ class FileResource(_VirtualNonCollection):
 #        return urllib.quote(self.provider.sharePath + refPath)
     def getContent(self):
         mime = self.getContentType()
-        if mime.startswith("text"):
-            return file(self.filePath, "r", FileResource.BUFFER_SIZE)
+        # issue 57: always store as binary
+#        if mime.startswith("text"):
+#            return file(self.filePath, "r", FileResource.BUFFER_SIZE)
         return file(self.filePath, "rb", FileResource.BUFFER_SIZE)
         
          

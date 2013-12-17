@@ -98,11 +98,11 @@ If no config file is found, a default FilesystemProvider is used."""
     parser.add_option("-p", "--port", 
                       dest="port",
                       type="int",
-                      default=8080,
+                      # default=8080,
                       help="port to serve on (default: %default)")
     parser.add_option("-H", "--host", # '-h' conflicts with --help  
                       dest="host",
-                      default="localhost",
+                      # default="localhost",
                       help="host to serve from (default: %default). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
     parser.add_option("-r", "--root",
                       dest="root_path", 

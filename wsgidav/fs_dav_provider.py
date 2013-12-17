@@ -79,7 +79,7 @@ class FileResource(DAVNonCollection):
         See DAVResource.getContent()
         """
         assert not self.isCollection
-        # issue 28: if we open in text mode, \r\n is converted to one byte.
+        # issue 28, 57: if we open in text mode, \r\n is converted to one byte.
         # So the file size reported by Windows differs from len(..), thus
         # content-length will be wrong.
 #        mime = self.getContentType()
@@ -97,8 +97,9 @@ class FileResource(DAVNonCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         mode = "wb"
-        if contentType and contentType.startswith("text"):
-            mode = "w"
+        # issue 57: always store as binary
+#        if contentType and contentType.startswith("text"):
+#            mode = "w"
         _logger.debug("beginWrite: %s, %s" % (self._filePath, mode))
         return file(self._filePath, mode, BUFFER_SIZE)
 
