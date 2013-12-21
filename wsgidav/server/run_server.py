@@ -60,6 +60,19 @@ __docformat__ = "reStructuredText"
 DEFAULT_CONFIG_FILE = "wsgidav.conf"
 
 
+def _get_checked_path(path, mustExist=True, allowNone=True):
+    """Convert path to absolute if not None."""
+    if path in (None, ""):
+        if allowNone:
+            return None
+        else:
+            raise ValueError("Invalid path %r" % path)
+    path = os.path.abspath(path)
+    if mustExist and not os.path.exists(path):
+        raise ValueError("Invalid path %r" % path)
+    return path
+
+
 def _initCommandLineOptions():
     """Parse command line options into a dictionary."""
     
@@ -147,7 +160,7 @@ If no config file is found, a default FilesystemProvider is used."""
         # If --config was specified convert to absolute path and assert it exists
         options.config_file = os.path.abspath(options.config_file)
         if not os.path.exists(options.config_file):
-            parser.error("Could not open specified configuration file: %s" % options.config_file)
+            parser.error("Could not find specified configuration file: %s" % options.config_file)
 
     # Convert options object to dictionary
     cmdLineOpts = options.__dict__.copy()
@@ -313,14 +326,34 @@ def _runPaste(app, config, mode):
 def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver, if CherryPy is installed."""
     assert mode in ("cherrypy", "cherrypy-bundled")
+
+
     try:
         if mode == "cherrypy-bundled":
-            from wsgidav.server import cherrypy_wsgiserver as wsgiserver
+            # from wsgidav.server import cherrypy as wsgiserver
+            # from wsgidav.server.cherrypy.ssl_builtin import BuiltinSSLAdapter
+            server_folder = os.path.dirname(__file__)
+            sys.path.append(server_folder)
+            print server_folder
+            from cherrypy import wsgiserver
+            from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
         else:
             # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
-            from cherrypy import wsgiserver, __version__ as cp_version
+            from cherrypy import wsgiserver, __version__ as cp_version, BuiltinSSLAdapter
+
         version = "WsgiDAV/%s %s" % (__version__, wsgiserver.CherryPyWSGIServer.version)
         wsgiserver.CherryPyWSGIServer.version = version
+
+        # Support SSL
+        ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
+        ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
+        ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
+        if ssl_certificate:
+            assert ssl_private_key
+            wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(ssl_certificate, ssl_private_key, ssl_certificate_chain)
+            # wsgiserver.CherryPyWSGIServer.ssl_certificate = "/path/to/ssl_certificate"
+            # wsgiserver.CherryPyWSGIServer.ssl_private_key = "/path/to/ssl_private_key"
+
         if config["verbose"] >= 1:
 #            print "Running %s..." % version
             print("Runing %s, listening on %s://%s:%s" 
@@ -330,6 +363,9 @@ def _runCherryPy(app, config, mode):
             app,
 #            server_name=version
             )
+
+
+
         try:
             server.start()
         except KeyboardInterrupt:
