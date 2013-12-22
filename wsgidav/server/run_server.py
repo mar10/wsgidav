@@ -327,14 +327,11 @@ def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver, if CherryPy is installed."""
     assert mode in ("cherrypy", "cherrypy-bundled")
 
-
     try:
         if mode == "cherrypy-bundled":
-            # from wsgidav.server import cherrypy as wsgiserver
-            # from wsgidav.server.cherrypy.ssl_builtin import BuiltinSSLAdapter
+            # Need to set import root folder
             server_folder = os.path.dirname(__file__)
             sys.path.append(server_folder)
-            print server_folder
             from cherrypy import wsgiserver
             from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
         else:
@@ -351,12 +348,11 @@ def _runCherryPy(app, config, mode):
         if ssl_certificate:
             assert ssl_private_key
             wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(ssl_certificate, ssl_private_key, ssl_certificate_chain)
-            # wsgiserver.CherryPyWSGIServer.ssl_certificate = "/path/to/ssl_certificate"
-            # wsgiserver.CherryPyWSGIServer.ssl_private_key = "/path/to/ssl_private_key"
+            print("SSL / HTTPS enabled.")
 
         if config["verbose"] >= 1:
 #            print "Running %s..." % version
-            print("Runing %s, listening on %s://%s:%s" 
+            print("Running %s, listening on %s://%s:%s" 
                   % (version, 'http', config["host"], config["port"]))
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 

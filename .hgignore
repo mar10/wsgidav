@@ -10,5 +10,3 @@ glob:*.orig
 glob:.settings
 syntax: glob
 *.egg/
-sample_bogo_server.crt
-sample_bogo_server.key
