@@ -15,7 +15,7 @@ import time
 
 
 
-def run_wsgidav_server(with_auth):
+def run_wsgidav_server(with_auth, with_ssl):
     """
     """
     rootpath = os.path.join(gettempdir(), "wsgidav-test")
@@ -39,16 +39,24 @@ def run_wsgidav_server(with_auth):
         })
 
     if with_auth:
-        config["user_mapping"] = {"/": {"tester": {"password": "tester",
+        config.update({
+            "user_mapping": {"/": {"tester": {"password": "tester",
                                                    "description": "",
                                                    "roles": [],
                                                    },
                                         },
-                                  }
-        config["acceptbasic"] = True
-        config["acceptdigest"] = False
-        config["defaultdigest"] = False
+                                  },
+            "acceptbasic": True,
+            "acceptdigest": False,
+            "defaultdigest": False,
+            })
 
+    if with_ssl:
+        config.update({
+            "ssl_certificate": "wsgidav/server/sample_bogo_server.crt",
+            "ssl_private_key": "wsgidav/server/sample_bogo_server.key",
+            "ssl_certificate_chain": None,
+            })
     app = WsgiDAVApp(config)
 
     from wsgidav.server.run_server import _runBuiltIn
@@ -73,9 +81,9 @@ class WsgiDAVLitmusTest(unittest.TestCase):
 
 
     def test_litmus_with_authentication(self):
-        """Run litmus test suite with authentication."""
+        """Run litmus test suite on HTTP with authentication."""
         try:
-            proc = Process(target=run_wsgidav_server, args=(True,))
+            proc = Process(target=run_wsgidav_server, args=(True, False))
             proc.daemon = True
             proc.start()
             time.sleep(1)
@@ -107,7 +115,7 @@ class WsgiDAVLitmusTest(unittest.TestCase):
     # def test_litmus_anonymous(self):
     #     """Run litmus test suite as anonymous."""
     #     try:
-    #         proc = Process(target=run_wsgidav_server, args=(False,))
+    #         proc = Process(target=run_wsgidav_server, args=(False, False))
     #         proc.daemon = True
     #         proc.start()
     #         time.sleep(1)
@@ -124,6 +132,32 @@ class WsgiDAVLitmusTest(unittest.TestCase):
     #     finally:
     #         proc.terminate()
     #         proc.join()
+
+
+    def test_litmus_with_ssl_and_authentication(self):
+        """Run litmus test suite on HTTP with authentication."""
+        try:
+            proc = Process(target=run_wsgidav_server, args=(True, True))
+            proc.daemon = True
+            proc.start()
+            time.sleep(1)
+
+            try:
+                self.assertEqual(subprocess.call(["litmus", "https://localhost:8080/", "tester", "tester"]),
+                                 0,
+                                 "litmus suite failed: check the log")
+            except OSError:
+                print "*" * 70
+                print "This test requires the litmus test suite."
+                print "See http://www.webdav.org/neon/litmus/"
+                print "*" * 70
+                raise
+
+        finally:
+            proc.terminate()
+            proc.join()
+#             time.sleep(0.5)
+
 
 
 #===============================================================================

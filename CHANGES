@@ -2,12 +2,26 @@
 CHANGES
 =======
 
-0.6.0 / Unreleased
+1.0.0 / Unreleased
 ==================
+- TODO: Dirbrowser
+    - TODO: New option for dir_brpwser: 'msSharepointHelper'
+		$('body').append('<object id="sharepointPlugin" type="application/x-sharepoint" style="visibility: hidden;" width="0" height="0">');
+		var opener = $('#sharepointPlugin')[0];
+		opener.EditDocument(url);
+	- TODO: Support OpenOffice
+	- TODO: Display lock info
+	- TODO: enhance CSS
+	- TODO: make sortable
+
+- TODO: SSL sample with bogo-cert
+
 - Renamed 'msmount' option to 'ms_mount'.
 - Files are always stored in binary mode.
 - Port and hostname can now be specified in config file (before: command line only).
-- TODO: Support Microsoft Office (MS-Author-Via header)
+- New option for dir_browser: 'msSharepointUrls' will prepend 'ms-word:ofe|u|' to URL for MS Offce documents.
+- New option 'add_header_MS_Author_Via = True' to support editing with Microsoft Office 
+- FilesystemProvider expands variables like '~', '$Name' and '%NAME%' in folder paths (i.e. '~/foo' -> '/Users/joe/foo')
 - Issue #55 Failure operating with litmus test suite, Mac OS X WebDAV Client, Windows 7 (thanks to Ben Allums)
 - Fixed issue #48 Allow the dirbrowser to be configured from the config file (thanks to Herman Grecco)
 - Fixed issue #43 Unicode error in Ubuntu
