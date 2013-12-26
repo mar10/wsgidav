@@ -4,16 +4,7 @@ CHANGES
 
 1.0.0 / Unreleased
 ==================
-- TODO: Dirbrowser
-    - TODO: New option for dir_brpwser: 'msSharepointHelper'
-		$('body').append('<object id="sharepointPlugin" type="application/x-sharepoint" style="visibility: hidden;" width="0" height="0">');
-		var opener = $('#sharepointPlugin')[0];
-		opener.EditDocument(url);
-	- TODO: Support OpenOffice
-	- TODO: Display lock info
-	- TODO: enhance CSS
-	- TODO: make sortable
-
+- **NOTE**: no longer tested with Python 2.4
 - SSL sample with bogo-cert
 - Renamed 'msmount' option to 'ms_mount'.
 - Files are always stored in binary mode.

@@ -27,7 +27,7 @@ except ImportError:
     try:    
         # Try xml module (Python 2.5 or later) 
         from xml.etree import ElementTree as etree
-        print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
+        # print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
     except ImportError:
         try:
             # Try elementtree (http://effbot.org/zone/element-index.htm) 

@@ -93,7 +93,7 @@ DEFAULT_CONFIG = {
                       ],
 
     # Verbose Output
-    "verbose": 2,        # 0 - no output (excepting application exceptions)         
+    "verbose": 1,        # 0 - no output (excepting application exceptions)         
                          # 1 - show single line request summaries (for HTTP logging)
                          # 2 - show additional events
                          # 3 - show full request/response header info (HTTP Logging)

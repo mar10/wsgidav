@@ -44,7 +44,7 @@ from wsgidav.wsgidav_app import DEFAULT_CONFIG
 import traceback
 import sys
 import os
-
+from wsgidav.xml_tools import useLxml
 from wsgidav import util
 
 try:
@@ -125,7 +125,7 @@ If no config file is found, a default FilesystemProvider is used."""
                       action="store_const", const=0, dest="verbose",
                       help="suppress any output except for errors.")
     parser.add_option("-v", "--verbose",
-                      action="store_const", const=2, dest="verbose", default=1,
+                      action="store_const", const=2, dest="verbose",# default=1,
                       help="Set verbose = 2: print informational output.")
     parser.add_option("-d", "--debug",
                       action="store_const", const=3, dest="verbose",
@@ -153,7 +153,7 @@ If no config file is found, a default FilesystemProvider is used."""
         # If --config was omitted, use default (if it exists)
         defPath = os.path.abspath(DEFAULT_CONFIG_FILE)
         if os.path.exists(defPath):
-            if options.verbose >= 2:
+            if options.verbose >= 1:
                 print "Using default configuration file: %s" % defPath
             options.config_file = defPath
     else:
@@ -212,17 +212,24 @@ def _initConfig():
 
     # Set config defaults
     config = DEFAULT_CONFIG.copy()
+    if cmdLineOpts["verbose"] is None:
+        temp_verbose = config["verbose"]
+    else:
+        temp_verbose = cmdLineOpts["verbose"]
+
+    # print "verbose #1: ", temp_verbose
 
     # Configuration file overrides defaults
     config_file = cmdLineOpts.get("config_file")
     if config_file: 
-        verbose = cmdLineOpts.get("verbose", 2)
-        fileConf = _readConfigFile(config_file, verbose)
+        fileConf = _readConfigFile(config_file, temp_verbose)
         config.update(fileConf)
     else:
-        if cmdLineOpts["verbose"] >= 2:
+        if temp_verbose >= 2:
             print "Running without configuration file."
     
+    # print "verbose #2: ", config.get("verbose")
+
     # Command line overrides file
     if cmdLineOpts.get("port"):
         config["port"] = cmdLineOpts.get("port")
@@ -237,9 +244,14 @@ def _initConfig():
         root_path = os.path.abspath(cmdLineOpts.get("root_path"))
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
     
-    if cmdLineOpts["verbose"] >= 3:
+    if config["verbose"] >= 3:
         print "Configuration(%s):" % cmdLineOpts["config_file"]
         pprint(config)
+
+    if not useLxml and config["verbose"] >= 1:
+        print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
+
+    # print "verbose #3: ", config.get("verbose")
 
     if not config["provider_mapping"]:
         print >>sys.stderr, "ERROR: No DAV provider defined. Try --help option."
@@ -345,22 +357,23 @@ def _runCherryPy(app, config, mode):
         ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
         ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
         ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
+        protocol = "http"
         if ssl_certificate:
             assert ssl_private_key
             wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(ssl_certificate, ssl_private_key, ssl_certificate_chain)
-            print("SSL / HTTPS enabled.")
+            protocol = "https"
+            if config["verbose"] >= 1:
+                print("SSL / HTTPS enabled.")
 
         if config["verbose"] >= 1:
 #            print "Running %s..." % version
             print("Running %s, listening on %s://%s:%s" 
-                  % (version, 'http', config["host"], config["port"]))
+                  % (version, protocol, config["host"], config["port"]))
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,
 #            server_name=version
             )
-
-
 
         try:
             server.start()

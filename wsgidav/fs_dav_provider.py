@@ -249,7 +249,7 @@ class FolderResource(DAVCollection):
             raise DAVError(HTTP_FORBIDDEN)
         path = util.joinUri(self.path, name)
         fp = self.provider._locToFilePath(path)
-        f = open(fp, "w")
+        f = open(fp, "wb")
         f.close()
         return self.provider.getResourceInst(path, self.environ)
 
