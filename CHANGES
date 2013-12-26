@@ -14,8 +14,7 @@ CHANGES
 	- TODO: enhance CSS
 	- TODO: make sortable
 
-- TODO: SSL sample with bogo-cert
-
+- SSL sample with bogo-cert
 - Renamed 'msmount' option to 'ms_mount'.
 - Files are always stored in binary mode.
 - Port and hostname can now be specified in config file (before: command line only).
