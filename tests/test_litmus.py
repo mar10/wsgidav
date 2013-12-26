@@ -16,17 +16,18 @@ import time
 
 
 def run_wsgidav_server(with_auth, with_ssl):
-    """
-    """
-    rootpath = os.path.join(gettempdir(), "wsgidav-test")
-    if not os.path.exists(rootpath):
-        os.mkdir(rootpath)
+    """Start blocking WsgiDAV server (called as a separate process)."""
+    package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-    provider = FilesystemProvider(rootpath)
+    share_path = os.path.join(gettempdir(), "wsgidav-test")
+    if not os.path.exists(share_path):
+        os.mkdir(share_path)
+
+    provider = FilesystemProvider(share_path)
 
     config = DEFAULT_CONFIG.copy()
     config.update({
-        "host": "localhost",
+        "host": "127.0.0.1",
         "port": 8080,
         "provider_mapping": {"/": provider},
         "domaincontroller": None, # None: domain_controller.WsgiDAVDomainController(user_mapping)
@@ -40,12 +41,12 @@ def run_wsgidav_server(with_auth, with_ssl):
 
     if with_auth:
         config.update({
-            "user_mapping": {"/": {"tester": {"password": "tester",
-                                                   "description": "",
-                                                   "roles": [],
-                                                   },
-                                        },
-                                  },
+            "user_mapping": {"/": {"tester": {"password": "secret",
+                                              "description": "",
+                                              "roles": [],
+                                              },
+                                       },
+                                 },
             "acceptbasic": True,
             "acceptdigest": False,
             "defaultdigest": False,
@@ -53,10 +54,13 @@ def run_wsgidav_server(with_auth, with_ssl):
 
     if with_ssl:
         config.update({
-            "ssl_certificate": "wsgidav/server/sample_bogo_server.crt",
-            "ssl_private_key": "wsgidav/server/sample_bogo_server.key",
+            "ssl_certificate": os.path.join(package_path, "wsgidav/server/sample_bogo_server.crt"),
+            "ssl_private_key": os.path.join(package_path, "wsgidav/server/sample_bogo_server.key"),
             "ssl_certificate_chain": None,
+            # "acceptdigest": True,
+            # "defaultdigest": True,
             })
+
     app = WsgiDAVApp(config)
 
     from wsgidav.server.run_server import _runBuiltIn
@@ -80,8 +84,13 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         pass
 
 
+    ############################################################################
+
     def test_litmus_with_authentication(self):
-        """Run litmus test suite on HTTP with authentication."""
+        """Run litmus test suite on HTTP with authentification.
+
+        This test passes
+        """
         try:
             proc = Process(target=run_wsgidav_server, args=(True, False))
             proc.daemon = True
@@ -89,7 +98,7 @@ class WsgiDAVLitmusTest(unittest.TestCase):
             time.sleep(1)
 
             try:
-                self.assertEqual(subprocess.call(["litmus", "http://localhost:8080/", "tester", "tester"]),
+                self.assertEqual(subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"]),
                                  0,
                                  "litmus suite failed: check the log")
             except OSError:
@@ -102,10 +111,12 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         finally:
             proc.terminate()
             proc.join()
-#             time.sleep(0.5)
 
 
-    # This test with anonymous access fails here:
+    ############################################################################
+
+
+    # The test with anonymous access fails here:
     #
 #  0. init.................. pass
 #  1. begin................. pass
@@ -134,30 +145,32 @@ class WsgiDAVLitmusTest(unittest.TestCase):
     #         proc.join()
 
 
-    def test_litmus_with_ssl_and_authentication(self):
-        """Run litmus test suite on HTTP with authentication."""
-        try:
-            proc = Process(target=run_wsgidav_server, args=(True, True))
-            proc.daemon = True
-            proc.start()
-            time.sleep(1)
+    ############################################################################
 
-            try:
-                self.assertEqual(subprocess.call(["litmus", "https://localhost:8080/", "tester", "tester"]),
-                                 0,
-                                 "litmus suite failed: check the log")
-            except OSError:
-                print "*" * 70
-                print "This test requires the litmus test suite."
-                print "See http://www.webdav.org/neon/litmus/"
-                print "*" * 70
-                raise
 
-        finally:
-            proc.terminate()
-            proc.join()
-#             time.sleep(0.5)
+    # def test_litmus_with_ssl_and_authentication(self):
+    #     """Run litmus test suite on SSL / HTTPS with authentification."""
 
+    #     try:
+    #         proc = Process(target=run_wsgidav_server, args=(True, True))
+    #         proc.daemon = True
+    #         proc.start()
+    #         time.sleep(1)
+
+    #         try:
+    #             self.assertEqual(subprocess.call(["litmus", "https://127.0.0.1:8080/", "tester", "secret"]),
+    #                              0,
+    #                              "litmus suite failed: check the log")
+    #         except OSError:
+    #             print "*" * 70
+    #             print "This test requires the litmus test suite."
+    #             print "See http://www.webdav.org/neon/litmus/"
+    #             print "*" * 70
+    #             raise
+
+    #     finally:
+    #         proc.terminate()
+    #         proc.join()
 
 
 #===============================================================================

@@ -14,8 +14,9 @@ from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 import os
-import unittest
+import shutil
 import sys
+import unittest
 
 try:
     from paste.fixture import TestApp  #@UnresolvedImport
@@ -31,18 +32,6 @@ except ImportError:
 #===============================================================================
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using paste.fixture."""
-
-#     @classmethod
-#     def suite(cls):
-#         """Return test case suite (so we can control the order)."""
-#         suite = unittest.TestSuite()
-#         suite.addTest(cls("testPreconditions"))
-#         suite.addTest(cls("testDirBrowser"))
-#         suite.addTest(cls("testGetPut"))
-#         suite.addTest(cls("testEncoding"))
-#         suite.addTest(cls("testAuthentication"))
-#         return suite
-
 
     def _makeWsgiDAVApp(self, withAuthentication):
         self.rootpath = os.path.join(gettempdir(), "wsgidav-test")
@@ -62,7 +51,7 @@ class ServerTest(unittest.TestCase):
             })
 
         if withAuthentication:
-            config["user_mapping"] = {"/": {"tester": {"password": "tester",
+            config["user_mapping"] = {"/": {"tester": {"password": "secret",
                                                        "description": "",
                                                        "roles": [],
                                                        },
@@ -81,9 +70,8 @@ class ServerTest(unittest.TestCase):
 
 
     def tearDown(self):
-#        os.rmdir(self.rootpath)
+        shutil.rmtree(self.rootpath)
         del self.app
-        self.app = None
 
 
     def testPreconditions(self):
@@ -185,8 +173,14 @@ class ServerTest(unittest.TestCase):
 
     def testAuthentication(self):
         """Require login."""
+        # Prepare file content (currently without authentication)
+        data1 = "this is a file\nwith two lines"
+        app = self.app
+        app.get("/file1.txt", status=404) # not found
+        app.put("/file1.txt", params=data1, status=201)
+        app.get("/file1.txt", status=200)
+
         # Re-create test app with authentication
-        self.tearDown()
         wsgi_app = self._makeWsgiDAVApp(True)
         app = self.app = TestApp(wsgi_app)
 
@@ -200,7 +194,7 @@ class ServerTest(unittest.TestCase):
 
         # Try basic access authentication
         user = "tester"
-        password = "tester"
+        password = "secret"
         creds = (user + ":" + password).encode("base64").strip()
         headers = {"Authorization": "Basic %s" % creds,
                    }
@@ -208,69 +202,6 @@ class ServerTest(unittest.TestCase):
         app.get("/file1.txt", headers=headers, status=200)
         # Non-existing resource (expect 404 NotFound)
         app.get("/not_existing_file.txt", headers=headers, status=404)
-
-
-#===============================================================================
-# WsgiDAVServerTest
-#===============================================================================
-#class WsgiDAVServerTest(unittest.TestCase):
-#    """Test the built-in WsgiDAV server with cadaver."""
-#
-#    @classmethod
-#    def suite(cls):
-#        """Return test case suite (so we can control the order)."""
-#        suite = unittest.TestSuite()
-#        suite.addTest(cls("testPreconditions"))
-#        suite.addTest(cls("testOpen"))
-#        return suite
-#
-#
-#    def setUp(self):
-#        config = DEFAULT_CONFIG.copy()
-#        config.update({
-#            "provider_mapping": {},
-#            "user_mapping": {},
-#            "host": "localhost",
-#            "port": 8080,
-#            "ext_servers": [
-#        #                   "paste",
-#        #                   "cherrypy",
-#        #                   "wsgiref",
-#                           "wsgidav",
-#                           ],
-#            "enable_loggers": [
-#                              ],
-#
-#            "propsmanager": None,  # None: use properry_manager.PropertyManager
-#            "locksmanager": None,  # None: use lock_manager.LockManager
-#            "domaincontroller": None,
-#            "verbose": 2,
-#            })
-#        self.app = WsgiDAVApp(config)
-#
-##        from wsgidav.server.run_server import _runBuiltIn
-##        _runBuiltIn(app, config)
-#
-#
-#    def tearDown(self):
-#        del self.app
-#        self.app = None
-#
-#
-#    def testPreconditions(self):
-#        """Environment must be set."""
-#        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
-#
-#
-#    def testOpen(self):
-#        """Property manager should be lazy opening on first access."""
-#        app = self.app
-#        conf = self.app.config
-#
-#
-#    def testValidation(self):
-#        """Property manager should raise errors on bad args."""
-#        conf = self.app.config
 
 
 #===============================================================================
