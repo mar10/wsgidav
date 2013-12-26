@@ -53,13 +53,13 @@ class RequestServer(object):
         self._verbose = 2
         util.debug("RequestServer: __init__", module="sc")
 
-        self._possible_methods = [ "OPTIONS", "HEAD", "GET" ]
-        if self._davProvider.propManager is not None:
-            self._possible_methods.extend( [ "PROPFIND" ] )
+        self._possible_methods = [ "OPTIONS", "HEAD", "GET", "PROPFIND" ]
+        # if self._davProvider.propManager is not None:
+        #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.isReadOnly():
-            self._possible_methods.extend( [ "PUT", "DELETE", "COPY", "MOVE", "MKCOL" ] )
-            if self._davProvider.propManager is not None:
-                self._possible_methods.extend( [ "PROPPATCH" ] )
+            self._possible_methods.extend( [ "PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH" ] )
+            # if self._davProvider.propManager is not None:
+            #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lockManager is not None:
                 self._possible_methods.extend( [ "LOCK", "UNLOCK" ] )
 
