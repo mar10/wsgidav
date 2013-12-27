@@ -104,7 +104,7 @@ If no config file is found, a default FilesystemProvider is used."""
 #                          conflict_handler="error",
                           description=None, #description,
                           add_help_option=True,
-#                          prog="wsgidav",
+                          prog="wsgidav",
 #                          epilog=epilog # TODO: Not available on Python 2.4?
                           )    
  
