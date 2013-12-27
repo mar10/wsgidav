@@ -70,7 +70,7 @@ class ServerTest(unittest.TestCase):
 
 
     def tearDown(self):
-        shutil.rmtree(self.rootpath)
+        shutil.rmtree(unicode(self.rootpath))
         del self.app
 
 
