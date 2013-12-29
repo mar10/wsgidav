@@ -23,7 +23,7 @@ WsgiDAV is a generic WebDAV server written in Python and based on WSGI.
    addons.rst
    develop.rst
 
-
+ 
 Indices and tables
 ==================
 

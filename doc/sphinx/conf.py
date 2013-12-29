@@ -19,6 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,10 +31,13 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinx.ext.graphviz',
+    'sphinx.ext.inheritance_diagram',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,14 +54,14 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'wsgidav'
-copyright = u'2013, Martin Wendt, 2005 Ho Chun Wei'
+copyright = u'2013 Martin Wendt, 2005 Ho Chun Wei'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '1'
+version = '1.0'
 # The full version, including alpha/beta/rc tags.
 release = '1.0'
 
@@ -336,3 +340,11 @@ epub_copyright = u'2013, Martin Wendt'
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+# Martin custom
+autosummary_generate = True
+graphviz_dot = r"C:\Program Files\Graphviz2.34\bin\dot.exe"
+inheritance_node_attrs = {'color': '"#465158"',
+                          'fontcolor': 'white',
+                          'fontsize': '13',
+                          'style': '"rounded,filled"'}

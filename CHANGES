@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-1.0.0 / Unreleased
+1.0.0 / 2013-12-27
 ==================
 - **NOTE**: no longer tested with Python 2.4
 - SSL sample with bogo-cert

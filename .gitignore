@@ -1,1 +1,3 @@
 doc/sphinx/_build
+doc/sphinx-api/_build
+*.pyc
