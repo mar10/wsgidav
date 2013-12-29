@@ -343,7 +343,7 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 
 # Martin custom
 autosummary_generate = True
-graphviz_dot = r"C:\Program Files\Graphviz2.34\bin\dot.exe"
+#graphviz_dot = r"C:\Program Files\Graphviz2.34\bin\dot.exe"
 inheritance_node_attrs = {'color': '"#465158"',
                           'fontcolor': 'white',
                           'fontsize': '13',
