@@ -97,6 +97,10 @@ _logger = util.getModuleLogger(__name__, True)
 # is present. 
 HOTFIX_WINXP_AcceptRootShareLogin = True
 
+# HOTFIX for Windows 
+# When using MS Office, Non-SSL with digest-auth, 
+HOTFIX_WIN_AcceptAnonymousOptions = True
+
 
 class SimpleDomainController(object):
     """SimpleDomainController : Simple domain controller for HTTPAuthenticator."""
@@ -148,7 +152,15 @@ class HTTPAuthenticator(object):
     def __call__(self, environ, start_response):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"], environ)
         
-        if not self._domaincontroller.requireAuthentication(realmname, environ):
+        _logger.debug("realm '%s'" % realmname)
+        # _logger.debug("%s" % environ)
+
+        force_allow = False
+        if HOTFIX_WIN_AcceptAnonymousOptions and environ["REQUEST_METHOD"] == "OPTIONS":
+            _logger.warning("No authorization required for OPTIONS method")
+            force_allow = True
+
+        if force_allow or not self._domaincontroller.requireAuthentication(realmname, environ):
             # no authentication needed
             _logger.debug("No authorization required for realm '%s'" % realmname)
             environ["http_authenticator.realm"] = realmname
@@ -361,6 +373,8 @@ class HTTPAuthenticator(object):
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
         else:
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + self.md5h(A2))
+        print A1, A2
+        print digestresp
         return digestresp
                 
     

@@ -1,1 +1,4 @@
 WsgiDAV is a generic WebDAV server written in Python and based on WSGI. 
+
+This repo is Work In Progress (will be the future home of <https://code.google.com/p/wsgidav/> )
+[Read The Docs](wsgidav.rtfd.org).

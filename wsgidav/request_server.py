@@ -1272,9 +1272,6 @@ class RequestServer(object):
         headers = [("Content-Type", "text/html"),
                    ("Content-Length", "0"),
                    ("DAV", dav_compliance_level),
-        # TODO: 10.1: 'OPTIONS MUST return DAV header with compliance class "1"'
-        # TODO: 10.1: In cases where WebDAV is only supported in part of the server namespace, an OPTIONS request to non-WebDAV resources (including "/") SHOULD NOT advertise WebDAV support
-                   ("Server", "DAV/2"),
                    ("Date", util.getRfc1123Time()),
                    ]
         
@@ -1298,24 +1295,24 @@ class RequestServer(object):
         allow = [ "OPTIONS" ]
         if res and res.isCollection:
             # Existing collection
-            allow.extend( [ "HEAD", "GET" ] )
-            if provider.propManager is not None:
-                allow.extend( [ "PROPFIND" ] )
+            allow.extend( [ "HEAD", "GET", "PROPFIND" ] )
+            # if provider.propManager is not None:
+            #     allow.extend( [ "PROPFIND" ] )
             if not provider.isReadOnly():
-                allow.extend( [ "DELETE", "COPY", "MOVE" ] )
-                if provider.propManager is not None:
-                    allow.extend( [ "PROPPATCH" ] )
+                allow.extend( [ "DELETE", "COPY", "MOVE", "PROPPATCH" ] )
+                # if provider.propManager is not None:
+                #     allow.extend( [ "PROPPATCH" ] )
                 if provider.lockManager is not None:
                     allow.extend( [ "LOCK", "UNLOCK" ] )
         elif res:
             # Existing resource
-            allow.extend( [ "HEAD", "GET" ] )
-            if provider.propManager is not None:
-                allow.extend( [ "PROPFIND" ] )
+            allow.extend( [ "HEAD", "GET", "PROPFIND" ] )
+            # if provider.propManager is not None:
+            #     allow.extend( [ "PROPFIND" ] )
             if not provider.isReadOnly():
-                allow.extend( [ "PUT", "DELETE", "COPY", "MOVE" ] )
-                if provider.propManager is not None:
-                    allow.extend( [ "PROPPATCH" ] )
+                allow.extend( [ "PUT", "DELETE", "COPY", "MOVE", "PROPPATCH" ] )
+                # if provider.propManager is not None:
+                #     allow.extend( [ "PROPPATCH" ] )
                 if provider.lockManager is not None:
                     allow.extend( [ "LOCK", "UNLOCK" ] )
             if res.supportRanges(): 

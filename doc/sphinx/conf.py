@@ -341,9 +341,15 @@ epub_copyright = u'2013, Martin Wendt'
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
 
+#-------------------------------------------------------------------------------
 # Martin custom
+
 autosummary_generate = True
+
+# graphviz must be available locally and on ReadTheDocs
 #graphviz_dot = r"C:\Program Files\Graphviz2.34\bin\dot.exe"
+
+# Some styling for the class diagrams
 inheritance_node_attrs = {'color': '"#465158"',
                           'fontcolor': 'white',
                           'fontsize': '13',

@@ -19,7 +19,7 @@ The following examples assume, that we have a running WsgiDAV server on a remote
 machine with this configuration:
   * Server is running on a machine with IP address 192.168.0.2
   * Server is listening on port 80
-  * A user called 'tester' with password 'guessme' is configured to have access.
+  * A user called 'tester' with password 'secret' is configured to have access.
     (Or the share allows anonymous access.)
 
 .. toctree::
@@ -46,11 +46,11 @@ For access controlled shares, we must provide a user name::
 Windows will then prompt for a password. Alternatively we can pass password with
 the command line:: 
 
-    > net use W: http://192.168.0.2/ /USER:tester guessme
+    > net use W: http://192.168.0.2/ /USER:tester secret
 
 To make this connection persistent between reboots::
 
-    > net use W: http://192.168.0.2/ /USER:tester guessme /PERSISTENT:YES
+    > net use W: http://192.168.0.2/ /USER:tester secret /PERSISTENT:YES
 
 To stop a connection::
 
@@ -127,7 +127,7 @@ To stop a connection::
   In this case, try to pass username and password on the command line with the
   ``/USER`` option::
   
-    > net use W: http://192.168.0.2/dav /USER:tester guessme
+    > net use W: http://192.168.0.2/dav /USER:tester secret
 
   
 WebFolders

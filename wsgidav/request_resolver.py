@@ -181,7 +181,6 @@ class RequestResolver(object):
             headers = [("Content-Type", "text/html"),
                        ("Content-Length", "0"),
                        ("DAV", dav_compliance_level),
-                       ("Server", "DAV/2"),
                        ("Date", util.getRfc1123Time()),
                        ]
 
