@@ -58,6 +58,7 @@ __docformat__ = "reStructuredText"
 
 # Use this config file, if no --config_file option is specified
 DEFAULT_CONFIG_FILE = "wsgidav.conf"
+PYTHON_VERSION = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
 
 
 def _get_checked_path(path, mustExist=True, allowNone=True):
@@ -350,7 +351,10 @@ def _runCherryPy(app, config, mode):
             # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
             from cherrypy import wsgiserver, __version__ as cp_version, BuiltinSSLAdapter
 
-        version = "WsgiDAV/%s %s" % (__version__, wsgiserver.CherryPyWSGIServer.version)
+        version = "WsgiDAV/%s %s Python/%s" % (
+            __version__, 
+            wsgiserver.CherryPyWSGIServer.version, 
+            PYTHON_VERSION)
         wsgiserver.CherryPyWSGIServer.version = version
 
         # Support SSL
@@ -372,7 +376,7 @@ def _runCherryPy(app, config, mode):
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,
-#            server_name=version
+            server_name=version,
             )
 
         try:

@@ -3,3 +3,5 @@ doc/sphinx-api/_build
 *.pyc
 *.confc
 *.egg-info
+
+server-192-168-178-39.*
