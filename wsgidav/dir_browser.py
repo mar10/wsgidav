@@ -55,8 +55,6 @@ function onClickTable(event) {
         href = target.href;
     
     if( href && target.className === "msoffice" ){
-//      console.log("click", event, window.location, target, href, target.className);
-//      alert("click: " + target.className + ", " + href);
         if( openWithSharePointPlugin(href) ){
             // prevent default processing
             return false;        
@@ -95,14 +93,16 @@ function openWithSharePointPlugin(url) {
     }
 
     try {
+//      window.console && console.log("SharePoint.OpenDocuments.EditDocument('" + url + "')...");
         res = control.EditDocument(url);
+//      window.console && console.log("SharePoint.OpenDocuments.EditDocument('" + url + "')... res = ", res);
         if( !res ){
             window.console && console.warn("SharePoint.OpenDocuments.EditDocument('" + url + "') returned false.");
         }
     } catch (e){
         window.console && console.warn("SharePoint.OpenDocuments.EditDocument('" + url + "') failed.", e);
     }
-    return false;
+    return res;
 }
 """
 
@@ -212,7 +212,7 @@ class WsgiDavDirBrowser(object):
             html.append("<style type='text/css'> A {behavior: url(#default#AnchorClick);} </style>")
         
         if dirConfig.get("ms_sharepoint_plugin"):
-            html.append("<object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' height='0' style=''visibility: hidden;'>")
+            html.append("<object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' height='0' style=''visibility: hidden;'></object>")
 
         html.append("</head>")
         html.append("<body onload='onLoad()'>")

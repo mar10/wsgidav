@@ -98,8 +98,8 @@ _logger = util.getModuleLogger(__name__, True)
 HOTFIX_WINXP_AcceptRootShareLogin = True
 
 # HOTFIX for Windows 
-# When using MS Office, Non-SSL with digest-auth, 
-HOTFIX_WIN_AcceptAnonymousOptions = True
+# MW 2013-12-31: DON'T set this (will MS office to use anonymous always in some scenarios)
+HOTFIX_WIN_AcceptAnonymousOptions = False
 
 
 class SimpleDomainController(object):

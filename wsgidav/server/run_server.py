@@ -370,9 +370,8 @@ def _runCherryPy(app, config, mode):
                 print("SSL / HTTPS enabled.")
 
         if config["verbose"] >= 1:
-#            print "Running %s..." % version
-            print("Running %s, listening on %s://%s:%s" 
-                  % (version, protocol, config["host"], config["port"]))
+            print "Running %s" % version
+            print("Listening on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
             app,

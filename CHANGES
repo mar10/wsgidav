@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+1.1.0 / Unreleased
+==================
+- New dir_browser option 'ms_sharepoint_plugin' to start MS Office documents in edit-mode
+
+
 1.0.0 / 2013-12-27
 ==================
 - **NOTE**: no longer tested with Python 2.4
