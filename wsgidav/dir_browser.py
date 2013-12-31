@@ -31,6 +31,81 @@ for t, el in msOfficeTypeToExtMap.iteritems():
         msOfficeExtToTypeMap[e] = t
 
 
+PAGE_CSS = """\
+    img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
+    th, td { padding: 2px 20px 2px 2px; }
+    th { text-align: left; }
+    th.right { text-align: right; }
+    td  { font-family: monospace; vertical-align: bottom; white-space: pre; }
+    td.right { text-align: right; }
+    table { border: 0; }
+    a.symlink { font-style: italic; }
+    p.trailer { font-size: smaller; }
+"""
+
+
+PAGE_SCRIPT = """\
+function onLoad() {
+//    console.log("loaded.");
+}
+
+/* Event delegation handler for clicks on a-tags with class 'msoffice'. */
+function onClickTable(event) {
+    var target = event.target || event.srcElement,
+        href = target.href;
+    
+    if( href && target.className === "msoffice" ){
+//      console.log("click", event, window.location, target, href, target.className);
+//      alert("click: " + target.className + ", " + href);
+        if( openWithSharePointPlugin(href) ){
+            // prevent default processing
+            return false;        
+        }
+    }
+}
+
+function openWithSharePointPlugin(url) {
+    var res = false,
+        control = null,
+        isFF = false;
+
+    // Get the most recent version of the SharePoint plugin
+    if( window.ActiveXObject ){
+        try {
+            control = new ActiveXObject("SharePoint.OpenDocuments.3"); // Office 2007
+        } catch(e) {
+            try {
+                control = new ActiveXObject("SharePoint.OpenDocuments.2"); // Office 2003
+            } catch(e2) {
+                try {
+                    control = new ActiveXObject("SharePoint.OpenDocuments.1"); // Office 2000/XP
+                } catch(e3) {
+                    window.console && console.warn("Could not create ActiveXObject('SharePoint.OpenDocuments'). Check your browsers security settings.");
+                    return false;
+                }
+            }
+        }
+        if( !control ){
+            window.console && console.warn("Cannot instantiate the required ActiveX control to open the document. This is most likely because you do not have Office installed or you have an older version of Office.");
+        }
+    } else {
+        window.console && console.log("Non-IE: using FFWinPlugin Plug-in...");
+        control = document.getElementById("winFirefoxPlugin");
+        isFF = true;
+    }
+
+    try {
+        res = control.EditDocument(url);
+        if( !res ){
+            window.console && console.warn("SharePoint.OpenDocuments.EditDocument('" + url + "') returned false.");
+        }
+    } catch (e){
+        window.console && console.warn("SharePoint.OpenDocuments.EditDocument('" + url + "') failed.", e);
+    }
+    return false;
+}
+"""
+
 
 class WsgiDavDirBrowser(object):
     """WSGI middleware that handles GET requests on collections to display directories."""
@@ -129,26 +204,18 @@ class WsgiDavDirBrowser(object):
         html.append("<meta name='generator' content='WsgiDAV %s'>" % __version__)
         html.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
         
-        html.append("""\
-<style type="text/css">
-    img { border: 0; padding: 0 2px; vertical-align: text-bottom; }
-    th, td { padding: 2px 20px 2px 2px; }
-    th { text-align: left; }
-    th.right { text-align: right; }
-    td  { font-family: monospace; vertical-align: bottom; white-space: pre; }
-    td.right { text-align: right; }
-    table { border: 0; }
-    a.symlink { font-style: italic; }
-    p.trailer { font-size: smaller; }
-</style>""")        
+        html.append("<script type='text/javascript'>%s</script>" % PAGE_SCRIPT)
+        html.append("<style type='text/css'>%s</style>" % PAGE_CSS)
+
         # Special CSS to enable MS Internet Explorer behaviour
         if dirConfig.get("ms_mount"):
-            html.append("""\
-<style type="text/css">
-    A {behavior: url(#default#AnchorClick);}
-</style>""")
+            html.append("<style type='text/css'> A {behavior: url(#default#AnchorClick);} </style>")
         
-        html.append("</head><body>")
+        if dirConfig.get("ms_sharepoint_plugin"):
+            html.append("<object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' height='0' style=''visibility: hidden;'>")
+
+        html.append("</head>")
+        html.append("<body onload='onLoad()'>")
 
         # Title
         html.append("<h1>Index of %s</h1>" % displaypath)
@@ -164,7 +231,7 @@ class WsgiDavDirBrowser(object):
 
         html.append("<hr>")
         # Listing
-        html.append("<table>")
+        html.append("<table onclick='return onClickTable(event)'>")
 
         html.append("<thead>")
         html.append("<tr><th>Name</th> <th>Type</th> <th class='right'>Size</th> <th class='right'>Last modified</th> </tr>")
@@ -188,6 +255,7 @@ class WsgiDavDirBrowser(object):
                 di = res.getDisplayInfo()
                 href = res.getHref()
                 infoDict = {"href": href,
+                            "class": "",
                             "displayName": res.getDisplayName(),
                             "lastModified": res.getLastModified(),
                             "isCollection": res.isCollection,
@@ -196,11 +264,16 @@ class WsgiDavDirBrowser(object):
                             "displayTypeComment": di.get("typeComment"),
                             }
 
-                if not isReadOnly and not res.isCollection and dirConfig.get("ms_sharepoint_urls"):
+                if not isReadOnly and not res.isCollection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
-                        infoDict["href"] = "ms-%s:ofe|u|%s" % (officeType, href)
+                        print "OT", officeType
+                        print "OT", dirConfig
+                        if dirConfig.get("ms_sharepoint_plugin"):
+                            infoDict["class"] = "msoffice"
+                        elif dirConfig.get("ms_sharepoint_urls"):
+                            infoDict["href"] = "ms-%s:ofe|u|%s" % (officeType, href)
 
                 dirInfoList.append(infoDict)
         # 
@@ -218,7 +291,7 @@ class WsgiDavDirBrowser(object):
                     infoDict["strSize"] = util.byteNumberString(contentLength)
 
             html.append("""\
-            <tr><td><a href="%(href)s">%(displayName)s</a></td>
+            <tr><td><a href="%(href)s" class="%(class)s">%(displayName)s</a></td>
             <td>%(displayType)s</td>
             <td class='right'>%(strSize)s</td>
             <td class='right'>%(strModified)s</td></tr>""" % infoDict)
@@ -238,8 +311,6 @@ class WsgiDavDirBrowser(object):
 
         if trailer:
             html.append("<p class='trailer'>%s</p>" % trailer)
-#            html.append("<p class='trailer'><a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a> - %s</p>" 
-#                          % (__version__, util.getRfc1123Time()))
 
         html.append("</body></html>")
 

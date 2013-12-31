@@ -373,8 +373,8 @@ class HTTPAuthenticator(object):
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
         else:
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + self.md5h(A2))
-        print A1, A2
-        print digestresp
+        # print A1, A2
+        # print digestresp
         return digestresp
                 
     

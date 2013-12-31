@@ -3,5 +3,7 @@ doc/sphinx-api/_build
 *.pyc
 *.confc
 *.egg-info
-
+*.egg
 server-192-168-178-39.*
+child.log
+debug.log
