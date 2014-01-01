@@ -1,7 +1,7 @@
 # ![logo](logo.png?raw=true) WsgiDAV
 
 WsgiDAV is a generic [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server 
-written in Python and based on [http://www.python.org/dev/peps/pep-0333/ WSGI].
+written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
 
 
 ## Status
@@ -26,7 +26,3 @@ Contributors:
 Any kind of feedback is very welcome!<br>
 Have fun  :-)<br>
 Martin
-
-----
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mar10/fancytree/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
