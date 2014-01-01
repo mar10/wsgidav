@@ -20,7 +20,9 @@ written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
 
 Contributors:
 
-*  <https://github.com/mar10/wsgidav/contributors>
+  * <https://github.com/mar10/wsgidav/contributors>
+  * Markus Majer for providing the logo (a mixture of the international 
+    maritime signal flag for 'W (Whiskey)' and a dove.)
 
 
 Any kind of feedback is very welcome!<br>
