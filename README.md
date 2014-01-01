@@ -9,6 +9,8 @@ written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
 1.1.0 is released 
 ([change log](CHANGELOG.md))
 
+**Note:** This project was hosted on Google Code until 2014-01-01 ([see old project page](https://code.google.com/p/wsgidav/)).
+
 
 ## More info
 
