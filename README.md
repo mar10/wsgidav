@@ -30,3 +30,7 @@ Contributors:
 Any kind of feedback is very welcome!<br>
 Have fun  :-)<br>
 Martin
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mar10/wsgidav/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
