@@ -1,4 +1,4 @@
-# ![logo](logo.png?raw=true) WsgiDAV
+# ![logo](logo.png?raw=true) WsgiDAV [![Build Status](https://travis-ci.org/mar10/fancytree.png?branch=master)](https://travis-ci.org/mar10/fancytree)
 
 WsgiDAV is a generic [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server 
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
