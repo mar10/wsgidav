@@ -5,9 +5,6 @@
 *This document describes, how a WsgiDAV server can be accessed with different 
 clients.*
 
-See separate documents for information on :doc:`run-install` and 
-:doc:`run-configure`.
-
 WsgiDAV was tested with these clients
 
   * Windows Vista (Microsoft-WebDAV-!MiniRedir/6.0.6002)
@@ -26,8 +23,6 @@ machine with this configuration:
 
 .. toctree::
    :maxdepth: 1
-
-   run-configure-pylons.rst
 
 
 Windows clients

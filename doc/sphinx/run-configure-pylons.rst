@@ -6,7 +6,6 @@
 .. toctree::
    :maxdepth: 1
    
-
 This example shows how configure a Pylons application, so that URLs starting 
 with `/dav/...` are handled by WsgiDAV. (Tested with Pylons 0.9.7)
 

@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-1.1.0 / Unreleased
+1.1.0 / 2014-01-01
 ==================
 - New dir_browser option 'ms_sharepoint_plugin' to start MS Office documents in edit-mode
 - Moved project from Google Code to GitHub

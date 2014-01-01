@@ -2,18 +2,12 @@
  WsgiDAV Glossary
 ******************
 
-This document defines some terms gives a brief introduction to the WsgiDAV application package 
-(targeted to developers).
+*This document defines some terms gives a brief introduction to the WsgiDAV application package 
+(targeted to developers).*
 
-.. note::
-   This documentation is under construction.
- 
-.. note::
+.. seealso::
    You can find more information about WebDAV terms and naming convention
    in `official WebDAV specification documentation <http://www.webdav.org/specs/rfc4918.html#rfc.section.3>`_.
-
-.. note:: 
-   Currently, this is more a plan than a status. Open for discussion. 
 
 
 You will find this terms / naming conventions in the source:

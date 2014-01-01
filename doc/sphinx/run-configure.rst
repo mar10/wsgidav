@@ -1,15 +1,17 @@
-*********************************
+**********************************
  Configure and Run WsgiDAV Server
-*********************************
+**********************************
 
 *This document describes, how to configure and run a WsgiDAV server.*
 
 The WsgiDAV server was tested with these platforms
+
   * Mac OS X 10.9
   * Ubuntu 13
   * Windows (Win7, Vista, XP)
 
 and these WSGI servers
+
   * cherrypy.wsgiserver
   * paste.httpserver
   * Pylons
@@ -21,6 +23,7 @@ and these WSGI servers
    :maxdepth: 1
    
    configuration-file
+   run-configure-pylons.rst
 
 
 Run as stand-alone server

@@ -2,7 +2,7 @@
  WsgiDAV API Doc
 **************************
 
-TODO: This section gives a brief introduction to the WsgiDAV application package 
+This section gives a brief introduction to the WsgiDAV application package 
 (targeted to developers).
 
 .. toctree::
