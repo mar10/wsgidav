@@ -5,11 +5,8 @@
 This document gives a brief introduction to the WsgiDAV application package 
 (targeted to developers).
 
-.. note::
-   This documentation is under construction.
- 
-.. note:: 
-   There is also an `API documentation`_ available.
+.. seealso:: 
+   :doc:`api-doc`
 
 .. toctree::
    :maxdepth: 1
@@ -148,6 +145,4 @@ For every request:
     
     Note: this object only handles one single request.  
 
-                                               
-  
-.. _API documentation : http://apidoc.wsgidav.googlecode.com/hg/html/index.html
+                                              

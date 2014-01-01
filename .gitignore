@@ -1,5 +1,5 @@
 doc/sphinx/_build
-doc/sphinx-api/_build
+doc/sphinx-api/
 *.pyc
 *.confc
 *.egg-info
@@ -7,3 +7,4 @@ doc/sphinx-api/_build
 server-192-168-178-39.*
 child.log
 debug.log
+wsgidav.conf

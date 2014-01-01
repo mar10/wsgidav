@@ -22,7 +22,7 @@ setup(name="WsgiDAV",
       author_email = "wsgidav@wwwendt.de",
       maintainer = "Martin Wendt",
       maintainer_email = "wsgidav@wwwendt.de",
-      url = "http://wsgidav.googlecode.com/",
+      url = "https://github.com/mar10/wsgidav/",
       description = "Generic WebDAV server based on WSGI",
       long_description="""\
 WsgiDAV is a WebDAV server for sharing files and other resources over the web.
@@ -32,7 +32,7 @@ It comes bundled with a simple WSGI web server.
 
 *This package is based on PyFileServer by Ho Chun Wei.*
 
-Project home: http://wsgidav.googlecode.com/
+Project home: https://github.com/mar10/wsgidav/
 """,
 
         #Development Status :: 2 - Pre-Alpha

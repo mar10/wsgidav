@@ -32,10 +32,6 @@ Configuration is defined like this:
        
        ``--root=FOLDER`` option creates a FilesystemProvider that publishes 
        FOLDER on the '/' share.
-
-See DEVELOPERS.txt_ for more information about the WsgiDAV architecture.
-
-.. _DEVELOPERS.txt: http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html  
 """
 from optparse import OptionParser
 from pprint import pprint
@@ -52,7 +48,7 @@ try:
     from wsgidav.wsgidav_app import WsgiDAVApp
     from wsgidav.fs_dav_provider import FilesystemProvider
 except ImportError, e:
-    raise RuntimeError("Could not import wsgidav package:\n%s\nSee http://wsgidav.googlecode.com/." % e)
+    raise RuntimeError("Could not import wsgidav package:\n%s\nSee https://github.com/mar10/wsgidav/." % e)
 
 __docformat__ = "reStructuredText"
 
@@ -88,7 +84,7 @@ Run using a configuration file:
 
 If no config file is specified, the application will look for a file named
 'wsgidav.conf' in the current directory.
-See sample_wsgidav.conf for some explanation of the configuration file format.
+See doc/annotated_wsgidav.conf for some explanation of the configuration file format.
 If no config file is found, a default FilesystemProvider is used."""
 
 #    description = """\

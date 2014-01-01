@@ -1,4 +1,4 @@
-# (c) 2009-2013 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2014 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -6,7 +6,7 @@ WSGI middleware that handles GET requests on collections to display directories.
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
 from wsgidav.version import __version__
@@ -189,10 +189,10 @@ class WsgiDavDirBrowser(object):
         trailer = dirConfig.get("response_trailer")
         if trailer:
             trailer = trailer.replace("${version}", 
-                "<a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a>" % __version__)
+                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a>" % __version__)
             trailer = trailer.replace("${time}", util.getRfc1123Time())
         else:
-            trailer = ("<a href='http://wsgidav.googlecode.com/'>WsgiDAV/%s</a> - %s" 
+            trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s" 
                        % (__version__, util.getRfc1123Time()))
 
         

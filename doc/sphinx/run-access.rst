@@ -1,14 +1,15 @@
-*******************
- Accessing WsgiDAV 
-*******************
+************************************
+ Access WsgiDAV with WebDAV Clients
+************************************
 
-This document describes, how a WsgiDAV server can be accessed with different 
-clients.
+*This document describes, how a WsgiDAV server can be accessed with different 
+clients.*
 
 See separate documents for information on :doc:`run-install` and 
 :doc:`run-configure`.
 
 WsgiDAV was tested with these clients
+
   * Windows Vista (Microsoft-WebDAV-!MiniRedir/6.0.6002)
   * Window XP (Microsoft-WebDAV-!MiniRedir/5.1.2600)
   * Ubuntu Nautilus / gvfs
@@ -17,6 +18,7 @@ WsgiDAV was tested with these clients
 
 The following examples assume, that we have a running WsgiDAV server on a remote 
 machine with this configuration:
+
   * Server is running on a machine with IP address 192.168.0.2
   * Server is listening on port 80
   * A user called 'tester' with password 'secret' is configured to have access.
@@ -24,6 +26,8 @@ machine with this configuration:
 
 .. toctree::
    :maxdepth: 1
+
+   run-configure-pylons.rst
 
 
 Windows clients

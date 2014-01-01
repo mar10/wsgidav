@@ -1,0 +1,160 @@
+################################################################################
+# Sample WsgiDAV configuration file
+# 
+# 1. Rename this file to `wsgidav.conf`
+# 2. Adjust settings as appropriate
+# 3. Run `wsgidav` fro, the same directory.
+#
+# See
+#     doc/annotated_wsgidav.conf
+# for a complete, annotaded configuration example.
+#
+################################################################################
+# INITIALIZATION - Do not modify this section
+
+provider_mapping = {}
+user_mapping = {}
+
+def addShare(shareName, davProvider):
+    provider_mapping[shareName] = davProvider
+
+    
+def addUser(realmName, user, password, description, roles=[]):
+    realmName = "/" + realmName.strip(r"\/")
+    userDict = user_mapping.setdefault(realmName, {}).setdefault(user, {})
+    userDict["password"] = password
+    userDict["description"] = description
+    userDict["roles"] = roles
+
+        
+################################################################################
+# SERVER OPTIONS
+#===============================================================================
+
+# host  = "localhost"
+# host  = "192.168.0.1"
+host  = "0.0.0.0"
+
+port = 8080
+
+#===============================================================================
+# Enable SSL support
+# (The certificate should match the servers hostname, so the bogus certs will not
+# work in all scenarios.)
+
+# ssl_certificate = "wsgidav/server/sample_bogo_server.crt"
+# ssl_private_key = "wsgidav/server/sample_bogo_server.key"
+# ssl_certificate_chain = None
+
+
+# Add the MS-Author-Via Response Header to OPTIONS command to allow editing
+# with Microsoft Office (default: True)
+add_header_MS_Author_Via = True	
+
+
+#===============================================================================
+# Debugging
+
+# verbose = 3
+
+# Enable specific module loggers
+# E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
+# enable_loggers = ["http_authenticator", ]
+
+# Enable max. logging for certain http methods
+# E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
+debug_methods = []
+
+# Enable max. logging during  litmus suite tests that contain certain strings
+# E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
+debug_litmus = []
+
+
+################################################################################
+# WsgiDavDirBrowser
+
+dir_browser = {
+    "enable": True,          # Render HTML listing for GET requests on collections
+    "response_trailer": "",  # Raw HTML code, appended as footer
+    "davmount": True,        # Send <dm:mount> response if request URL contains '?davmount'
+    "ms_mount": True,        # Add an 'open as webfolder' link (requires Windows)
+    "ms_sharepoint_plugin": True, # Invoke MS Offce documents for editing using WebDAV
+    "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+}
+
+
+################################################################################
+# DAV Provider
+
+#===============================================================================
+# Property Manager
+
+# Example: Use PERSISTENT shelve based property manager
+#from wsgidav.property_manager import ShelvePropertyManager
+#propsmanager = ShelvePropertyManager("wsgidav-props.shelve")
+
+### Use in-memory property manager (NOT persistent)
+propsmanager = True
+
+
+#===============================================================================
+# Lock Manager
+#
+# Example: Use PERSISTENT shelve based lock manager
+#from wsgidav.lock_storage import LockStorageShelve
+#locksmanager = LockStorageShelve("wsgidav-locks.shelve")
+
+
+#===============================================================================
+# SHARES
+
+addShare("", r"~/davshare")
+
+
+################################################################################
+# AUTHENTICATION
+#===============================================================================
+# HTTP Authentication Options
+
+acceptbasic = True    # Allow basic authentication, True or False
+acceptdigest = True   # Allow digest authentication, True or False
+defaultdigest = True  # True (default digest) or False (default basic)
+
+
+#domaincontroller =   # Uncomment this line to specify your own domain controller
+                      # Default: wsgidav.domain_controller, which uses the USERS 
+                      #          section below
+
+
+# Example: use a domain controller that allows users to authenticate against 
+#          a Windows NT domain or a local computer.
+#          Note: NTDomainController requires basic authentication:
+#                Set acceptbasic=True, acceptdigest=False, defaultdigest=False 
+
+# from wsgidav.addons.nt_domain_controller import NTDomainController
+# domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
+# acceptbasic = True
+# acceptdigest = False
+# defaultdigest = False
+
+
+#===============================================================================
+# USERS
+#
+# This section is ONLY used by the DEFAULT Domain Controller.
+#
+# Users are defined per realm: 
+#     addUser(<realm>, <user>, <password>, <description>)  
+#
+# Note that the default Domain Controller uses the share name as realm name.   
+# 
+# If no users are specified for a realm, no authentication is required.
+# Thus granting read-write access to anonymous! 
+#
+# Note: If you wish to use Windows WebDAV support (such as Windows XP's My 
+# Network Places), you need to include the domain of the user as part of the 
+# username (note the DOUBLE slash), such as:
+# addUser("v_root", "domain\\user", "password", "description")
+
+addUser("", "tester", "secret", "")
+#addUser("", "tester2", "secret2", "")

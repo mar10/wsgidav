@@ -4,13 +4,10 @@
 
 This document describes, how a WsgiDAV server is installed.
 
-See also separate documents for information on :doc:`run-configure` and 
-:doc:`run-access`.
-
 WsgiDAV server was tested with these operating systems:
-  * Linux (Ubuntu)
-  * Windows (Vista, XP)
-
+  * Linux (Ubuntu 13)
+  * Mac OS X 10.9
+  * Windows (Win7, Vista, XP)
 
 .. toctree::
    :maxdepth: 1
@@ -23,51 +20,37 @@ WsgiDAV requires
   * Python version 2.4 or later
   * Optionally `lxml <http://codespeak.net/lxml/>`_ (on Python 2.5 it will fall 
     back to xml)
-  * Optionally `Mercurial <http://mercurial.selenic.com/>`_ (only when checking 
-    out source code from the repository)
 
 
 Details
 =======
 Unix / Linux
 ------------
-The following examples were tested on Ubuntu 8.04.
+The following examples were tested on Ubuntu 13.04.
 
-Install mercurial (optional) and lxml (optional):: 
+Install lxml (optional):: 
 
-    ~$ sudo apt-get install mercurial
     ~$ sudo apt-get install python-lxml
 
 
 Install the latest release::
 
-    ~$ sudo easy_install -U wsgidav
+    ~$ sudo pip install -U wsgidav
 
-.. note:: during the beta-phase, this will not always give you an up-to-date 
-          version.
+or install the latest (potentially unstable) development version::
 
-So it's recommended to checkout the latest WsgiDAV sources instead::
+    ~$ pip install git+https://github.com/mar10/wsgidav.git
 
-    ~$ hg clone https://wsgidav.googlecode.com/hg/ wsgidav
-    ~$ cd wsgidav/
-    ~/wsgidav$ sudo python setup.py develop
-    ~/wsgidav$ wsgidav --help
+If you want to participate, check it out from the repository ::
+
+  $ git clone https://github.com/mar10/wsgidav.git wsgidav
+  $ cd wsgidav
+  $ setup.py develop
+  $ setup.py test
+  $ wsgidav --help
 
 
 Windows
 -------
 Install the preconditions, if neccessary.
-
-Then install the latest release::
-
-    > easy_install -U wsgidav
-
-.. note:: during the beta-phase, this will not always give you an up-to-date 
-          version.
-
-So it's recommended to checkout the latest WsgiDAV sources instead::
-
-    > hg clone https://wsgidav.googlecode.com/hg/ wsgidav
-    > cd wsgidav
-    > setup.py develop
-    > wsgidav --help
+Basically the same as for `Unix / Linux`_

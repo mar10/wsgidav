@@ -29,7 +29,7 @@
     See :doc:`run-access` for details.
 
 **I found a bug, what should I do?**
-    First, check the `issue list <http://code.google.com/p/wsgidav/issues/list>`_, 
+    First, check the `issue list <https://github.com/mar10/wsgidav/issues>`_, 
     if this is a known bug.
     If not, open a new issue and provide detailed information how to reproduce 
     it.

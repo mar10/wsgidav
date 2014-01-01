@@ -5,19 +5,11 @@
 This document gives a brief introduction to the WsgiDAV application package 
 (targeted to developers).
 
-.. note::
-   This documentation is under construction.
- 
-.. note:: 
-   There is also an `API documentation`_ available.
+.. seealso:: 
+   :doc:`api-doc`
 
 .. toctree::
    :maxdepth: 1
-
-
-API documentation
-=================
-Follow this link to browse the `API documentation`_.
 
 
 DAV providers
@@ -100,7 +92,3 @@ Other objects
 =============
 ``wsgidav.domain_controller.WsgiDAVDomainController``
     Default implementation of a domain controller as used by ``HTTPAuthenticator``.
-
-                                               
-  
-.. _API documentation : http://apidoc.wsgidav.googlecode.com/hg/html/index.html

@@ -1,4 +1,4 @@
-# (c) 2009-2013 Martin Wendt and contributors; see WsgiDAV http://wsgidav.googlecode.com/
+# (c) 2009-2014 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -6,7 +6,7 @@ WSGI application that handles one single WebDAV request.
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://docs.wsgidav.googlecode.com/hg/html/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
 from urlparse import urlparse
 from wsgidav.dav_error import HTTP_OK, HTTP_LENGTH_REQUIRED
