@@ -1,4 +1,4 @@
-# ![logo](logo.png?raw=true) WsgiDAV [![Build Status](https://travis-ci.org/mar10/fancytree.png?branch=master)](https://travis-ci.org/mar10/fancytree)
+# ![logo](logo.png?raw=true) WsgiDAV [![Build Status](https://travis-ci.org/mar10/wsgidav.png?branch=master)](https://travis-ci.org/mar10/wsgidav)
 
 WsgiDAV is a generic [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server 
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
@@ -30,3 +30,7 @@ Contributors:
 Any kind of feedback is very welcome!<br>
 Have fun  :-)<br>
 Martin
+
+----
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mar10/wsgidav/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
