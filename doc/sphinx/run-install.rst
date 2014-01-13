@@ -17,9 +17,8 @@ Preconditions
 =============
 
 WsgiDAV requires
-  * Python version 2.4 or later
-  * Optionally `lxml <http://codespeak.net/lxml/>`_ (on Python 2.5 it will fall 
-    back to xml)
+  * Python version 2.6 or later
+  * Optionally `lxml <http://codespeak.net/lxml/>`_ (will fall back to xml)
 
 
 Details

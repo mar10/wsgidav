@@ -5,7 +5,7 @@ WsgiDAV Documentation
 #############################
 
 :Project: WsgiDAV, https://github.com/mar10/wsgidav/
-:Copyright: Licensed under `The MIT License<https://raw.github.com/mar10/wsgidav/master/LICENSE>`_
+:Copyright: Licensed under `The MIT License <https://raw.github.com/mar10/wsgidav/master/LICENSE>`_
 :Author: Martin Wendt
 :Release: |version|
 :Date: |today|

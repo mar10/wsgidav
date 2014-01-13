@@ -11,7 +11,7 @@ CHANGES
 
 1.0.0 / 2013-12-27
 ==================
-- **NOTE**: no longer tested with Python 2.4
+- **NOTE**: no longer tested with Python 2.4.
 - SSL sample with bogo-cert
 - Renamed 'msmount' option to 'ms_mount'.
 - Files are always stored in binary mode.
