@@ -268,8 +268,8 @@ class WsgiDavDirBrowser(object):
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
-                        print "OT", officeType
-                        print "OT", dirConfig
+                        # print "OT", officeType
+                        # print "OT", dirConfig
                         if dirConfig.get("ms_sharepoint_plugin"):
                             infoDict["class"] = "msoffice"
                         elif dirConfig.get("ms_sharepoint_urls"):
