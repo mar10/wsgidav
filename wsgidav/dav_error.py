@@ -243,14 +243,15 @@ def getHttpStatusCode(v):
 
 def getHttpStatusString(v):
     """Return HTTP response string, e.g. 204 -> ('204 No Content').
+    The return string always includes descriptive text, to satisfy Apache mod_dav.
     
     `v`: status code or DAVError 
     """
     code = getHttpStatusCode(v)
     try:
         return ERROR_DESCRIPTIONS[code]
-    except:
-        return str(code)
+    except KeyError:
+        return "%s Status" % code
 
 
 def getResponsePage(v):
