@@ -544,7 +544,7 @@ class VirtualResFile(_VirtualNonCollection):
 
     def getContent(self):
         mime = self.getContentType()
-        # issue 57: always store as binary
+        # GC issue 57: always store as binary
 #        if mime.startswith("text"):
 #            return file(self.filePath, "r", BUFFER_SIZE)
         return file(self.filePath, "rb", BUFFER_SIZE)

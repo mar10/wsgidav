@@ -62,7 +62,7 @@ logging.basicConfig(level=logging.INFO)
 
 def getRfc1123Time(secs=None):   
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
-    # issue #20: time string must be locale independent
+    # GC issue #20: time string must be locale independent
 #    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
     return formatdate(timeval=secs, localtime=False, usegmt=True)
 
@@ -461,7 +461,7 @@ def readAndDiscardInput(environ):
     '500 Internal error' was raised BEFORE anything was read from the request 
     stream.
 
-    See issue 13, issue 23
+    See GC issue 13, issue 23
     See http://groups.google.com/group/paste-users/browse_frm/thread/fc0c9476047e9a47?hl=en
     
     Note that with persistent sessions (HTTP/1.1) we must make sure, that the
@@ -484,7 +484,7 @@ def readAndDiscardInput(environ):
     
     wsgi_input = environ["wsgi.input"]
 
-    # TODO: check if still required after issue 24 is fixed 
+    # TODO: check if still required after GC issue 24 is fixed 
     if hasattr(wsgi_input, "_consumed") and hasattr(wsgi_input, "length"): 
         # Seems to be Paste's httpserver.LimitedLengthFile
         # see http://groups.google.com/group/paste-users/browse_thread/thread/fc0c9476047e9a47/aa4a3aa416016729?hl=en&lnk=gst&q=.input#aa4a3aa416016729

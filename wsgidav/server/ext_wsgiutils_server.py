@@ -199,7 +199,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.wsgiWriteData(SERVER_ERROR)
         
         if not self.wsgiSentHeaders:
-            # issue 29 sending one byte, when content-length is '0' seems wrong
+            # GC issue 29 sending one byte, when content-length is '0' seems wrong
             # We must write out something!
 #            self.wsgiWriteData (" ")
             self.wsgiWriteData("")

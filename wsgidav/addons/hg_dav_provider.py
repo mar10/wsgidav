@@ -312,7 +312,7 @@ class HgResource(_DAVResource):
         assert not self.isCollection
         self._checkWriteAccess()
         mode = "wb"
-        # issue 57: always store as binary
+        # GC issue 57: always store as binary
 #        if contentType and contentType.startswith("text"):
 #            mode = "w"
         return file(self.absFilePath, mode, BUFFER_SIZE)
