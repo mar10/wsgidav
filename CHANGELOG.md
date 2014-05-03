@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+1.2.0 / Unreleased
+==================
+- #8: Unquote PATH_INFO is now optional 'unquote_path_info'; defaults to false.
+  (Brian Sipos)
+- #9: Fixed status codes for apache mod_wsgi (Brian Sipos)
+- #10: Hotfix for file copy on GVFS (Brian Sipos)
+
+
 1.1.0 / 2014-01-01
 ==================
 - New dir_browser option 'ms_sharepoint_plugin' to start MS Office documents in edit-mode

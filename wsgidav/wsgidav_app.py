@@ -77,6 +77,7 @@ DEFAULT_CONFIG = {
                    ],
 
     "add_header_MS_Author_Via": True,
+    "unquote_path_info": False, # See #8
 #    "use_text_files": False,
 
     "propsmanager": None,  # True: use property_manager.PropertyManager                  
@@ -238,10 +239,12 @@ class WsgiDAVApp(object):
 
 #        util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
         
-        # We unquote PATH_INFO here, although this should already be done by
-        # the server.
-        path = urllib.unquote(environ["PATH_INFO"])
-        # issue 22: Pylons sends root as u'/' 
+        # We optionall unquote PATH_INFO here, although this should already be 
+        # done by the server (#8).
+        path = environ["PATH_INFO"]
+        if self.config.get("unquote_path_info", False):
+            path = urllib.unquote(environ["PATH_INFO"])
+        # GC issue 22: Pylons sends root as u'/' 
         if isinstance(path, unicode):
             util.log("Got unicode PATH_INFO: %r" % path)
             path = path.encode("utf8")
@@ -324,7 +327,7 @@ class WsgiDAVApp(object):
                 util.warn("Invalid Content-Length header in response (%r): closing connection" % headerDict.get("content-length"))
                 forceCloseConnection = True
             
-            # HOTFIX for Vista and Windows 7 (issue 13, issue 23)
+            # HOTFIX for Vista and Windows 7 (GC issue 13, issue 23)
             # It seems that we must read *all* of the request body, otherwise
             # clients may miss the response.
             # For example Vista MiniRedir didn't understand a 401 response, 
