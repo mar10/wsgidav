@@ -651,8 +651,9 @@ class RequestServer(object):
         ):
             # HOTFIX: not fully understood, but MS sends PUT without content-length,
             # when creating new files 
-            if "Microsoft-WebDAV-MiniRedir" in environ.get("HTTP_USER_AGENT", ""):
-                _logger.warning("Setting misssing Content-Length to 0 for MS client")
+            agent = environ.get("HTTP_USER_AGENT", "")
+            if "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent: # issue #10
+                _logger.warning("Setting misssing Content-Length to 0 for MS / gvfs client")
                 contentlength = 0
             else:
                 self._fail(HTTP_LENGTH_REQUIRED, 
