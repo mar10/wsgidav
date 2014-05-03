@@ -9,3 +9,5 @@ child.log
 debug.log
 wsgidav.conf
 dist
+
+*.prefs
