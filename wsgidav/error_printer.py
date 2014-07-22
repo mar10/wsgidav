@@ -16,17 +16,18 @@ from dav_error import DAVError, getHttpStatusString, asDAVError,\
     HTTP_INTERNAL_ERROR, HTTP_NOT_MODIFIED, HTTP_NO_CONTENT
 import traceback
 import sys
+from middleware import BaseMiddleware
 
 _logger = util.getModuleLogger(__name__)
 
 #===============================================================================
 # ErrorPrinter
 #===============================================================================
-class ErrorPrinter(object):
+class ErrorPrinter(BaseMiddleware):
 
-    def __init__(self, application, catchall=False):
+    def __init__(self, application, config):
         self._application = application
-        self._catch_all_exceptions = catchall
+        self._catch_all_exceptions = config.get("catchall", False)
 
     def __call__(self, environ, start_response):      
         # Intercept start_response

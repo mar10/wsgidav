@@ -57,12 +57,13 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from wsgidav import util
 import sys
 import threading
+from middleware import BaseMiddleware
 
 __docformat__ = "reStructuredText"
 
 
 
-class WsgiDavDebugFilter(object):
+class WsgiDavDebugFilter(BaseMiddleware):
 
     def __init__(self, application, config):
         self._application = application

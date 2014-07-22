@@ -54,7 +54,6 @@ from error_printer import ErrorPrinter
 from debug_filter import WsgiDavDebugFilter
 from http_authenticator import HTTPAuthenticator
 from request_resolver import RequestResolver
-from domain_controller import WsgiDAVDomainController
 from property_manager import PropertyManager
 from lock_manager import LockManager
 #from wsgidav.version import __version__
@@ -89,6 +88,9 @@ DEFAULT_CONFIG = {
     "acceptbasic": True,      # Allow basic authentication, True or False
     "acceptdigest": True,     # Allow digest authentication, True or False
     "defaultdigest": True,    # True (default digest) or False (default basic)
+
+    # Error printer options
+    "catchall": False,
     
     "enable_loggers": [
                       ],
@@ -108,8 +110,13 @@ DEFAULT_CONFIG = {
         "ms_sharepoint_plugin": True, # Invoke MS Offce documents for editing using WebDAV
         "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
     },
+    "middleware_stack": [
+        WsgiDavDirBrowser,
+        HTTPAuthenticator,
+        ErrorPrinter,
+        WsgiDavDebugFilter,
+    ]
 }
-
 
 
 
@@ -159,22 +166,6 @@ class WsgiDAVApp(object):
 
         mount_path = config.get("mount_path")
          
-        user_mapping = self.config.get("user_mapping", {})
-        domainController = config.get("domaincontroller") or WsgiDAVDomainController(user_mapping)
-        isDefaultDC = isinstance(domainController, WsgiDAVDomainController)
-
-        # authentication fields
-        authacceptbasic = config.get("acceptbasic", True)
-        authacceptdigest = config.get("acceptdigest", True)
-        authdefaultdigest = config.get("defaultdigest", True)
-        
-        # Check configuration for NTDomainController
-        # We don't use 'isinstance', because include would fail on non-windows boxes.
-        wdcName = "NTDomainController"
-        if domainController.__class__.__name__ == wdcName:
-            if authacceptdigest or authdefaultdigest or not authacceptbasic:
-                util.warn("WARNING: %s requires basic authentication.\n\tSet acceptbasic=True, acceptdigest=False, defaultdigest=False" % wdcName)
-                
         # Instantiate DAV resource provider objects for every share
         self.providerMap = {}
         for (share, provider) in provider_mapping.items():
@@ -196,42 +187,54 @@ class WsgiDAVApp(object):
             provider.setLockManager(locksManager)
             provider.setPropManager(propsManager)
             
-            self.providerMap[share] = provider
+            self.providerMap[share] = {"provider": provider, "allow_anonymouse": False}
             
 
-        if self._verbose >= 2:
-            print "Using lock manager: %r" % locksManager
-            print "Using property manager: %r" % propsManager
-            print "Using domain controller: %s" % domainController
-            print "Registered DAV providers:"
-            for share, provider in self.providerMap.items():
-                hint = ""
-                if isDefaultDC and not user_mapping.get(share):
-                    hint = " (anonymous)"
-                print "  Share '%s': %s%s" % (share, provider, hint)
-
-        # If the default DC is used, emit a warning for anonymous realms
-        if isDefaultDC and self._verbose >= 1:
-            for share in self.providerMap:
-                if not user_mapping.get(share):
-                    # TODO: we should only warn here, if --no-auth is not given
-                    print "WARNING: share '%s' will allow anonymous access." % share
-
+        
         # Define WSGI application stack
         application = RequestResolver()
         
-        if config.get("dir_browser") and config["dir_browser"].get("enable", True):
-            application = config["dir_browser"].get("app_class", WsgiDavDirBrowser)(application)
+        domain_controller = None
+        dir_browser = config.get("dir_browser", {})
+        middleware_stack = config.get("middleware_stack", [])
 
-        application = HTTPAuthenticator(application, 
-                                        domainController, 
-                                        authacceptbasic, 
-                                        authacceptdigest, 
-                                        authdefaultdigest)      
-        application = ErrorPrinter(application, catchall=False)
-
-        application = WsgiDavDebugFilter(application, config)
         
+        # Replace WsgiDavDirBrowser to custom class for backward compatibility only
+        # In normal way you should insert it into middleware_stack
+        if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
+            config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser['app_class'] for m in middleware_stack]
+
+        for mw in middleware_stack:
+            if mw.isSuitable(config):
+                if self._verbose >= 2:
+                        print "Middleware %s is suitable" % mw
+                application = mw(application, config)
+                
+                if issubclass(mw, HTTPAuthenticator):
+                    domain_controller = application.getDomainController()
+                    # check anonymouse access
+                    for share, data in self.providerMap.items():
+                        if application.allowAnonymouseAccess(share):
+                            data['allow_anonymouse'] = True
+            else:
+                if self._verbose >= 2:
+                        print "Middleware %s is not suitable" % mw
+                    
+        # Print info
+        if self._verbose >= 2:
+            print "Using lock manager: %r" % locksManager
+            print "Using property manager: %r" % propsManager
+            print "Using domain controller: %s" % domain_controller
+            print "Registered DAV providers:"
+            for share, data in self.providerMap.items():
+                hint = " (anonymous)" if data['allow_anonymouse'] else ""
+                print "  Share '%s': %s%s" % (share, provider, hint)
+        if self._verbose >= 1:
+            for share, data in self.providerMap.items():
+                if data['allow_anonymouse']:
+                    # TODO: we should only warn here, if --no-auth is not given
+                    print "WARNING: share '%s' will allow anonymous access." % share
+
         self._application = application
 
 
@@ -271,13 +274,12 @@ class WsgiDAVApp(object):
                 share = r
                 break
         
-        provider = self.providerMap.get(share)
+        share_data = self.providerMap.get(share)
         
         # Note: we call the next app, even if provider is None, because OPTIONS 
         #       must still be handled.
         #       All other requests will result in '404 Not Found'  
-        environ["wsgidav.provider"] = provider
-
+        environ["wsgidav.provider"] = share_data['provider']
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
         
@@ -400,4 +402,5 @@ class WsgiDAVApp(object):
             yield v
         if hasattr(app_iter, "close"):
             app_iter.close()
+        
         return
