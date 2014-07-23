@@ -38,7 +38,7 @@ __docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
-BLOCK_SIZE = 8192
+DEFAULT_BLOCK_SIZE = 8192
 
 
 
@@ -51,6 +51,7 @@ class RequestServer(object):
         self._davProvider = davProvider
         self.allowPropfindInfinite = True
         self._verbose = 2
+        self.block_size = DEFAULT_BLOCK_SIZE
         util.debug("RequestServer: __init__", module="sc")
 
         self._possible_methods = [ "OPTIONS", "HEAD", "GET", "PROPFIND" ]
@@ -75,6 +76,8 @@ class RequestServer(object):
 
         environ["wsgidav.username"] = environ.get("http_authenticator.username", "anonymous") 
         requestmethod =  environ["REQUEST_METHOD"]
+
+        self.block_size = environ["wsgidav.config"].get("block_size", DEFAULT_BLOCK_SIZE)
 
         # Convert 'infinity' and 'T'/'F' to a common case
         if environ.get("HTTP_DEPTH") is not None: 
@@ -709,7 +712,7 @@ class RequestServer(object):
                 assert contentlength > 0
                 contentremain = contentlength
                 while contentremain > 0:
-                    n = min(contentremain, BLOCK_SIZE)
+                    n = min(contentremain, self.block_size)
                     readbuffer = environ["wsgi.input"].read(n)
                     # This happens with litmus expect-100 test:
 #                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
@@ -1448,8 +1451,8 @@ class RequestServer(object):
 
         contentlengthremaining = rangelength
         while 1:
-            if contentlengthremaining < 0 or contentlengthremaining > BLOCK_SIZE:
-                readbuffer = fileobj.read(BLOCK_SIZE)
+            if contentlengthremaining < 0 or contentlengthremaining > self.block_size:
+                readbuffer = fileobj.read(self.block_size)
             else:
                 readbuffer = fileobj.read(contentlengthremaining)
             yield readbuffer
