@@ -142,7 +142,7 @@ class HTTPAuthenticator(BaseMiddleware):
         self._verbose = config.get("verbose", 2)
         self._application = application
         self._user_mapping = config.get("user_mapping", {})
-        self._domaincontroller = config.get("domaincontroller") or WsgiDAVDomainController(user_mapping)
+        self._domaincontroller = config.get("domaincontroller") or WsgiDAVDomainController(self._user_mapping)
         self._acceptbasic = config.get("acceptbasic", True)
         self._acceptdigest = config.get("acceptdigest", True)
         self._defaultdigest = config.get("defaultdigest", True)
@@ -159,7 +159,7 @@ class HTTPAuthenticator(BaseMiddleware):
     def getDomainController(self):
         return self._domaincontroller
 
-    def allowAnonymouseAccess(self, share):
+    def allowAnonymousAccess(self, share):
         return isinstance(self._domaincontroller, WsgiDAVDomainController) and not self._user_mapping.get(share)
 
     def __call__(self, environ, start_response):

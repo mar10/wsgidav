@@ -187,7 +187,7 @@ class WsgiDAVApp(object):
             provider.setLockManager(locksManager)
             provider.setPropManager(propsManager)
             
-            self.providerMap[share] = {"provider": provider, "allow_anonymouse": False}
+            self.providerMap[share] = {"provider": provider, "allow_anonymous": False}
             
 
         
@@ -212,10 +212,10 @@ class WsgiDAVApp(object):
                 
                 if issubclass(mw, HTTPAuthenticator):
                     domain_controller = application.getDomainController()
-                    # check anonymouse access
+                    # check anonymous access
                     for share, data in self.providerMap.items():
-                        if application.allowAnonymouseAccess(share):
-                            data['allow_anonymouse'] = True
+                        if application.allowAnonymousAccess(share):
+                            data['allow_anonymous'] = True
             else:
                 if self._verbose >= 2:
                         print "Middleware %s is not suitable" % mw
@@ -227,11 +227,11 @@ class WsgiDAVApp(object):
             print "Using domain controller: %s" % domain_controller
             print "Registered DAV providers:"
             for share, data in self.providerMap.items():
-                hint = " (anonymous)" if data['allow_anonymouse'] else ""
+                hint = " (anonymous)" if data['allow_anonymous'] else ""
                 print "  Share '%s': %s%s" % (share, provider, hint)
         if self._verbose >= 1:
             for share, data in self.providerMap.items():
-                if data['allow_anonymouse']:
+                if data['allow_anonymous']:
                     # TODO: we should only warn here, if --no-auth is not given
                     print "WARNING: share '%s' will allow anonymous access." % share
 
