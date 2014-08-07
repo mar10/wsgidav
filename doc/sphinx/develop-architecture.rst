@@ -47,6 +47,10 @@ WSGI application stack::
                                     \- Uses a lock manager object 
                                        and  a property  manager object 
 
+This is default stack. Middleware order can be configured using 
+``middleware_stack`` option. You can write your own or extend existing 
+middleware and place it on middleware stack.
+
 See the following sections for details.
 
 

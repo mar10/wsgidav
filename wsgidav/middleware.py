@@ -1,10 +1,35 @@
+"""
+Abstract base middleware class 
+
+See `Developers info`_ for more information about the WsgiDAV architecture.
+
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+"""
+
+__docformat__ = "reStructuredText"
+
 class BaseMiddleware(object):
-	def __init__(self, application, config):
-		pass
+    """
+    Abstract base middleware class 
 
-	def __call__(self, environ, start_response):
-		pass
+    Implementations in WsgiDAV include::
+        
+        wsgidav.dir_browser.WsgiDavDirBrowser
+        wsgidav.error_printer.ErrorPrinter
+        wsgidav.debug_filter.WsgiDavDebugFilter
+        wsgidav.http_authenticator.HTTPAuthenticator
+    """
+    def __init__(self, application, config):
+        pass
 
-	@staticmethod
-	def isSuitable(config):
-		return True
+    def __call__(self, environ, start_response):
+        pass
+
+    @staticmethod
+    def isSuitable(config):
+        """
+        Is this middleware class is suitable for current configuration?
+
+        Checking when initialize WsgiDAVApp and NOT on each request
+        """
+        return True
