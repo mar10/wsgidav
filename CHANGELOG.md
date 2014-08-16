@@ -8,6 +8,7 @@ CHANGES
   (Brian Sipos)
 - #9: Fixed status codes for apache mod_wsgi (Brian Sipos)
 - #10: Hotfix for file copy on GVFS (Brian Sipos)
+- #12 Configurable middleware stack (Pavel Shiryaev)
 
 
 1.1.0 / 2014-01-01
