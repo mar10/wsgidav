@@ -88,6 +88,8 @@ except ImportError:
 import time
 import re
 import util
+from domain_controller import WsgiDAVDomainController
+from middleware import BaseMiddleware
 
 _logger = util.getModuleLogger(__name__, True)
 
@@ -134,21 +136,32 @@ class SimpleDomainController(object):
 #===============================================================================
 # HTTPAuthenticator
 #===============================================================================
-class HTTPAuthenticator(object):
+class HTTPAuthenticator(BaseMiddleware):
     """WSGI Middleware for basic and digest authenticator."""
-    def __init__(self, application, domaincontroller, acceptbasic=True, acceptdigest=True, defaultdigest=True):
-        self._domaincontroller = domaincontroller
+    def __init__(self, application, config):
+        self._verbose = config.get("verbose", 2)
         self._application = application
+        self._user_mapping = config.get("user_mapping", {})
+        self._domaincontroller = config.get("domaincontroller") or WsgiDAVDomainController(self._user_mapping)
+        self._acceptbasic = config.get("acceptbasic", True)
+        self._acceptdigest = config.get("acceptdigest", True)
+        self._defaultdigest = config.get("defaultdigest", True)
         self._noncedict = dict([])
 
         self._headerparser = re.compile(r"([\w]+)=([^,]*),")
         self._headermethod = re.compile(r"^([\w]+)")
         
-        self._acceptbasic = acceptbasic
-        self._acceptdigest = acceptdigest
-        self._defaultdigest = defaultdigest
+        wdcName = "NTDomainController"
+        if self._domaincontroller.__class__.__name__ == wdcName:
+            if self._authacceptdigest or self._authdefaultdigest or not self._authacceptbasic:
+                util.warn("WARNING: %s requires basic authentication.\n\tSet acceptbasic=True, acceptdigest=False, defaultdigest=False" % wdcName)
 
-   
+    def getDomainController(self):
+        return self._domaincontroller
+
+    def allowAnonymousAccess(self, share):
+        return isinstance(self._domaincontroller, WsgiDAVDomainController) and not self._user_mapping.get(share)
+
     def __call__(self, environ, start_response):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"], environ)
         

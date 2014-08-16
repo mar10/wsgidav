@@ -10,6 +10,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
 from wsgidav.version import __version__
+from middleware import BaseMiddleware
 import os
 import sys
 import urllib
@@ -107,10 +108,10 @@ function openWithSharePointPlugin(url) {
 """
 
 
-class WsgiDavDirBrowser(object):
+class WsgiDavDirBrowser(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
-    def __init__(self, application):
+    def __init__(self, application, config):
         self._application = application
         self._verbose = 2
 
@@ -166,6 +167,10 @@ class WsgiDavDirBrowser(object):
             return self._listDirectory(davres, environ, start_response)
         
         return self._application(environ, start_response)
+
+    @staticmethod
+    def isSuitable(config):
+        return config.get("dir_browser") and config["dir_browser"].get("enable", True)
 
 
     def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):

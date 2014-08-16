@@ -38,6 +38,7 @@ wsgidav
    wsgidav.http_authenticator
    wsgidav.lock_manager
    wsgidav.lock_storage
+   wsgidav.middleware
    wsgidav.property_manager
    wsgidav.request_resolver
    wsgidav.request_server
