@@ -134,7 +134,7 @@ class RequestServer(object):
         - If errorList is None or [], then <successCode> is send as response.
         - If errorList contains a single error with a URL that matches rootRes,
           then this error is returned.
-        - If errorList contains more than one error, then '207 Multistatus' is 
+        - If errorList contains more than one error, then '207 Multi-Status' is 
           returned.
         """
         assert successCode in (HTTP_CREATED, HTTP_NO_CONTENT, HTTP_OK)
@@ -1185,7 +1185,7 @@ class RequestServer(object):
         return [ xml ]
 
         # TODO: LOCK may also fail with HTTP_FORBIDDEN.
-        #       In this case we should return 207 multi-status.
+        #       In this case we should return 207 Multi-Status.
         #       http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.9
         #       Checking this would require to call res.preventLocking()
         #       recursively.

@@ -780,7 +780,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
 #            ('Connection', 'keep-alive'),
 #        ]
 
-    start_response("207 Multistatus", headers)
+    start_response("207 Multi-Status", headers)
     assert type(xml_data) is str # If not, Content-Length is wrong!
     return [ xml_data ]
         
