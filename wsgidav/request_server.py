@@ -667,7 +667,17 @@ class RequestServer(object):
             fileobj = res.beginWrite(contentType=environ.get("CONTENT_TYPE"))
 
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
-                buf = environ["wsgi.input"].readline()
+                # Chunked Transfer Coding
+                # http://www.servlets.com/rfcs/rfc2616-sec3.html#sec3.6.1
+
+                if "Darwin" in environ.get("HTTP_USER_AGENT", "") and \
+                       environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH"):
+                    # Mac Finder, that does not prepend chunk-size + CRLF ,
+                    # like it should to comply with the spec. It sends chunk
+                    # size in a HTTP header instead.
+                    buf = environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH", "")
+                else:
+                    buf = environ["wsgi.input"].readline()
                 if buf == '':
                     l = 0
                 else:
