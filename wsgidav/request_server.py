@@ -622,9 +622,13 @@ class RequestServer(object):
         if "HTTP_CONTENT_ENCODING" in environ:
             self._fail(HTTP_NOT_IMPLEMENTED,
                        "Content-encoding header is not supported.")
+
+        # An origin server that allows PUT on a given target resource MUST send
+        # a 400 (Bad Request) response to a PUT request that contains a
+        # Content-Range header field (http://tools.ietf.org/html/rfc7231#section-4.3.4)
         if "HTTP_CONTENT_RANGE" in environ:
-            self._fail(HTTP_NOT_IMPLEMENTED,
-                       "Content-range header is not supported.")
+            self._fail(HTTP_BAD_REQUEST,
+                       "Content-range header is not allowed on PUT requests.")
 
         if res and res.isCollection:
             self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
