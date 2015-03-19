@@ -674,25 +674,36 @@ class RequestServer(object):
                        environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH"):
                     # Mac Finder, that does not prepend chunk-size + CRLF ,
                     # like it should to comply with the spec. It sends chunk
-                    # size in a HTTP header instead.
-                    buf = environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH", "")
+                    # size as integer in a HTTP header instead.
+                    WORKAROUND_CHUNK_LENGTH = True
+                    buf = environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH", "0")
+                    l = int(buf)
                 else:
+                    WORKAROUND_CHUNK_LENGTH = False
                     buf = environ["wsgi.input"].readline()
-                if buf == '':
-                    l = 0
-                else:
-                    l = int(buf, 16)
-
-                environ["wsgidav.some_input_read"] = 1
-                while l > 0:
-                    buf = environ["wsgi.input"].read(l)
-                    fileobj.write(buf)
-                    environ["wsgi.input"].readline()
-                    buf = environ["wsgi.input"].readline()
+                    environ["wsgidav.some_input_read"] = 1
                     if buf == '':
                         l = 0
                     else:
                         l = int(buf, 16)
+
+                while l > 0:
+                    buf = environ["wsgi.input"].read(l)
+                    fileobj.write(buf)
+                    if WORKAROUND_CHUNK_LENGTH:
+                        environ["wsgidav.some_input_read"] = 1
+                        # Keep receiving until we read expected size or reach EOF
+                        if buf == '':
+                            l = 0
+                        else:
+                            l -= len(buf)
+                    else:
+                        environ["wsgi.input"].readline()
+                        buf = environ["wsgi.input"].readline()
+                        if buf == '':
+                            l = 0
+                        else:
+                            l = int(buf, 16)
                 environ["wsgidav.all_input_read"] = 1
                     
             elif contentlength == 0:
