@@ -7,10 +7,11 @@
 #
 # See
 #     doc/annotated_wsgidav.conf
-# for a complete, annotaded configuration example.
+# for a complete, annotated configuration example.
 #
 ################################################################################
-# INITIALIZATION - Do not modify this section
+
+# HELPERS - Do not modify this section
 
 provider_mapping = {}
 user_mapping = {}
@@ -51,6 +52,23 @@ port = 8080
 # with Microsoft Office (default: True)
 add_header_MS_Author_Via = True	
 
+#================================================================================
+# Misc. setings
+#
+
+# Block size in bytes
+#block_size = 8192
+
+#===============================================================================
+# Middlewares
+# 
+# Use this section to modify the default middleware stack
+
+#from wsgidav.dir_browser import WsgiDavDirBrowser
+#from debug_filter import WsgiDavDebugFilter
+#from http_authenticator import HTTPAuthenticator
+#from error_printer import ErrorPrinter
+#middleware_stack = [ WsgiDavDirBrowser, HTTPAuthenticator, ErrorPrinter, WsgiDavDebugFilter ]
 
 #===============================================================================
 # Debugging
