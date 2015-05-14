@@ -2,7 +2,11 @@
 CHANGES
 =======
 
-1.2.0 / Unreleased
+1.2.1 / Unreleased
+==================
+
+
+1.2.0 / 2015-05-14
 ==================
 - #8: Unquote PATH_INFO is now optional 'unquote_path_info'; defaults to false.
   (Brian Sipos)
