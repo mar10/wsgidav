@@ -7,11 +7,14 @@ clients.*
 
 WsgiDAV was tested with these clients
 
+  * Windows 7, 8
   * Windows Vista (Microsoft-WebDAV-!MiniRedir/6.0.6002)
   * Window XP (Microsoft-WebDAV-!MiniRedir/5.1.2600)
-  * Ubuntu Nautilus / gvfs
   * DAVExplorer
+  * MS Office 2013
   * OpenOffice 3.1
+  * Ubuntu Nautilus / gvfs
+  * Mac OS/X Finder
 
 The following examples assume, that we have a running WsgiDAV server on a remote 
 machine with this configuration:
