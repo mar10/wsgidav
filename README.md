@@ -1,4 +1,4 @@
-# ![logo](logo.png?raw=true) WsgiDAV [![Build Status](https://travis-ci.org/mar10/wsgidav.png?branch=master)](https://travis-ci.org/mar10/wsgidav) [![Latest Version](https://pypip.in/v/WsgiDAV/badge.png)](https://pypi.python.org/pypi/WsgiDAV/) [![Downloads](https://pypip.in/d/WsgiDAV/badge.png)](https://pypi.python.org/pypi/WsgiDAV/) [![License](https://pypip.in/license/WsgiDAV/badge.png)](https://pypi.python.org/pypi/WsgiDAV/)
+# ![logo](logo.png?raw=true) WsgiDAV [![Build Status](https://travis-ci.org/mar10/wsgidav.png?branch=master)](https://travis-ci.org/mar10/wsgidav) [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/) [![Downloads](https://img.shields.io/pypi/dm/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/) [![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 
 WsgiDAV is a generic [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server 
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
