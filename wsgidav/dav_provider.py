@@ -699,7 +699,8 @@ class _DAVResource(object):
         This default implementation 
         
         - raises HTTP_FORBIDDEN, if trying to modify a locking property
-        - raises HTTP_FORBIDDEN, if trying to modify a {DAV:} property 
+        - raises HTTP_FORBIDDEN, if trying to modify an immutable {DAV:}
+          property
         - stores everything else as dead property, if a property manager is 
           present.
         - raises HTTP_FORBIDDEN, else 
@@ -717,6 +718,25 @@ class _DAVResource(object):
             # Locking properties are always read-only
             raise DAVError(HTTP_FORBIDDEN,  
                            errcondition=PRECONDITION_CODE_ProtectedProperty)  
+
+        # Live property
+        _config = self.environ["wsgidav.config"]
+        mutableLiveProps = _config.get("mutable_live_props", [])
+        # Accept custom live property updates on resources if configured.
+        if propname.startswith("{DAV:}") and \
+               propname in _standardLivePropNames and \
+               propname in mutableLiveProps:
+            # Please note that some properties should not be mutable according
+            # to RFC4918. This includes the 'getlastmodified' property, which
+            # it may still make sense to make mutable in order to support time
+            # stamp changes from e.g. utime calls or the touch or rsync -a
+            # commands.
+            if propname in ("{DAV:}getlastmodified", "{DAV:}lastmodified") \
+                   and hasattr(self, "setLastModified"):
+                return self.setLastModified(self.path, value.text, dryRun)
+
+            # Unsupported or not allowed
+            raise DAVError(HTTP_FORBIDDEN)
 
         # Dead property
         pm = self.provider.propManager
