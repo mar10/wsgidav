@@ -115,6 +115,12 @@ dir_browser = {
 propsmanager = True
 
 
+### Optional additional live property modification
+# Enable to allow clients to use e.g. the touch or cp / rsync commands with the
+# preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
+#mutable_live_props = ["{DAV:}getlastmodified"]
+
+
 #===============================================================================
 # Lock Manager
 #
