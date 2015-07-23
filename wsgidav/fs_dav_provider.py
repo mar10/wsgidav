@@ -158,6 +158,13 @@ class FileResource(DAVNonCollection):
                                                      withChildren=True)
 
 
+    def setLastModified(self, destPath, timeStamp, dryRun):
+        """Set last modified time for destPath to timeStamp on epoch-format"""
+        # Translate time from RFC 1123 to seconds since epoch format
+        secs = util.parseTimeString(timeStamp)
+        if not dryRun:
+            os.utime(self._filePath, (secs, secs))
+        return True
 
 
 #===============================================================================
@@ -327,6 +334,13 @@ class FolderResource(DAVCollection):
                                                      withChildren=True)
 
 
+    def setLastModified(self, destPath, timeStamp, dryRun):
+        """Set last modified time for destPath to timeStamp on epoch-format"""
+        # Translate time from RFC 1123 to seconds since epoch format
+        secs = util.parseTimeString(timeStamp)
+        if not dryRun:
+            os.utime(self._filePath, (secs, secs))
+        return True
 
 
 #===============================================================================
