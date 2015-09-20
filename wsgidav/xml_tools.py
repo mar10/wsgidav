@@ -67,7 +67,27 @@ def xmlToString(element, pretty_print=False):
                              pretty_print=pretty_print)
     else:
         xml = etree.tostring(element, "UTF-8")
-    assert xml.startswith("<?xml ") 
+    assert xml.startswith("<?xml ")
+
+    # Fix for Total Commander WebDAV plugin
+    # Without it all nodes with non-ascii characters in naming look incorrect
+    # You can download sources of WebDAV TC plugin using this link: http://www.ghisler.com/plugins.htm
+    # and find the mistake in file davfunc.cpp on line 2663:
+    # if (p) {
+	#	p+=9;
+	#	while (p[0]=='"' || p[0]==' ' || p[0]=='\r' || p[0]=='\n' || p[0]=='\t')
+	#		p++;
+	#	if (strnicmp(p,"utf-8",5)==0)
+	#		return BODY_UTF8;
+	# }
+    # So plugin couldn't detect correct charset because it depends on "utf-8" string in first XML tag
+    # but lxml.etree object generates xml structure with only single quotes and TC WebDAV plugin doesn't understand it
+    pos = xml.find('?>')
+    if pos != -1:
+        xml_declaration_old = xml[:pos+2]
+        xml_declaration_new = xml_declaration_old.replace("'", '"')
+        xml = xml.replace(xml_declaration_old, xml_declaration_new, 1)
+
     return xml
 
 
