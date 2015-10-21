@@ -1,0 +1,5 @@
+PyInstaller==2.1
+#colorama==0.3.3
+distribute==0.7.3
+#keyring==5.3
+#-e git+https://github.com/mar10/pyftpsync.git@9095ec0cda6b97e0c8569977ecdf602167719e04#egg=pyftpsync-dev
