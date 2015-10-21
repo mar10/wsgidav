@@ -10,6 +10,8 @@
     See http://pythonpaste.org/testing-applications.html
     and http://pythonpaste.org/modules/fixture.html
 """
+from __future__ import print_function
+
 from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -21,10 +23,10 @@ import unittest
 try:
     from paste.fixture import TestApp  #@UnresolvedImport
 except ImportError:
-    print >>sys.stderr, "*" * 70
-    print >>sys.stderr, "Could not import paste.fixture.TestApp: some tests will fail."
-    print >>sys.stderr, "Try 'pip install Paste' or use 'python setup.py test' to run these tests."
-    print >>sys.stderr, "*" * 70
+    print("*" * 70, file=sys.stderr)
+    print("Could not import paste.fixture.TestApp: some tests will fail.", file=sys.stderr)
+    print("Try 'pip install Paste' or use 'python setup.py test' to run these tests.", file=sys.stderr)
+    print("*" * 70, file=sys.stderr)
     raise
 
 #===============================================================================

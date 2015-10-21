@@ -82,6 +82,7 @@ Test cases
       subfolder10-10/
         file10-10-1.txt -> 1k
 """
+from __future__ import print_function
 import logging
 _benchmarks = [#"proppatch_many",
                #"proppatch_big",

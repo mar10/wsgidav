@@ -8,6 +8,10 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
+__docformat__ = "reStructuredText"
+
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
 from wsgidav.version import __version__
 from middleware import BaseMiddleware
@@ -15,8 +19,6 @@ import os
 import sys
 import urllib
 import util
-
-__docformat__ = "reStructuredText"
 
 
 
@@ -177,7 +179,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self._verbose >= 2:
-            print >>sys.stdout, "Raising DAVError %s" % e.getUserInfo()
+            print("Raising DAVError %s" % e.getUserInfo(), file=sys.stdout)
         raise e
 
     

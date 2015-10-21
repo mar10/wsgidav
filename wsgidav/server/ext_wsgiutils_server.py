@@ -51,6 +51,8 @@ copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use th
 application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate paste 
 configuration.
 """
+from __future__ import print_function
+
 __docformat__ = "reStructuredText"
 
 from wsgidav.version import __version__
@@ -230,13 +232,13 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), data[:50]))
             self.wfile.write(data)
-        except socket.error, e:
+        except socket.error as e:
             # Suppress stack trace when client aborts connection disgracefully:
             # 10053: Software caused connection abort
             # 10054: Connection reset by peer
             if e[0] in (10053, 10054):
-                print >>sys.stderr, "*** Caught socket.error: ", e
-            else:  
+                print("*** Caught socket.error: ", e, file=sys.stderr)
+            else:
                 raise
 
 
@@ -258,12 +260,12 @@ class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             return
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
-        print >>sys.stderr, '-'*40
-        print >>sys.stderr, '<%s> Exception happened during processing of request from %s' % (threading._get_ident(), client_address)
-        print >>sys.stderr, client_address
+        print('-'*40, file=sys.stderr)
+        print('<%s> Exception happened during processing of request from %s' % (threading._get_ident(), client_address), file=sys.stderr)
+        print(client_address, file=sys.stderr)
         traceback.print_exc()
-        print >>sys.stderr, '-'*40
-        print >>sys.stderr, request
+        print('-'*40, file=sys.stderr)
+        print(request, file=sys.stderr)
 #        BaseHTTPServer.HTTPServer.handle_error(self, request, client_address)
 
 
@@ -335,9 +337,9 @@ def serve(conf, app):
     if conf.get("verbose") >= 1:
         if host in ("", "0.0.0.0"):
             (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
-            print "WsgiDAV %s serving at %s, port %s (host='%s' %s)..." % (__version__, host, port, hostname, ipaddrlist)
+            print("WsgiDAV %s serving at %s, port %s (host='%s' %s)..." % (__version__, host, port, hostname, ipaddrlist))
         else:
-            print "WsgiDAV %s serving at %s, port %s..." % (__version__, host, port)
+            print("WsgiDAV %s serving at %s, port %s..." % (__version__, host, port))
     server.serve_forever()
 #    server.serve_forever_stoppable()
 

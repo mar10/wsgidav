@@ -4,6 +4,8 @@
 """
     Run litmus against WsgiDAV server.
 """
+from __future__ import print_function
+
 from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -102,10 +104,10 @@ class WsgiDAVLitmusTest(unittest.TestCase):
                                  0,
                                  "litmus suite failed: check the log")
             except OSError:
-                print "*" * 70
-                print "This test requires the litmus test suite."
-                print "See http://www.webdav.org/neon/litmus/"
-                print "*" * 70
+                print("*" * 70)
+                print("This test requires the litmus test suite.")
+                print("See http://www.webdav.org/neon/litmus/")
+                print("*" * 70)
                 raise
 
         finally:

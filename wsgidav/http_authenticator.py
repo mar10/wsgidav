@@ -77,6 +77,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 __docformat__ = "reStructuredText"
 
 import random
@@ -298,7 +300,7 @@ class HTTPAuthenticator(BaseMiddleware):
         # TODO: Chun added this comments, but code was commented out
         # Do not do realm checking - a hotfix for WinXP using some other realm's
         # auth details for this realm - if user/password match
-#        print authheaderdict.get("realm"), realmname
+#        print(authheaderdict.get("realm"), realmname)
         if 'realm' in authheaderdict:
             if authheaderdict["realm"].upper() != realmname.upper():
                 if HOTFIX_WINXP_AcceptRootShareLogin:
@@ -386,8 +388,8 @@ class HTTPAuthenticator(BaseMiddleware):
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
         else:
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + self.md5h(A2))
-        # print A1, A2
-        # print digestresp
+        # print(A1, A2)
+        # print(digestresp)
         return digestresp
                 
     

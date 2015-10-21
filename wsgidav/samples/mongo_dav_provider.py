@@ -23,6 +23,8 @@ Valid options are (sample shows defaults)::
             }
 
 """
+from __future__ import print_function
+
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 from wsgidav import util
 import pymongo

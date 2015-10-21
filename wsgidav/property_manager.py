@@ -19,6 +19,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 from wsgidav import util
 import os
 import sys
@@ -117,21 +119,21 @@ class PropertyManager(object):
     def _dump(self, msg="", out=None):
         if out is None:
             out = sys.stdout
-        print >>out, "%s(%s): %s" % (self.__class__.__name__, self.__repr__(), msg)
+        print("%s(%s): %s" % (self.__class__.__name__, self.__repr__(), msg), file=out)
         if not self._loaded:
             self._lazyOpen()
             if self._verbose >= 2:
                 return # Already dumped in _lazyOpen
         try:
             for k, v in self._dict.items():
-                print >>out, "    ", k
+                print("    ", k, file=out)
                 for k2, v2 in v.items():
                     try:
-                        print >>out, "        %s: '%s'" % (k2, v2)
-                    except Exception, e:
-                        print >>out, "        %s: ERROR %s" % (k2, e)
+                        print("        %s: '%s'" % (k2, v2), file=out)
+                    except Exception as e:
+                        print("        %s: ERROR %s" % (k2, e), file=out)
             out.flush()
-        except Exception, e:
+        except Exception as e:
             util.warn("PropertyManager._dump()  ERROR: %s" % e)
 
 
@@ -161,7 +163,7 @@ class PropertyManager(object):
             # TODO: sometimes we get exceptions here: (catch or otherwise make more robust?)
             try:
                 resourceprops = self._dict[normurl]
-            except Exception, e:
+            except Exception as e:
                 _logger.exception("getProperty(%s, %s) failed : %s" % (normurl, propname, e))
                 raise
             return resourceprops.get(propname)

@@ -8,6 +8,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 from pprint import pformat
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
@@ -31,11 +33,7 @@ import sys
 import time
 import stat
 
-try:
-    from email.utils import formatdate, parsedate
-except ImportError, e:
-    # Python < 2.5
-    from email.Utils import formatdate, parsedate
+from email.utils import formatdate, parsedate
 
 try:
     from cStringIO import StringIO
@@ -300,8 +298,9 @@ def traceCall(msg=None):
         f_code = sys._getframe(2).f_code
         if msg is None:
             msg = ": %s"
-        else: msg = ""
-        print "%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg)
+        else:
+            msg = ""
+        print("%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
 
 
 #===============================================================================
@@ -514,7 +513,7 @@ def readAndDiscardInput(environ):
                     n = 1
                 body = wsgi_input.read(n)
                 debug("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
-            except socket.error, se:
+            except socket.error as se:
                 # se(10035, 'The socket operation could not complete without blocking')
                 warn("-> read %s bytes failed: %s" % (n, se))
             # Restore socket settings
@@ -704,7 +703,7 @@ def parseXmlBody(environ, allowEmpty=False):
     
     try:
         rootEL = etree.fromstring(requestbody)
-    except Exception, e:
+    except Exception as e:
         raise DAVError(HTTP_BAD_REQUEST, "Invalid XML format.", srcexception=e)   
     
     # If dumps of the body are desired, then this is the place to do it pretty:
@@ -907,7 +906,7 @@ def obtainContentRanges(rangetext, filesize):
         if not matched:
             mObj = reByteRangeSpecifier.search(subrange)
             if mObj:
-#                print mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3)  
+#                print(mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3))
                 firstpos = long(mObj.group(2))
                 if mObj.group(3) == "":
                     lastpos = filesize - 1
@@ -1198,19 +1197,19 @@ def testLogging():
     _baseLogger.info("_baseLogger.info")  
     _baseLogger.warning("_baseLogger.warning")  
     _baseLogger.error("_baseLogger.error")  
-    print 
+    print()
 
     _enabledLogger.debug("_enabledLogger.debug")  
     _enabledLogger.info("_enabledLogger.info")  
     _enabledLogger.warning("_enabledLogger.warning")  
     _enabledLogger.error("_enabledLogger.error")  
-    print 
+    print()
     
     _disabledLogger.debug("_disabledLogger.debug")  
     _disabledLogger.info("_disabledLogger.info")  
     _disabledLogger.warning("_disabledLogger.warning")  
     _disabledLogger.error("_disabledLogger.error")  
-    print 
+    print()
 
     write("util.write()")
     warn("util.warn()")

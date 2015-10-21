@@ -73,6 +73,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 from wsgidav import util
 
 import win32net    #@UnresolvedImport
@@ -173,7 +175,7 @@ class NTDomainController(object):
                     assert isinstance(uiname, unicode)
                     if un == userinfo["name"].lower():
                         return True
-            except win32net.error, e:
+            except win32net.error as e:
                 _logger.exception("NetUserEnum: %s" % e)
                 return False
         _logger.info("User '%s' not found on server '%s'" % (username, server))
@@ -186,7 +188,7 @@ class NTDomainController(object):
         
         try:
             htoken = win32security.LogonUser(username, domain, password, win32security.LOGON32_LOGON_NETWORK, win32security.LOGON32_PROVIDER_DEFAULT)
-        except win32security.error, err:
+        except win32security.error as err:
             _logger.warning("LogonUser failed for user '%s': %s" % (username, err))
             return False
         else:

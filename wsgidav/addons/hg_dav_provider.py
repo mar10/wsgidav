@@ -71,6 +71,8 @@ Requirements:
     from here: http://mercurial.berkwood.com/
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 """
+from __future__ import print_function
+
 from pprint import pprint
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 import os
@@ -96,7 +98,7 @@ try:
     from mercurial import commands, hg
     #from mercurial import util as hgutil 
 except ImportError:
-    print >>sys.stderr, "Could not import Mercurial API. Try 'easy_install -U mercurial'."
+    print("Could not import Mercurial API. Try 'easy_install -U mercurial'.", file=sys.stderr)
     raise
 
 __docformat__ = "reStructuredText en"
@@ -407,7 +409,7 @@ class HgResourceProvider(DAVProvider):
     def __init__(self, repoRoot):
         super(HgResourceProvider, self).__init__()
         self.repoRoot = repoRoot
-        print "Mercurial version %s" % hgversion
+        print("Mercurial version %s" % hgversion)
         self.ui = mercurial.ui.ui()
         self.repo = hg.repository(self.ui, repoRoot)
         self.ui.status("Connected to repository %s\n" % self.repo.root)
@@ -416,7 +418,7 @@ class HgResourceProvider(DAVProvider):
         # Some commands (remove) seem to expect cwd set to the repo
         # TODO: try to go along without this, because it prevents serving
         #       multiple repos. Instead pass absolute paths to the commands. 
-#        print os.getcwd()
+#        print(os.getcwd())
         os.chdir(self.repo.root)
 
         # Verify integrity of the repository
@@ -424,20 +426,20 @@ class HgResourceProvider(DAVProvider):
         commands.verify(self.ui, self.repo)
         
 #        self.ui.status("Changelog: %s\n" % self.repo.changelog)
-        print "Status:"
+        print("Status:")
         pprint(self.repo.status())
         self.repo.ui.status("the default username to be used in commits: %s\n" % self.repo.ui.username())
 #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
         self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
         
-        print "Working directory state summary:"
+        print("Working directory state summary:")
         self.ui.pushbuffer()
         commands.summary(self.ui, self.repo, remote=False)
         res = self.ui.popbuffer().strip()
         reslines = [ tuple(line.split(":", 1)) for line in res.split("\n")]
         pprint(reslines)
 
-        print "Repository state summary:"
+        print("Repository state summary:")
         self.ui.pushbuffer()
         commands.identify(self.ui, self.repo, 
                           num=True, id=True, branch=True, tags=True)
@@ -560,7 +562,7 @@ class HgResourceProvider(DAVProvider):
 #        """Return a list of all non-collection members"""
 #        # Pattern for direct members:
 #        glob = "glob:" + os.path.join(path, "*").lstrip("/")
-##        print glob
+##        print(glob)
 #        self.ui.pushbuffer()
 #        commands.status(self.ui, self.repo,
 #                        glob, 

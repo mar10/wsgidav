@@ -4,6 +4,8 @@
 Wrapper for ``run_server``, that restarts the server when source code is 
 modified.
 """
+from __future__ import print_function
+
 import os
 import sys
 from subprocess import Popen 
@@ -31,11 +33,11 @@ def run():
             sys.stderr = sys.__stderr__
             
             if p.returncode == 3:
-                print "run_server returned 3: restarting..."
+                print("run_server returned 3: restarting...")
             else:
-                print "run_server returned %s: terminating." % p.returncode
+                print("run_server returned %s: terminating." % p.returncode)
                 break
-    except Exception, e:
+    except Exception as e:
         raise e
     
     

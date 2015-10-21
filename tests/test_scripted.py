@@ -9,6 +9,8 @@
     See http://chandlerproject.org/Projects/Davclient
         http://svn.osafoundation.org/tools/davclient/trunk/src/davclient/davclient.py
 """
+from __future__ import print_function
+
 from tempfile import gettempdir
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider

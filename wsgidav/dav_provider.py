@@ -31,7 +31,7 @@ Usage::
 
     res = provider.getResourceInst(path, environ)
     if res is not None:
-        print res.getName()
+        print(res.getName())
 
 
 
@@ -76,6 +76,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 import sys
 import time
 import traceback
@@ -128,7 +130,7 @@ class _DAVResource(object):
         
         res = provider.getResourceInst(path, environ)
         if res and res.isCollection:
-            print res.getDisplayName()
+            print(res.getDisplayName())
             
     In the example above, res will be ``None``, if the path cannot be mapped to
     an existing resource.
@@ -550,9 +552,9 @@ class _DAVResource(object):
                 else:
                     value = self.getPropertyValue(name)
                     propList.append( (name, value) )
-            except DAVError, e:
+            except DAVError as e:
                 propList.append( (name, e) )
-            except Exception, e:
+            except Exception as e:
                 propList.append( (name, asDAVError(e)) )
                 if self.provider.verbose >= 2:
                     traceback.print_exc(10, sys.stdout)  
@@ -1412,7 +1414,7 @@ class DAVProvider(object):
             
             res = provider.getResourceInst(path, environ)
             if res and not res.isCollection:
-                print res.getContentType()
+                print(res.getContentType())
         
         If <path> does not exist, None is returned.
         <environ> may be used by the provider to implement per-request caching.

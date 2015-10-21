@@ -21,6 +21,8 @@ Valid options are (sample shows defaults)::
             }
 
 """
+from __future__ import print_function
+
 from wsgidav import util
 import couchdb
 from urllib import quote

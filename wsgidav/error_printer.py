@@ -9,6 +9,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 __docformat__ = "reStructuredText"
 
 import util
@@ -63,10 +65,10 @@ class ErrorPrinter(BaseMiddleware):
                                    sub_app_start_response.exc_info)
 
                 return
-            except DAVError, e:
+            except DAVError as e:
                 _logger.debug("re-raising %s" % e)
                 raise
-            except Exception, e:
+            except Exception as e:
                 # Caught a non-DAVError 
                 if self._catch_all_exceptions:
                     # Catch all exceptions to return as 500 Internal Error
@@ -76,15 +78,15 @@ class ErrorPrinter(BaseMiddleware):
                     util.warn("ErrorPrinter: caught Exception")
                     traceback.print_exc(10, sys.stderr) 
                     raise
-        except DAVError, e:
+        except DAVError as e:
             _logger.debug("caught %s" % e)
 
             status = getHttpStatusString(e)
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
-                print >>sys.stdout, "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)"
+                print("ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)", file=sys.stdout)
                 traceback.print_exc(10, environ.get("wsgi.errors") or sys.stdout)
-                print >>sys.stdout, "e.srcexception:\n%s" % e.srcexception
+                print("e.srcexception:\n%s" % e.srcexception, file=sys.stdout)
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
 #                util.log("ErrorPrinter: forcing empty error response for %s" % e.value)
                 # See paste.lint: these code don't have content

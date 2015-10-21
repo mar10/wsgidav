@@ -4,14 +4,16 @@
 """
 Implements a DAVError class that is used to signal WebDAV and HTTP errors. 
 """
+from __future__ import print_function
+
 import traceback
 import datetime
 import cgi
 import sys
 
-import xml_tools
+from wsgidav import xml_tools
 ## Trick PyDev to do intellisense and don't produce warnings:
-from xml_tools import etree #@UnusedImport
+from wsgidav.xml_tools import etree #@UnusedImport
 from wsgidav.version import __version__
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
@@ -275,6 +277,6 @@ def asDAVError(e):
 
 if __name__ == "__main__":
     dec = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
-    print dec.as_string()
+    print(dec.as_string())
     dec.add_href("/dav/a")
-    print dec.as_string()
+    print(dec.as_string())

@@ -15,6 +15,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
+from __future__ import print_function
+
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 
@@ -298,7 +300,7 @@ class FolderResource(DAVCollection):
         try:
             # may raise: [Error 5] Permission denied: u'C:\\temp\\litmus\\ccdest'
             shutil.copystat(self._filePath, fpDest)
-        except Exception, e:
+        except Exception as e:
             _logger.debug("Could not copy folder stats: %s" % e)
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
