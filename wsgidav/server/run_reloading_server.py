@@ -15,7 +15,7 @@ def run():
     if not "--reload" in args:
         args.append("--reload")
 
-    print "run_reloading_server", args 
+    print("run_reloading_server", args)
 
     try:
         serverpath = os.path.join(os.path.dirname(__file__), "run_server.py")

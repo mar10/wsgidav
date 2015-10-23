@@ -6,15 +6,16 @@
 """
 from __future__ import print_function
 
+# from multiprocessing.process import Process
+from multiprocessing import Process
+import os
+import subprocess
 from tempfile import gettempdir
+import time
+import unittest
+
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
-import os
-import unittest
-import subprocess
-from multiprocessing.process import Process
-import time
-
 
 
 def run_wsgidav_server(with_auth, with_ssl):

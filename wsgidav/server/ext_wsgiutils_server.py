@@ -55,21 +55,30 @@ from __future__ import print_function
 
 __docformat__ = "reStructuredText"
 
-from wsgidav.version import __version__
-import time
-import httplib
+import logging
+import sys
 import socket
 import threading
-
-
-import SocketServer, BaseHTTPServer, urlparse
-import sys, logging
+import time
 import traceback
-from wsgidav import util
+
 try:
-    from cStringIO import StringIO
+    from http import client as http_client  # py3
 except ImportError:
-    from StringIO import StringIO
+    import httplib as http_client
+
+try:
+    from http import server as BaseHTTPServer  # py3
+except ImportError:
+    import BaseHTTPServer
+
+try:
+    import socketserver  # py3
+except ImportError:
+    import SocketServer as socketserver
+
+from wsgidav import __version__
+from wsgidav import compat, util
 
 _logger = util.getModuleLogger(__name__)
 
@@ -108,8 +117,8 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         
     def getApp (self):
         # We want fragments to be returned as part of <path> 
-        _protocol, _host, path, _parameters, query, _fragment = urlparse.urlparse ("http://dummyhost%s" % self.path, 
-                                                                                   allow_fragments=False)
+        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse ("http://dummyhost%s" % self.path, 
+                                                                                 allow_fragments=False)
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
             if (path.startswith (appPath)):
@@ -141,9 +150,11 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def __getattr__(self, name):
         if len(name)>3 and name[0:3] == "do_" and name[3:] in self._SUPPORTED_METHODS:
             return self.handlerFunctionClosure(name)
-        else:
-            self.send_error (501, "Method Not Implemented.")
-            return
+        elif name == "_headers_buffer":
+            # 2015-10-22: py3: prevent recursion/stackovervlow
+            raise AttributeError
+        self.send_error (501, "Method Not Implemented.")
+        return
 
     def runWSGIApp (self, application, scriptName, pathInfo, query):
         logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
@@ -193,7 +204,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     result.close()
         except:
             _logger.debug("runWSGIApp caught exception...")
-            errorMsg = StringIO()
+            errorMsg = compat.StringIO()
             traceback.print_exc(file=errorMsg)
             logging.error (errorMsg.getvalue())
             if not self.wsgiSentHeaders:
@@ -222,13 +233,14 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             statusCode = status [:status.find (" ")]
             statusMsg = status [status.find (" ") + 1:]
             _logger.debug("wsgiWriteData: send headers '%r', %r" % (status, headers))
-            self.send_response (int (statusCode), statusMsg)
+            self.send_response (int(statusCode), statusMsg)
             for header, value in headers:
                 self.send_header (header, value)
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        assert type(data) is str # If not, Content-Length is propably wrong!
+        # assert type(data) is str # If not, Content-Length is propably wrong!
+        assert compat.is_binary(data) # If not, Content-Length is propably wrong!
         try:
             _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), data[:50]))
             self.wfile.write(data)
@@ -236,13 +248,13 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             # Suppress stack trace when client aborts connection disgracefully:
             # 10053: Software caused connection abort
             # 10054: Connection reset by peer
-            if e[0] in (10053, 10054):
+            if e.args[0] in (10053, 10054):
                 print("*** Caught socket.error: ", e, file=sys.stderr)
             else:
                 raise
 
 
-class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
     def handle_error(self, request, client_address):
         """Handle an error gracefully.  May be overridden.
@@ -255,13 +267,13 @@ class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # Suppress stack trace when client aborts connection disgracefully:
         # 10053: Software caused connection abort
         # 10054: Connection reset by peer
-        if e[0] in (10053, 10054):
+        if e.args[0] in (10053, 10054):
             util.warn("*** Caught socket.error: %s" % e)
             return
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
         print('-'*40, file=sys.stderr)
-        print('<%s> Exception happened during processing of request from %s' % (threading._get_ident(), client_address), file=sys.stderr)
+        print('<%s> Exception happened during processing of request from %s' % (threading.currentThread().ident, client_address), file=sys.stderr)
         print(client_address, file=sys.stderr)
         traceback.print_exc()
         print('-'*40, file=sys.stderr)
@@ -297,7 +309,7 @@ class ExtServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # Send request, so socket is unblocked
         (host, port) = self.server_address
 #        print "stop_serve_forever() sending %s:%s/ SHUTDOWN..." % (host, port)
-        conn = httplib.HTTPConnection("%s:%d" % (host, port))
+        conn = http_client.HTTPConnection("%s:%d" % (host, port))
         conn.request("SHUTDOWN", "/")
 #        print "stop_serve_forever() sent SHUTDOWN request, reading response..."
         conn.getresponse()

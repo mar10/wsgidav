@@ -5,8 +5,8 @@
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 """
 from tempfile import gettempdir
+from wsgidav import __version__
 from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.version import __version__
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
 __docformat__ = "reStructuredText"

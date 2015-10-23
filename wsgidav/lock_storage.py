@@ -15,13 +15,14 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from wsgidav.lock_manager import normalizeLockRoot, lockString,\
-    generateLockToken, validateLock
 import os
-import util
 import shelve
 import time
-from rw_lock import ReadWriteLock
+
+from wsgidav.lock_manager import normalizeLockRoot, lockString,\
+    generateLockToken, validateLock
+from wsgidav.rw_lock import ReadWriteLock
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

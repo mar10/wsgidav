@@ -93,9 +93,9 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-import util
-from dav_error import DAVError, HTTP_NOT_FOUND
-from request_server import RequestServer
+from wsgidav import util
+from wsgidav.request_server import RequestServer
+from wsgidav.dav_error import DAVError, HTTP_NOT_FOUND
 
 __docformat__ = "reStructuredText"
 

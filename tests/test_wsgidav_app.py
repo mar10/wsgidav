@@ -12,13 +12,15 @@
 """
 from __future__ import print_function
 
-from tempfile import gettempdir
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
-from wsgidav.fs_dav_provider import FilesystemProvider
 import os
 import shutil
 import sys
+from tempfile import gettempdir
 import unittest
+
+from wsgidav import compat
+from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.fs_dav_provider import FilesystemProvider
 
 try:
     from paste.fixture import TestApp  #@UnresolvedImport
@@ -102,7 +104,7 @@ class ServerTest(unittest.TestCase):
         # Big file with 10 MB
         lines = []
         line = "." * (1000-6-len("\n"))
-        for i in xrange(10*1000):
+        for i in compat.xrange(10*1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
 

@@ -11,10 +11,10 @@ import datetime
 import cgi
 import sys
 
+from wsgidav import __version__
 from wsgidav import xml_tools
 ## Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav.xml_tools import etree #@UnusedImport
-from wsgidav.version import __version__
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"

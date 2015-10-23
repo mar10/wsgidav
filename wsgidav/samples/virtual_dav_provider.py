@@ -97,19 +97,16 @@ When accessed using WebDAV, the following URLs both return the same resource
 """
 from __future__ import print_function
 
-import urllib
-import stat
 import os
-#import mimetypes
-from wsgidav.util import joinUri
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
+import stat
+import urllib
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, DAVNonCollection, DAVCollection
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
     PRECONDITION_CODE_ProtectedProperty
 from wsgidav import util
+from wsgidav.util import joinUri
 
 __docformat__ = "reStructuredText en"
 
@@ -505,7 +502,7 @@ class VirtualArtifact(_VirtualNonCollection):
             html = self.data["description"]
         else:
             raise DAVError(HTTP_INTERNAL_ERROR, "Invalid artifact '%s'" % self.name)
-        return StringIO(html)
+        return compat.StringIO(html)
 
 
 #===============================================================================

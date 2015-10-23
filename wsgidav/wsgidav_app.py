@@ -43,22 +43,23 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.dir_browser import WsgiDavDirBrowser
-from wsgidav.dav_provider import DAVProvider
-from wsgidav.lock_storage import LockStorageDict
 import time
 import sys
 import threading
 import urllib
-import util
-from error_printer import ErrorPrinter
-from debug_filter import WsgiDavDebugFilter
-from http_authenticator import HTTPAuthenticator
-from request_resolver import RequestResolver
-from property_manager import PropertyManager
-from lock_manager import LockManager
-#from wsgidav.version import __version__
+
+from wsgidav import compat, util
+from wsgidav.compat import b_empty, b_slash
+from wsgidav.dav_provider import DAVProvider
+from wsgidav.dir_browser import WsgiDavDirBrowser
+from wsgidav.fs_dav_provider import FilesystemProvider
+from wsgidav.lock_storage import LockStorageDict
+from wsgidav.debug_filter import WsgiDavDebugFilter
+from wsgidav.error_printer import ErrorPrinter
+from wsgidav.http_authenticator import HTTPAuthenticator
+from wsgidav.lock_manager import LockManager
+from wsgidav.property_manager import PropertyManager
+from wsgidav.request_resolver import RequestResolver
 
 __docformat__ = "reStructuredText"
 
@@ -176,7 +177,7 @@ class WsgiDAVApp(object):
 
             # We allow a simple string as 'provider'. In this case we interpret 
             # it as a file system root folder that is published. 
-            if isinstance(provider, basestring):
+            if compat.is_basestring(provider):
                 provider = FilesystemProvider(provider)
 
             assert isinstance(provider, DAVProvider)
@@ -249,9 +250,11 @@ class WsgiDAVApp(object):
         if self.config.get("unquote_path_info", False):
             path = urllib.unquote(environ["PATH_INFO"])
         # GC issue 22: Pylons sends root as u'/' 
-        if isinstance(path, unicode):
+        # if isinstance(path, unicode):
+        if not compat.is_binary(path):
             util.log("Got unicode PATH_INFO: %r" % path)
-            path = path.encode("utf8")
+            # path = path.encode("utf8")
+            path = compat.to_binary(path)
 
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
@@ -261,8 +264,9 @@ class WsgiDAVApp(object):
         ## Find DAV provider that matches the share
 
         # sorting share list by reverse length
-        shareList = self.providerMap.keys()
-        shareList.sort(key=len, reverse=True)
+#        shareList = self.providerMap.keys()
+#        shareList.sort(key=len, reverse=True)
+        shareList = sorted(self.providerMap.keys(), key=len, reverse=True)
 
         share = None 
         for r in shareList:
@@ -293,7 +297,8 @@ class WsgiDAVApp(object):
             environ["PATH_INFO"] = path[len(share):]
 #        util.log("--> SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
-        assert isinstance(path, str)
+        # assert isinstance(path, str)
+        assert compat.is_binary(path)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty
@@ -301,7 +306,7 @@ class WsgiDAVApp(object):
         # SCRIPT_NAME must not have a trailing '/'
         assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
         # PATH_INFO starts with '/'
-        assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
+        assert environ["PATH_INFO"] == b_empty or environ["PATH_INFO"].startswith(b_slash)
 
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):
@@ -357,7 +362,7 @@ class WsgiDAVApp(object):
                     userInfo = "(anonymous)"
                 threadInfo = ""
                 if self._verbose >= 1:
-                    threadInfo = "<%s> " % threading._get_ident()
+                    threadInfo = "<%s> " % threading.currentThread().ident
                 extra = []
                 if "HTTP_DESTINATION" in environ:
                     extra.append('dest="%s"' % environ.get("HTTP_DESTINATION"))

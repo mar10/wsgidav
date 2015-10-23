@@ -6,6 +6,7 @@ from tempfile import gettempdir
 import unittest
 
 import os
+import sys
 from wsgidav import property_manager
 
 #===============================================================================
@@ -81,7 +82,11 @@ class ShelveTest(BasicTest):
     """Test property_manager.ShelvePropertyManager()."""
 
     def setUp(self):
-        self.path = os.path.join(gettempdir(), "wsgidav-props.shelve")
+        if sys.version_info < (3, 0):
+            modifier = "-py2" # shelve formats are incompatible
+        else:
+            modifier = "-py3"
+        self.path = os.path.join(gettempdir(), "wsgidav-props%s.shelve" % modifier)
         # Note: os.remove(self.path) does not work, because Shelve may append
         # a file extension.
 #        if os.path.exists(self.path):

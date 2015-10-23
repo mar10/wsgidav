@@ -10,18 +10,11 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from urlparse import urlparse
-from wsgidav.dav_error import HTTP_OK, HTTP_LENGTH_REQUIRED
-from wsgidav import xml_tools
-import util
 import urllib
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
 
-from dav_error import DAVError, asDAVError, \
-    HTTP_BAD_REQUEST,\
+from wsgidav import compat
+from wsgidav.dav_error import DAVError, asDAVError,\
+    HTTP_BAD_REQUEST, HTTP_OK, HTTP_LENGTH_REQUIRED,\
     HTTP_NOT_IMPLEMENTED, HTTP_NOT_FOUND, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
     HTTP_FAILED_DEPENDENCY, HTTP_METHOD_NOT_ALLOWED,\
     PRECONDITION_CODE_PropfindFiniteDepth, HTTP_MEDIATYPE_NOT_SUPPORTED,\
@@ -29,11 +22,11 @@ from dav_error import DAVError, asDAVError, \
     PRECONDITION_CODE_LockTokenMismatch, getHttpStatusString,\
     HTTP_PRECONDITION_FAILED, HTTP_BAD_GATEWAY, HTTP_NO_CONTENT, HTTP_CREATED,\
     HTTP_RANGE_NOT_SATISFIABLE
-
-#import lock_manager
+from wsgidav import util
+from wsgidav import xml_tools
 
 # Trick PyDev to do intellisense and don't produce warnings:
-from util import etree #@UnusedImport
+from wsgidav.util import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport
    
 __docformat__ = "reStructuredText"
@@ -649,7 +642,7 @@ class RequestServer(object):
         # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.) 
 #        WORKAROUND_BAD_LENGTH = True
         try:
-            contentlength = max(-1, long(environ.get("CONTENT_LENGTH", -1)))
+            contentlength = max(-1, int(environ.get("CONTENT_LENGTH", -1)))
         except ValueError: 
             contentlength = -1
         
@@ -837,8 +830,8 @@ class RequestServer(object):
         # Return fragments as part of <path>
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING: DELETE removed collection resource withRequest-URI including fragment; unsafe
         destScheme, destNetloc, destPath, \
-        _destParams, _destQuery, _destFrag = urlparse(destinationHeader, 
-                                                      allow_fragments=False) 
+        _destParams, _destQuery, _destFrag = compat.urlparse(destinationHeader, 
+                                                             allow_fragments=False) 
 
         if srcRes.isCollection:
             destPath = destPath.rstrip("/") + "/"
@@ -1443,7 +1436,7 @@ class RequestServer(object):
             # behaviour changes in future
             (rangestart, rangeend, rangelength) = listRanges[0]
         else:
-            (rangestart, rangeend, rangelength) = (0L, filesize - 1, filesize)
+            (rangestart, rangeend, rangelength) = (0, filesize - 1, filesize)
 
         ## Content Processing 
         mimetype = res.getContentType()  #provider.getContentType(path)

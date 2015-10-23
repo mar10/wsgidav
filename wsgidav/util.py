@@ -10,39 +10,31 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from pprint import pformat
-from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
-    HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
-    HTTP_OK
-from wsgidav.xml_tools import xmlToString, makeSubElement
-import urllib
-import socket
-
-
+import calendar
+from email.utils import formatdate, parsedate
 import locale
 import logging
-import re
 import mimetypes
+import os
+from pprint import pformat
+import re
+import socket
+import stat
+import sys
+import time
+import urllib
+
 try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
-import os
-import calendar
-import sys
-import time
-import stat
 
-from email.utils import formatdate, parsedate
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
-
-#import xml_tools
+from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
+    HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
+    HTTP_OK
+from wsgidav.xml_tools import xmlToString, makeSubElement, etree
 ## Trick PyDev to do intellisense and don't produce warnings:
-from xml_tools import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"
@@ -55,7 +47,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 #===============================================================================
-# String handling
+# Time tools
 #===============================================================================
 
 def getRfc1123Time(secs=None):   
@@ -435,7 +427,7 @@ def getContentLength(environ):
     """Return a positive CONTENT_LENGTH in a safe way (return 0 otherwise)."""
     # TODO: http://www.wsgi.org/wsgi/WSGI_2.0
     try:
-        return max(0, long(environ.get("CONTENT_LENGTH", 0)))
+        return max(0, int(environ.get("CONTENT_LENGTH", 0)))
     except ValueError:
         return 0
 
@@ -683,7 +675,7 @@ def parseXmlBody(environ, allowEmpty=False):
         requestbody = ""
     else:
         try:
-            contentLength = long(clHeader)
+            contentLength = int(clHeader)
             if contentLength < 0:   
                 raise DAVError(HTTP_BAD_REQUEST, "Negative content-length.")
         except ValueError:
@@ -907,11 +899,11 @@ def obtainContentRanges(rangetext, filesize):
             mObj = reByteRangeSpecifier.search(subrange)
             if mObj:
 #                print(mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3))
-                firstpos = long(mObj.group(2))
+                firstpos = int(mObj.group(2))
                 if mObj.group(3) == "":
                     lastpos = filesize - 1
                 else:
-                    lastpos = long(mObj.group(3))
+                    lastpos = int(mObj.group(3))
                 if firstpos <= lastpos and firstpos < filesize:
                     if lastpos >= filesize:
                         lastpos = filesize - 1
@@ -920,7 +912,7 @@ def obtainContentRanges(rangetext, filesize):
         if not matched:      
             mObj = reSuffixByteRangeSpecifier.search(subrange)
             if mObj:
-                firstpos = filesize - long(mObj.group(2))
+                firstpos = filesize - int(mObj.group(2))
                 if firstpos < 0:
                     firstpos = 0
                 lastpos = filesize - 1
@@ -967,7 +959,7 @@ def readTimeoutValueHeader(timeoutvalue):
         else:
             listSR = reSecondsReader.findall(timeoutspec)
             for secs in listSR:
-                timeoutsecs = long(secs)
+                timeoutsecs = int(secs)
                 if timeoutsecs > MAX_FINITE_TIMEOUT_LIMIT:
                     return -1          
                 if timeoutsecs != 0:

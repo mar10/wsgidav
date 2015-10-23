@@ -6,13 +6,10 @@
 """
 from __future__ import print_function
 
-import stat
 import os
-#import mimetypes
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
+import stat
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection
 from wsgidav import util
 
@@ -114,7 +111,7 @@ class VirtualTextResource(_VirtualNonCollection):
 #        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
 #        return urllib.quote(self.provider.sharePath + refPath)
     def getContent(self):
-        return StringIO(self.content)
+        return compat.StringIO(self.content)
 
 
 #===============================================================================

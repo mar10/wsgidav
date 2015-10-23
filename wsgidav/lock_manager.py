@@ -40,13 +40,15 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from __future__ import print_function
 
 from pprint import pprint
-from dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
-from wsgidav.dav_error import DAVErrorCondition
 import sys
-import util
 import random
 import time
-from rw_lock import ReadWriteLock
+
+from wsgidav import compat, util
+from wsgidav.compat import b_slash
+from wsgidav.dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
+from wsgidav.dav_error import DAVErrorCondition
+from wsgidav.rw_lock import ReadWriteLock
 
 __docformat__ = "reStructuredText"
 
@@ -64,9 +66,10 @@ def generateLockToken():
 def normalizeLockRoot(path):
     # Normalize root: /foo/bar
     assert path
-    if type(path) is unicode:
-        path = path.encode("utf-8") 
-    path = "/" + path.strip("/")
+    # if type(path) is unicode:
+    #     path = path.encode("utf-8")
+    path = compat.to_binary(path)
+    path = b_slash + path.strip(b_slash)
     return path
 
 

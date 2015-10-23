@@ -46,7 +46,7 @@ from wsgidav.xml_tools import useLxml
 from wsgidav import util
 
 try:
-    from wsgidav.version import __version__
+    from wsgidav import __version__
     from wsgidav.wsgidav_app import WsgiDAVApp
     from wsgidav.fs_dav_provider import FilesystemProvider
 except ImportError as e:
@@ -147,6 +147,10 @@ If no config file is found, a default FilesystemProvider is used."""
 
     if len(args) > 0:
         parser.error("Too many arguments")
+
+    # verbose = 1 if options.verbose is None else options.verbose
+    if options.verbose is None:
+        options.verbose = 1
 
     if options.config_file is None:
         # If --config was omitted, use default (if it exists)

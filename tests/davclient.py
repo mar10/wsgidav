@@ -17,13 +17,37 @@
 # - Fixed set_lock, proppatch
 # - Added (tag, value) syntax to object_to_etree 
 # - Added checkResponse()
+#
+# Modified 2015-10-20, Martin Wendt:
+# - Fixed for Py3: StringIO, string-exceptions
 
-import urlparse, httplib, copy, base64, StringIO
+import base64
+import copy
+
+try:
+    from http import client as http_client  # py3
+except ImportError:
+    import httplib as http_client
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO  # py3
+
+try:
+    from urllib.parse import urlparse  # py3
+except ImportError:
+    from urlparse import urlparse
 
 try:
     from xml.etree import ElementTree
 except:
     from elementtree import ElementTree
+
+try:
+    xrange = xrange
+except NameError:
+    xrange = range  # py3
 
 __all__ = ['DAVClient']
 
@@ -62,7 +86,7 @@ def object_to_etree(parent, obj, namespace=''):
             
     else:
         # If it's none of previous types then raise
-        raise TypeError, '%s is an unsupported type' % type(obj)
+        raise TypeError('%s is an unsupported type' % type(obj))
         
 
 class DAVClient(object):
@@ -70,7 +94,7 @@ class DAVClient(object):
     def __init__(self, url='http://localhost:8080'):
         """Initialization"""
         
-        self._url = urlparse.urlparse(url)
+        self._url = urlparse(url)
         
         self.headers = {'Host':self._url[1], 
                         'User-Agent': 'python.davclient.DAVClient/0.1'} 
@@ -94,11 +118,11 @@ class DAVClient(object):
                         }
 
         if self._url.scheme == 'http':
-            self._connection = httplib.HTTPConnection(self._url[1])
+            self._connection = http_client.HTTPConnection(self._url[1])
         elif self._url.scheme == 'https':
-            self._connection = httplib.HTTPSConnection(self._url[1])
+            self._connection = http_client.HTTPSConnection(self._url[1])
         else:
-            raise Exception, 'Unsupported scheme'
+            raise Exception('Unsupported scheme')
         
         self._connection.request(method, path, body, headers)
             
@@ -120,7 +144,8 @@ class DAVClient(object):
         
     def set_basic_auth(self, username, password):
         """Set basic authentication"""
-        auth = 'Basic %s' % base64.encodestring('%s:%s' % (username, password)).strip()
+        u_p = ('%s:%s' % (username, password)).encode("utf8")
+        auth = 'Basic %s' % base64.encodestring(u_p).strip()
         self._username = username
         self._password = password
         self.headers['Authorization'] = auth
@@ -229,7 +254,7 @@ class DAVClient(object):
         tree = ElementTree.ElementTree(root)
         
         # Etree won't just return a normal string, so we have to do this
-        body = StringIO.StringIO()
+        body = StringIO()
         tree.write(body)
         body = body.getvalue()
                 
@@ -284,7 +309,7 @@ class DAVClient(object):
         
         tree = ElementTree.ElementTree(root)
         # Etree won't just return a normal string, so we have to do this
-        body = StringIO.StringIO()
+        body = StringIO()
         tree.write(body)
         body = body.getvalue()
 
@@ -311,7 +336,7 @@ class DAVClient(object):
         headers['Timeout'] = 'Infinite, Second-4100000000'
         
         # Etree won't just return a normal string, so we have to do this
-        body = StringIO.StringIO()
+        body = StringIO()
         tree.write(body)
         body = body.getvalue()
                 
@@ -354,7 +379,7 @@ class DAVClient(object):
         full_status = "%s %s" % (res.status, res.reason)
 
         # Check response Content_Length
-        content_length = long(res.getheader("content-length", 0))
+        content_length = int(res.getheader("content-length", 0))
         if content_length and len(res.body) != content_length:
             raise AppError("Mismatch: Content_Length(%s) != len(body)(%s)" % (content_length, len(res.body)))
 

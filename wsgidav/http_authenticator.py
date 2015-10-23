@@ -79,19 +79,20 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-__docformat__ = "reStructuredText"
-
-import random
 import base64
+import random
+import re
+import time
 try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
-import time
-import re
-import util
-from domain_controller import WsgiDAVDomainController
-from middleware import BaseMiddleware
+
+from wsgidav.domain_controller import WsgiDAVDomainController
+from wsgidav.middleware import BaseMiddleware
+from wsgidav import util
+
+__docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__, True)
 

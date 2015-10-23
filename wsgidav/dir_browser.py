@@ -10,16 +10,16 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-__docformat__ = "reStructuredText"
-
-from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
-from wsgidav.version import __version__
-from middleware import BaseMiddleware
 import os
 import sys
 import urllib
-import util
 
+from wsgidav import util
+from wsgidav import __version__
+from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
+from wsgidav.middleware import BaseMiddleware
+
+__docformat__ = "reStructuredText"
 
 
 msOfficeTypeToExtMap = {
@@ -29,7 +29,7 @@ msOfficeTypeToExtMap = {
     "visio": ("vsd", "vsdm", "vsdx", "vstm", "vstx"),
 }
 msOfficeExtToTypeMap = {}
-for t, el in msOfficeTypeToExtMap.iteritems():
+for t, el in msOfficeTypeToExtMap.items():
     for e in el:
         msOfficeExtToTypeMap[e] = t
 

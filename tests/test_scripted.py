@@ -11,15 +11,17 @@
 """
 from __future__ import print_function
 
+import os
+import time
 from tempfile import gettempdir
+from threading import Thread
+import unittest
+
+from tests import davclient
+from wsgidav import compat
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
-import time
-import os
-import unittest
-import davclient #@UnresolvedImport
-from threading import Thread
 
 
 #===============================================================================
@@ -167,7 +169,7 @@ class ServerTest(unittest.TestCase):
         # Big file with 10 MB
         lines = []
         line = "." * (1000-6-len("\n"))
-        for i in xrange(10*1000):
+        for i in compat.xrange(10*1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
 

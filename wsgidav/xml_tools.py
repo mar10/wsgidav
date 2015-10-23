@@ -15,10 +15,7 @@ import sys
 __docformat__ = "reStructuredText"
 
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from wsgidav import compat
 
 # Import XML support
 useLxml = False
@@ -26,17 +23,9 @@ try:
     from lxml import etree
     useLxml = True
 except ImportError:
-    try:    
-        # Try xml module (Python 2.5 or later) 
-        from xml.etree import ElementTree as etree
-        # print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
-    except ImportError:
-        try:
-            # Try elementtree (http://effbot.org/zone/element-index.htm) 
-            from elementtree import ElementTree as etree
-        except ImportError:
-            print("ERROR: Could not import lxml, xml, nor elementtree. Consider installing lxml from http://codespeak.net/lxml/ or update to Python 2.5 or later.")
-            raise
+    # Try xml module (Python 2.5 or later) 
+    from xml.etree import ElementTree as etree
+    print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
 
 
 #===============================================================================
@@ -55,7 +44,7 @@ def stringToXML(text):
         # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
 #        t2 = text.encode("utf8")
 #        return etree.XML(t2)
-        print("Error parsing XML string. If lxml is not available, and unicode is involved, then installing it _may_ solve this issue.", file=sys.stderr)
+        print("Error parsing XML string. If lxml is not available, and unicode is involved, then installing lxml _may_ solve this issue.", file=sys.stderr)
         raise
 
 
@@ -103,7 +92,7 @@ def elementContentAsString(element):
     """
     if len(element) == 0:
         return element.text or ""  # Make sure, None is returned as '' 
-    stream = StringIO()
+    stream = compat.StringIO()
     for childnode in element:
         print(xmlToString(childnode, pretty_print=False), file=stream)
     s = stream.getvalue()

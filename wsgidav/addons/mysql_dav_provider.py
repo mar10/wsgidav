@@ -61,18 +61,17 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
+import md5
+import time
+import csv
+
+import MySQLdb  #@UnresolvedImport
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty
-import MySQLdb  #@UnresolvedImport
-import md5
-import time
-import csv
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
 
 __docformat__ = "reStructuredText"
 
@@ -198,7 +197,7 @@ class MySQLBrowserResource(_DAVResource):
          
         See DAVResource.getContent()
         """
-        filestream = StringIO()
+        filestream = compat.StringIO()
 
         tableName, primKey = self.provider._splitPath(self.path)
         if primKey is not None:

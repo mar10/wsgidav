@@ -21,11 +21,12 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from wsgidav import util
 import os
 import sys
 import shelve
-from rw_lock import ReadWriteLock
+
+from wsgidav.rw_lock import ReadWriteLock
+from wsgidav import util
 
 # TODO: comment's from Ian Bicking (2005)
 #@@: Use of shelve means this is only really useful in a threaded environment.

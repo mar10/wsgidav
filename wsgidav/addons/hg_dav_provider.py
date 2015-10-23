@@ -85,10 +85,7 @@ import time
 import sys
 #import mimetypes
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 
@@ -304,7 +301,7 @@ class HgResource(_DAVResource):
         """
         assert not self.isCollection
         d = self.fctx.data()
-        return StringIO(d)
+        return compat.StringIO(d)
     
     def beginWrite(self, contentType=None):
         """Open content as a stream for writing.

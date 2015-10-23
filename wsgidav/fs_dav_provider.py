@@ -17,15 +17,15 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-
-import util
 import os
-#import mimetypes
 import shutil
 import stat
 import sys
+
+from wsgidav import compat, util
+from wsgidav.compat import b_empty, b_slash
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 
 
 __docformat__ = "reStructuredText"

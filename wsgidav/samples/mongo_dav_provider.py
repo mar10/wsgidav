@@ -25,16 +25,15 @@ Valid options are (sample shows defaults)::
 """
 from __future__ import print_function
 
+from pprint import pformat
+
+import pymongo
+from bson.objectid import ObjectId
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 from wsgidav import util
-import pymongo
 from wsgidav.util import joinUri
-from pprint import pformat
-from bson.objectid import ObjectId
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
 
 __docformat__ = "reStructuredText"
 
@@ -103,7 +102,7 @@ class DocResource(DAVNonCollection):
         self.doc = doc
     def getContent(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
-        return StringIO(html.encode("utf8"))
+        return compat.StringIO(html.encode("utf8"))
     def getContentLength(self):
         return len(self.getContent().read())
     def getContentType(self):

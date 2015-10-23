@@ -78,17 +78,18 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
+import os
 import sys
 import time
 import traceback
 import urllib
-from wsgidav import util, xml_tools
+
+from wsgidav import compat, util, xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
-from util import etree #@UnusedImport
-import os
+from wsgidav.util import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
-from dav_error import DAVError, \
+from wsgidav.dav_error import DAVError, \
     HTTP_NOT_FOUND, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty, asDAVError
 
@@ -611,7 +612,7 @@ class _DAVResource(object):
                 if timeout < 0:
                     timeout =  "Infinite"
                 else:
-                    timeout = "Second-" + str(long(timeout - time.time())) 
+                    timeout = "Second-" + str(int(timeout - time.time())) 
                 etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
                 
                 locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
@@ -1384,12 +1385,13 @@ class DAVProvider(object):
         
         @param sharePath: a UTF-8 encoded, unquoted byte string.
         """
-        if isinstance(sharePath, unicode):
-            sharePath = sharePath.encode("utf8")
+        # if isinstance(sharePath, unicode):
+        #     sharePath = sharePath.encode("utf8")
         assert sharePath=="" or sharePath.startswith("/")
         if sharePath == "/":
             sharePath = ""  # This allows to code 'absPath = sharePath + path'
         assert sharePath in ("", "/") or not sharePath.endswith("/")
+        sharePath = compat.to_binary(sharePath)
         self.sharePath = sharePath
         
     def setLockManager(self, lockManager):

@@ -11,14 +11,15 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-__docformat__ = "reStructuredText"
-
-import util
-from dav_error import DAVError, getHttpStatusString, asDAVError,\
-    HTTP_INTERNAL_ERROR, HTTP_NOT_MODIFIED, HTTP_NO_CONTENT
-import traceback
 import sys
-from middleware import BaseMiddleware
+import traceback
+
+from wsgidav.dav_error import DAVError, getHttpStatusString, asDAVError,\
+    HTTP_INTERNAL_ERROR, HTTP_NOT_MODIFIED, HTTP_NO_CONTENT
+from wsgidav.middleware import BaseMiddleware
+from wsgidav import util
+
+__docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
