@@ -109,7 +109,7 @@ class VirtualTextResource(_VirtualNonCollection):
         return True
 #    def getRefUrl(self):
 #        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
-#        return urllib.quote(self.provider.sharePath + refPath)
+#        return compat.quote(self.provider.sharePath + refPath)
     def getContent(self):
         return compat.StringIO(self.content)
 
@@ -146,7 +146,7 @@ class FileResource(_VirtualNonCollection):
         return statresults[stat.ST_MTIME]      
 #    def getRefUrl(self):
 #        refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.filePath))
-#        return urllib.quote(self.provider.sharePath + refPath)
+#        return compat.quote(self.provider.sharePath + refPath)
     def getContent(self):
         mime = self.getContentType()
         # GC issue 57: always store as binary

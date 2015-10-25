@@ -190,7 +190,7 @@ class RequestResolver(object):
                 headers.append( ("MS-Author-Via", "DAV") )
                 
             start_response("200 OK", headers)
-            yield ""        
+            yield b""        
             return
    
         if provider is None:

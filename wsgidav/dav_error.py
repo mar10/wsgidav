@@ -12,8 +12,10 @@ import cgi
 import sys
 
 from wsgidav import __version__
-from wsgidav import xml_tools
+from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 ## Trick PyDev to do intellisense and don't produce warnings:
+from wsgidav import xml_tools
 from wsgidav.xml_tools import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
@@ -153,7 +155,7 @@ class DAVErrorCondition(object):
         return errorEL
     
     def as_string(self):
-        return xml_tools.xmlToString(self.as_xml(), True)
+        return to_native(xml_tools.xmlToBytes(self.as_xml(), True))
 
 
 
@@ -178,7 +180,7 @@ class DAVError(Exception):
         self.contextinfo = contextinfo
         self.srcexception = srcexception
         self.errcondition = errcondition
-        if type(errcondition) is str:
+        if is_native(errcondition):
             self.errcondition = DAVErrorCondition(errcondition)
         assert self.errcondition is None or type(self.errcondition) is DAVErrorCondition
 
@@ -211,7 +213,8 @@ class DAVError(Exception):
         """Return an tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response 
         if self.errcondition:
-            return ("application/xml", self.errcondition.as_string())
+            return ("application/xml",
+                    compat.to_bytes(self.errcondition.as_string()))
 
         # Else return as HTML 
         status = getHttpStatusString(self)
@@ -229,10 +232,10 @@ class DAVError(Exception):
 #            respbody.append(self._server_descriptor + "<hr>")
         html.append("<hr/>") 
         html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s" 
-                    % (__version__, cgi.escape(str(datetime.datetime.now()))))
+                    % (__version__, cgi.escape(str(datetime.datetime.now()), "utf-8")))
         html.append("</body></html>")
         html = "\n".join(html)
-        return ("text/html", html)
+        return ("text/html", compat.to_bytes(html))
 
 
 def getHttpStatusCode(v):

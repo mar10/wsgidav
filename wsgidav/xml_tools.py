@@ -45,10 +45,11 @@ def stringToXML(text):
 #        t2 = text.encode("utf8")
 #        return etree.XML(t2)
         print("Error parsing XML string. If lxml is not available, and unicode is involved, then installing lxml _may_ solve this issue.", file=sys.stderr)
+        print("XML source:", text, file=sys.stderr)
         raise
 
 
-def xmlToString(element, pretty_print=False):
+def xmlToBytes(element, pretty_print=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print 
     option and prepends an encoding header."""
     if useLxml:
@@ -57,8 +58,11 @@ def xmlToString(element, pretty_print=False):
                              xml_declaration=True, 
                              pretty_print=pretty_print)
     else:
-        xml = etree.tostring(element, "UTF-8")
-    assert xml.startswith("<?xml ") 
+        xml = etree.tostring(element, encoding="UTF-8")
+        if not xml.startswith(b"<?xml "):
+            xml = b'<?xml version="1.0" encoding="utf-8" ?>\n' + xml
+
+    assert xml.startswith(b"<?xml ")  # ET should prepend an encoding header
     return xml
 
 
@@ -94,7 +98,7 @@ def elementContentAsString(element):
         return element.text or ""  # Make sure, None is returned as '' 
     stream = compat.StringIO()
     for childnode in element:
-        print(xmlToString(childnode, pretty_print=False), file=stream)
+        print(xmlToBytes(childnode, pretty_print=False), file=stream)
     s = stream.getvalue()
     stream.close()
     return s

@@ -63,7 +63,7 @@ propertyManager
    See property_manager.PropertyManager for a sample implementation
    using shelve.
 
-lockmMnager
+lockManager
    An object that provides storage for locks made on webDAV resources.
    
    LockManagers must provide the methods as described in 
@@ -84,7 +84,10 @@ import time
 import traceback
 import urllib
 
-from wsgidav import compat, util, xml_tools
+from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
+from wsgidav import util
+from wsgidav import xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav.util import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
@@ -130,7 +133,7 @@ class _DAVResource(object):
     Instances of this class are created through the DAVProvider::
         
         res = provider.getResourceInst(path, environ)
-        if res and res.isCollection:
+        if res and res.isCollection():
             print(res.getDisplayName())
             
     In the example above, res will be ``None``, if the path cannot be mapped to
@@ -165,7 +168,8 @@ class _DAVResource(object):
     """
 
     def __init__(self, path, isCollection, environ):
-        assert path=="" or path.startswith("/")
+        assert is_native(path)
+        assert path == "" or path.startswith("/")
         self.provider = environ["wsgidav.provider"]
         self.path = path
         self.isCollection = isCollection
@@ -356,7 +360,7 @@ class _DAVResource(object):
 
         See also comments in DEVELOPERS.txt glossary.
         """
-        return urllib.quote(self.provider.sharePath + self.getPreferredPath())
+        return compat.quote(self.provider.sharePath + self.getPreferredPath())
 
 #    def getRefKey(self):
 #        """Return an unambigous identifier string for a resource.
@@ -384,7 +388,7 @@ class _DAVResource(object):
         # Nautilus chokes, if href encodes '(' as '%28'
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
-        return urllib.quote(self.provider.mountPath + self.provider.sharePath 
+        return compat.quote(self.provider.mountPath + self.provider.sharePath 
                             + self.getPreferredPath(), safe=safe)
 
 
@@ -1391,7 +1395,6 @@ class DAVProvider(object):
         if sharePath == "/":
             sharePath = ""  # This allows to code 'absPath = sharePath + path'
         assert sharePath in ("", "/") or not sharePath.endswith("/")
-        sharePath = compat.to_binary(sharePath)
         self.sharePath = sharePath
         
     def setLockManager(self, lockManager):
@@ -1407,7 +1410,7 @@ class DAVProvider(object):
         
         Used to calculate the <path> from a storage key by inverting getRefUrl().
         """
-        return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
+        return "/" + compat.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
     def getResourceInst(self, path, environ):
         """Return a _DAVResource object for path.

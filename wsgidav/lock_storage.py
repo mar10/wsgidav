@@ -19,6 +19,7 @@ import os
 import shelve
 import time
 
+from wsgidav import compat
 from wsgidav.lock_manager import normalizeLockRoot, lockString,\
     generateLockToken, validateLock
 from wsgidav.rw_lock import ReadWriteLock
@@ -302,6 +303,7 @@ class LockStorageDict(object):
         Returns:
             List of valid lock dictionaries (may be empty).
         """
+        assert compat.is_native(path)
         assert path and path.startswith("/")
         assert includeRoot or includeChildren
         def __appendLocks(toklist):

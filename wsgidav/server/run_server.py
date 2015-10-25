@@ -334,9 +334,6 @@ def _runPaste(app, config, mode):
         return False
     return True
 
-
-
-
 def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver, if CherryPy is installed."""
     assert mode in ("cherrypy", "cherrypy-bundled")
@@ -449,7 +446,7 @@ def _runSimpleServer(app, config, mode):
 def _runBuiltIn(app, config, mode):
     """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     try:
-        import ext_wsgiutils_server
+        from wsgidav.server import ext_wsgiutils_server
         if config["verbose"] >= 2:
             print("Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__)
         ext_wsgiutils_server.serve(config, app)

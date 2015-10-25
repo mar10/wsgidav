@@ -825,7 +825,7 @@ class RequestServer(object):
         
         # Destination header may be quoted (e.g. DAV Explorer sends unquoted, 
         # Windows quoted)
-        destinationHeader = urllib.unquote(environ["HTTP_DESTINATION"])
+        destinationHeader = compat.unquote(environ["HTTP_DESTINATION"])
         
         # Return fragments as part of <path>
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING: DELETE removed collection resource withRequest-URI including fragment; unsafe
@@ -1119,7 +1119,7 @@ class RequestServer(object):
             propEL.append(lockdiscoveryEL)
                
             # Lock-Token header is not returned
-            xml = xml_tools.xmlToString(propEL) 
+            xml = xml_tools.xmlToBytes(propEL) 
             start_response("200 OK", [("Content-Type", "application/xml"),
                                       ("Content-Length", str(len(xml))),
                                       ("Date", util.getRfc1123Time()),
@@ -1152,7 +1152,7 @@ class RequestServer(object):
 
             elif linode.tag == "{DAV:}owner":
                 # Store whole <owner> tag, so we can use etree.XML() later
-                lockowner = xml_tools.xmlToString(linode, pretty_print=False)
+                lockowner = xml_tools.xmlToBytes(linode, pretty_print=False)
 
             else:
                 self._fail(HTTP_BAD_REQUEST, "Invalid node '%s'." % linode.tag)
@@ -1196,7 +1196,7 @@ class RequestServer(object):
         if createdNewResource:
             respcode = "201 Created"
 
-        xml = xml_tools.xmlToString(propEL)
+        xml = xml_tools.xmlToBytes(propEL)
         start_response(respcode, [("Content-Type", "application/xml"),
                                   ("Content-Length", str(len(xml))),
                                   ("Lock-Token", lock["token"]),
@@ -1313,7 +1313,7 @@ class RequestServer(object):
             # capabilities of the server. For example, this can be used to test a 
             # proxy for HTTP/1.1 compliance (or lack thereof). 
             start_response("200 OK", headers)        
-            return [""]  
+            return [b""]  
 
         # Determine allowed request methods
         allow = [ "OPTIONS" ]
@@ -1355,7 +1355,7 @@ class RequestServer(object):
             headers.append( ("MS-Author-Via", "DAV") )
 
         start_response("200 OK", headers)        
-        return [""]
+        return [b""]
 
 
 
@@ -1461,7 +1461,7 @@ class RequestServer(object):
 
         # Return empty body for HEAD requests
         if isHeadMethod:
-            yield ""
+            yield b""
             return
 
         fileobj = res.getContent()
@@ -1475,6 +1475,7 @@ class RequestServer(object):
                 readbuffer = fileobj.read(self.block_size)
             else:
                 readbuffer = fileobj.read(contentlengthremaining)
+            assert compat.is_bytes(readbuffer)
             yield readbuffer
             contentlengthremaining -= len(readbuffer)
             if len(readbuffer) == 0 or contentlengthremaining == 0:

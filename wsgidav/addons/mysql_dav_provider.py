@@ -68,6 +68,7 @@ import csv
 import MySQLdb  #@UnresolvedImport
 
 from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
@@ -412,7 +413,7 @@ class MySQLBrowserProvider(DAVProvider):
         if row is None:
             cursor.close()
             return None
-        val = str(row[field_name])         
+        val = to_native(row[field_name])         
         cursor.close()
         return val            
 
@@ -445,7 +446,7 @@ class MySQLBrowserProvider(DAVProvider):
             cursor.close()
             return None
         for fname in row.keys():
-            dictRet[fname] = str(row[fname])         
+            dictRet[fname] = to_native(row[fname])         
         cursor.close()
         return dictRet            
 
@@ -473,7 +474,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.execute("SELECT " + field_name + " FROM " + self._db + "." + table_name)
         result_set = cursor.fetchall ()
         for row in result_set:
-            retlist.append(str(row[field_name]))      
+            retlist.append(to_native(row[field_name]))      
         cursor.close()
         return retlist
     

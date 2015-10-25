@@ -10,8 +10,10 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
+import base64
 import calendar
 from email.utils import formatdate, parsedate
+from hashlib import md5
 import locale
 import logging
 import mimetypes
@@ -24,16 +26,12 @@ import sys
 import time
 import urllib
 
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
-
-
+from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
-from wsgidav.xml_tools import xmlToString, makeSubElement, etree
+from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree
 ## Trick PyDev to do intellisense and don't produce warnings:
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
@@ -357,23 +355,30 @@ def splitNamespace(clarkName):
 
 def toUnicode(s):
     """Convert a binary string to Unicode using UTF-8 (fallback to latin-1)."""
-    if not isinstance(s, str):
-        return s
     try:
-        u = s.decode("utf8")
-#        log("toUnicode(%r) = '%r'" % (s, u))
-    except:
-        log("toUnicode(%r) *** UTF-8 failed. Trying latin-1 " % s)
-        u = s.decode("latin-1")
+        u = compat.to_unicode(s, "utf8")
+    except ValueError:
+        log("toUnicode(%r) *** UTF-8 failed. Trying latin-1" % s)
+        u = compat.to_unicode(s, "latin-1")
+#     if not isinstance(s, str):
+#         return s
+#     try:
+#         u = s.decode("utf8")
+# #        log("toUnicode(%r) = '%r'" % (s, u))
+#     except:
+#         log("toUnicode(%r) *** UTF-8 failed. Trying latin-1 " % s)
+#         u = s.decode("latin-1")
     return u
 
 
 def stringRepr(s):
     """Return a string as hex dump."""
-    if isinstance(s, str):
-        res = "'%s': " % s
+    if is_bytes(s):
+        res = "%r: " % s
         for b in s:
-            res += "%02x " % ord(b)
+            if type(b) is str:  # Py2
+                b = ord(b)
+            res += "%02x " % b
         return res
     return "%s" % s
 
@@ -612,10 +617,10 @@ def makeCompleteUrl(environ, localUri=None):
             if environ["SERVER_PORT"] != "80":
                 url += ":" + environ["SERVER_PORT"]
     
-    url += urllib.quote(environ.get("SCRIPT_NAME",""))
+    url += compat.quote(environ.get("SCRIPT_NAME",""))
 
     if localUri is None:
-        url += urllib.quote(environ.get("PATH_INFO",""))
+        url += compat.quote(environ.get("PATH_INFO",""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:
@@ -701,7 +706,7 @@ def parseXmlBody(environ, allowEmpty=False):
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
         write("%s XML request body:\n%s" % (environ["REQUEST_METHOD"], 
-                                            xmlToString(rootEL, pretty_print=True)))
+                                            to_native(xmlToBytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -732,7 +737,7 @@ def sendStatusResponse(environ, start_response, e):
         start_response(status, [("Content-Length", "0"),
                                 ("Date", getRfc1123Time()),
                                 ] + headers)
-        return [ "" ]
+        return [ b"" ]
     
     if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
@@ -740,11 +745,11 @@ def sendStatusResponse(environ, start_response, e):
     
     content_type, body = e.getResponsePage()            
 
+    assert is_bytes(body), body # If not, Content-Length is wrong!
     start_response(status, [("Content-Type", content_type), 
                             ("Date", getRfc1123Time()),
                             ("Content-Length", str(len(body))),
                             ] + headers) 
-    assert type(body) is str # If not, Content-Length is wrong!
     return [ body ]
     
     
@@ -752,18 +757,19 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # If logging of the body is desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
-                                             xmlToString(multistatusEL, pretty_print=True)) 
+                                             to_native(xmlToBytes(multistatusEL, pretty_print=True)))
         environ["wsgidav.dump_response_body"] = xml 
         
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
-    xml_data = xmlToString(multistatusEL, pretty_print=False)
+    xml_data = xmlToBytes(multistatusEL, pretty_print=False)
+    assert is_bytes(xml_data), xml_data # If not, Content-Length is wrong!
     
     headers = [
         ("Content-Type", "application/xml"),
         ("Date", getRfc1123Time()),
-        ('Content-Length', str(len(xml_data))),
+        ("Content-Length", str(len(xml_data))),
     ]
 
 #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
@@ -772,7 +778,6 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
 #        ]
 
     start_response("207 Multi-Status", headers)
-    assert type(xml_data) is str # If not, Content-Length is wrong!
     return [ xml_data ]
         
             
@@ -818,7 +823,7 @@ def addPropertyResponse(multistatusEL, href, propList):
 #    log("href value:%s" % (stringRepr(href)))
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
-#    etree.SubElement(responseEL, "{DAV:}href").text = urllib.quote(href, safe="/" + "!*'()," + "$-_|.")
+#    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'()," + "$-_|.")
     
     
     # One <propstat> per status code
@@ -843,6 +848,20 @@ def addPropertyResponse(multistatusEL, href, propList):
 #===============================================================================
 # ETags
 #===============================================================================
+
+def calc_hexdigest(s):
+    """Return md5 digest for a string."""
+    s = to_bytes(s)
+    return md5(s).hexdigest()  # return native string
+
+
+def calc_base64(s):
+    """Return base64 encoded binarystring."""
+    s = to_bytes(s)
+    s = base64.encodestring(s).strip()  # return bytestring
+    return to_native(s)
+
+
 def getETag(filePath):
     """Return a strong Entity Tag for a (file)path.
     
@@ -857,14 +876,15 @@ def getETag(filePath):
     # (At least on Vista) os.path.exists returns False, if a file name contains 
     # special characters, even if it is correctly UTF-8 encoded.
     # So we convert to unicode. On the other hand, md5() needs a byte string.
-    if isinstance(filePath, unicode):
+    if compat.is_bytes(filePath):
+        unicodeFilePath = toUnicode(filePath)
+    else:
         unicodeFilePath = filePath
         filePath = filePath.encode("utf8")
-    else:
-        unicodeFilePath = toUnicode(filePath)
         
     if not os.path.isfile(unicodeFilePath):
         return md5(filePath).hexdigest()   
+
     if sys.platform == "win32":
         statresults = os.stat(unicodeFilePath)
         return md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])

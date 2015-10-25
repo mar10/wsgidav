@@ -31,6 +31,7 @@ import pymongo
 from bson.objectid import ObjectId
 
 from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 from wsgidav import util
 from wsgidav.util import joinUri
@@ -87,7 +88,7 @@ class CollCollection(DAVCollection):
     def getMemberNames(self):
         res = []
         for doc in self.coll.find():
-            res.append(str(doc["_id"]))
+            res.append(to_native(doc["_id"]))
         return res
     
     def getMember(self, name):
@@ -114,8 +115,8 @@ class DocResource(DAVNonCollection):
         elif doc.get("title"):
             return doc["title"].encode("utf8")
         elif doc.get("_id"):
-            return str(doc["_id"])
-        return str(doc["key"])
+            return to_native(doc["_id"])
+        return to_native(doc["key"])
     def getDisplayInfo(self):
         return {"type": "Mongo document"}
 

@@ -14,10 +14,11 @@ import os
 import sys
 import urllib
 
-from wsgidav import util
 from wsgidav import __version__
+from wsgidav import compat
 from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
 from wsgidav.middleware import BaseMiddleware
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -190,7 +191,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         assert davres.isCollection
         
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
-        displaypath = urllib.unquote(davres.getHref())
+        displaypath = compat.unquote(davres.getHref())
         isReadOnly = environ["wsgidav.provider"].isReadOnly()
 
         trailer = dirConfig.get("response_trailer")
@@ -321,7 +322,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         html.append("</body></html>")
 
-        body = "\n".join(html) 
+        body = "\n".join(html)
+        body = compat.to_bytes(body)
 
         start_response("200 OK", [("Content-Type", "text/html"), 
                                   ("Content-Length", str(len(body))),

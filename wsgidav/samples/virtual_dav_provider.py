@@ -337,7 +337,7 @@ class VirtualResource(DAVCollection):
 
     def getRefUrl(self):
         refPath = "/by_key/%s" % self.data["key"] 
-        return urllib.quote(self.provider.sharePath + refPath)
+        return compat.quote(self.provider.sharePath + refPath)
     
     def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
@@ -452,7 +452,7 @@ class VirtualArtifact(_VirtualNonCollection):
 
     def getRefUrl(self):
         refPath = "/by_key/%s/%s" % (self.data["key"], self.name)
-        return urllib.quote(self.provider.sharePath + refPath)
+        return compat.quote(self.provider.sharePath + refPath)
  
     def getContent(self):
         fileLinks = [ "<a href='%s'>%s</a>\n" % (os.path.basename(f), f) for f in self.data["resPathList"] ]
@@ -539,7 +539,7 @@ class VirtualResFile(_VirtualNonCollection):
 
     def getRefUrl(self):
         refPath = "/by_key/%s/%s" % (self.data["key"], os.path.basename(self.filePath))
-        return urllib.quote(self.provider.sharePath + refPath)
+        return compat.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
         mime = self.getContentType()

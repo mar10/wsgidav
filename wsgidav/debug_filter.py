@@ -59,8 +59,9 @@ from __future__ import print_function
 import sys
 import threading
 
-from wsgidav import util
+from wsgidav import compat
 from wsgidav.middleware import BaseMiddleware
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -175,11 +176,11 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
             # Check, if response is a binary string, otherwise we probably have 
             # calculated a wrong content-length
-            assert type(v) is str
+            assert compat.is_bytes(v), v
             
             # Dump response body
             drb = environ.get("wsgidav.dump_response_body")
-            if type(drb) is str:
+            if compat.is_basestring(drb):
                 # Middleware provided a formatted body representation 
                 print(drb, file=self.out)
                 drb = environ["wsgidav.dump_response_body"] = None

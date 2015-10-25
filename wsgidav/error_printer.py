@@ -94,7 +94,7 @@ class ErrorPrinter(BaseMiddleware):
                 start_response(status, [("Content-Length", "0"),
                                         ("Date", util.getRfc1123Time()),
                                         ])
-                yield ""
+                yield b""
                 return
 
             # If exception has pre-/post-condition: return as XML response, 

@@ -74,7 +74,11 @@ if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
 install_requires = [#"colorama",
                     #"keyring",
                     ]
-tests_require = ["tox"]
+tests_require = ["pytest",
+                 "pytest-cov",
+                 "tox",
+                 "webtest",
+                 ]
 
 if sys.version_info < (2, 7):
     install_requires += ["argparse"]

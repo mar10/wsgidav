@@ -23,9 +23,10 @@ Valid options are (sample shows defaults)::
 """
 from __future__ import print_function
 
-from wsgidav import util
 import pymongo
-from urllib import quote
+
+from wsgidav import compat
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -124,7 +125,7 @@ class MongoPropertyManager(object):
         doc = self.collection.find_one({"_url": normurl})
         if not doc:
             doc = {"_url": normurl,
-                   "_title": quote(normurl),
+                   "_title": compat.quote(normurl),
                    }
         doc[encodeMongoKey(propname)] = propertyvalue
         self.collection.save(doc)

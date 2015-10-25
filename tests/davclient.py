@@ -23,31 +23,34 @@
 
 import base64
 import copy
+import sys
 
-try:
-    from http import client as http_client  # py3
-except ImportError:
+PY2 = sys.version_info < (3, 0)
+
+if PY2:
     import httplib as http_client
-
-try:
     from cStringIO import StringIO
-except ImportError:
-    from io import StringIO  # py3
-
-try:
-    from urllib.parse import urlparse  # py3
-except ImportError:
+    BytesIO = StringIO
     from urlparse import urlparse
+    is_bytes = lambda s: isinstance(s, str)
+    is_unicode = lambda s: isinstance(s, unicode)
+    to_native = lambda s: s if is_bytes(s) else s.encode("utf8")
+else:
+    from http import client as http_client
+    from io import StringIO, BytesIO
+    from urllib.parse import urlparse
+    xrange = range
+    is_bytes = lambda s: isinstance(s, bytes)
+    is_unicode = lambda s: isinstance(s, str)
+    to_native = lambda s: s if is_unicode(s) else s.decode("utf8")
+
+is_native = lambda s: isinstance(s, str)
+to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")
 
 try:
     from xml.etree import ElementTree
 except:
     from elementtree import ElementTree
-
-try:
-    xrange = xrange
-except NameError:
-    xrange = range  # py3
 
 __all__ = ['DAVClient']
 
@@ -56,7 +59,7 @@ class AppError(Exception):
 
 def object_to_etree(parent, obj, namespace=''):
     """This function takes in a python object, traverses it, and adds it to an existing etree object"""
-    
+    # TODO: Py3: this will probably brea, since str is used wrong:
     if type(obj) is int or type(obj) is float or type(obj) is str:
         # If object is a string, int, or float just add it
         obj = str(obj)
@@ -82,6 +85,7 @@ def object_to_etree(parent, obj, namespace=''):
             
     elif type(obj) is tuple and len(obj) == 2:
         # If the object is a a tuple, assume (tag_name, value)
+        # TODO: Py3: check usage of str
         ElementTree.SubElement(parent, obj[0]).text = str(obj[1])
             
     else:
@@ -103,6 +107,8 @@ class DAVClient(object):
     def _request(self, method, path='', body=None, headers=None):
         """Internal request method"""
         self.response = None
+        # print("#"*20, (body and body[:50]), isinstance(body, str))
+        # assert body is None or is_bytes(body)
 
         if headers is None:
             headers = copy.copy(self.headers)
@@ -142,10 +148,23 @@ class DAVClient(object):
         self.response.tree = ElementTree.fromstring(self.response.body)
         return self.response.tree
         
+    def _tree_to_body_str(self, tree):
+        """Return tree content as body compatible native xml string."""
+        # Etree won't just return a normal string, so we have to do this
+        body = BytesIO()
+        tree.write(body)
+        body = body.getvalue()  # bytestring
+        body = '<?xml version="1.0" encoding="utf-8" ?>\n%s' % to_native(body)
+        return body
+        
     def set_basic_auth(self, username, password):
         """Set basic authentication"""
         u_p = ('%s:%s' % (username, password)).encode("utf8")
-        auth = 'Basic %s' % base64.encodestring(u_p).strip()
+        b64 = base64.encodestring(u_p)
+        # encodestring() returns a bytestring. We want a native str on Python 3
+        if not type(b64) is str:
+            b64 = b64.decode("utf8")
+        auth = 'Basic %s' % b64.strip()
         self._username = username
         self._password = password
         self.headers['Authorization'] = auth
@@ -209,7 +228,7 @@ class DAVClient(object):
             headers = {}
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
         
-        self.copy(source, destination, body=unicode(body, 'utf-8'), depth=depth, overwrite=overwrite, headers=headers)
+        self.copy(source, destination, body=body, depth=depth, overwrite=overwrite, headers=headers)
         
         
     def move(self, source, destination, body=None, depth='infinity', overwrite=True, headers=None):
@@ -239,24 +258,21 @@ class DAVClient(object):
             headers = {}
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
 
-        self.move(source, destination, unicode(body, 'utf-8'), depth=depth, overwrite=overwrite, headers=headers)
+        self.move(source, destination, body, depth=depth, overwrite=overwrite, headers=headers)
         
         
     def propfind(self, path, properties='allprop', namespace='DAV:', depth=None, headers=None):
         """Property find. If properties arg is unspecified it defaults to 'allprop'"""
         # Build propfind xml
         root = ElementTree.Element('{DAV:}propfind')
-        if type(properties) is str:
+        if is_native(properties):
             ElementTree.SubElement(root, '{DAV:}%s' % properties)
         else:
             props = ElementTree.SubElement(root, '{DAV:}prop')
             object_to_etree(props, properties, namespace=namespace)
         tree = ElementTree.ElementTree(root)
         
-        # Etree won't just return a normal string, so we have to do this
-        body = StringIO()
-        tree.write(body)
-        body = body.getvalue()
+        body = self._tree_to_body_str(tree)
                 
         # Add proper headers
         if headers is None:
@@ -266,7 +282,7 @@ class DAVClient(object):
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
         
         # Body encoding must be utf-8, 207 is proper response
-        self._request('PROPFIND', path, body=unicode('<?xml version="1.0" encoding="utf-8" ?>\n'+body, 'utf-8'), headers=headers)
+        self._request('PROPFIND', path, body=body, headers=headers)
         
         if self.response is not None and hasattr(self.response, 'tree') is True:
             property_responses = {}
@@ -308,17 +324,15 @@ class DAVClient(object):
                 object_to_etree(prop_prop, p, namespace=namespace)                 
         
         tree = ElementTree.ElementTree(root)
-        # Etree won't just return a normal string, so we have to do this
-        body = StringIO()
-        tree.write(body)
-        body = body.getvalue()
+
+        body = self._tree_to_body_str(tree)
 
         # Add proper headers
         if headers is None:
             headers = {}
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
         
-        self._request('PROPPATCH', path, body=unicode('<?xml version="1.0" encoding="utf-8" ?>\n'+body, 'utf-8'), headers=headers)
+        self._request('PROPPATCH', path, body=body, headers=headers)
         
         
     def set_lock(self, path, owner, locktype='write', lockscope='exclusive', depth=None, headers=None):
@@ -335,12 +349,9 @@ class DAVClient(object):
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
         headers['Timeout'] = 'Infinite, Second-4100000000'
         
-        # Etree won't just return a normal string, so we have to do this
-        body = StringIO()
-        tree.write(body)
-        body = body.getvalue()
-                
-        self._request('LOCK', path, body=unicode('<?xml version="1.0" encoding="utf-8" ?>\n'+body, 'utf-8'), headers=headers)
+        body = self._tree_to_body_str(tree)
+
+        self._request('LOCK', path, body=body, headers=headers)
         
         locks = self.response.tree.findall('.//{DAV:}locktoken')
         lock_list = []
@@ -388,6 +399,7 @@ class DAVClient(object):
             return
         if isinstance(status, (list, tuple)):
             if res.status not in status:
+                # TODO: Py3: check usage of str:
                 raise AppError(
                     "Bad response: %s (not one of %s for %s %s)\n%s"
                     % (full_status, ', '.join(map(str, status)),

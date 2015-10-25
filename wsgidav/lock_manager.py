@@ -44,11 +44,12 @@ import sys
 import random
 import time
 
-from wsgidav import compat, util
-from wsgidav.compat import b_slash
+from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
 from wsgidav.dav_error import DAVErrorCondition
 from wsgidav.rw_lock import ReadWriteLock
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -60,16 +61,14 @@ _logger = util.getModuleLogger(__name__)
 #===============================================================================
 
 def generateLockToken():
-    return "opaquelocktoken:" + str(hex(random.getrandbits(256)))
+    return "opaquelocktoken:" + to_native(hex(random.getrandbits(256)))
 
 
 def normalizeLockRoot(path):
     # Normalize root: /foo/bar
     assert path
-    # if type(path) is unicode:
-    #     path = path.encode("utf-8")
-    path = compat.to_binary(path)
-    path = b_slash + path.strip(b_slash)
+    path = to_native(path)
+    path = "/" + path.strip("/")
     return path
 
 
@@ -100,18 +99,18 @@ def lockString(lockDict):
 
 
 def validateLock(lock):
-    assert type(lock["root"]) is str
+    assert is_native(lock["root"])
     assert lock["root"].startswith("/")
     assert lock["type"] == "write"
     assert lock["scope"] in ("shared", "exclusive")
     assert lock["depth"] in ("0", "infinity")
-    assert type(lock["owner"]) is str
+    assert is_bytes(lock["owner"]), lock  # XML bytestring
     # raises TypeError:
     timeout = float(lock["timeout"])
     assert timeout > 0 or timeout == -1, "timeout must be positive or -1"
-    assert type(lock["principal"]) is str
+    assert is_native(lock["principal"])
     if "token" in lock:
-        assert type(lock["token"]) is str
+        assert is_native(lock["token"])
 
     
 #===============================================================================
@@ -438,6 +437,7 @@ class LockManager(object):
 
         @return: None or raise error
         """
+        assert compat.is_native(url)
         assert depth in ("0", "infinity")
         _logger.debug("checkWritePermission(%s, %s, %s, %s)" % (url, depth, tokenList, principal))
 

@@ -78,7 +78,9 @@ except ImportError:
     import SocketServer as socketserver
 
 from wsgidav import __version__
-from wsgidav import compat, util
+from wsgidav import compat
+from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
+from wsgidav import util
 
 _logger = util.getModuleLogger(__name__)
 
@@ -177,7 +179,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
                "REMOTE_ADDR": self.client_address[0],
                "SERVER_NAME": self.server.server_address[0],
-               "SERVER_PORT": str(self.server.server_address[1]),
+               "SERVER_PORT": to_native(self.server.server_address[1]),
                "SERVER_PROTOCOL": self.request_version,
                }
         for httpHeader, httpValue in self.headers.items():
@@ -240,9 +242,12 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.wsgiSentHeaders = 1
         # Send the data
         # assert type(data) is str # If not, Content-Length is propably wrong!
-        assert compat.is_binary(data) # If not, Content-Length is propably wrong!
+        _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), data[:50]))
+        if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
+            print("ext_wsgiutils_server: Got unicode data: %s" % data)
+            data = compat.wsgi_to_bytes(data)
+
         try:
-            _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), data[:50]))
             self.wfile.write(data)
         except socket.error as e:
             # Suppress stack trace when client aborts connection disgracefully:

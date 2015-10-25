@@ -48,8 +48,7 @@ import sys
 import threading
 import urllib
 
-from wsgidav import compat, util
-from wsgidav.compat import b_empty, b_slash
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -60,6 +59,7 @@ from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.lock_manager import LockManager
 from wsgidav.property_manager import PropertyManager
 from wsgidav.request_resolver import RequestResolver
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -248,13 +248,13 @@ class WsgiDAVApp(object):
         # done by the server (#8).
         path = environ["PATH_INFO"]
         if self.config.get("unquote_path_info", False):
-            path = urllib.unquote(environ["PATH_INFO"])
+            path = compat.unquote(environ["PATH_INFO"])
         # GC issue 22: Pylons sends root as u'/' 
         # if isinstance(path, unicode):
-        if not compat.is_binary(path):
-            util.log("Got unicode PATH_INFO: %r" % path)
+        if not compat.is_native(path):
+            util.log("Got non-native PATH_INFO: %r" % path)
             # path = path.encode("utf8")
-            path = compat.to_binary(path)
+            path = compat.to_native(path)
 
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
@@ -298,7 +298,7 @@ class WsgiDAVApp(object):
 #        util.log("--> SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         # assert isinstance(path, str)
-        assert compat.is_binary(path)
+        assert compat.is_native(path)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty
@@ -306,7 +306,7 @@ class WsgiDAVApp(object):
         # SCRIPT_NAME must not have a trailing '/'
         assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
         # PATH_INFO starts with '/'
-        assert environ["PATH_INFO"] == b_empty or environ["PATH_INFO"].startswith(b_slash)
+        assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
 
         start_time = time.time()
         def _start_response_wrapper(status, response_headers, exc_info=None):

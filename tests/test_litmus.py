@@ -10,6 +10,7 @@ from __future__ import print_function
 from multiprocessing import Process
 import os
 import subprocess
+import sys
 from tempfile import gettempdir
 import time
 import unittest
@@ -66,8 +67,10 @@ def run_wsgidav_server(with_auth, with_ssl):
 
     app = WsgiDAVApp(config)
 
-    from wsgidav.server.run_server import _runBuiltIn
-    _runBuiltIn(app, config, None)
+    # from wsgidav.server.run_server import _runBuiltIn
+    # _runBuiltIn(app, config, None)
+    from wsgidav.server.run_server import _runCherryPy
+    _runCherryPy(app, config, "cherrypy-bundled")
     # blocking...
 
 
@@ -101,9 +104,10 @@ class WsgiDAVLitmusTest(unittest.TestCase):
             time.sleep(1)
 
             try:
-                self.assertEqual(subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"]),
-                                 0,
-                                 "litmus suite failed: check the log")
+                res = subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"],
+                                      # stdout=sys.stdout, stderr=sys.stderr
+                                      )
+                self.assertEqual(res, 0, "litmus suite failed: check the log")
             except OSError:
                 print("*" * 70)
                 print("This test requires the litmus test suite.")
@@ -112,6 +116,7 @@ class WsgiDAVLitmusTest(unittest.TestCase):
                 raise
 
         finally:
+            print("stopping server...")
             proc.terminate()
             proc.join()
 
