@@ -149,6 +149,8 @@ class HTTPAuthenticator(BaseMiddleware):
         self._noncedict = dict([])
 
         self._headerparser = re.compile(r"([\w]+)=([^,]*),")
+	# Note: used to avoid issues with un-encoded commas from windows webdav client
+        self._headerparserquoted = re.compile(r'([\w]+)=("[^"]*"),')
         self._headermethod = re.compile(r"^([\w]+)")
         
         wdcName = "NTDomainController"
@@ -270,8 +272,16 @@ class HTTPAuthenticator(BaseMiddleware):
         authheaders = environ["HTTP_AUTHORIZATION"] + ","
         if not authheaders.lower().strip().startswith("digest"):
             isinvalidreq = True
+        # NOTE: windows webdav client doesn't urlencode paths so uri value may
+	# contain commas that break the usual headerparser.
+	# Example: 
+	# Digest username="user",realm="/",uri="a,b.txt",nc=00000001,response="...", ... 
+	# -> [..., ('uri', '"a'), ...]
+	# We cannot easily discriminate the two forms in regex so we default to
+	# original and fix-up any values that look garbled 
         authheaderlist = self._headerparser.findall(authheaders)
-        for authheader in authheaderlist:
+        authheaderquotedlist = self._headerparserquoted.findall(authheaders)
+        for authheader in authheaderlist + authheaderquotedlist:
             authheaderkey = authheader[0]
             authheadervalue = authheader[1].strip().strip("\"")
             authheaderdict[authheaderkey] = authheadervalue
