@@ -149,8 +149,9 @@ class HTTPAuthenticator(BaseMiddleware):
         self._noncedict = dict([])
 
         self._headerparser = re.compile(r"([\w]+)=([^,]*),")
-	# Note: used to avoid issues with un-encoded commas from windows webdav client
-        self._headerparserquoted = re.compile(r'([\w]+)=("[^"]*"),')
+        # Note: extra parser to handle digest auth requests from certain
+        # clients, that leave commas un-encoded to interfere with the above.
+        self._headerfixparser = re.compile(r'([\w]+)=("[^"]*,[^"]*"),')
         self._headermethod = re.compile(r"^([\w]+)")
         
         wdcName = "NTDomainController"
@@ -272,16 +273,14 @@ class HTTPAuthenticator(BaseMiddleware):
         authheaders = environ["HTTP_AUTHORIZATION"] + ","
         if not authheaders.lower().strip().startswith("digest"):
             isinvalidreq = True
-        # NOTE: windows webdav client doesn't urlencode paths so uri value may
-	# contain commas that break the usual headerparser.
-	# Example: 
-	# Digest username="user",realm="/",uri="a,b.txt",nc=00000001,response="...", ... 
-	# -> [..., ('uri', '"a'), ...]
-	# We cannot easily discriminate the two forms in regex so we default to
-	# original and fix-up any values that look garbled 
+        # NOTE: Some clients don't urlencode paths, so uri value may contain
+        # commas, which break the usual regex headerparser. Example:
+        # Digest username="user",realm="/",uri="a,b.txt",nc=00000001, ...
+        # -> [..., ('uri', '"a'), ('nc', '00000001'), ...]
+        # Override any such values with carefully extracted ones.
         authheaderlist = self._headerparser.findall(authheaders)
-        authheaderquotedlist = self._headerparserquoted.findall(authheaders)
-        for authheader in authheaderlist + authheaderquotedlist:
+        authheaderfixlist = self._headerfixparser.findall(authheaders)
+        for authheader in authheaderlist + authheaderfixlist:
             authheaderkey = authheader[0]
             authheadervalue = authheader[1].strip().strip("\"")
             authheaderdict[authheaderkey] = authheadervalue
