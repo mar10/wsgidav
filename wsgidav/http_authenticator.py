@@ -273,14 +273,19 @@ class HTTPAuthenticator(BaseMiddleware):
         authheaders = environ["HTTP_AUTHORIZATION"] + ","
         if not authheaders.lower().strip().startswith("digest"):
             isinvalidreq = True
-        # NOTE: Some clients don't urlencode paths, so uri value may contain
-        # commas, which break the usual regex headerparser. Example:
+        # Hotfix for Windows file manager and OSX Finder:
+        # Some clients don't urlencode paths in auth header, so uri value may
+        # contain commas, which break the usual regex headerparser. Example:
         # Digest username="user",realm="/",uri="a,b.txt",nc=00000001, ...
         # -> [..., ('uri', '"a'), ('nc', '00000001'), ...]
         # Override any such values with carefully extracted ones.
         authheaderlist = self._headerparser.findall(authheaders)
         authheaderfixlist = self._headerfixparser.findall(authheaders)
-        for authheader in authheaderlist + authheaderfixlist:
+        if authheaderfixlist:
+            _logger.info("Fixing authheader comma-parsing: extend %s with %s" \
+                         % (authheaderlist, authheaderfixlist))
+            authheaderlist += authheaderfixlist
+        for authheader in authheaderlist:
             authheaderkey = authheader[0]
             authheadervalue = authheader[1].strip().strip("\"")
             authheaderdict[authheaderkey] = authheadervalue
