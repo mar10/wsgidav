@@ -79,10 +79,9 @@ from pprint import pprint
 import sys
 import time
 
-from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
+from wsgidav import compat
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 from wsgidav.samples.dav_provider_tools import VirtualCollection
-from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 

@@ -45,7 +45,6 @@ import random
 import time
 
 from wsgidav import compat
-from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
 from wsgidav.dav_error import DAVErrorCondition
 from wsgidav.rw_lock import ReadWriteLock
@@ -61,13 +60,13 @@ _logger = util.getModuleLogger(__name__)
 #===============================================================================
 
 def generateLockToken():
-    return "opaquelocktoken:" + to_native(hex(random.getrandbits(256)))
+    return "opaquelocktoken:" + compat.to_native(hex(random.getrandbits(256)))
 
 
 def normalizeLockRoot(path):
     # Normalize root: /foo/bar
     assert path
-    path = to_native(path)
+    path = compat.to_native(path)
     path = "/" + path.strip("/")
     return path
 
@@ -99,18 +98,18 @@ def lockString(lockDict):
 
 
 def validateLock(lock):
-    assert is_native(lock["root"])
+    assert compat.is_native(lock["root"])
     assert lock["root"].startswith("/")
     assert lock["type"] == "write"
     assert lock["scope"] in ("shared", "exclusive")
     assert lock["depth"] in ("0", "infinity")
-    assert is_bytes(lock["owner"]), lock  # XML bytestring
+    assert compat.is_bytes(lock["owner"]), lock  # XML bytestring
     # raises TypeError:
     timeout = float(lock["timeout"])
     assert timeout > 0 or timeout == -1, "timeout must be positive or -1"
-    assert is_native(lock["principal"])
+    assert compat.is_native(lock["principal"])
     if "token" in lock:
-        assert is_native(lock["token"])
+        assert compat.is_native(lock["token"])
 
     
 #===============================================================================

@@ -13,7 +13,6 @@ import sys
 
 from wsgidav import __version__
 from wsgidav import compat
-from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 ## Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav import xml_tools
 from wsgidav.xml_tools import etree #@UnusedImport
@@ -155,7 +154,7 @@ class DAVErrorCondition(object):
         return errorEL
     
     def as_string(self):
-        return to_native(xml_tools.xmlToBytes(self.as_xml(), True))
+        return compat.to_native(xml_tools.xmlToBytes(self.as_xml(), True))
 
 
 
@@ -180,7 +179,7 @@ class DAVError(Exception):
         self.contextinfo = contextinfo
         self.srcexception = srcexception
         self.errcondition = errcondition
-        if is_native(errcondition):
+        if compat.is_native(errcondition):
             self.errcondition = DAVErrorCondition(errcondition)
         assert self.errcondition is None or type(self.errcondition) is DAVErrorCondition
 
@@ -225,14 +224,14 @@ class DAVError(Exception):
         html.append("  <title>%s</title>" % status) 
         html.append("</head><body>") 
         html.append("  <h1>%s</h1>" % status) 
-        html.append("  <p>%s</p>" % cgi.escape(self.getUserInfo()))         
+        html.append("  <p>%s</p>" % compat.html_escape(self.getUserInfo()))         
 #        html.append("  <hr>")
 #        html.append("  <p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
 #        if self._server_descriptor:
 #            respbody.append(self._server_descriptor + "<hr>")
         html.append("<hr/>") 
         html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s" 
-                    % (__version__, cgi.escape(str(datetime.datetime.now()), "utf-8")))
+                    % (__version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")))
         html.append("</body></html>")
         html = "\n".join(html)
         return ("text/html", compat.to_bytes(html))

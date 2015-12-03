@@ -19,7 +19,7 @@
 # - Added checkResponse()
 #
 # Modified 2015-10-20, Martin Wendt:
-# - Fixed for Py3: StringIO, string-exceptions
+# - Fix for Py3: StringIO, string-exceptions
 
 import base64
 import copy
@@ -28,6 +28,7 @@ import sys
 PY2 = sys.version_info < (3, 0)
 
 if PY2:
+    from base64 import encodestring as base64_encodebytes
     import httplib as http_client
     from cStringIO import StringIO
     BytesIO = StringIO
@@ -36,6 +37,7 @@ if PY2:
     is_unicode = lambda s: isinstance(s, unicode)
     to_native = lambda s: s if is_bytes(s) else s.encode("utf8")
 else:
+    from base64 import encodebytes as base64_encodebytes
     from http import client as http_client
     from io import StringIO, BytesIO
     from urllib.parse import urlparse
@@ -107,8 +109,8 @@ class DAVClient(object):
     def _request(self, method, path='', body=None, headers=None):
         """Internal request method"""
         self.response = None
-        # print("#"*20, (body and body[:50]), isinstance(body, str))
-        # assert body is None or is_bytes(body)
+
+        assert body is None or is_bytes(body)
 
         if headers is None:
             headers = copy.copy(self.headers)
@@ -136,6 +138,9 @@ class DAVClient(object):
 
         self.response.body = self.response.read()
         
+        self._connection.close()  # prevent ResourceWarning: unclosed <socket.socket on Py3
+        self._connection = None
+
         # Try to parse and get an etree
         try:
             self._get_response_tree()
@@ -160,7 +165,7 @@ class DAVClient(object):
     def set_basic_auth(self, username, password):
         """Set basic authentication"""
         u_p = ('%s:%s' % (username, password)).encode("utf8")
-        b64 = base64.encodestring(u_p)
+        b64 = base64_encodebytes(u_p)
         # encodestring() returns a bytestring. We want a native str on Python 3
         if not type(b64) is str:
             b64 = b64.decode("utf8")
@@ -286,7 +291,7 @@ class DAVClient(object):
         
         if self.response is not None and hasattr(self.response, 'tree') is True:
             property_responses = {}
-            for response in self.response.tree._children:
+            for response in self.response.tree:
                 property_href = response.find('{DAV:}href')
                 property_stat = response.find('{DAV:}propstat')
                 
@@ -297,14 +302,14 @@ class DAVClient(object):
                             name = prop.tag.split('}')[-1]
                         else:
                             name = prop.tag
-                        if len(prop._children) is not 0:
-                            property_dict[name] = parse_props(prop._children)
+                        if len(list(prop)):
+                            property_dict[name] = parse_props(prop)
                         else:
                             property_dict[name] = prop.text
                     return property_dict
                 
                 if property_href is not None and property_stat is not None:
-                    property_dict = parse_props(property_stat.find('{DAV:}prop')._children)
+                    property_dict = parse_props(property_stat.find('{DAV:}prop'))
                     property_responses[property_href.text] = property_dict
             return property_responses
         
@@ -356,7 +361,8 @@ class DAVClient(object):
         locks = self.response.tree.findall('.//{DAV:}locktoken')
         lock_list = []
         for lock in locks:
-            lock_list.append(lock.getchildren()[0].text.strip().strip('\n'))
+            lock_list.append(lock[0].text.strip().strip('\n'))
+            # lock_list.append(lock.getchildren()[0].text.strip().strip('\n'))
         return lock_list
         
 
@@ -428,10 +434,10 @@ class DAVClient(object):
         if not hasattr(self.response, 'tree'):
             raise AppError("Bad response: not XML")
         responses = {}
-        for response in self.response.tree._children:
+        for response in self.response.tree:
             href = response.find('{DAV:}href')
             pstat = response.find('{DAV:}propstat')
-            if pstat:
+            if pstat is not None:
                 stat = pstat.find('{DAV:}status')
             else:
                 stat = response.find('{DAV:}status')

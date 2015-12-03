@@ -20,7 +20,6 @@ import unittest
 
 from wsgidav import compat
 from wsgidav import util
-from wsgidav.compat import to_unicode
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
@@ -76,7 +75,7 @@ class ServerTest(unittest.TestCase):
 
 
     def tearDown(self):
-        shutil.rmtree(to_unicode(self.rootpath))
+        shutil.rmtree(compat.to_unicode(self.rootpath))
         del self.app
 
 

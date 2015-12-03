@@ -251,8 +251,8 @@ def _initConfig():
         print("Configuration(%s):" % cmdLineOpts["config_file"])
         pprint(config)
 
-    if not useLxml and config["verbose"] >= 1:
-        print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
+    # if not useLxml and config["verbose"] >= 1:
+    #     print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
 
     # print "verbose #3: ", config.get("verbose")
 

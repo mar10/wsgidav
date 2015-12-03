@@ -84,9 +84,10 @@ Test cases
 """
 from __future__ import print_function
 
+import logging
+
 from wsgidav import compat
 
-import logging
 _benchmarks = [#"proppatch_many",
                #"proppatch_big",
                #"proppatch_deep",

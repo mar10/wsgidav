@@ -27,7 +27,6 @@ import time
 import urllib
 
 from wsgidav import compat
-from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
@@ -373,7 +372,7 @@ def toUnicode(s):
 
 def stringRepr(s):
     """Return a string as hex dump."""
-    if is_bytes(s):
+    if compat.is_bytes(s):
         res = "%r: " % s
         for b in s:
             if type(b) is str:  # Py2
@@ -745,7 +744,7 @@ def sendStatusResponse(environ, start_response, e):
     
     content_type, body = e.getResponsePage()            
 
-    assert is_bytes(body), body # If not, Content-Length is wrong!
+    assert compat.is_bytes(body), body # If not, Content-Length is wrong!
     start_response(status, [("Content-Type", content_type), 
                             ("Date", getRfc1123Time()),
                             ("Content-Length", str(len(body))),
@@ -764,7 +763,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
     xml_data = xmlToBytes(multistatusEL, pretty_print=False)
-    assert is_bytes(xml_data), xml_data # If not, Content-Length is wrong!
+    assert compat.is_bytes(xml_data), xml_data # If not, Content-Length is wrong!
     
     headers = [
         ("Content-Type", "application/xml"),
@@ -851,15 +850,15 @@ def addPropertyResponse(multistatusEL, href, propList):
 
 def calc_hexdigest(s):
     """Return md5 digest for a string."""
-    s = to_bytes(s)
+    s = compat.to_bytes(s)
     return md5(s).hexdigest()  # return native string
 
 
 def calc_base64(s):
     """Return base64 encoded binarystring."""
-    s = to_bytes(s)
+    s = compat.to_bytes(s)
     s = base64.encodestring(s).strip()  # return bytestring
-    return to_native(s)
+    return compat.to_native(s)
 
 
 def getETag(filePath):

@@ -85,7 +85,7 @@ import random
 import re
 import time
 
-from wsgidav.compat import to_bytes, to_native
+from wsgidav import compat
 from wsgidav.domain_controller import WsgiDAVDomainController
 from wsgidav.middleware import BaseMiddleware
 from wsgidav import util
@@ -214,7 +214,7 @@ class HTTPAuthenticator(BaseMiddleware):
         _logger.debug("401 Not Authorized for realm '%s' (basic)" % realmname)
         wwwauthheaders = "Basic realm=\"" + realmname + "\"" 
         
-        body = to_bytes(self.getErrorMessage())
+        body = compat.to_bytes(self.getErrorMessage())
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
@@ -232,8 +232,8 @@ class HTTPAuthenticator(BaseMiddleware):
         except:
             authvalue = ""
         # authvalue = authvalue.strip().decode("base64")
-        authvalue = base64.decodestring(to_bytes(authvalue))
-        authvalue = to_native(authvalue)
+        authvalue = compat.base64_decodebytes(compat.to_bytes(authvalue))
+        authvalue = compat.to_native(authvalue)
         username, password = authvalue.split(":", 1)
         
         if self._domaincontroller.authDomainUser(realmname, username, password, environ):
@@ -250,14 +250,14 @@ class HTTPAuthenticator(BaseMiddleware):
         etagkey = calc_hexdigest(environ["PATH_INFO"])
         timekey = str(time.time())  
         nonce_source = timekey + calc_hexdigest(timekey + ":" + etagkey + ":" + serverkey)
-        # nonce = to_native(base64.b64encode(to_bytes(nonce_source)))
+        # nonce = to_native(base64.b64encode(compat.to_bytes(nonce_source)))
         nonce = calc_base64(nonce_source)
         wwwauthheaders = ('Digest realm="%s", nonce="%s", algorithm="MD5", qop="auth"'
             % (realmname, nonce))
 
         _logger.debug("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
 
-        body = to_bytes(self.getErrorMessage())
+        body = compat.to_bytes(self.getErrorMessage())
 #        start_response("403 Forbidden", [("WWW-Authenticate", wwwauthheaders),
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
@@ -399,7 +399,7 @@ class HTTPAuthenticator(BaseMiddleware):
                 
     
     def md5h(self, data):
-        return md5(to_bytes(data)).hexdigest()
+        return md5(compat.to_bytes(data)).hexdigest()
         
     
     def md5kd(self, secret, data):

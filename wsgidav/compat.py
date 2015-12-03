@@ -45,6 +45,10 @@ except NameError:
 
 if PY2:
 
+    from base64 import decodestring as base64_decodebytes
+    from base64 import encodestring as base64_encodebytes
+    from cgi import escape as html_escape
+
     def is_basestring(s):
         """Return True for any string type, i.e. for str/unicode on Py2 and bytes/str on Py3."""
         return isinstance(s, basestring)
@@ -80,6 +84,10 @@ if PY2:
 
 else:   # Python 3
 
+    from base64 import decodebytes as base64_decodebytes
+    from base64 import encodebytes as base64_encodebytes
+    from html import escape as html_escape
+
     def is_basestring(s):
         """Return True for any string type, i.e. for str/unicode on Py2 and bytes/str on Py3."""
         return isinstance(s, (str, bytes))
@@ -104,8 +112,11 @@ else:   # Python 3
     
     def to_native(s, encoding="utf8"):
         """Convert data to native str type, i.e. bytestring on Py2 and unicode on Py3."""
-        if type(s) is not str:
+        # print("to_native", s)
+        if type(s) is bytes:
             s = str(s, encoding)
+        elif type(s) is not str:
+            s = str(s)
         return s 
 
     to_unicode = to_native

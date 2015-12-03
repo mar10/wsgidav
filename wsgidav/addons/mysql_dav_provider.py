@@ -68,7 +68,6 @@ import csv
 import MySQLdb  #@UnresolvedImport
 
 from wsgidav import compat
-from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\

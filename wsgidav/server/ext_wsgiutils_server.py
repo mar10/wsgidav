@@ -79,10 +79,9 @@ except ImportError:
 
 from wsgidav import __version__
 from wsgidav import compat
-from wsgidav.compat import is_bytes, is_native, is_unicode, to_bytes, to_native, to_unicode
 from wsgidav import util
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.getModuleLogger(__name__, True)
 
 SERVER_ERROR = """\
 <html>
@@ -159,7 +158,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
     def runWSGIApp (self, application, scriptName, pathInfo, query):
-        logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
+        # logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
         
         if self.command == "PUT":
             pass # breakpoint
@@ -204,7 +203,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 _logger.debug("runWSGIApp finally.")
                 if hasattr(result, "close"):
                     result.close()
-        except:
+        except Exception:
             _logger.debug("runWSGIApp caught exception...")
             errorMsg = compat.StringIO()
             traceback.print_exc(file=errorMsg)
@@ -217,7 +216,7 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             # GC issue 29 sending one byte, when content-length is '0' seems wrong
             # We must write out something!
 #            self.wsgiWriteData (" ")
-            self.wsgiWriteData("")
+            self.wsgiWriteData(b"")
         return
 
     def wsgiStartResponse (self, response_status, response_headers, exc_info=None):
@@ -242,10 +241,11 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.wsgiSentHeaders = 1
         # Send the data
         # assert type(data) is str # If not, Content-Length is propably wrong!
-        _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), data[:50]))
+        _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), to_native(data[:50])))
         if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
-            print("ext_wsgiutils_server: Got unicode data: %s" % data)
-            data = compat.wsgi_to_bytes(data)
+            print("ext_wsgiutils_server: Got unicode data: %r" % data)
+            # data = compat.wsgi_to_bytes(data)
+            data = compat.to_bytes(data)
 
         try:
             self.wfile.write(data)
@@ -293,7 +293,7 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         
 #        # Flag stop request
         self.stop_request = True
-        time.sleep(.01)
+        time.sleep(.1)
         if self.stopped:
 #            print "stop_serve_forever() 'stopped'."
             return
