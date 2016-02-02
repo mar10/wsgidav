@@ -59,7 +59,7 @@ Project home: https://github.com/mar10/wsgidav/
 #      platforms=["Unix", "Windows"],
       license = "The MIT License",
 #      install_requires = ["lxml"],
-      packages = find_packages(exclude=[]),
+      packages = find_packages(exclude=['tests']),
       py_modules = ["ez_setup", ],
 
 #      package_data={"": ["*.txt", "*.html", "*.conf"]},
