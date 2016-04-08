@@ -209,7 +209,7 @@ class FolderResource(DAVCollection):
         # self._filePath is unicode, so os.listdir returns unicode as well
         assert compat.is_unicode(self._filePath)
         for name in os.listdir(self._filePath):
-            if not is_unicode(name):
+            if not compat.is_unicode(name):
                 name = name.decode(sys.getfilesystemencoding())
             assert compat.is_unicode(name)
             # Skip non files (links and mount points)
