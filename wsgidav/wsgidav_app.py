@@ -88,6 +88,7 @@ DEFAULT_CONFIG = {
     "acceptbasic": True,      # Allow basic authentication, True or False
     "acceptdigest": True,     # Allow digest authentication, True or False
     "defaultdigest": True,    # True (default digest) or False (default basic)
+    "trusted_auth_header": None,  # Name of a header field that will be accepted as authorized user
 
     # Error printer options
     "catchall": False,
