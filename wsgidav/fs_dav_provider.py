@@ -120,7 +120,7 @@ class FileResource(DAVNonCollection):
         """See DAVResource.copyMoveSingle() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath)
+        fpDest = self.provider._locToFilePath(destPath, self.environ)
         assert not util.isEqualOrChildUri(self.path, destPath)
         # Copy file (overwrite, if exists)
         shutil.copy2(self._filePath, fpDest)
@@ -145,7 +145,7 @@ class FileResource(DAVNonCollection):
         """See DAVResource.moveRecursive() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath)
+        fpDest = self.provider._locToFilePath(destPath, self.environ)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
         _logger.debug("moveRecursive(%s, %s)" % (self._filePath, fpDest))
@@ -255,7 +255,7 @@ class FolderResource(DAVCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         path = util.joinUri(self.path, name)
-        fp = self.provider._locToFilePath(path)
+        fp = self.provider._locToFilePath(path, self.environ)
         f = open(fp, "wb")
         f.close()
         return self.provider.getResourceInst(path, self.environ)
@@ -270,7 +270,7 @@ class FolderResource(DAVCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         path = util.joinUri(self.path, name)
-        fp = self.provider._locToFilePath(path)
+        fp = self.provider._locToFilePath(path, self.environ)
         os.mkdir(fp)
 
 
@@ -290,7 +290,7 @@ class FolderResource(DAVCollection):
         """See DAVResource.copyMoveSingle() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath)
+        fpDest = self.provider._locToFilePath(destPath, self.environ)
         assert not util.isEqualOrChildUri(self.path, destPath)
         # Create destination collection, if not exists
         if not os.path.exists(fpDest):
@@ -321,7 +321,7 @@ class FolderResource(DAVCollection):
         """See DAVResource.moveRecursive() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath)
+        fpDest = self.provider._locToFilePath(destPath, self.environ)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
         _logger.debug("moveRecursive(%s, %s)" % (self._filePath, fpDest))
@@ -369,8 +369,11 @@ class FilesystemProvider(DAVProvider):
                                           self.rootFolderPath, rw)
 
 
-    def _locToFilePath(self, path):
-        """Convert resource path to a unicode absolute file path."""
+    def _locToFilePath(self, path, environ=None):
+        """Convert resource path to a unicode absolute file path.
+        Optional environ argument may be useful e.g. in relation to per-user
+        sub-folder chrooting inside rootFolderPath.
+        """
         assert self.rootFolderPath is not None
         pathInfoParts = path.strip("/").split("/")
 
@@ -378,7 +381,7 @@ class FilesystemProvider(DAVProvider):
         if not r.startswith(self.rootFolderPath):
             raise RuntimeError("Security exception: tried to access file outside root.")
         r = util.toUnicode(r)
-#        print "_locToFilePath(%s): %s" % (path, r)
+#        print "_locToFilePath(%s, %s): %s" % (path, environ, r)
         return r
 
 
@@ -391,7 +394,7 @@ class FilesystemProvider(DAVProvider):
         See DAVProvider.getResourceInst()
         """
         self._count_getResourceInst += 1
-        fp = self._locToFilePath(path)
+        fp = self._locToFilePath(path, environ)
         if not os.path.exists(fp):
             return None
 
