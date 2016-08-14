@@ -5,6 +5,7 @@ CHANGES
 1.2.1 / Unreleased
 ==================
 - #19: Add configurable support for setting last modified file/directory timestamps
+- #32: Fix invalid digest authentication header
 
 1.2.0 / 2015-05-14
 ==================

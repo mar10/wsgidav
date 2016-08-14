@@ -250,7 +250,7 @@ class HTTPAuthenticator(BaseMiddleware):
         timekey = str(time.time())  
         nonce = base64.b64encode(timekey + md5(timekey + ":" + etagkey + ":" + serverkey).hexdigest())
         wwwauthheaders = "Digest realm=\"" + realmname + "\", nonce=\"" + nonce + \
-            "\", algorithm=\"MD5\", qop=\"auth\""                 
+            "\", algorithm=MD5, qop=\"auth\""                 
         _logger.debug("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
 
         body = self.getErrorMessage()
