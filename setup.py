@@ -9,14 +9,10 @@ import sys
 # revision (set to True for real releases)
 # RELEASE = False
 
-# from wsgidav.version import __version__
-
-# from ez_setup import use_setuptools
-# use_setuptools()
-# from setuptools import setup, find_packages
-
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
+
+from wsgidav._version import __version__
 
 
 # Override 'setup.py test' command
@@ -59,13 +55,6 @@ except ImportError:
     print("See https://pypi.python.org/pypi/cx_Freeze")
     executables = []
 
-# Get description and __version__ without using import
-readme = open("readme_pypi.rst", "rt").read()
-
-g_dict = {}
-exec(open("wsgidav/_version.py").read(), g_dict)
-version = g_dict["__version__"]
-
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
 if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
@@ -102,14 +91,20 @@ bdist_msi_options = {
 
 
 setup(name="WsgiDAV",
-      version = version,
+      version = __version__,
       author = "Martin Wendt, Ho Chun Wei",
       author_email = "wsgidav@wwwendt.de",
       maintainer = "Martin Wendt",
       maintainer_email = "wsgidav@wwwendt.de",
       url = "https://github.com/mar10/wsgidav/",
       description = "Generic WebDAV server based on WSGI",
-      long_description = readme,
+      long_description = """\
+WsgiDAV is a WebDAV server for sharing files and other resources over the web.
+It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
+It comes bundled with a simple WSGI web server.
+*This package is based on PyFileServer by Ho Chun Wei.*
+Project home: https://github.com/mar10/wsgidav/
+""",
 
         #Development Status :: 2 - Pre-Alpha
         #Development Status :: 3 - Alpha
@@ -136,11 +131,11 @@ setup(name="WsgiDAV",
 #      platforms=["Unix", "Windows"],
       license = "The MIT License",
 #      install_requires = ["lxml"],
-      # packages = find_packages(exclude=[]),
+      packages = find_packages(exclude=[]),
       install_requires = install_requires,
       setup_requires = setup_requires,
       tests_require = tests_require,
-      py_modules = [#"ez_setup", 
+      py_modules = [#"ez_setup",
                     ],
 
 #      package_data={"": ["*.txt", "*.html", "*.conf"]},
