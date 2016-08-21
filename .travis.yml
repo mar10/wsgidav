@@ -1,19 +1,9 @@
-language: python
-python: 2.7
-env:
-#  - TOX_ENV=py26
-  - TOX_ENV=py27
-#  - TOX_ENV=py32
-  - TOX_ENV=py33
-  - TOX_ENV=py34
-  - TOX_ENV=py35
-#  - TOX_ENV=docs
 sudo: false
-install:
-  - pip install tox
-  - pip install Paste
-#  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install unittest2; fi
-script:
-  - tox -e $TOX_ENV
-#  - nosetests -v --exclude test_litmus
-#  - nosetests --tests=test/test_flow.py
+language: python
+python:
+    - "2.7"
+    - "3.3"
+    - "3.4"
+    - "3.5"
+install: pip install tox-travis
+script: tox
