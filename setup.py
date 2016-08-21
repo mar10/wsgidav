@@ -55,6 +55,16 @@ except ImportError:
     print("See https://pypi.python.org/pypi/cx_Freeze")
     executables = []
 
+# TODO: 2016-08-21: remove this comments if setup release run successfully
+# g_dict = {}
+# exec(open("wsgidav/_version.py").read(), g_dict)
+# version = g_dict["__version__"]
+
+try:
+  readme = open("readme_pypi.rst", "rt").read()
+except IOError:
+  readme = "(readme_pypi.rst not found. Running from tox/setup.py test?)"
+
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
 if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
@@ -98,13 +108,14 @@ setup(name="WsgiDAV",
       maintainer_email = "wsgidav@wwwendt.de",
       url = "https://github.com/mar10/wsgidav/",
       description = "Generic WebDAV server based on WSGI",
-      long_description = """\
-WsgiDAV is a WebDAV server for sharing files and other resources over the web.
-It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
-It comes bundled with a simple WSGI web server.
-*This package is based on PyFileServer by Ho Chun Wei.*
-Project home: https://github.com/mar10/wsgidav/
-""",
+      long_description = readme,
+#       long_description = """\
+# WsgiDAV is a WebDAV server for sharing files and other resources over the web.
+# It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
+# It comes bundled with a simple WSGI web server.
+# *This package is based on PyFileServer by Ho Chun Wei.*
+# Project home: https://github.com/mar10/wsgidav/
+# """,
 
         #Development Status :: 2 - Pre-Alpha
         #Development Status :: 3 - Alpha
