@@ -718,7 +718,7 @@ class _DAVResource(object):
         A resource provider may override this method, to update supported custom 
         live properties. 
         """
-        assert value is None or isinstance(value, (etree._Element))
+        assert value is None or isinstance(value, (etree.Element))
 
         if propname in _lockPropertyNames:
             # Locking properties are always read-only

@@ -833,7 +833,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         for name, value in propDict[status]:
             if value is None:
                 etree.SubElement(propEL, name)
-            elif isinstance(value, etree._Element):
+            elif isinstance(value, etree.Element):
                 propEL.append(value)
             else:
                 # value must be string or unicode
