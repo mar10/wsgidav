@@ -9,7 +9,6 @@ from __future__ import print_function
 # from multiprocessing.process import Process
 from multiprocessing import Process
 import os
-import pytest
 import subprocess
 import sys
 from tempfile import gettempdir
@@ -80,8 +79,8 @@ def run_wsgidav_server(with_auth, with_ssl):
 # WsgiDAVServerTest
 #===============================================================================
 
-# @unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
-@pytest.mark.skipif(os.environ.get("TRAVIS") == "true", reason="Skipping litmus suite on Travis")
+# @pytest.mark.skipif(os.environ.get("TRAVIS") == "true", reason="Skipping litmus suite on Travis")
+@unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Test the built-in WsgiDAV server with cadaver."""
 
@@ -107,7 +106,10 @@ class WsgiDAVLitmusTest(unittest.TestCase):
             time.sleep(1)
 
             try:
-                res = subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"],
+                print("* "*20, file=sys.stderr)
+                print("ENVIRON", os.environ, file=sys.stderr)
+                print("TRAVIS", os.environ.get("TRAVIS"), file=sys.stderr)
+                res = subprocess.call(["litmus2", "http://127.0.0.1:8080/", "tester", "secret"],
                                       # stdout=sys.stdout, stderr=sys.stderr
                                       )
                 self.assertEqual(res, 0, "litmus suite failed: check the log")
