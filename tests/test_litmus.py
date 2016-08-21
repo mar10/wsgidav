@@ -79,6 +79,7 @@ def run_wsgidav_server(with_auth, with_ssl):
 # WsgiDAVServerTest
 #===============================================================================
 
+@unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Test the built-in WsgiDAV server with cadaver."""
 
