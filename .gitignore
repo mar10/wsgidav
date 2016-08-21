@@ -1,5 +1,6 @@
 .cache
 .coverage
+.eggs
 .tox
 doc/sphinx/_build
 doc/sphinx-api/

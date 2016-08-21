@@ -705,7 +705,7 @@ def parseXmlBody(environ, allowEmpty=False):
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
         write("%s XML request body:\n%s" % (environ["REQUEST_METHOD"], 
-                                            to_native(xmlToBytes(rootEL, pretty_print=True))))
+                                            compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -756,7 +756,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # If logging of the body is desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
-                                             to_native(xmlToBytes(multistatusEL, pretty_print=True)))
+                                             compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
         environ["wsgidav.dump_response_body"] = xml 
         
     # Hotfix for Windows XP 
