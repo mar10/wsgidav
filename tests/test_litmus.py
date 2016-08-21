@@ -9,6 +9,7 @@ from __future__ import print_function
 # from multiprocessing.process import Process
 from multiprocessing import Process
 import os
+import pytest
 import subprocess
 import sys
 from tempfile import gettempdir
@@ -80,7 +81,7 @@ def run_wsgidav_server(with_auth, with_ssl):
 #===============================================================================
 
 # @unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
-@pytest.mark.skipif(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
+@pytest.mark.skipif(os.environ.get("TRAVIS") == "true", reason="Skipping litmus suite on Travis")
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Test the built-in WsgiDAV server with cadaver."""
 
