@@ -54,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'WsgiDAV'
-copyright = u'2009-2015 Martin Wendt, 2005 Ho Chun Wei'
+copyright = u'2009-2016 Martin Wendt, 2005 Ho Chun Wei'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -286,7 +286,7 @@ texinfo_documents = [
 epub_title = u'WsgiDAV'
 epub_author = u'Martin Wendt'
 epub_publisher = u'Martin Wendt'
-epub_copyright = u'2009-2015, Martin Wendt'
+epub_copyright = u'2009-2016, Martin Wendt'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = u'wsgidav'
