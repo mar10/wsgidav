@@ -146,6 +146,7 @@ class HTTPAuthenticator(BaseMiddleware):
         self._acceptbasic = config.get("acceptbasic", True)
         self._acceptdigest = config.get("acceptdigest", True)
         self._defaultdigest = config.get("defaultdigest", True)
+        self._trusted_auth_header = config.get("trusted_auth_header", None)
         self._noncedict = dict([])
 
         self._headerparser = re.compile(r"([\w]+)=([^,]*),")
@@ -183,6 +184,14 @@ class HTTPAuthenticator(BaseMiddleware):
             environ["http_authenticator.username"] = ""
             return self._application(environ, start_response)
         
+        if self._trusted_auth_header and environ.get(self._trusted_auth_header):
+            # accept a username that was injected by a trusted upstream server
+            _logger.debug("Accept trusted username %s='%s'for realm '%s'"
+                % (self._trusted_auth_header, environ.get(self._trusted_auth_header), realmname))
+            environ["http_authenticator.realm"] = realmname
+            environ["http_authenticator.username"] = environ.get(self._trusted_auth_header)
+            return self._application(environ, start_response)
+
         if "HTTP_AUTHORIZATION" in environ:
             authheader = environ["HTTP_AUTHORIZATION"] 
             authmatch = self._headermethod.search(authheader)          
