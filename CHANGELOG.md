@@ -2,10 +2,16 @@
 CHANGES
 =======
 
-1.2.1 / Unreleased
+1.3.0 / 2016-08-24
 ==================
-- #19: Add configurable support for setting last modified file/directory timestamps
-- #32: Fix invalid digest authentication header
+- #19: Add option `mutable_live_props` to support setting last modified file/directory timestamps
+  (Jonas Bardino)
+- #23: Fix Windows file manager and OSX Finder fails on file names with comma (Jonas Bardino)
+- #27: Do not install tests (Erich Seifert)
+- #28: New option `trusted_auth_header` allows reverse proxy authentication (Mageti)
+- #30: API change to allow much easier per-user chrooting (Jonas Bardino)
+- #32: Fix digest authentication rejected due to invalid header (Adrian Crețu)
+
 
 1.2.0 / 2015-05-14
 ==================
