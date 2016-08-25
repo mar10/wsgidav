@@ -21,10 +21,14 @@ Valid options are (sample shows defaults)::
             }
 
 """
-from wsgidav import util
-import couchdb
-from urllib import quote
+from __future__ import print_function
+
 from uuid import uuid4
+
+import couchdb
+
+from wsgidav import compat
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -156,7 +160,7 @@ class CouchPropertyManager(object):
         else:
             doc = {"_id": uuid4().hex,  # Documentation suggests to set the id
                    "url": normurl,
-                   "title": quote(normurl),
+                   "title": compat.quote(normurl),
                    "type": "properties",
                    "properties": {propname: propertyvalue}
                    }
@@ -190,7 +194,7 @@ class CouchPropertyManager(object):
         assert not self._find(destUrl)
         doc2 = {"_id": uuid4().hex,
                 "url": destUrl,
-                "title": quote(destUrl),
+                "title": compat.quote(destUrl),
                 "type": "properties",
                 "properties": doc["properties"],
                 }

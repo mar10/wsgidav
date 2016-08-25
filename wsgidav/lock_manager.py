@@ -37,14 +37,18 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 from pprint import pprint
-from dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
-from wsgidav.dav_error import DAVErrorCondition
 import sys
-import util
 import random
 import time
-from rw_lock import ReadWriteLock
+
+from wsgidav import compat
+from wsgidav.dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
+from wsgidav.dav_error import DAVErrorCondition
+from wsgidav.rw_lock import ReadWriteLock
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -56,14 +60,13 @@ _logger = util.getModuleLogger(__name__)
 #===============================================================================
 
 def generateLockToken():
-    return "opaquelocktoken:" + str(hex(random.getrandbits(256)))
+    return "opaquelocktoken:" + compat.to_native(hex(random.getrandbits(256)))
 
 
 def normalizeLockRoot(path):
     # Normalize root: /foo/bar
     assert path
-    if type(path) is unicode:
-        path = path.encode("utf-8") 
+    path = compat.to_native(path)
     path = "/" + path.strip("/")
     return path
 
@@ -95,18 +98,18 @@ def lockString(lockDict):
 
 
 def validateLock(lock):
-    assert type(lock["root"]) is str
+    assert compat.is_native(lock["root"])
     assert lock["root"].startswith("/")
     assert lock["type"] == "write"
     assert lock["scope"] in ("shared", "exclusive")
     assert lock["depth"] in ("0", "infinity")
-    assert type(lock["owner"]) is str
+    assert compat.is_bytes(lock["owner"]), lock  # XML bytestring
     # raises TypeError:
     timeout = float(lock["timeout"])
     assert timeout > 0 or timeout == -1, "timeout must be positive or -1"
-    assert type(lock["principal"]) is str
+    assert compat.is_native(lock["principal"])
     if "token" in lock:
-        assert type(lock["token"]) is str
+        assert compat.is_native(lock["token"])
 
     
 #===============================================================================
@@ -147,7 +150,7 @@ class LockManager(object):
         userDict = {} # { <LOCKUSER>: [<tokenlist>] }
         tokenDict = {} # { <token>: <LOCKURLS> } 
         
-        print >>out, "%s: %s" % (self, msg)
+        print("%s: %s" % (self, msg), file=out)
         
         for lock in self.storage.getLockList("/", includeRoot=True, 
                                              includeChildren=True, 
@@ -161,14 +164,14 @@ class LockManager(object):
 #            assert ("URL2TOKEN:" + v["root"]) in self._dict, "Inconsistency: missing URL2TOKEN:%s" % v["root"]
 #            assert v["token"] in self._dict["URL2TOKEN:" + v["root"]], "Inconsistency: missing token %s in URL2TOKEN:%s" % (v["token"], v["root"])
                 
-        print >>out, "Locks:" 
+        print("Locks:", file=out)
         pprint(tokenDict, indent=0, width=255)
         if tokenDict:
-            print >>out, "Locks by URL:" 
+            print("Locks by URL:", file=out)
             pprint(urlDict, indent=4, width=255, stream=out)
-            print >>out, "Locks by principal:" 
+            print("Locks by principal:", file=out)
             pprint(userDict, indent=4, width=255, stream=out)
-            print >>out, "Locks by owner:" 
+            print("Locks by owner:", file=out)
             pprint(ownerDict, indent=4, width=255, stream=out)
 
 
@@ -433,6 +436,7 @@ class LockManager(object):
 
         @return: None or raise error
         """
+        assert compat.is_native(url)
         assert depth in ("0", "infinity")
         _logger.debug("checkWritePermission(%s, %s, %s, %s)" % (url, depth, tokenList, principal))
 

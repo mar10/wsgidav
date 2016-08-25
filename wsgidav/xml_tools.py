@@ -8,15 +8,14 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
 import sys
 
 __docformat__ = "reStructuredText"
 
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from wsgidav import compat
 
 # Import XML support
 useLxml = False
@@ -24,17 +23,9 @@ try:
     from lxml import etree
     useLxml = True
 except ImportError:
-    try:    
-        # Try xml module (Python 2.5 or later) 
-        from xml.etree import ElementTree as etree
-        # print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
-    except ImportError:
-        try:
-            # Try elementtree (http://effbot.org/zone/element-index.htm) 
-            from elementtree import ElementTree as etree
-        except ImportError:
-            print "ERROR: Could not import lxml, xml, nor elementtree. Consider installing lxml from http://codespeak.net/lxml/ or update to Python 2.5 or later."
-            raise
+    # Try xml module (Python 2.5 or later) 
+    from xml.etree import ElementTree as etree
+    print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
 
 
 #===============================================================================
@@ -45,7 +36,7 @@ def stringToXML(text):
     """Convert XML string into etree.Element."""
     try:
         return etree.XML(text)
-    except Exception, e:
+    except Exception:
         # TODO:
         # ExpatError: reference to invalid character number: line 1, column 62
         # litmus fails, when xml is used instead of lxml
@@ -53,11 +44,12 @@ def stringToXML(text):
         # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
 #        t2 = text.encode("utf8")
 #        return etree.XML(t2)
-        print >>sys.stderr, "Error parsing XML string. If lxml is not available, and unicode is involved, then installing it _may_ solve this issue."
+        print("Error parsing XML string. If lxml is not available, and unicode is involved, then installing lxml _may_ solve this issue.", file=sys.stderr)
+        print("XML source:", text, file=sys.stderr)
         raise
 
 
-def xmlToString(element, pretty_print=False):
+def xmlToBytes(element, pretty_print=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print 
     option and prepends an encoding header."""
     if useLxml:
@@ -66,8 +58,11 @@ def xmlToString(element, pretty_print=False):
                              xml_declaration=True, 
                              pretty_print=pretty_print)
     else:
-        xml = etree.tostring(element, "UTF-8")
-    assert xml.startswith("<?xml ") 
+        xml = etree.tostring(element, encoding="UTF-8")
+        if not xml.startswith(b"<?xml "):
+            xml = b'<?xml version="1.0" encoding="utf-8" ?>\n' + xml
+
+    assert xml.startswith(b"<?xml ")  # ET should prepend an encoding header
     return xml
 
 
@@ -101,9 +96,9 @@ def elementContentAsString(element):
     """
     if len(element) == 0:
         return element.text or ""  # Make sure, None is returned as '' 
-    stream = StringIO()
+    stream = compat.StringIO()
     for childnode in element:
-        print >>stream, xmlToString(childnode, pretty_print=False)
+        print(xmlToBytes(childnode, pretty_print=False), file=stream)
     s = stream.getvalue()
     stream.close()
     return s

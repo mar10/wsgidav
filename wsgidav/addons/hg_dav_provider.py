@@ -71,22 +71,17 @@ Requirements:
     from here: http://mercurial.berkwood.com/
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 """
-from pprint import pprint
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
-import os
-from wsgidav.samples.dav_provider_tools import VirtualCollection
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
-import time
-import sys
-#import mimetypes
+from __future__ import print_function
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
+from hashlib import md5
+import os
+from pprint import pprint
+import sys
+import time
+
+from wsgidav import compat
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+from wsgidav.samples.dav_provider_tools import VirtualCollection
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 
@@ -96,7 +91,7 @@ try:
     from mercurial import commands, hg
     #from mercurial import util as hgutil 
 except ImportError:
-    print >>sys.stderr, "Could not import Mercurial API. Try 'easy_install -U mercurial'."
+    print("Could not import Mercurial API. Try 'easy_install -U mercurial'.", file=sys.stderr)
     raise
 
 __docformat__ = "reStructuredText en"
@@ -176,7 +171,7 @@ class HgResource(_DAVResource):
         return "%s@%s" % (self.name, self.fctx.filerev())
     
     def getEtag(self):
-        return md5(self.path).hexdigest() + "-" + str(self.getLastModified()) + "-" + str(self.getContentLength())
+        return md5(self.path).hexdigest() + "-" + to_native(self.getLastModified()) + "-" + str(self.getContentLength())
     
     def getLastModified(self):
         if self.isCollection:
@@ -189,7 +184,7 @@ class HgResource(_DAVResource):
     
     def getMemberNames(self):
         assert self.isCollection
-        cache = self.environ["wsgidav.hg.cache"][str(self.rev)]
+        cache = self.environ["wsgidav.hg.cache"][to_native(self.rev)]
         dirinfos = cache["dirinfos"] 
         if not dirinfos.has_key(self.localHgPath):
             return []
@@ -234,15 +229,15 @@ class HgResource(_DAVResource):
             return self.fctx.branch()
         elif propname == "{hg:}date":
             # (secs, tz-ofs)
-            return str(self.fctx.date()[0])
+            return to_native(self.fctx.date()[0])
         elif propname == "{hg:}description":
             return self.fctx.description()
         elif propname == "{hg:}filerev":
-            return str(self.fctx.filerev())
+            return to_native(self.fctx.filerev())
         elif propname == "{hg:}rev":
-            return str(self.fctx.rev())
+            return to_native(self.fctx.rev())
         elif propname == "{hg:}user":
-            return str(self.fctx.user())
+            return to_native(self.fctx.user())
         
         # Let base class implementation report live and dead properties
         return super(HgResource, self).getPropertyValue(propname)
@@ -302,7 +297,7 @@ class HgResource(_DAVResource):
         """
         assert not self.isCollection
         d = self.fctx.data()
-        return StringIO(d)
+        return compat.StringIO(d)
     
     def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
@@ -407,7 +402,7 @@ class HgResourceProvider(DAVProvider):
     def __init__(self, repoRoot):
         super(HgResourceProvider, self).__init__()
         self.repoRoot = repoRoot
-        print "Mercurial version %s" % hgversion
+        print("Mercurial version %s" % hgversion)
         self.ui = mercurial.ui.ui()
         self.repo = hg.repository(self.ui, repoRoot)
         self.ui.status("Connected to repository %s\n" % self.repo.root)
@@ -416,7 +411,7 @@ class HgResourceProvider(DAVProvider):
         # Some commands (remove) seem to expect cwd set to the repo
         # TODO: try to go along without this, because it prevents serving
         #       multiple repos. Instead pass absolute paths to the commands. 
-#        print os.getcwd()
+#        print(os.getcwd())
         os.chdir(self.repo.root)
 
         # Verify integrity of the repository
@@ -424,20 +419,20 @@ class HgResourceProvider(DAVProvider):
         commands.verify(self.ui, self.repo)
         
 #        self.ui.status("Changelog: %s\n" % self.repo.changelog)
-        print "Status:"
+        print("Status:")
         pprint(self.repo.status())
         self.repo.ui.status("the default username to be used in commits: %s\n" % self.repo.ui.username())
 #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
         self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
         
-        print "Working directory state summary:"
+        print("Working directory state summary:")
         self.ui.pushbuffer()
         commands.summary(self.ui, self.repo, remote=False)
         res = self.ui.popbuffer().strip()
         reslines = [ tuple(line.split(":", 1)) for line in res.split("\n")]
         pprint(reslines)
 
-        print "Repository state summary:"
+        print("Repository state summary:")
         self.ui.pushbuffer()
         commands.identify(self.ui, self.repo, 
                           num=True, id=True, branch=True, tags=True)
@@ -513,9 +508,9 @@ class HgResourceProvider(DAVProvider):
                            }
         """
         caches = environ.setdefault("wsgidav.hg.cache", {})
-        if caches.get(str(rev)) is not None:
+        if caches.get(to_native(rev)) is not None:
             util.debug("_getRepoInfo(%s): cache hit." % rev)
-            return caches[str(rev)]
+            return caches[to_native(rev)]
 
         start_time = time.time()
         self.ui.pushbuffer()
@@ -549,7 +544,7 @@ class HgResourceProvider(DAVProvider):
                  "dirinfos": dirinfos,
                  "filedict": filedict,
                  }
-        caches[str(rev)] = cache
+        caches[to_native(rev)] = cache
         util.note("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time)
 #                  , var=cache
                   )
@@ -560,7 +555,7 @@ class HgResourceProvider(DAVProvider):
 #        """Return a list of all non-collection members"""
 #        # Pattern for direct members:
 #        glob = "glob:" + os.path.join(path, "*").lstrip("/")
-##        print glob
+##        print(glob)
 #        self.ui.pushbuffer()
 #        commands.status(self.ui, self.repo,
 #                        glob, 
@@ -596,7 +591,7 @@ class HgResourceProvider(DAVProvider):
             if rest == "/":
                 # Browse /archive: return a list of revision folders:
                 loglist = self._getLog(limit=10)
-                members = [ str(l["local_id"])  for l in loglist ] 
+                members = [ to_native(l["local_id"])  for l in loglist ] 
                 return VirtualCollection(path, environ, "Revisions", members)
             revid, rest = util.popPath(rest)
             try:

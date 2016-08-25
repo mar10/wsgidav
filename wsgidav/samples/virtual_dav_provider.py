@@ -95,19 +95,18 @@ When accessed using WebDAV, the following URLs both return the same resource
     <share>/by_tag/hot/My doc 1
     <share>/by_key/1
 """
-import urllib
-import stat
+from __future__ import print_function
+
 import os
-#import mimetypes
-from wsgidav.util import joinUri
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
+import stat
+import urllib
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, DAVNonCollection, DAVCollection
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
     PRECONDITION_CODE_ProtectedProperty
 from wsgidav import util
+from wsgidav.util import joinUri
 
 __docformat__ = "reStructuredText en"
 
@@ -338,7 +337,7 @@ class VirtualResource(DAVCollection):
 
     def getRefUrl(self):
         refPath = "/by_key/%s" % self.data["key"] 
-        return urllib.quote(self.provider.sharePath + refPath)
+        return compat.quote(self.provider.sharePath + refPath)
     
     def getPropertyNames(self, isAllProp):
         """Return list of supported property names in Clark Notation.
@@ -453,7 +452,7 @@ class VirtualArtifact(_VirtualNonCollection):
 
     def getRefUrl(self):
         refPath = "/by_key/%s/%s" % (self.data["key"], self.name)
-        return urllib.quote(self.provider.sharePath + refPath)
+        return compat.quote(self.provider.sharePath + refPath)
  
     def getContent(self):
         fileLinks = [ "<a href='%s'>%s</a>\n" % (os.path.basename(f), f) for f in self.data["resPathList"] ]
@@ -503,7 +502,7 @@ class VirtualArtifact(_VirtualNonCollection):
             html = self.data["description"]
         else:
             raise DAVError(HTTP_INTERNAL_ERROR, "Invalid artifact '%s'" % self.name)
-        return StringIO(html)
+        return compat.StringIO(html)
 
 
 #===============================================================================
@@ -540,7 +539,7 @@ class VirtualResFile(_VirtualNonCollection):
 
     def getRefUrl(self):
         refPath = "/by_key/%s/%s" % (self.data["key"], os.path.basename(self.filePath))
-        return urllib.quote(self.provider.sharePath + refPath)
+        return compat.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
         mime = self.getContentType()

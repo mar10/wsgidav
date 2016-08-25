@@ -1,0 +1,51 @@
+# Contribution Guideline
+## Setup for Contributors
+
+We need [Python 2.7](https://www.python.org/downloads/), [Python 3.3+](https://www.python.org/downloads/), and [pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) on our system:
+
+Also virtualenv, virtualenvwrapper (may require sudo):
+
+```
+$ pip install virtualenv virtualenvwrapper
+```
+
+Then clone wsgidav to a local folder and checkout the branch you want to work on:
+
+```
+$ git clone git@github.com:mar10/wsgidav.git
+$ cd wsgidav
+$ git checkout py3
+```
+
+Setup a virtual environment with a specific Python version for development and 
+testing.
+`-p` chooses the desired python version.
+The `-a .` option associates the `wsgidav` source folder with the environment,
+so we will change to this directory when `workon` is called.
+
+For example Python 3.4
+```
+$ mkvirtualenv wsgidav3_py34 -p /Library/Frameworks/Python.framework/Versions/3.4/bin/python3.4 -a .
+```
+
+The new environment should now exist and can be activated.
+Now install the development dependencies into that environemt:
+```
+$ workon wsgidav3_py34
+(wsgidav3_py34) $ pip install -r requirements-dev.txt
+```
+
+Finally install wsgidav to the environment in a debuggable version
+```
+(wsgidav3_py34) $ python setup.py develop
+(wsgidav3_py34) $ wsgidav --version
+(wsgidav3_py34) $ 1.3.0pre1
+```
+
+The test suite should run as well:
+```
+(wsgidav3_py34) $ python setup.py test
+```
+
+Happy hacking :)
+

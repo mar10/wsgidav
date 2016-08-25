@@ -23,16 +23,17 @@ Valid options are (sample shows defaults)::
             }
 
 """
+from __future__ import print_function
+
+from pprint import pformat
+
+import pymongo
+from bson.objectid import ObjectId
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 from wsgidav import util
-import pymongo
 from wsgidav.util import joinUri
-from pprint import pformat
-from bson.objectid import ObjectId
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
 
 __docformat__ = "reStructuredText"
 
@@ -86,7 +87,7 @@ class CollCollection(DAVCollection):
     def getMemberNames(self):
         res = []
         for doc in self.coll.find():
-            res.append(str(doc["_id"]))
+            res.append(to_native(doc["_id"]))
         return res
     
     def getMember(self, name):
@@ -101,7 +102,7 @@ class DocResource(DAVNonCollection):
         self.doc = doc
     def getContent(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
-        return StringIO(html.encode("utf8"))
+        return compat.StringIO(html.encode("utf8"))
     def getContentLength(self):
         return len(self.getContent().read())
     def getContentType(self):
@@ -113,8 +114,8 @@ class DocResource(DAVNonCollection):
         elif doc.get("title"):
             return doc["title"].encode("utf8")
         elif doc.get("_id"):
-            return str(doc["_id"])
-        return str(doc["key"])
+            return to_native(doc["_id"])
+        return to_native(doc["key"])
     def getDisplayInfo(self):
         return {"type": "Mongo document"}
 

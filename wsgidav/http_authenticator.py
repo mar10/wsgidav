@@ -77,19 +77,21 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
-__docformat__ = "reStructuredText"
+from __future__ import print_function
 
-import random
 import base64
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
-import time
+from hashlib import md5
+import random
 import re
-import util
-from domain_controller import WsgiDAVDomainController
-from middleware import BaseMiddleware
+import time
+
+from wsgidav import compat
+from wsgidav.domain_controller import WsgiDAVDomainController
+from wsgidav.middleware import BaseMiddleware
+from wsgidav import util
+from wsgidav.util import calc_hexdigest, calc_base64
+
+__docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__, True)
 
@@ -224,7 +226,7 @@ class HTTPAuthenticator(BaseMiddleware):
         _logger.debug("401 Not Authorized for realm '%s' (basic)" % realmname)
         wwwauthheaders = "Basic realm=\"" + realmname + "\"" 
         
-        body = self.getErrorMessage()
+        body = compat.to_bytes(self.getErrorMessage())
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
                                               ("Content-Length", str(len(body))),
@@ -238,11 +240,13 @@ class HTTPAuthenticator(BaseMiddleware):
         authheader = environ["HTTP_AUTHORIZATION"]
         authvalue = ""
         try:
-            authvalue = authheader[len("Basic "):]
+            authvalue = authheader[len("Basic "):].strip()
         except:
             authvalue = ""
-        authvalue = authvalue.strip().decode("base64")
-        username, password = authvalue.split(":",1)
+        # authvalue = authvalue.strip().decode("base64")
+        authvalue = compat.base64_decodebytes(compat.to_bytes(authvalue))
+        authvalue = compat.to_native(authvalue)
+        username, password = authvalue.split(":", 1)
         
         if self._domaincontroller.authDomainUser(realmname, username, password, environ):
             environ["http_authenticator.realm"] = realmname
@@ -255,14 +259,17 @@ class HTTPAuthenticator(BaseMiddleware):
         realmname = self._domaincontroller.getDomainRealm(environ["PATH_INFO"] , environ)
         random.seed()
         serverkey = hex(random.getrandbits(32))[2:]
-        etagkey = md5(environ["PATH_INFO"]).hexdigest()
+        etagkey = calc_hexdigest(environ["PATH_INFO"])
         timekey = str(time.time())  
-        nonce = base64.b64encode(timekey + md5(timekey + ":" + etagkey + ":" + serverkey).hexdigest())
-        wwwauthheaders = "Digest realm=\"" + realmname + "\", nonce=\"" + nonce + \
-            "\", algorithm=MD5, qop=\"auth\""                 
+        nonce_source = timekey + calc_hexdigest(timekey + ":" + etagkey + ":" + serverkey)
+        # nonce = to_native(base64.b64encode(compat.to_bytes(nonce_source)))
+        nonce = calc_base64(nonce_source)
+        wwwauthheaders = ('Digest realm="%s", nonce="%s", algorithm=MD5, qop="auth"'
+            % (realmname, nonce))
+
         _logger.debug("401 Not Authorized for realm '%s' (digest): %s" % (realmname, wwwauthheaders))
 
-        body = self.getErrorMessage()
+        body = compat.to_bytes(self.getErrorMessage())
 #        start_response("403 Forbidden", [("WWW-Authenticate", wwwauthheaders),
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
                                               ("Content-Type", "text/html"),
@@ -321,7 +328,7 @@ class HTTPAuthenticator(BaseMiddleware):
         # TODO: Chun added this comments, but code was commented out
         # Do not do realm checking - a hotfix for WinXP using some other realm's
         # auth details for this realm - if user/password match
-#        print authheaderdict.get("realm"), realmname
+#        print(authheaderdict.get("realm"), realmname)
         if 'realm' in authheaderdict:
             if authheaderdict["realm"].upper() != realmname.upper():
                 if HOTFIX_WINXP_AcceptRootShareLogin:
@@ -409,13 +416,13 @@ class HTTPAuthenticator(BaseMiddleware):
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
         else:
             digestresp = self.md5kd( self.md5h(A1), nonce + ":" + self.md5h(A2))
-        # print A1, A2
-        # print digestresp
+        # print(A1, A2)
+        # print(digestresp)
         return digestresp
                 
     
     def md5h(self, data):
-        return md5(data).hexdigest()
+        return md5(compat.to_bytes(data)).hexdigest()
         
     
     def md5kd(self, secret, data):
@@ -423,11 +430,11 @@ class HTTPAuthenticator(BaseMiddleware):
 
     
     def getErrorMessage(self):
-        message = """\
+        message = """
 <html><head><title>401 Access not authorized</title></head>
 <body>
 <h1>401 Access not authorized</h1>
 </body>        
-</html>        
-        """
+</html>
+"""
         return message

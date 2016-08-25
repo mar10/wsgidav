@@ -8,43 +8,30 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
+import base64
+import calendar
+from email.utils import formatdate, parsedate
+from hashlib import md5
+import locale
+import logging
+import mimetypes
+import os
 from pprint import pformat
+import re
+import socket
+import stat
+import sys
+import time
+import urllib
+
+from wsgidav import compat
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
-from wsgidav.xml_tools import xmlToString, makeSubElement
-import urllib
-import socket
-
-
-import locale
-import logging
-import re
-import mimetypes
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
-import os
-import calendar
-import sys
-import time
-import stat
-
-try:
-    from email.utils import formatdate, parsedate
-except ImportError, e:
-    # Python < 2.5
-    from email.Utils import formatdate, parsedate
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
-
-#import xml_tools
+from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree
 ## Trick PyDev to do intellisense and don't produce warnings:
-from xml_tools import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"
@@ -57,7 +44,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 #===============================================================================
-# String handling
+# Time tools
 #===============================================================================
 
 def getRfc1123Time(secs=None):   
@@ -300,8 +287,9 @@ def traceCall(msg=None):
         f_code = sys._getframe(2).f_code
         if msg is None:
             msg = ": %s"
-        else: msg = ""
-        print "%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg)
+        else:
+            msg = ""
+        print("%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
 
 
 #===============================================================================
@@ -366,23 +354,30 @@ def splitNamespace(clarkName):
 
 def toUnicode(s):
     """Convert a binary string to Unicode using UTF-8 (fallback to latin-1)."""
-    if not isinstance(s, str):
-        return s
     try:
-        u = s.decode("utf8")
-#        log("toUnicode(%r) = '%r'" % (s, u))
-    except:
-        log("toUnicode(%r) *** UTF-8 failed. Trying latin-1 " % s)
-        u = s.decode("latin-1")
+        u = compat.to_unicode(s, "utf8")
+    except ValueError:
+        log("toUnicode(%r) *** UTF-8 failed. Trying latin-1" % s)
+        u = compat.to_unicode(s, "latin-1")
+#     if not isinstance(s, str):
+#         return s
+#     try:
+#         u = s.decode("utf8")
+# #        log("toUnicode(%r) = '%r'" % (s, u))
+#     except:
+#         log("toUnicode(%r) *** UTF-8 failed. Trying latin-1 " % s)
+#         u = s.decode("latin-1")
     return u
 
 
 def stringRepr(s):
     """Return a string as hex dump."""
-    if isinstance(s, str):
-        res = "'%s': " % s
+    if compat.is_bytes(s):
+        res = "%r: " % s
         for b in s:
-            res += "%02x " % ord(b)
+            if type(b) is str:  # Py2
+                b = ord(b)
+            res += "%02x " % b
         return res
     return "%s" % s
 
@@ -436,7 +431,7 @@ def getContentLength(environ):
     """Return a positive CONTENT_LENGTH in a safe way (return 0 otherwise)."""
     # TODO: http://www.wsgi.org/wsgi/WSGI_2.0
     try:
-        return max(0, long(environ.get("CONTENT_LENGTH", 0)))
+        return max(0, int(environ.get("CONTENT_LENGTH", 0)))
     except ValueError:
         return 0
 
@@ -514,7 +509,7 @@ def readAndDiscardInput(environ):
                     n = 1
                 body = wsgi_input.read(n)
                 debug("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
-            except socket.error, se:
+            except socket.error as se:
                 # se(10035, 'The socket operation could not complete without blocking')
                 warn("-> read %s bytes failed: %s" % (n, se))
             # Restore socket settings
@@ -621,10 +616,10 @@ def makeCompleteUrl(environ, localUri=None):
             if environ["SERVER_PORT"] != "80":
                 url += ":" + environ["SERVER_PORT"]
     
-    url += urllib.quote(environ.get("SCRIPT_NAME",""))
+    url += compat.quote(environ.get("SCRIPT_NAME",""))
 
     if localUri is None:
-        url += urllib.quote(environ.get("PATH_INFO",""))
+        url += compat.quote(environ.get("PATH_INFO",""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:
@@ -684,7 +679,7 @@ def parseXmlBody(environ, allowEmpty=False):
         requestbody = ""
     else:
         try:
-            contentLength = long(clHeader)
+            contentLength = int(clHeader)
             if contentLength < 0:   
                 raise DAVError(HTTP_BAD_REQUEST, "Negative content-length.")
         except ValueError:
@@ -704,13 +699,13 @@ def parseXmlBody(environ, allowEmpty=False):
     
     try:
         rootEL = etree.fromstring(requestbody)
-    except Exception, e:
+    except Exception as e:
         raise DAVError(HTTP_BAD_REQUEST, "Invalid XML format.", srcexception=e)   
     
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
         write("%s XML request body:\n%s" % (environ["REQUEST_METHOD"], 
-                                            xmlToString(rootEL, pretty_print=True)))
+                                            compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -741,7 +736,7 @@ def sendStatusResponse(environ, start_response, e):
         start_response(status, [("Content-Length", "0"),
                                 ("Date", getRfc1123Time()),
                                 ] + headers)
-        return [ "" ]
+        return [ b"" ]
     
     if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
@@ -749,11 +744,11 @@ def sendStatusResponse(environ, start_response, e):
     
     content_type, body = e.getResponsePage()            
 
+    assert compat.is_bytes(body), body # If not, Content-Length is wrong!
     start_response(status, [("Content-Type", content_type), 
                             ("Date", getRfc1123Time()),
                             ("Content-Length", str(len(body))),
                             ] + headers) 
-    assert type(body) is str # If not, Content-Length is wrong!
     return [ body ]
     
     
@@ -761,18 +756,19 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # If logging of the body is desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
-                                             xmlToString(multistatusEL, pretty_print=True)) 
+                                             compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
         environ["wsgidav.dump_response_body"] = xml 
         
     # Hotfix for Windows XP 
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
-    xml_data = xmlToString(multistatusEL, pretty_print=False)
+    xml_data = xmlToBytes(multistatusEL, pretty_print=False)
+    assert compat.is_bytes(xml_data), xml_data # If not, Content-Length is wrong!
     
     headers = [
         ("Content-Type", "application/xml"),
         ("Date", getRfc1123Time()),
-        ('Content-Length', str(len(xml_data))),
+        ("Content-Length", str(len(xml_data))),
     ]
 
 #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
@@ -781,7 +777,6 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
 #        ]
 
     start_response("207 Multi-Status", headers)
-    assert type(xml_data) is str # If not, Content-Length is wrong!
     return [ xml_data ]
         
             
@@ -827,7 +822,7 @@ def addPropertyResponse(multistatusEL, href, propList):
 #    log("href value:%s" % (stringRepr(href)))
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
-#    etree.SubElement(responseEL, "{DAV:}href").text = urllib.quote(href, safe="/" + "!*'()," + "$-_|.")
+#    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'()," + "$-_|.")
     
     
     # One <propstat> per status code
@@ -838,7 +833,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         for name, value in propDict[status]:
             if value is None:
                 etree.SubElement(propEL, name)
-            elif isinstance(value, etree._Element):
+            elif isinstance(value, etree.Element):
                 propEL.append(value)
             else:
                 # value must be string or unicode
@@ -852,6 +847,20 @@ def addPropertyResponse(multistatusEL, href, propList):
 #===============================================================================
 # ETags
 #===============================================================================
+
+def calc_hexdigest(s):
+    """Return md5 digest for a string."""
+    s = compat.to_bytes(s)
+    return md5(s).hexdigest()  # return native string
+
+
+def calc_base64(s):
+    """Return base64 encoded binarystring."""
+    s = compat.to_bytes(s)
+    s = base64.encodestring(s).strip()  # return bytestring
+    return compat.to_native(s)
+
+
 def getETag(filePath):
     """Return a strong Entity Tag for a (file)path.
     
@@ -866,14 +875,15 @@ def getETag(filePath):
     # (At least on Vista) os.path.exists returns False, if a file name contains 
     # special characters, even if it is correctly UTF-8 encoded.
     # So we convert to unicode. On the other hand, md5() needs a byte string.
-    if isinstance(filePath, unicode):
+    if compat.is_bytes(filePath):
+        unicodeFilePath = toUnicode(filePath)
+    else:
         unicodeFilePath = filePath
         filePath = filePath.encode("utf8")
-    else:
-        unicodeFilePath = toUnicode(filePath)
         
     if not os.path.isfile(unicodeFilePath):
         return md5(filePath).hexdigest()   
+
     if sys.platform == "win32":
         statresults = os.stat(unicodeFilePath)
         return md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
@@ -907,12 +917,12 @@ def obtainContentRanges(rangetext, filesize):
         if not matched:
             mObj = reByteRangeSpecifier.search(subrange)
             if mObj:
-#                print mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3)  
-                firstpos = long(mObj.group(2))
+#                print(mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3))
+                firstpos = int(mObj.group(2))
                 if mObj.group(3) == "":
                     lastpos = filesize - 1
                 else:
-                    lastpos = long(mObj.group(3))
+                    lastpos = int(mObj.group(3))
                 if firstpos <= lastpos and firstpos < filesize:
                     if lastpos >= filesize:
                         lastpos = filesize - 1
@@ -921,7 +931,7 @@ def obtainContentRanges(rangetext, filesize):
         if not matched:      
             mObj = reSuffixByteRangeSpecifier.search(subrange)
             if mObj:
-                firstpos = filesize - long(mObj.group(2))
+                firstpos = filesize - int(mObj.group(2))
                 if firstpos < 0:
                     firstpos = 0
                 lastpos = filesize - 1
@@ -968,7 +978,7 @@ def readTimeoutValueHeader(timeoutvalue):
         else:
             listSR = reSecondsReader.findall(timeoutspec)
             for secs in listSR:
-                timeoutsecs = long(secs)
+                timeoutsecs = int(secs)
                 if timeoutsecs > MAX_FINITE_TIMEOUT_LIMIT:
                     return -1          
                 if timeoutsecs != 0:
@@ -1198,19 +1208,19 @@ def testLogging():
     _baseLogger.info("_baseLogger.info")  
     _baseLogger.warning("_baseLogger.warning")  
     _baseLogger.error("_baseLogger.error")  
-    print 
+    print()
 
     _enabledLogger.debug("_enabledLogger.debug")  
     _enabledLogger.info("_enabledLogger.info")  
     _enabledLogger.warning("_enabledLogger.warning")  
     _enabledLogger.error("_enabledLogger.error")  
-    print 
+    print()
     
     _disabledLogger.debug("_disabledLogger.debug")  
     _disabledLogger.info("_disabledLogger.info")  
     _disabledLogger.warning("_disabledLogger.warning")  
     _disabledLogger.error("_disabledLogger.error")  
-    print 
+    print()
 
     write("util.write()")
     warn("util.warn()")

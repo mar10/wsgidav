@@ -31,7 +31,7 @@ Usage::
 
     res = provider.getResourceInst(path, environ)
     if res is not None:
-        print res.getName()
+        print(res.getName())
 
 
 
@@ -63,7 +63,7 @@ propertyManager
    See property_manager.PropertyManager for a sample implementation
    using shelve.
 
-lockmMnager
+lockManager
    An object that provides storage for locks made on webDAV resources.
    
    LockManagers must provide the methods as described in 
@@ -76,17 +76,22 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
+import os
 import sys
 import time
 import traceback
 import urllib
-from wsgidav import util, xml_tools
+
+from wsgidav import compat
+from wsgidav import util
+from wsgidav import xml_tools
 # Trick PyDev to do intellisense and don't produce warnings:
-from util import etree #@UnusedImport
-import os
+from wsgidav.util import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
-from dav_error import DAVError, \
+from wsgidav.dav_error import DAVError, \
     HTTP_NOT_FOUND, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty, asDAVError
 
@@ -127,8 +132,8 @@ class _DAVResource(object):
     Instances of this class are created through the DAVProvider::
         
         res = provider.getResourceInst(path, environ)
-        if res and res.isCollection:
-            print res.getDisplayName()
+        if res and res.isCollection():
+            print(res.getDisplayName())
             
     In the example above, res will be ``None``, if the path cannot be mapped to
     an existing resource.
@@ -162,7 +167,8 @@ class _DAVResource(object):
     """
 
     def __init__(self, path, isCollection, environ):
-        assert path=="" or path.startswith("/")
+        assert compat.is_native(path)
+        assert path == "" or path.startswith("/")
         self.provider = environ["wsgidav.provider"]
         self.path = path
         self.isCollection = isCollection
@@ -353,7 +359,7 @@ class _DAVResource(object):
 
         See also comments in DEVELOPERS.txt glossary.
         """
-        return urllib.quote(self.provider.sharePath + self.getPreferredPath())
+        return compat.quote(self.provider.sharePath + self.getPreferredPath())
 
 #    def getRefKey(self):
 #        """Return an unambigous identifier string for a resource.
@@ -381,7 +387,7 @@ class _DAVResource(object):
         # Nautilus chokes, if href encodes '(' as '%28'
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
-        return urllib.quote(self.provider.mountPath + self.provider.sharePath 
+        return compat.quote(self.provider.mountPath + self.provider.sharePath 
                             + self.getPreferredPath(), safe=safe)
 
 
@@ -550,9 +556,9 @@ class _DAVResource(object):
                 else:
                     value = self.getPropertyValue(name)
                     propList.append( (name, value) )
-            except DAVError, e:
+            except DAVError as e:
                 propList.append( (name, e) )
-            except Exception, e:
+            except Exception as e:
                 propList.append( (name, asDAVError(e)) )
                 if self.provider.verbose >= 2:
                     traceback.print_exc(10, sys.stdout)  
@@ -609,7 +615,7 @@ class _DAVResource(object):
                 if timeout < 0:
                     timeout =  "Infinite"
                 else:
-                    timeout = "Second-" + str(long(timeout - time.time())) 
+                    timeout = "Second-" + str(int(timeout - time.time())) 
                 etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
                 
                 locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
@@ -712,7 +718,7 @@ class _DAVResource(object):
         A resource provider may override this method, to update supported custom 
         live properties. 
         """
-        assert value is None or isinstance(value, (etree._Element))
+        assert value is None or isinstance(value, (etree.Element))
 
         if propname in _lockPropertyNames:
             # Locking properties are always read-only
@@ -1382,8 +1388,8 @@ class DAVProvider(object):
         
         @param sharePath: a UTF-8 encoded, unquoted byte string.
         """
-        if isinstance(sharePath, unicode):
-            sharePath = sharePath.encode("utf8")
+        # if isinstance(sharePath, unicode):
+        #     sharePath = sharePath.encode("utf8")
         assert sharePath=="" or sharePath.startswith("/")
         if sharePath == "/":
             sharePath = ""  # This allows to code 'absPath = sharePath + path'
@@ -1403,7 +1409,7 @@ class DAVProvider(object):
         
         Used to calculate the <path> from a storage key by inverting getRefUrl().
         """
-        return "/" + urllib.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
+        return "/" + compat.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
 
     def getResourceInst(self, path, environ):
         """Return a _DAVResource object for path.
@@ -1412,7 +1418,7 @@ class DAVProvider(object):
             
             res = provider.getResourceInst(path, environ)
             if res and not res.isCollection:
-                print res.getContentType()
+                print(res.getContentType())
         
         If <path> does not exist, None is returned.
         <environ> may be used by the provider to implement per-request caching.

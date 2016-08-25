@@ -13,13 +13,17 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
-from wsgidav.lock_manager import normalizeLockRoot, lockString,\
-    generateLockToken, validateLock
+from __future__ import print_function
+
 import os
-import util
 import shelve
 import time
-from rw_lock import ReadWriteLock
+
+from wsgidav import compat
+from wsgidav.lock_manager import normalizeLockRoot, lockString,\
+    generateLockToken, validateLock
+from wsgidav.rw_lock import ReadWriteLock
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -299,6 +303,7 @@ class LockStorageDict(object):
         Returns:
             List of valid lock dictionaries (may be empty).
         """
+        assert compat.is_native(path)
         assert path and path.startswith("/")
         assert includeRoot or includeChildren
         def __appendLocks(toklist):

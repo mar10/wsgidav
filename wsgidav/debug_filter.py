@@ -54,10 +54,14 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
-from wsgidav import util
+from __future__ import print_function
+
 import sys
 import threading
-from middleware import BaseMiddleware
+
+from wsgidav import compat
+from wsgidav.middleware import BaseMiddleware
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -106,7 +110,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         # Turn on max. debugging for selected litmus tests
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 2:
-            print >> self.out, "----\nRunning litmus test '%s'..." % litmusTag
+            print("----\nRunning litmus test '%s'..." % litmusTag, file=self.out)
             for litmusSubstring in self.debug_litmus: 
                 if litmusSubstring in litmusTag:
                     verbose = 3
@@ -116,7 +120,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     break
             for litmusSubstring in self.break_after_litmus:
                 if litmusSubstring in self.passedLitmus and litmusSubstring not in litmusTag:
-                    print >> self.out, " *** break after litmus %s" % litmusTag
+                    print(" *** break after litmus %s" % litmusTag, file=self.out)
                     sys.exit(-1)
                 if litmusSubstring in litmusTag:
                     self.passedLitmus[litmusSubstring] = True
@@ -137,11 +141,11 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         # Dump request headers
         if dumpRequest:      
-            print >> self.out, "<%s> --- %s Request ---" % (threading._get_ident(), method)
+            print("<%s> --- %s Request ---" % (threading.currentThread().ident, method), file=self.out)
             for k, v in environ.items():
                 if k == k.upper():
-                    print >> self.out, "%20s: '%s'" % (k, v)
-            print >> self.out, "\n"
+                    print("%20s: '%s'" % (k, v), file=self.out)
+            print("\n", file=self.out)
 
         # Intercept start_response
         #
@@ -161,31 +165,32 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
             # Dump response headers
             if first_yield and dumpResponse:
-                print >> self.out, "<%s> --- %s Response(%s): ---" % (threading._get_ident(), 
-                                                                      method, 
-                                                                      sub_app_start_response.status)
+                print("<%s> --- %s Response(%s): ---" % (threading.currentThread().ident, 
+                                                         method, 
+                                                         sub_app_start_response.status),
+                      file=self.out)
                 headersdict = dict(sub_app_start_response.response_headers)
                 for envitem in headersdict.keys():
-                    print >> self.out, "%s: %s" % (envitem, repr(headersdict[envitem])) 
-                print >> self.out, ""
+                    print("%s: %s" % (envitem, repr(headersdict[envitem])), file=self.out)
+                print("", file=self.out)
 
             # Check, if response is a binary string, otherwise we probably have 
             # calculated a wrong content-length
-            assert type(v) is str
+            assert compat.is_bytes(v), v
             
             # Dump response body
             drb = environ.get("wsgidav.dump_response_body")
-            if type(drb) is str:
+            if compat.is_basestring(drb):
                 # Middleware provided a formatted body representation 
-                print >> self.out, drb
+                print(drb, file=self.out)
                 drb = environ["wsgidav.dump_response_body"] = None
             elif drb is True:
                 # Else dump what we get, (except for long GET responses) 
                 if method == "GET":
                     if first_yield:
-                        print >> self.out, v[:50], "..."
+                        print(v[:50], "...", file=self.out)
                 elif len(v) > 0:
-                    print >> self.out, v
+                    print(v, file=self.out)
 
             nbytes += len(v) 
             first_yield = False
@@ -201,5 +206,5 @@ class WsgiDavDebugFilter(BaseMiddleware):
                            sub_app_start_response.exc_info)
 
         if dumpResponse:
-            print >> self.out, "\n<%s> --- End of %s Response (%i bytes) ---" % (threading._get_ident(), method, nbytes)
+            print("\n<%s> --- End of %s Response (%i bytes) ---" % (threading.currentThread().ident, method, nbytes), file=self.out)
         return 

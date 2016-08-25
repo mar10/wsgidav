@@ -4,15 +4,19 @@
 """
     Run litmus against WsgiDAV server.
 """
+from __future__ import print_function
+
+# from multiprocessing.process import Process
+from multiprocessing import Process
+import os
+import subprocess
+import sys
 from tempfile import gettempdir
+import time
+import unittest
+
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
-import os
-import unittest
-import subprocess
-from multiprocessing.process import Process
-import time
-
 
 
 def run_wsgidav_server(with_auth, with_ssl):
@@ -63,8 +67,10 @@ def run_wsgidav_server(with_auth, with_ssl):
 
     app = WsgiDAVApp(config)
 
-    from wsgidav.server.run_server import _runBuiltIn
-    _runBuiltIn(app, config, None)
+    # from wsgidav.server.run_server import _runBuiltIn
+    # _runBuiltIn(app, config, None)
+    from wsgidav.server.run_server import _runCherryPy
+    _runCherryPy(app, config, "cherrypy-bundled")
     # blocking...
 
 
@@ -73,6 +79,8 @@ def run_wsgidav_server(with_auth, with_ssl):
 # WsgiDAVServerTest
 #===============================================================================
 
+# @pytest.mark.skipif(os.environ.get("TRAVIS") == "true", reason="Skipping litmus suite on Travis")
+@unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Test the built-in WsgiDAV server with cadaver."""
 
@@ -98,17 +106,19 @@ class WsgiDAVLitmusTest(unittest.TestCase):
             time.sleep(1)
 
             try:
-                self.assertEqual(subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"]),
-                                 0,
-                                 "litmus suite failed: check the log")
+                res = subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"],
+                                      # stdout=sys.stdout, stderr=sys.stderr
+                                      )
+                self.assertEqual(res, 0, "litmus suite failed: check the log")
             except OSError:
-                print "*" * 70
-                print "This test requires the litmus test suite."
-                print "See http://www.webdav.org/neon/litmus/"
-                print "*" * 70
+                print("*" * 70)
+                print("This test requires the litmus test suite.")
+                print("See http://www.webdav.org/neon/litmus/")
+                print("*" * 70)
                 raise
 
         finally:
+            print("stopping server...")
             proc.terminate()
             proc.join()
 

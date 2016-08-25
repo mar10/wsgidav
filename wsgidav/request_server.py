@@ -8,18 +8,13 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
-from urlparse import urlparse
-from wsgidav.dav_error import HTTP_OK, HTTP_LENGTH_REQUIRED
-from wsgidav import xml_tools
-import util
-import urllib
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO #@UnusedImport
+from __future__ import print_function
 
-from dav_error import DAVError, asDAVError, \
-    HTTP_BAD_REQUEST,\
+import urllib
+
+from wsgidav import compat
+from wsgidav.dav_error import DAVError, asDAVError,\
+    HTTP_BAD_REQUEST, HTTP_OK, HTTP_LENGTH_REQUIRED,\
     HTTP_NOT_IMPLEMENTED, HTTP_NOT_FOUND, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
     HTTP_FAILED_DEPENDENCY, HTTP_METHOD_NOT_ALLOWED,\
     PRECONDITION_CODE_PropfindFiniteDepth, HTTP_MEDIATYPE_NOT_SUPPORTED,\
@@ -27,11 +22,11 @@ from dav_error import DAVError, asDAVError, \
     PRECONDITION_CODE_LockTokenMismatch, getHttpStatusString,\
     HTTP_PRECONDITION_FAILED, HTTP_BAD_GATEWAY, HTTP_NO_CONTENT, HTTP_CREATED,\
     HTTP_RANGE_NOT_SATISFIABLE
-
-#import lock_manager
+from wsgidav import util
+from wsgidav import xml_tools
 
 # Trick PyDev to do intellisense and don't produce warnings:
-from util import etree #@UnusedImport
+from wsgidav.util import etree #@UnusedImport
 if False: from xml.etree import ElementTree as etree     #@Reimport
    
 __docformat__ = "reStructuredText"
@@ -394,7 +389,7 @@ class RequestServer(object):
         for (propname, propvalue) in propupdatelist:
             try:         
                 res.setPropertyValue(propname, propvalue, dryRun=True)
-            except Exception, e:
+            except Exception as e:
                 writeresult = asDAVError(e)
             else:
                 writeresult = "200 OK"
@@ -423,7 +418,7 @@ class RequestServer(object):
                     res.setPropertyValue(propname, propvalue, dryRun=False)
                     # Set value to None, so the response xml contains empty tags
                     propResponseList.append( (propname, None) )
-                except Exception, e:
+                except Exception as e:
                     e = asDAVError(e)
                     propResponseList.append( (propname, e) )
                     responsedescription.append(e.getUserInfo())
@@ -541,7 +536,7 @@ class RequestServer(object):
             if type(handled) is list:
                 errorList = handled
                 handled = True
-        except Exception, e:
+        except Exception as e:
             errorList = [ (res.getHref(), asDAVError(e)) ]
             handled = True
         if handled:
@@ -570,7 +565,7 @@ class RequestServer(object):
             if not hasConflicts:
                 try:
                     errorList = res.delete()
-                except Exception, e:
+                except Exception as e:
                     errorList = [ (res.getHref(), asDAVError(e)) ]
                 return self._sendResponse(environ, start_response, 
                                           res, HTTP_NO_CONTENT, errorList)
@@ -595,7 +590,7 @@ class RequestServer(object):
                 if provider.exists(childRes.path, environ):
                     raise DAVError(HTTP_INTERNAL_ERROR, 
                                    "Resource could not be deleted.")
-            except Exception, e:
+            except Exception as e:
                 errorList.append( (childRes.getHref(), asDAVError(e)) )
                 ignoreDict[util.getUriParent(childRes.path)] = True
 
@@ -647,7 +642,7 @@ class RequestServer(object):
         # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.) 
 #        WORKAROUND_BAD_LENGTH = True
         try:
-            contentlength = max(-1, long(environ.get("CONTENT_LENGTH", -1)))
+            contentlength = max(-1, int(environ.get("CONTENT_LENGTH", -1)))
         except ValueError: 
             contentlength = -1
         
@@ -753,7 +748,7 @@ class RequestServer(object):
                      
             fileobj.close()
 
-        except Exception, e:
+        except Exception as e:
             res.endWrite(withErrors=True)
             _logger.exception("PUT: byte copy failed")
             self._fail(e)
@@ -830,13 +825,13 @@ class RequestServer(object):
         
         # Destination header may be quoted (e.g. DAV Explorer sends unquoted, 
         # Windows quoted)
-        destinationHeader = urllib.unquote(environ["HTTP_DESTINATION"])
+        destinationHeader = compat.unquote(environ["HTTP_DESTINATION"])
         
         # Return fragments as part of <path>
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING: DELETE removed collection resource withRequest-URI including fragment; unsafe
         destScheme, destNetloc, destPath, \
-        _destParams, _destQuery, _destFrag = urlparse(destinationHeader, 
-                                                      allow_fragments=False) 
+        _destParams, _destQuery, _destFrag = compat.urlparse(destinationHeader, 
+                                                             allow_fragments=False) 
 
         if srcRes.isCollection:
             destPath = destPath.rstrip("/") + "/"
@@ -910,7 +905,7 @@ class RequestServer(object):
             if type(handled) is list:
                 errorList = handled
                 handled = True
-        except Exception, e:
+        except Exception as e:
             errorList = [ (srcRes.getHref(), asDAVError(e)) ]
             handled = True
         if handled:
@@ -972,7 +967,7 @@ class RequestServer(object):
                 try:
                     _logger.debug("Recursive move: %s -> '%s'" % (srcRes, destPath))
                     errorList = srcRes.moveRecursive(destPath)
-                except Exception, e:
+                except Exception as e:
                     errorList = [ (srcRes.getHref(), asDAVError(e)) ]
                 return self._sendResponse(environ, start_response, 
                                           srcRes, successCode, errorList)
@@ -1020,7 +1015,7 @@ class RequestServer(object):
                 if isMove and not sRes.isCollection:
                     sRes.delete()
                     
-            except Exception, e:
+            except Exception as e:
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source 
                 # and destination URLs'. So maybe this should be the destination
@@ -1051,7 +1046,7 @@ class RequestServer(object):
 #                    _logger.debug("Remove source after move: %s" % sRes)
                     util.status("Remove collection after move: %s" % sRes)
                     sRes.delete()
-                except Exception, e:
+                except Exception as e:
                     errorList.append( (srcRes.getHref(), asDAVError(e)) )
             util.status("ErrorList", var=errorList)
                 
@@ -1124,7 +1119,7 @@ class RequestServer(object):
             propEL.append(lockdiscoveryEL)
                
             # Lock-Token header is not returned
-            xml = xml_tools.xmlToString(propEL) 
+            xml = xml_tools.xmlToBytes(propEL) 
             start_response("200 OK", [("Content-Type", "application/xml"),
                                       ("Content-Length", str(len(xml))),
                                       ("Date", util.getRfc1123Time()),
@@ -1157,7 +1152,7 @@ class RequestServer(object):
 
             elif linode.tag == "{DAV:}owner":
                 # Store whole <owner> tag, so we can use etree.XML() later
-                lockowner = xml_tools.xmlToString(linode, pretty_print=False)
+                lockowner = xml_tools.xmlToBytes(linode, pretty_print=False)
 
             else:
                 self._fail(HTTP_BAD_REQUEST, "Invalid node '%s'." % linode.tag)
@@ -1201,7 +1196,7 @@ class RequestServer(object):
         if createdNewResource:
             respcode = "201 Created"
 
-        xml = xml_tools.xmlToString(propEL)
+        xml = xml_tools.xmlToBytes(propEL)
         start_response(respcode, [("Content-Type", "application/xml"),
                                   ("Content-Length", str(len(xml))),
                                   ("Lock-Token", lock["token"]),
@@ -1318,7 +1313,7 @@ class RequestServer(object):
             # capabilities of the server. For example, this can be used to test a 
             # proxy for HTTP/1.1 compliance (or lack thereof). 
             start_response("200 OK", headers)        
-            return [""]  
+            return [b""]  
 
         # Determine allowed request methods
         allow = [ "OPTIONS" ]
@@ -1360,7 +1355,7 @@ class RequestServer(object):
             headers.append( ("MS-Author-Via", "DAV") )
 
         start_response("200 OK", headers)        
-        return [""]
+        return [b""]
 
 
 
@@ -1441,7 +1436,7 @@ class RequestServer(object):
             # behaviour changes in future
             (rangestart, rangeend, rangelength) = listRanges[0]
         else:
-            (rangestart, rangeend, rangelength) = (0L, filesize - 1, filesize)
+            (rangestart, rangeend, rangelength) = (0, filesize - 1, filesize)
 
         ## Content Processing 
         mimetype = res.getContentType()  #provider.getContentType(path)
@@ -1466,7 +1461,7 @@ class RequestServer(object):
 
         # Return empty body for HEAD requests
         if isHeadMethod:
-            yield ""
+            yield b""
             return
 
         fileobj = res.getContent()
@@ -1480,6 +1475,7 @@ class RequestServer(object):
                 readbuffer = fileobj.read(self.block_size)
             else:
                 readbuffer = fileobj.read(contentlengthremaining)
+            assert compat.is_bytes(readbuffer)
             yield readbuffer
             contentlengthremaining -= len(readbuffer)
             if len(readbuffer) == 0 or contentlengthremaining == 0:

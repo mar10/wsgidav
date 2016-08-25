@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.0.0 / Unreleased
+==================
+- #2: Support Python 3
+- Drop support for Python 2.6
+- Use py.test & tox
+
+
 1.3.0 / 2016-08-24
 ==================
 - #19: Add option `mutable_live_props` to support setting last modified file/directory timestamps

@@ -1,5 +1,7 @@
-.cache/
-.tox/
+.cache
+.coverage
+.eggs
+.tox
 doc/sphinx/_build
 doc/sphinx-api/
 htmlcov/
@@ -8,7 +10,6 @@ htmlcov/
 *.egg-info
 *.egg
 server-192-168-178-39.*
-.coverage
 child.log
 debug.log
 wsgidav.conf

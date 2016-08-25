@@ -33,6 +33,8 @@ Configuration is defined like this:
        ``--root=FOLDER`` option creates a FilesystemProvider that publishes 
        FOLDER on the '/' share.
 """
+from __future__ import print_function
+
 from optparse import OptionParser
 from pprint import pprint
 from inspect import isfunction
@@ -44,10 +46,10 @@ from wsgidav.xml_tools import useLxml
 from wsgidav import util
 
 try:
-    from wsgidav.version import __version__
+    from wsgidav import __version__
     from wsgidav.wsgidav_app import WsgiDAVApp
     from wsgidav.fs_dav_provider import FilesystemProvider
-except ImportError, e:
+except ImportError as e:
     raise RuntimeError("Could not import wsgidav package:\n%s\nSee https://github.com/mar10/wsgidav/." % e)
 
 __docformat__ = "reStructuredText"
@@ -146,12 +148,16 @@ If no config file is found, a default FilesystemProvider is used."""
     if len(args) > 0:
         parser.error("Too many arguments")
 
+    # verbose = 1 if options.verbose is None else options.verbose
+    if options.verbose is None:
+        options.verbose = 1
+
     if options.config_file is None:
         # If --config was omitted, use default (if it exists)
         defPath = os.path.abspath(DEFAULT_CONFIG_FILE)
         if os.path.exists(defPath):
             if options.verbose >= 1:
-                print "Using default configuration file: %s" % defPath
+                print("Using default configuration file: %s" % defPath)
             options.config_file = defPath
     else:
         # If --config was specified convert to absolute path and assert it exists
@@ -162,9 +168,9 @@ If no config file is found, a default FilesystemProvider is used."""
     # Convert options object to dictionary
     cmdLineOpts = options.__dict__.copy()
     if options.verbose >= 3:
-        print "Command line options:"
+        print("Command line options:")
         for k, v in cmdLineOpts.items():
-            print "    %-12s: %s" % (k, v)
+            print("    %-12s: %s" % (k, v))
     return cmdLineOpts
 
 
@@ -187,7 +193,7 @@ def _readConfigFile(config_file, verbose):
             elif isfunction(v):
                 continue
             conf[k] = v               
-    except Exception, e:
+    except Exception as e:
 #        if verbose >= 1:
 #            traceback.print_exc() 
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value) #@UndefinedVariable
@@ -195,7 +201,7 @@ def _readConfigFile(config_file, verbose):
         for einfo in exceptioninfo:
             exceptiontext += einfo + "\n"   
 #        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
-        print >>sys.stderr, "Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext
+        print("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext, file=sys.stderr)
         raise
     
     return conf
@@ -223,7 +229,7 @@ def _initConfig():
         config.update(fileConf)
     else:
         if temp_verbose >= 2:
-            print "Running without configuration file."
+            print("Running without configuration file.")
     
     # print "verbose #2: ", config.get("verbose")
 
@@ -242,21 +248,21 @@ def _initConfig():
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
     
     if config["verbose"] >= 3:
-        print "Configuration(%s):" % cmdLineOpts["config_file"]
+        print("Configuration(%s):" % cmdLineOpts["config_file"])
         pprint(config)
 
-    if not useLxml and config["verbose"] >= 1:
-        print "WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/."
+    # if not useLxml and config["verbose"] >= 1:
+    #     print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
 
     # print "verbose #3: ", config.get("verbose")
 
     if not config["provider_mapping"]:
-        print >>sys.stderr, "ERROR: No DAV provider defined. Try --help option."
+        print("ERROR: No DAV provider defined. Try --help option.", file=sys.stderr)
         sys.exit(-1)
 #        raise RuntimeWarning("At least one DAV provider must be specified by a --root option, or in a configuration file.")
 
     if cmdLineOpts.get("reload"):
-        print >>sys.stderr, "Installing paste.reloader."
+        print("Installing paste.reloader.", file=sys.stderr)
         from paste import reloader  #@UnresolvedImport
         reloader.install()
         if config_file:
@@ -280,7 +286,7 @@ def _runPaste(app, config, mode):
         from paste import httpserver
         version = "WsgiDAV/%s %s" % (__version__, httpserver.WSGIHandler.server_version)
         if config["verbose"] >= 1:
-            print "Running %s..." % version
+            print("Running %s..." % version)
 
         # See http://pythonpaste.org/modules/httpserver.html for more options
         server = httpserver.serve(app,
@@ -314,26 +320,22 @@ def _runPaste(app, config, mode):
 
         host, port = server.server_address
         if host == '0.0.0.0':
-            print 'serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % \
-                (port, 'http', port)
+            print('serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % (port, 'http', port))
         else:
-            print "serving on %s://%s:%s" % ('http', host, port)
+            print("serving on %s://%s:%s" % ('http', host, port))
         try:
             server.serve_forever()
         except KeyboardInterrupt:
             # allow CTRL+C to shutdown
             pass
-    except ImportError, e:
+    except ImportError as e:
         if config["verbose"] >= 1:
-            print "Could not import paste.httpserver."
+            print("Could not import paste.httpserver.")
         return False
     return True
 
-
-
-
 def _runCherryPy(app, config, mode):
-    """Run WsgiDAV using cherrypy.wsgiserver, if CherryPy is installed."""
+    """Run WsgiDAV using cherrypy.wsgiserver if CherryPy is installed."""
     assert mode in ("cherrypy", "cherrypy-bundled")
 
     try:
@@ -366,7 +368,7 @@ def _runCherryPy(app, config, mode):
                 print("SSL / HTTPS enabled.")
 
         if config["verbose"] >= 1:
-            print "Running %s" % version
+            print("Running %s" % version)
             print("Listening on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
         server = wsgiserver.CherryPyWSGIServer(
             (config["host"], config["port"]), 
@@ -378,11 +380,11 @@ def _runCherryPy(app, config, mode):
             server.start()
         except KeyboardInterrupt:
             if config["verbose"] >= 1:
-                print "Caught Ctrl-C, shutting down..."
+                print("Caught Ctrl-C, shutting down...")
             server.stop()
-    except ImportError, e:
+    except ImportError as e:
         if config["verbose"] >= 1:
-            print "Could not import wsgiserver.CherryPyWSGIServer."
+            print("Could not import wsgiserver.CherryPyWSGIServer.")
         return False
     return True
 
@@ -401,18 +403,18 @@ def _runFlup(app, config, mode):
             raise ValueError    
 
         if config["verbose"] >= 2:
-            print "Running WsgiDAV/%s %s/%s..." % (__version__,
+            print("Running WsgiDAV/%s %s/%s..." % (__version__,
                                                    WSGIServer.__module__,
-                                                   flupver)
+                                                   flupver))
         server = WSGIServer(app,
                             bindAddress=(config["host"], config["port"]),
 #                            bindAddress=("127.0.0.1", 8001),
 #                            debug=True,
                             )
         server.run()
-    except ImportError, e:
+    except ImportError as e:
         if config["verbose"] >= 1:
-            print "Could not import flup.server.fcgi", e
+            print("Could not import flup.server.fcgi", e)
         return False
     return True
 
@@ -428,13 +430,13 @@ def _runSimpleServer(app, config, mode):
 #            print "Running WsgiDAV %s on wsgiref.simple_server (single threaded)..." % __version__
         version = "WsgiDAV/%s %s" % (__version__, software_version)
         if config["verbose"] >= 1:
-            print "Running %s..." % version
+            print("Running %s..." % version)
         httpd = make_server(config["host"], config["port"], app)
 #        print "Serving HTTP on port 8000..."
         httpd.serve_forever()
-    except ImportError, e:
+    except ImportError as e:
         if config["verbose"] >= 1:
-            print "Could not import wsgiref.simple_server (part of standard lib since Python 2.5)."
+            print("Could not import wsgiref.simple_server (part of standard lib since Python 2.5).")
         return False
     return True
 
@@ -444,13 +446,13 @@ def _runSimpleServer(app, config, mode):
 def _runBuiltIn(app, config, mode):
     """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     try:
-        import ext_wsgiutils_server
+        from wsgidav.server import ext_wsgiutils_server
         if config["verbose"] >= 2:
-            print "Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__
+            print("Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__)
         ext_wsgiutils_server.serve(config, app)
-    except ImportError, e:
+    except ImportError as e:
         if config["verbose"] >= 1:
-            print "Could not import wsgidav.ext_wsgiutils_server (part of WsgiDAV)."
+            print("Could not import wsgidav.ext_wsgiutils_server (part of WsgiDAV).")
         return False
     return True
 
@@ -497,7 +499,7 @@ SUPPORTED_SERVERS = {"paste": _runPaste,
 #        # stats.print_callees()
 #        # stats.print_callers()
 ##        logging.info("Profile data:\n%s", stream.getvalue())
-#        print stream.getvalue()
+#        print(stream.getvalue())
 #        return
 #    return _real_run(config) 
 
@@ -512,14 +514,14 @@ def run():
     for e in config["ext_servers"]:
         fn = SUPPORTED_SERVERS.get(e)
         if fn is None:
-            print "Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys()))
+            print("Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys())))
             
         elif fn(app, config, e):
             res = True
             break
     
     if not res:
-        print "No supported WSGI server installed."   
+        print("No supported WSGI server installed.")
 
     
 if __name__ == "__main__":

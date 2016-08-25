@@ -5,12 +5,13 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
 
 __docformat__ = "reStructuredText"
 
+
 class BaseMiddleware(object):
-    """
-    Abstract base middleware class 
+    """Abstract base middleware class.
 
     Implementations in WsgiDAV include::
         

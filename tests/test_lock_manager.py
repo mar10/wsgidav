@@ -15,7 +15,7 @@ from wsgidav import lock_manager, lock_storage
 class BasicTest(unittest.TestCase):
     """Test lock_manager.LockManager()."""
     principal = "Joe Tester"
-    owner = "joe.tester@example.com"
+    owner = b'joe.tester@example.com'
     root = "/dav/res"
     timeout = 10 * 60  # Default lock timeout 10 minutes
 

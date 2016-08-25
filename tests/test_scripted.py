@@ -9,15 +9,19 @@
     See http://chandlerproject.org/Projects/Davclient
         http://svn.osafoundation.org/tools/davclient/trunk/src/davclient/davclient.py
 """
+from __future__ import print_function
+
+import os
+import time
 from tempfile import gettempdir
+from threading import Thread
+import unittest
+
+from tests import davclient
+from wsgidav import compat
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
-import time
-import os
-import unittest
-import davclient #@UnresolvedImport
-from threading import Thread
 
 
 #===============================================================================
@@ -29,8 +33,32 @@ from threading import Thread
 # In this case, run WsgiDAV as external process and specify the URL here.
 # This is also recommended when doing benchmarks
 #===============================================================================
-EXTERNAL_SERVER_ADDRESS = None
-#EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
+EXTERNAL_SERVER_ADDRESS = None  # Start temporary server in own thread
+# EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
+# EXTERNAL_SERVER_ADDRESS = "http://localhost:8080"
+
+_test_server_thread = None
+
+def setUpModule():
+    global _test_server_thread
+    assert not _test_server_thread
+    if EXTERNAL_SERVER_ADDRESS is None:
+        _test_server_thread = WsgiDAVServerThread()
+        _test_server_thread.start()
+        # let server start the loop, otherwise shutdown might lock
+        time.sleep(.1)
+
+
+def tearDownModule():
+    global _test_server_thread
+    if _test_server_thread:
+        print("tearDownModule shutdown...")
+        _test_server_thread.shutdown()
+        print("tearDownModule join...")
+        _test_server_thread.join()
+        _test_server_thread = None
+        print("tearDownModule joined")
+
 
 #===============================================================================
 # WsgiDAVServerThread
@@ -38,13 +66,14 @@ EXTERNAL_SERVER_ADDRESS = None
 class WsgiDAVServerThread(Thread):
     """WsgiDAV server that can be run in a parallel thread."""
     def __init__ (self):
-        Thread.__init__(self)
         self.ext_server = None
+        Thread.__init__(self)
 
     def __del__(self):
         self.shutdown()
 
     def run(self):
+        print("WsgiDAVServerThread.run()...")
         withAuthentication = True
         self.rootpath = os.path.join(gettempdir(), "wsgidav-test")
         if not os.path.exists(self.rootpath):
@@ -69,14 +98,14 @@ class WsgiDAVServerThread(Thread):
             })
 
         if withAuthentication:
-            config["user_mapping"] = {"/": {"tester": {"password": "tester",
+            config["user_mapping"] = {"/": {"tester": {"password": "secret",
                                                        "description": "",
                                                        "roles": [],
                                                        },
-                                            "tester2": {"password": "tester2",
-                                                       "description": "",
-                                                       "roles": [],
-                                                       },
+                                            "tester2": {"password": "secret2",
+                                                        "description": "",
+                                                        "roles": [],
+                                                        },
                                             },
                                       }
             config["acceptbasic"] = True
@@ -88,23 +117,20 @@ class WsgiDAVServerThread(Thread):
         self.ext_server = ExtServer((config["host"], config["port"]),
                                     {"": app})
 
+        print("WsgiDAVServerThread ext_server.serve_forever_stoppable()...")
         self.ext_server.serve_forever_stoppable()
+        print("WsgiDAVServerThread ext_server stopped.")
         self.ext_server = None
 #        print "WsgiDAVServerThread.run() terminated"
 
     def shutdown(self):
         if self.ext_server:
-#            print "WsgiDAVServerThread.shutdown()..."
+            print("WsgiDAVServerThread.shutdown()...")
             # let server process pending requests, otherwise shutdown might lock
             time.sleep(.1)
             self.ext_server.stop_serve_forever()
-#            try:
-#                # since Python 2.6
-#                self.ext_server.shutdown()
-#            except AttributeError:
-#                pass
             self.ext_server = None
-#            print "WsgiDAVServerThread.shutdown()... complete"
+            print("WsgiDAVServerThread.shutdown()... complete")
 
 #===============================================================================
 # ServerTest
@@ -112,41 +138,32 @@ class WsgiDAVServerThread(Thread):
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using davclient."""
 
-#     @classmethod
-#     def suite(cls):
-#         """Return test case suite (so we can control the order)."""
-#         suite = unittest.TestSuite()
-#         suite.addTest(cls("testPreconditions"))
-# #        suite.addTest(cls("testGetPut"))
-#         suite.addTest(cls("testLocking"))
-#         return suite
-
-
     def setUp(self):
 #        print "setUp"
         if EXTERNAL_SERVER_ADDRESS:
-            self.server_thread = None
+            # self.server_thread = None
             self.client = davclient.DAVClient(EXTERNAL_SERVER_ADDRESS)
         else:
-            self.server_thread = WsgiDAVServerThread()
-            self.server_thread.start()
-            # let server start the loop, otherwise shutdown might lock
-            time.sleep(.1)
-            self.client = davclient.DAVClient("http://127.0.0.1:8080/")
+            # self.server_thread = WsgiDAVServerThread()
+            # self.server_thread.start()
+            # # let server start the loop, otherwise shutdown might lock
+            # time.sleep(.1)
+            self.client = davclient.DAVClient("http://localhost:8080/")
 
-        self.client.set_basic_auth("tester", "tester")
+        self.client.set_basic_auth("tester", "secret")
 #        self.client.headers['new_header_for_session'] = "useful_example"
 
 
     def tearDown(self):
 #        print "tearDown"
         del self.client
-        if self.server_thread:
-            self.server_thread.shutdown()
-    #        print "tearDown join..."
-            self.server_thread.join()
-            self.server_thread = None
-    #        print "tearDown joined"
+        # if self.server_thread:
+        #     print("tearDown shutdown...")
+        #     self.server_thread.shutdown()
+        #     print("tearDown join...")
+        #     self.server_thread.join()
+        #     self.server_thread = None
+        #     print("tearDown joined")
 #        os.rmdir(self.rootpath)
 
 
@@ -160,14 +177,15 @@ class ServerTest(unittest.TestCase):
         client = self.client
 
         # Prepare file content
-        data1 = "this is a file\nwith two lines"
-        data2 = "this is another file\nwith three lines\nsee?"
+        data1 = b"this is a file\nwith two lines"
+        data2 = b"this is another file\nwith three lines\nsee?"
         # Big file with 10 MB
         lines = []
         line = "." * (1000-6-len("\n"))
-        for i in xrange(10*1000):
+        for i in compat.xrange(10*1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
+        data3 = compat.to_bytes(data3)
 
         # Cleanup
         client.delete("/test/")
@@ -199,15 +217,16 @@ class ServerTest(unittest.TestCase):
                                 locktype="write",
                                 lockscope="exclusive",
                                 depth="infinity")
-        client.checkResponse(201)
+        client.checkResponse(201)  # created
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
         client.refresh_lock("/test/lock-0", token)
-        client.checkResponse()
+        client.checkResponse(200)  # ok
         client.unlock("/test/lock-0", token)
-        client.checkResponse(204)
+        client.checkResponse(204)  # no content
         client.unlock("/test/lock-0", token)
-#        client.checkResponse()
+        # 409 Conflict, because resource was not locked (http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK)
+        client.checkResponse(409)
 
         client.proppatch("/test/file1.txt",
                          set_props=[("{testns:}testname", "testval"),
@@ -262,7 +281,7 @@ class ServerTest(unittest.TestCase):
 #
 #        # Request must not contain a body (expect '415 Media Type Not Supported')
 #        app.get("/file1.txt",
-#                headers={"Content-Length": str(len(data1))},
+#                headers={"Content-Length": compat.to_native(len(data1))},
 #                params=data1,
 #                status=415)
 #
@@ -286,7 +305,7 @@ class ServerTest(unittest.TestCase):
                 y
         """
         client = self.client
-        data = "this is a file\nwith two lines"
+        data = b"this is a file\nwith two lines"
 
         client.delete("/test/")
         client.mkcol("/test/")
@@ -331,7 +350,7 @@ class ServerTest(unittest.TestCase):
         client2.copy("/test/x/y", "/test/a/y")
         client2.checkResponse(423)
         # PUT or MKCOL request that would create a new internal member
-        client2.put("/test/a/x", "data")
+        client2.put("/test/a/x", b"data")
         client2.checkResponse(423)
         client2.mkcol("/test/a/e")
         client2.checkResponse(423)
@@ -358,8 +377,8 @@ class ServerTest(unittest.TestCase):
         """Locking."""
         client1 = self.client
 
-        client2 = davclient.DAVClient("http://127.0.0.1:8080/")
-        client2.set_basic_auth("tester2", "tester2")
+        client2 = davclient.DAVClient("http://localhost:8080/")
+        client2.set_basic_auth("tester2", "secret2")
 
         self._prepareTree0()
 
@@ -441,10 +460,10 @@ class ServerTest(unittest.TestCase):
                           set_props=[("{testns:}testname", "testval")])
         client2.checkMultiStatusResponse(200)
         # Modifying a member without creating a new resource is allowed
-        client2.put("/test/a/c", "data")
+        client2.put("/test/a/c", b"data")
         client2.checkResponse(204)
         # Modifying non-internal member resources is allowed
-        client2.put("/test/a/b/f", "data")
+        client2.put("/test/a/b/f", b"data")
         client2.checkResponse(201)
         client2.mkcol("/test/a/b/g")
         client2.checkResponse(201)
@@ -476,19 +495,6 @@ class ServerTest(unittest.TestCase):
 #===============================================================================
 # suite
 #===============================================================================
-# def suite():
-#     """Return suites of all test cases."""
-#     return unittest.TestSuite([ServerTest.suite(),
-#                                ])
-
-# def main():
-#     _suite = suite()
-#     unittest.TextTestRunner(descriptions=1, verbosity=2).run(_suite)
 
 if __name__ == "__main__":
     unittest.main()
-# #    global EXTERNAL_SERVER_ADDRESS
-# #    EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
-# #    print "Using external server to enable debugging: ", EXTERNAL_SERVER_ADDRESS
-#
-#     main()

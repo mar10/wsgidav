@@ -91,9 +91,11 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
-import util
-from dav_error import DAVError, HTTP_NOT_FOUND
-from request_server import RequestServer
+from __future__ import print_function
+
+from wsgidav import util
+from wsgidav.request_server import RequestServer
+from wsgidav.dav_error import DAVError, HTTP_NOT_FOUND
 
 __docformat__ = "reStructuredText"
 
@@ -188,7 +190,7 @@ class RequestResolver(object):
                 headers.append( ("MS-Author-Via", "DAV") )
                 
             start_response("200 OK", headers)
-            yield ""        
+            yield b""        
             return
    
         if provider is None:

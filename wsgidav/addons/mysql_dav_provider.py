@@ -59,18 +59,19 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
+from __future__ import print_function
+
+import md5
+import time
+import csv
+
+import MySQLdb  #@UnresolvedImport
+
+from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav import util
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
     PRECONDITION_CODE_ProtectedProperty
-import MySQLdb  #@UnresolvedImport
-import md5
-import time
-import csv
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
 
 __docformat__ = "reStructuredText"
 
@@ -196,7 +197,7 @@ class MySQLBrowserResource(_DAVResource):
          
         See DAVResource.getContent()
         """
-        filestream = StringIO()
+        filestream = compat.StringIO()
 
         tableName, primKey = self.provider._splitPath(self.path)
         if primKey is not None:
@@ -411,7 +412,7 @@ class MySQLBrowserProvider(DAVProvider):
         if row is None:
             cursor.close()
             return None
-        val = str(row[field_name])         
+        val = to_native(row[field_name])         
         cursor.close()
         return val            
 
@@ -444,7 +445,7 @@ class MySQLBrowserProvider(DAVProvider):
             cursor.close()
             return None
         for fname in row.keys():
-            dictRet[fname] = str(row[fname])         
+            dictRet[fname] = to_native(row[fname])         
         cursor.close()
         return dictRet            
 
@@ -472,7 +473,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.execute("SELECT " + field_name + " FROM " + self._db + "." + table_name)
         result_set = cursor.fetchall ()
         for row in result_set:
-            retlist.append(str(row[field_name]))      
+            retlist.append(to_native(row[field_name]))      
         cursor.close()
         return retlist
     

@@ -34,8 +34,11 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
 """
-import sys
+from __future__ import print_function
+
 __docformat__ = "reStructuredText"
+
+import sys
 
 class WsgiDAVDomainController(object):
 
@@ -54,7 +57,7 @@ class WsgiDAVDomainController(object):
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                print >>sys.stdout, "getDomainRealm(%s): '%s'" %(inputURL, None)
+                print("getDomainRealm(%s): '%s'" %(inputURL, None), file=sys.stdout)
             return None
         realm = davProvider.sharePath
         if realm == "":
