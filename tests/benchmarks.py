@@ -4,50 +4,15 @@
 """
     Benchmark suite for WsgiDAV. 
     
-    This test suite uses davclient to generate WebDAV requests.
-     
-A first collection of ideas 
-===========================
-- The result is printable HTML, copy/pastable  
-- It also contains date, environment info (Hardware, package versions, ...)
-- The suite can be run stand-alone against a running WsgiDAV server, just like
-  litmus.
-- It uses `davclient` and generates an HTML file.
-- There should be detailed results as well as a few summarizing numbers:
-  ('Total time', 'Byte reads per second', 'Byte write per second', or something 
-  like this), so one can compare benchmarks at a glance. 
-- Optional parameters allow to run only a single test
-- Parameter allows to pass configuration infos that are dumped with the result:
-  benchEnviron = {
-      "comment": "Test with caching enabled", 
-      "server_os": "Ubuntu 9.01", 
-      "server_cpu": "Intel 3GHz",
-      "server_ram": "2GB",
-      "wsgidav_version": "0.4.b1"  
-      "network_bandwidth": "100MBit",
-      
-      >> these can be automatically set?:      
-      "client_os": "Windows XP",  
-      "client_cpu": "AMD 5000",
-      "date": now() 
-      }
-- Allow to print profiling info (from WsgiDAV server and from becnhmark client!)
-- The result file could also contain the results of test suites ('PASSED'),
-  so we could use it as documentation for tests on different platforms/setups.      
-
-
 Questions
 =========
 - is lxml really faster?
+- is WsgiDAV 1.x faster than WsgiDAV 2.x?
+- is WsgiDAV 2.x faster or slower on Py2.7 and Py3.x?
 - compare this to mod_dav's performance 
-
 
 Test cases
 ==========
-- PUT 1 x 10 MB
-- PUT 100 x 1 kB
-- GET 1 x 10 MB
-- GET 100 x 1 kB
 - 100 x PROPFIND depth 0 
 - 1 x PROPFIND depth infinity 
 - COPY: big file, many small files, big tree
@@ -85,60 +50,151 @@ Test cases
 from __future__ import print_function
 
 import logging
+import sys
+import time
 
-from wsgidav import compat
-
-_benchmarks = [#"proppatch_many",
-               #"proppatch_big",
-               #"proppatch_deep",
-               "test_scripted",
-               ]
+from wsgidav import compat, __version__
+from tests.util import Timing, WsgiDavTestServer
 
 
-def _real_run_bench(bench, opts):
-    if bench == "*":
-        for bench in _benchmarks:
-            run_bench(bench, opts)
-        return
+def _setup_fixture(opts, client):
+    # Cleanup target folder
+    client.delete("/test/")
+    client.mkcol("/test/")
+    client.checkResponse(201)
+
+def _real_run_bench(opts):
+    print("_real_run_bench(), {}...".format(opts))
     
-    assert bench in _benchmarks
-    if bench == "test_scripted":
-        from tests import test_scripted
-        test_scripted.main()
+    from tests import davclient
+    server_url = opts.get("external_server") or "http://localhost:8080/"
+    client = davclient.DAVClient(server_url)
+    client.set_basic_auth("tester", "secret")
+
+    # Prepare file content
+    data_1k = b"." * 1000
+
+    # Prepare big file with 10 MB
+    lines = []
+    line = "." * (1000-6-len("\n"))
+    for i in compat.xrange(10*1000):
+        lines.append("%04i: %s\n" % (i, line))
+    data_10m = "".join(lines)
+    data_10m = compat.to_bytes(data_10m)
+
+    with Timing("Setup fixture"):
+        _setup_fixture(opts, client)
+
+    # PUT files
+    with Timing("1000 x PUT 1 kB", 1000, "{:>6.1f} req/sec", 1, "{:>7,.3f} MB/sec"):
+        for _ in compat.xrange(1000):
+            client.put("/test/file1.txt", data_1k)
+        client.checkResponse()
+
+    with Timing("10 x PUT 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
+        for _ in compat.xrange(10):
+            client.put("/test/bigfile.txt", data_10m)
+        client.checkResponse()
+
+    with Timing("1000 x GET 1 kB", 1000, "{:>6.1f} req/sec", 1, "{:>7,.3f} MB/sec"):
+        for _ in compat.xrange(1000):
+            body = client.get("/test/file1.txt")
+        client.checkResponse()
+
+    with Timing("10 x GET 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
+        for _ in compat.xrange(10):
+            body = client.get("/test/bigfile.txt")
+        client.checkResponse()
+
+    with Timing("10 x COPY 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
+        for _ in compat.xrange(10):
+            client.copy("/test/bigfile.txt",
+                        "/test/bigfile-copy.txt",
+                        depth='infinity', overwrite=True)
+        client.checkResponse()
+
+    with Timing("100 x MOVE 10 MB", 100, "{:>6.1f} req/sec"):
+        name_from = "/test/bigfile-copy.txt"
+        for i in compat.xrange(100):
+            name_to = "/test/bigfile-copy-{}.txt".format(i)
+            client.move(name_from, name_to,
+                        depth='infinity', overwrite=True)
+            name_from = name_to
+        client.checkResponse()
+
+    with Timing("100 x LOCK/UNLOCK", 200, "{:>6.1f} req/sec"):
+        for _ in compat.xrange(100):
+            locks = client.set_lock("/test/lock-0",
+                                    owner="test-bench",
+                                    locktype="write",
+                                    lockscope="exclusive",
+                                    depth="infinity")
+            token = locks[0]
+            client.unlock("/test/lock-0", token)
+        client.checkResponse()
+
+    with Timing("1000 x PROPPATCH", 1000, "{:>6.1f} req/sec"):
+        for _ in compat.xrange(1000):
+            client.proppatch("/test/file1.txt",
+                             set_props=[("{testns:}testname", "testval"),
+                                        ],
+                             remove_props=None)
+        client.checkResponse()
+
+    with Timing("500 x PROPFIND", 500, "{:>6.1f} req/sec"):
+        for i in compat.xrange(500):
+            client.propfind("/",
+                            properties="allprop",
+                            namespace='DAV:',
+                            depth=None,
+                            headers=None)
+        client.checkResponse()
+
+
+#-------------------------------------------------------------------------------
+#
+#-------------------------------------------------------------------------------
+
+def run_benchmarks(opts):
+
+    py_version = "{}.{}.{}".format(*sys.version_info)
+
+    def _runner(opts):
+        with Timing("Test suite, WsgiDAV {}, Python {}".format(__version__, py_version)):
+            _real_run_bench(opts)
+        return
+
+    if opts.get("external_server"):
+        _runner(opts)
     else:
-        raise ValueError()
+        with WsgiDavTestServer(with_auth=False, with_ssl=False, profile=opts.get("profile_server")):
+            if opts.get("profile_client"):
+                import cProfile, pstats
+                prof = cProfile.Profile()
+                prof = prof.runctx("_runner(opts)", globals(), locals())
+                stream = compat.StringIO()
+                stats = pstats.Stats(prof, stream=stream)
+        #        stats.sort_stats("time")  # Or cumulative
+                stats.sort_stats("cumulative")  # Or time
+                stats.print_stats(20)  # 80 = how many to print
+                # The rest is optional.
+                # stats.print_callees()
+                # stats.print_callers()
+                logging.info("Profile data:")
+                logging.info(stream.getvalue())
+            else:
+                _runner(opts)
 
-
-def run_bench(bench, opts):
-    profile_benchmarks = opts["profile_benchmarks"]
-    if bench in profile_benchmarks:
-        # http://docs.python.org/library/profile.html#module-cProfile
-        import cProfile, pstats
-        prof = cProfile.Profile()
-        prof = prof.runctx("_real_run_bench(bench, opts)", globals(), locals())
-        stream = compat.StringIO()
-        stats = pstats.Stats(prof, stream=stream)
-#        stats.sort_stats("time")  # Or cumulative
-        stats.sort_stats("cumulative")  # Or time
-        stats.print_stats(80)  # 80 = how many to print
-        # The rest is optional.
-        # stats.print_callees()
-        # stats.print_callers()
-        logging.warning("Profile data for '%s':\n%s" % (bench, stream.getvalue()))
- 
-    else:
-        _real_run_bench(bench, opts)
-
-
-def bench_all(opts):
-    run_bench("*", opts)
+    return
 
 
 def main():
-    opts = {"num": 10,
-            "profile_benchmarks": ["*"],
+    opts = {"count": 10,
+            "profile_client": False,  #
+            "profile_server": False,
+            "external_server": None,  # "http://localhost:8080",
             }    
-    bench_all(opts)
+    run_benchmarks(opts)
     
 
 if __name__ == "__main__":

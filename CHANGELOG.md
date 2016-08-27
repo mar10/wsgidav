@@ -4,7 +4,7 @@ CHANGES
 
 2.0.0 / Unreleased
 ==================
-- #2: Support Python 3
+- #4: Support Python 3
 - Drop support for Python 2.6
 - Use py.test & tox
 

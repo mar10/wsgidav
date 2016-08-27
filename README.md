@@ -6,7 +6,7 @@ written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
 
 ## Status
 
-[![Latest Version](https://pypip.in/v/WsgiDAV/badge.png)](https://pypi.python.org/pypi/WsgiDAV/)
+[![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 See the ([change log](CHANGELOG.md)) for details.
 
 **Note:** This project was hosted on Google Code until 2014-01-01 ([see old project page](https://code.google.com/p/wsgidav/)).

@@ -14,7 +14,7 @@ Then clone wsgidav to a local folder and checkout the branch you want to work on
 ```
 $ git clone git@github.com:mar10/wsgidav.git
 $ cd wsgidav
-$ git checkout py3
+$ git checkout my_branch
 ```
 
 Setup a virtual environment with a specific Python version for development and 
