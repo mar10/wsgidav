@@ -2,16 +2,19 @@
 
 ## Test Status as of 2016-08-23
 
+```
                              Py2.7  Py3.3  Py3.4  Py3.5
 ---------------------------------------------------------
 tests/test_wsgidav_app.py    ok     ok     ok     ok
 tests/test_scripted.py       ok     ok     ok     ok
 tests/test_litmus.py         ok     ok     ok     ok
 tests/*                      ok     ok     ok     ok
-
+```
 
 ## Coverage
-    2016-08-23   49%
+
+  - 2016-08-23   49%
+
 
 ## Benchmarks
 
@@ -21,6 +24,7 @@ $ workon wsgidav3_py27
 (wsgidav3_py27) $ python tests/bencmarks.py
 ```
 
+```
 2016-08-27, wsgdav 2.0.0
 	On Python 2.7:
 		Timing 'Setup fixture'      took  0.018 sec
@@ -46,3 +50,4 @@ $ workon wsgidav3_py27
 		Timing '1000 x PROPPATCH'   took  3.128 sec,  319.6 req/sec
 		Timing '500 x PROPFIND'     took  4.001 sec,  125.0 req/sec
 		Timing 'Test suite, WsgiDAV 2.0.0b1, Python 3.5.2' took 18.514 sec
+```
