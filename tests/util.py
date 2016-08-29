@@ -133,13 +133,13 @@ class WsgiDavTestServer(object):
         self.proc = Process(target=run_wsgidav_server, kwargs=kwargs)
         self.proc.daemon = True
         self.proc.start()
-        print("Starting WsgiDavTestServer... waiting...")
+        # print("Starting WsgiDavTestServer... waiting...")
         time.sleep(self.start_delay)
-        print("Starting WsgiDavTestServer... waiting... done.")
+        # print("Starting WsgiDavTestServer... waiting... done.")
         return self
 
     def __exit__(self, type, value, traceback):
-        print("Stopping WsgiDavTestServer...")
+        # print("Stopping WsgiDAVAppavTestServer...")
         self.proc.terminate()
         self.proc.join()
         print("Stopping WsgiDavTestServer... done.")

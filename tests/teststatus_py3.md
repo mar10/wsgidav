@@ -21,33 +21,65 @@ tests/*                      ok     ok     ok     ok
 NOTE: run twice and use 2nd result:
 ```sh
 $ workon wsgidav3_py27
-(wsgidav3_py27) $ python tests/bencmarks.py
+(wsgidav3_py27) $ python tests/benchmarks.py
 ```
 
+### Summary
+
+  - WsgiDAV 1.x on Python 2.7 is 10% faster than WsgiDAV 2.x on Python 2.7
+  - WsgiDAV 2.x on Python 3.5 is 20% faster than WsgiDAV 2.x on Python 2.7  
+  - WsgiDAV 2.x on Python 3.5 is 10% faster than WsgiDAV 1.x on Python 2.7
+
+
+### Details
 ```
-2016-08-27, wsgdav 2.0.0
-	On Python 2.7:
-		Timing 'Setup fixture'      took  0.018 sec
-		Timing '1000 x PUT 1 kB'    took  4.267 sec,  234.4 req/sec,   0.234 MB/sec
-		Timing '10 x PUT 10 MB'     took  1.901 sec,    5.3 req/sec,  52.595 MB/sec
-		Timing '1000 x GET 1 kB'    took  3.827 sec,  261.3 req/sec,   0.261 MB/sec
-		Timing '10 x GET 10 MB'     took  0.743 sec,   13.5 req/sec, 134.659 MB/sec
-		Timing '10 x COPY 10 MB'    took  1.817 sec,    5.5 req/sec,  55.034 MB/sec
-		Timing '100 x MOVE 10 MB'   took  0.496 sec,  201.7 req/sec
-		Timing '100 x LOCK/UNLOCK'  took  0.991 sec,  201.7 req/sec
-		Timing '1000 x PROPPATCH'   took  4.637 sec,  215.6 req/sec
-		Timing '500 x PROPFIND'     took  5.701 sec,   87.7 req/sec
-		Timing 'Test suite, WsgiDAV 2.0.0b1, Python 2.7.10' took 24.449 sec
-	On Python 3.5:
-		Timing 'Setup fixture'      took  0.017 sec
-		Timing '1000 x PUT 1 kB'    took  3.291 sec,  303.9 req/sec,   0.304 MB/sec
-		Timing '10 x PUT 10 MB'     took  2.020 sec,    5.0 req/sec,  49.504 MB/sec
-		Timing '1000 x GET 1 kB'    took  2.289 sec,  436.9 req/sec,   0.437 MB/sec
-		Timing '10 x GET 10 MB'     took  0.949 sec,   10.5 req/sec, 105.377 MB/sec
-		Timing '10 x COPY 10 MB'    took  1.816 sec,    5.5 req/sec,  55.051 MB/sec
-		Timing '100 x MOVE 10 MB'   took  0.332 sec,  300.8 req/sec
-		Timing '100 x LOCK/UNLOCK'  took  0.601 sec,  333.0 req/sec
-		Timing '1000 x PROPPATCH'   took  3.128 sec,  319.6 req/sec
-		Timing '500 x PROPFIND'     took  4.001 sec,  125.0 req/sec
-		Timing 'Test suite, WsgiDAV 2.0.0b1, Python 3.5.2' took 18.514 sec
+Date:     2016-08-29
+OS:       Darwin-15.6.0-x86_64-i386-64bit
+lxml:     (not installed)
+#-- WsgiDAV Benchmark ---------------------------------------------
+	WsgiDAV:  1.3.1pre1
+	Python:   2.7.10
+	Timing 'litmus test suite'  took  0.459 sec
+	Timing 'Setup fixture'      took  0.013 sec
+	Timing '1000 x PUT 1 kB'    took  4.069 sec,  245.8 req/sec,   0.246 MB/sec
+	Timing '10 x PUT 10 MB'     took  1.931 sec,    5.2 req/sec,  51.774 MB/sec
+	Timing '1000 x GET 1 kB'    took  3.202 sec,  312.3 req/sec,   0.312 MB/sec
+	Timing '10 x GET 10 MB'     took  0.808 sec,   12.4 req/sec, 123.768 MB/sec
+	Timing '10 x COPY 10 MB'    took  1.821 sec,    5.5 req/sec,  54.906 MB/sec
+	Timing '100 x MOVE 10 MB'   took  0.406 sec,  246.0 req/sec
+	Timing '100 x LOCK/UNLOCK'  took  0.759 sec,  263.4 req/sec
+	Timing '1000 x PROPPATCH'   took  3.591 sec,  278.5 req/sec
+	Timing '500 x PROPFIND'     took  6.126 sec,   81.6 req/sec
+	Timing '>>> Summary >>>:'   took 23.231 sec
+#-- WsgiDAV Benchmark ---------------------------------------------
+	WsgiDAV:  2.0.0b1
+	Python:   2.7.10
+	Timing 'litmus test suite'  took  0.631 sec
+	Timing 'Setup fixture'      took  0.014 sec
+	Timing '1000 x PUT 1 kB'    took  4.477 sec,  223.4 req/sec,   0.223 MB/sec
+	Timing '10 x PUT 10 MB'     took  1.828 sec,    5.5 req/sec,  54.694 MB/sec
+	Timing '1000 x GET 1 kB'    took  3.917 sec,  255.3 req/sec,   0.255 MB/sec
+	Timing '10 x GET 10 MB'     took  0.718 sec,   13.9 req/sec, 139.264 MB/sec
+	Timing '10 x COPY 10 MB'    took  1.861 sec,    5.4 req/sec,  53.724 MB/sec
+	Timing '100 x MOVE 10 MB'   took  0.493 sec,  202.8 req/sec
+	Timing '100 x LOCK/UNLOCK'  took  0.957 sec,  209.0 req/sec
+	Timing '1000 x PROPPATCH'   took  4.533 sec,  220.6 req/sec
+	Timing '500 x PROPFIND'     took  6.575 sec,   76.0 req/sec
+	Timing '>>> Summary >>>:'   took 26.051 sec
+#-- WsgiDAV Benchmark ---------------------------------------------
+	WsgiDAV:  2.0.0b1
+	Python:   3.5.2
+	Timing 'litmus test suite'  took  0.498 sec
+	Timing 'Setup fixture'      took  0.015 sec
+	Timing '1000 x PUT 1 kB'    took  4.200 sec,  238.1 req/sec,   0.238 MB/sec
+	Timing '10 x PUT 10 MB'     took  2.185 sec,    4.6 req/sec,  45.766 MB/sec
+	Timing '1000 x GET 1 kB'    took  2.336 sec,  428.2 req/sec,   0.428 MB/sec
+	Timing '10 x GET 10 MB'     took  0.975 sec,   10.3 req/sec, 102.532 MB/sec
+	Timing '10 x COPY 10 MB'    took  1.839 sec,    5.4 req/sec,  54.384 MB/sec
+	Timing '100 x MOVE 10 MB'   took  0.338 sec,  295.4 req/sec
+	Timing '100 x LOCK/UNLOCK'  took  0.605 sec,  330.5 req/sec
+	Timing '1000 x PROPPATCH'   took  3.153 sec,  317.2 req/sec
+	Timing '500 x PROPFIND'     took  4.795 sec,  104.3 req/sec
+	Timing '>>> Summary >>>:'   took 20.995 sec
+
 ```

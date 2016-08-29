@@ -49,11 +49,30 @@ Test cases
 """
 from __future__ import print_function
 
+import datetime
 import logging
+import platform
+import subprocess
 import sys
 import time
 
-from wsgidav import compat, __version__
+from wsgidav import __version__
+try:
+    # WsgiDAV 2.x
+    from wsgidav import compat
+except ImportError:
+    # WsgiDAV 1.x: mock the compat module, so benchmark.py runs in both versions:
+    class compat(object):
+        xrange = xrange
+        @staticmethod
+        def to_bytes(s, encoding="utf8"):
+            """Convert unicode (text strings) to binary data, i.e. str on Py2 and bytes on Py3."""
+            if type(s) is unicode:
+                s = s.encode(encoding)
+            elif type(s) is not str:
+                s = str(s)
+            return s
+
 from tests.util import Timing, WsgiDavTestServer
 
 
@@ -63,8 +82,24 @@ def _setup_fixture(opts, client):
     client.mkcol("/test/")
     client.checkResponse(201)
 
-def _real_run_bench(opts):
-    print("_real_run_bench(), {}...".format(opts))
+
+def _bench_litmus(opts):
+
+    try:
+        with Timing("litmus test suite"):
+            # Run litmus test suite without printing output
+            res = subprocess.check_output(["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
+            # res = subprocess.check_call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"],
+            #                             stdout=DEVNULL, stderr=subprocess.STDOUT)
+    except OSError:
+        print("This test requires the litmus test suite (see http://www.webdav.org/neon/litmus/)")
+        raise
+    return
+
+
+def _bench_script(opts):
+    # print("Scriptes benchmarks")
+    # print("_bench_script(), {}...".format(opts))
     
     from tests import davclient
     server_url = opts.get("external_server") or "http://localhost:8080/"
@@ -159,9 +194,23 @@ def run_benchmarks(opts):
 
     py_version = "{}.{}.{}".format(*sys.version_info)
 
+    print("#-- WsgiDAV Benchmark ---------------------------------------------")
+    print("Date:     {}".format(datetime.date.today()))
+    print("WsgiDAV:  {}".format(__version__))
+    print("Python:   {}".format(py_version))
+    # print("CherryPy: {}".format(__version__))
+    print("OS:       {}".format(platform.platform(aliased=True)))
+
+    try:
+        from lxml import __version__ as lxml_version
+        print("lxml:     {}".format(lxml_version))
+    except ImportError:
+        print("lxml:     (not installed)")
+
     def _runner(opts):
-        with Timing("Test suite, WsgiDAV {}, Python {}".format(__version__, py_version)):
-            _real_run_bench(opts)
+        with Timing(">>> Summary >>>:"):
+            _bench_litmus(opts)
+            _bench_script(opts)
         return
 
     if opts.get("external_server"):
