@@ -23,6 +23,41 @@ from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 
 
+#===============================================================================
+# Timing
+#===============================================================================
+
+class Timing(object):
+    """Print timing"""
+
+    def __init__(self, name, count=None, fmt=None, count2=None, fmt2=None, stream=None):
+        self.name = name
+        self.count = count
+        self.fmt = fmt
+        self.count2 = count2
+        self.fmt2 = fmt2
+        self.stream = stream or sys.stdout
+
+    def __enter__(self):
+        self.start = time.time()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        elap = time.time() - self.start
+        msg = ["Timing {:<20} took {:>6.3f} sec".format(repr(self.name), elap)]
+        if self.count:
+            fmt = self.fmt or "{:0,.1f} bytes/sec"
+            msg.append(fmt.format(float(self.count) / elap))
+        if self.count2:
+            fmt = self.fmt2 or "{:0,.1f} bytes/sec"
+            msg.append(fmt.format(float(self.count2) / elap))
+        print(", ".join(msg))
+
+
+#===============================================================================
+# Timing
+#===============================================================================
+
 def run_wsgidav_server(with_auth, with_ssl):
     """Start blocking WsgiDAV server (called as a separate process)."""
     package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -76,37 +111,6 @@ def run_wsgidav_server(with_auth, with_ssl):
     from wsgidav.server.run_server import _runCherryPy
     _runCherryPy(app, config, "cherrypy-bundled")
     # blocking...
-
-
-#===============================================================================
-# Timing
-#===============================================================================
-
-class Timing(object):
-    """Print timing"""
-
-    def __init__(self, name, count=None, fmt=None, count2=None, fmt2=None, stream=None):
-        self.name = name
-        self.count = count
-        self.fmt = fmt
-        self.count2 = count2
-        self.fmt2 = fmt2
-        self.stream = stream or sys.stdout
-
-    def __enter__(self):
-        self.start = time.time()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        elap = time.time() - self.start
-        msg = ["Timing {:<20} took {:>6.3f} sec".format(repr(self.name), elap)]
-        if self.count:
-            fmt = self.fmt or "{:0,.1f} bytes/sec"
-            msg.append(fmt.format(float(self.count) / elap))
-        if self.count2:
-            fmt = self.fmt2 or "{:0,.1f} bytes/sec"
-            msg.append(fmt.format(float(self.count2) / elap))
-        print(", ".join(msg))
 
 
 #===============================================================================

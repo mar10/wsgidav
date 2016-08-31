@@ -49,6 +49,11 @@ Test cases
 """
 from __future__ import print_function
 
+try:
+    from cherrypy import __version__ as cp_version
+except ImportError:
+    cp_version = "unknown"
+
 import datetime
 import logging
 import platform
@@ -198,7 +203,7 @@ def run_benchmarks(opts):
     print("Date:     {}".format(datetime.date.today()))
     print("WsgiDAV:  {}".format(__version__))
     print("Python:   {}".format(py_version))
-    # print("CherryPy: {}".format(__version__))
+    print("CherryPy: {}".format(cp_version))
     print("OS:       {}".format(platform.platform(aliased=True)))
 
     try:
@@ -238,8 +243,7 @@ def run_benchmarks(opts):
 
 
 def main():
-    opts = {"count": 10,
-            "profile_client": False,  #
+    opts = {"profile_client": False,  #
             "profile_server": False,
             "external_server": None,  # "http://localhost:8080",
             }    
