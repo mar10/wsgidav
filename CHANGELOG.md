@@ -6,6 +6,7 @@ CHANGES
 ==================
 - #4: Support Python 3
 - Drop support for Python 2.6
+- Add CherryPy wsgiserver 7.1 
 - Use py.test & tox
 
 

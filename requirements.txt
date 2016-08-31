@@ -1,4 +1,5 @@
 PyInstaller==3.2
+cherrypy~=7.1
 #colorama==0.3.3
 distribute==0.7.3
 #keyring==5.3

@@ -53,8 +53,7 @@ if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
     print("Initializing HOME environment variable to '%s'" % os.environ["HOME"])
 
-install_requires = [#"colorama",
-                    #"keyring",
+install_requires = ["cherrypy",
                     #"lxml",
                     ]
 tests_require = ["pytest",
@@ -117,7 +116,6 @@ setup(name="WsgiDAV",
                      "Topic :: Software Development :: Libraries :: Python Modules",
                      ],
       keywords = "web wsgi webdav application server",
-#      platforms=["Unix", "Windows"],
       license = "The MIT License",
       packages = find_packages(exclude=['tests']),
       install_requires = install_requires,

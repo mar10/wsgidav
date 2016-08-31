@@ -339,15 +339,8 @@ def _runCherryPy(app, config, mode):
     assert mode in ("cherrypy", "cherrypy-bundled")
 
     try:
-        if mode == "cherrypy-bundled":
-            # Need to set import root folder
-            server_folder = os.path.dirname(__file__)
-            sys.path.append(server_folder)
-            from cherrypy import wsgiserver
-            from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
-        else:
-            # http://cherrypy.org/apidocs/3.0.2/cherrypy.wsgiserver-module.html  
-            from cherrypy import wsgiserver, __version__ as cp_version, BuiltinSSLAdapter
+        from cherrypy import wsgiserver
+        from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 
         version = "WsgiDAV/%s %s Python/%s" % (
             __version__, 
@@ -382,9 +375,9 @@ def _runCherryPy(app, config, mode):
             if config["verbose"] >= 1:
                 print("Caught Ctrl-C, shutting down...")
             server.stop()
-    except ImportError as e:
+    except ImportError:
         if config["verbose"] >= 1:
-            print("Could not import wsgiserver.CherryPyWSGIServer.")
+            print("Could not import cherrypy.wsgiserver.CherryPyWSGIServer.")
         return False
     return True
 

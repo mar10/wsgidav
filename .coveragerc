@@ -1,2 +1,2 @@
 [run]
-omit = tests/*, wsgidav/server/cherrypy/*
+omit = tests/*

@@ -13,25 +13,31 @@ tests/*                      ok     ok     ok     ok
 
 ## Coverage
 
+NOTE: run tes suite:
+```sh
+$ workon wsgidav3_py27
+(wsgidav3_py27) $ python setup.py test
+```
+
   - 2016-08-23   49%
 
 
 ## Benchmarks
 
-NOTE: run twice and use 2nd result:
+NOTE: run twice and use 2nd result, for example:
 ```sh
 $ workon wsgidav3_py27
 (wsgidav3_py27) $ python tests/benchmarks.py
 ```
 
-### Summary
+#### Summary
 
-  - WsgiDAV 1.x on Python 2.7 is 10% faster than WsgiDAV 2.x on Python 2.7
   - WsgiDAV 2.x on Python 3.5 is 20% faster than WsgiDAV 2.x on Python 2.7  
-  - WsgiDAV 2.x on Python 3.5 is 10% faster than WsgiDAV 1.x on Python 2.7
+                             and 10% faster than WsgiDAV 1.x on Python 2.7
+  - WsgiDAV 1.x on Python 2.7 is 10% faster than WsgiDAV 2.x on Python 2.7
 
 
-### Details
+#### Details
 ```
 Date:     2016-08-29
 OS:       Darwin-15.6.0-x86_64-i386-64bit
