@@ -83,6 +83,9 @@ from wsgidav import util
 
 _logger = util.getModuleLogger(__name__, True)
 
+_version = 1.0
+PYTHON_VERSION = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+
 SERVER_ERROR = """\
 <html>
   <head>
@@ -96,7 +99,7 @@ SERVER_ERROR = """\
 </html>
 """
 
-class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
+class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
     _SUPPORTED_METHODS = ["HEAD", "GET", "PUT", "POST", "OPTIONS", "TRACE",
                           "DELETE", "PROPFIND", "PROPPATCH", "MKCOL", "COPY", 
@@ -105,8 +108,11 @@ class ExtHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
     
-    server_version = "WsgiDAV/%s %s" % (__version__,
-                                        BaseHTTPServer.BaseHTTPRequestHandler.server_version)
+    server_version = "WsgiDAV/%s ExtServer/%s %s Python %s" % (
+        __version__,
+        _version,
+        BaseHTTPServer.BaseHTTPRequestHandler.server_version,
+        PYTHON_VERSION)
 
     def log_message (self, *args):
         pass
@@ -351,12 +357,14 @@ def serve(conf, app):
     host = conf.get("host", "localhost")
     port = int(conf.get("port", 8080)) 
     server = ExtServer((host, port), {"": app})
+    server_version = ExtHandler.server_version
     if conf.get("verbose") >= 1:
+        print("Running %s" % server_version)
         if host in ("", "0.0.0.0"):
             (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
-            print("WsgiDAV %s serving at %s, port %s (host='%s' %s)..." % (__version__, host, port, hostname, ipaddrlist))
+            print("Serving at %s, port %s (host='%s' %s)..." % (host, port, hostname, ipaddrlist))
         else:
-            print("WsgiDAV %s serving at %s, port %s..." % (__version__, host, port))
+            print("Serving at %s, port %s..." % (host, port))
     server.serve_forever()
 #    server.serve_forever_stoppable()
 

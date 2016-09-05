@@ -30,7 +30,7 @@ from wsgidav import compat
 from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
-from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree
+from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree, isEtreeElement
 ## Trick PyDev to do intellisense and don't produce warnings:
 if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
 
@@ -833,7 +833,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         for name, value in propDict[status]:
             if value is None:
                 etree.SubElement(propEL, name)
-            elif isinstance(value, etree.Element):
+            elif isEtreeElement(value):
                 propEL.append(value)
             else:
                 # value must be string or unicode

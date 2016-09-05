@@ -3,8 +3,8 @@
 run_server
 ==========
 
+:Author: Martin Wendt, moogle(at)wwwendt.de
 :Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
-:Author: Martin Wendt, moogle(at)wwwendt.de 
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Standalone server that runs WsgiDAV.
@@ -35,22 +35,17 @@ Configuration is defined like this:
 """
 from __future__ import print_function
 
-from optparse import OptionParser
+import argparse
 from pprint import pprint
 from inspect import isfunction
-from wsgidav.wsgidav_app import DEFAULT_CONFIG
 import traceback
 import sys
 import os
-from wsgidav.xml_tools import useLxml
-from wsgidav import util
 
-try:
-    from wsgidav import __version__
-    from wsgidav.wsgidav_app import WsgiDAVApp
-    from wsgidav.fs_dav_provider import FilesystemProvider
-except ImportError as e:
-    raise RuntimeError("Could not import wsgidav package:\n%s\nSee https://github.com/mar10/wsgidav/." % e)
+from wsgidav import util, __version__
+from wsgidav.fs_dav_provider import FilesystemProvider
+from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.xml_tools import useLxml
 
 __docformat__ = "reStructuredText"
 
@@ -75,105 +70,115 @@ def _get_checked_path(path, mustExist=True, allowNone=True):
 def _initCommandLineOptions():
     """Parse command line options into a dictionary."""
     
-    usage = """\
+    description = """\
+
+Run a WEBDAV server to share file system folders.
+
+It uses WsgiDAV inside a pre-installed WSGI server (cherrypy.wsgiserver,
+paste.httpserver, wsgiref.simple_server) or uses the built-in
+ext_wsgiutils_server.py.
+
 %prog [options]
 
 Examples:
-Share filesystem folder '/temp': 
-  wsgidav --port=80 --host=0.0.0.0 --root=/temp
-Run using a configuration file: 
-  wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.conf
 
-If no config file is specified, the application will look for a file named
-'wsgidav.conf' in the current directory.
-See doc/annotated_wsgidav.conf for some explanation of the configuration file format.
-If no config file is found, a default FilesystemProvider is used."""
+  Share filesystem folder '/temp': 
+    wsgidav --port=80 --host=0.0.0.0 --root=/temp
 
-#    description = """\
-#%prog is a standalone server for WsgiDAV.
-#It tries to use pre-installed WSGI servers (cherrypy.wsgiserver,
-#paste.httpserver, wsgiref.simple_server) or uses our built-in
-#ext_wsgiutils_server.py."""
+  Run using a specific configuration file: 
+    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.conf
 
-#    epilog = """Licensed under the MIT license.
-#See http://wsgidav.googlecode.com for additional information."""
-            
-    parser = OptionParser(usage=usage, 
-                          version=__version__,
-#                          conflict_handler="error",
-                          description=None, #description,
-                          add_help_option=True,
-                          prog="wsgidav",
-#                          epilog=epilog # TODO: Not available on Python 2.4?
-                          )    
- 
-    parser.add_option("-p", "--port", 
-                      dest="port",
-                      type="int",
-                      # default=8080,
-                      help="port to serve on (default: %default)")
-    parser.add_option("-H", "--host", # '-h' conflicts with --help  
-                      dest="host",
-                      # default="localhost",
-                      help="host to serve from (default: %default). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
-    parser.add_option("-r", "--root",
-                      dest="root_path", 
-                      help="Path to a file system folder to publish as share '/'.")
+  If no config file is specified, the application will look for a file named
+  'wsgidav.conf' in the current directory.
+  See
+    http://wsgidav.readthedocs.io/en/latest/run-configure.html
+  for some explanation of the configuration file format.
 
-    parser.add_option("-q", "--quiet",
-                      action="store_const", const=0, dest="verbose",
-                      help="suppress any output except for errors.")
-    parser.add_option("-v", "--verbose",
-                      action="store_const", const=2, dest="verbose",# default=1,
-                      help="Set verbose = 2: print informational output.")
-    parser.add_option("-d", "--debug",
-                      action="store_const", const=3, dest="verbose",
-                      help="Set verbose = 3: print requests and responses.")
+  If no config file is found, a default FilesystemProvider is used.
+  """
+
+    epilog = """\
+Licensed under the MIT license.
+See https://github.com/mar10/wsgidav for additional information.
+"""
+
+    parser = argparse.ArgumentParser(prog="wsgidav",
+                                     description=description,
+                                     epilog=epilog,
+                                     # allow_abbrev=False,  # Py3.5+
+                                     formatter_class=argparse.RawTextHelpFormatter,
+                                     )
+    parser.add_argument("-p", "--port", 
+                        dest="port",
+                        type=int,
+                        # default=8080,
+                        help="port to serve on (default: 8080)")
+    parser.add_argument("-H", "--host", # '-h' conflicts with --help  
+                        dest="host",
+                        # default="localhost",
+                        help="host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
+    parser.add_argument("-r", "--root",
+                        dest="root_path", 
+                        help="Path to a file system folder to publish as share '/'.")
+    parser.add_argument("--server",
+                        choices=("cherrypy", "ext-wsgiutils", "flup-fcgi", "flup-fcgi-fork", "paste", "wsgiref"),
+                        default="cherrypy",
+                        # dest="server", 
+                        help="Type of pre-installed WSGI server to use. (Default: cherrypy)")
+
+    parser.add_argument("-q", "--quiet",
+                        action="store_const", const=0, dest="verbose",
+                        help="suppress any output except for errors.")
+    parser.add_argument("-v", "--verbose",
+                        action="store_const", const=2, dest="verbose",# default=1,
+                        help="Set verbose = 2: print informational output.")
+    parser.add_argument("-d", "--debug",
+                        action="store_const", const=3, dest="verbose",
+                        help="Set verbose = 3: print requests and responses.")
     
-    parser.add_option("-c", "--config",
-                      dest="config_file", 
-                      help="Configuration file (default: %s in current directory)." % DEFAULT_CONFIG_FILE)
+    parser.add_argument("-c", "--config",
+                        dest="config_file", 
+                        help="Configuration file (default: %s in current directory)." % DEFAULT_CONFIG_FILE)
 
-    parser.add_option("", "--reload",
-                      action="store_true", dest="reload", 
-                      help="Restart server when source files are changed. Used by run_reloading_server. (Requires paste.reloader.)")
+    parser.add_argument("--reload",
+                        action="store_true", dest="reload", 
+                        help="Restart server when source files are changed. Used by run_reloading_server. (Requires paste.reloader.)")
 
-#    parser.add_option("", "--profile",
+#    parser.add_argument("", "--profile",
 #                      action="store_true", dest="profile", 
 #                      help="Profile ")
 
    
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if len(args) > 0:
-        parser.error("Too many arguments")
+    # print("ARGS", args)
+    # if len(args) > 0:
+    #     parser.error("Too many arguments")
 
-    # verbose = 1 if options.verbose is None else options.verbose
-    if options.verbose is None:
-        options.verbose = 1
+    # verbose = 1 if args.verbose is None else args.verbose
+    if args.verbose is None:
+        args.verbose = 1
 
-    if options.config_file is None:
+    if args.config_file is None:
         # If --config was omitted, use default (if it exists)
         defPath = os.path.abspath(DEFAULT_CONFIG_FILE)
         if os.path.exists(defPath):
-            if options.verbose >= 1:
+            if args.verbose >= 1:
                 print("Using default configuration file: %s" % defPath)
-            options.config_file = defPath
+            args.config_file = defPath
     else:
         # If --config was specified convert to absolute path and assert it exists
-        options.config_file = os.path.abspath(options.config_file)
-        if not os.path.exists(options.config_file):
-            parser.error("Could not find specified configuration file: %s" % options.config_file)
+        args.config_file = os.path.abspath(args.config_file)
+        if not os.path.exists(args.config_file):
+            parser.error("Could not find specified configuration file: %s" % args.config_file)
 
-    # Convert options object to dictionary
-    cmdLineOpts = options.__dict__.copy()
-    if options.verbose >= 3:
-        print("Command line options:")
+    # Convert args object to dictionary
+    cmdLineOpts = args.__dict__.copy()
+    if args.verbose >= 3:
+        print("Command line args:")
         for k, v in cmdLineOpts.items():
             print("    %-12s: %s" % (k, v))
     return cmdLineOpts
-
-
 
 
 def _readConfigFile(config_file, verbose):
@@ -205,8 +210,6 @@ def _readConfigFile(config_file, verbose):
         raise
     
     return conf
-
-
 
 
 def _initConfig():
@@ -242,6 +245,8 @@ def _initConfig():
         config["verbose"] = cmdLineOpts.get("verbose")
     if cmdLineOpts.get("profile") is not None:
         config["profile"] = True
+    if cmdLineOpts.get("server") is not None:
+        config["server"] = cmdLineOpts.get("server")
 
     if cmdLineOpts.get("root_path"):
         root_path = os.path.abspath(cmdLineOpts.get("root_path"))
@@ -274,65 +279,59 @@ def _initConfig():
     return config
 
 
-
-
 def _runPaste(app, config, mode):
     """Run WsgiDAV using paste.httpserver, if Paste is installed.
     
     See http://pythonpaste.org/modules/httpserver.html for more options
     """
     _logger = util.getModuleLogger(__name__, True)
+    from paste import httpserver
+    version = "WsgiDAV/%s %s Python %s" % (
+        __version__, httpserver.WSGIHandler.server_version, PYTHON_VERSION)
+    if config["verbose"] >= 1:
+        print("Running %s..." % version)
+
+    # See http://pythonpaste.org/modules/httpserver.html for more options
+    server = httpserver.serve(app,
+                     host=config["host"], 
+                     port=config["port"],
+                     server_version=version,
+                     # This option enables handling of keep-alive 
+                     # and expect-100:
+                     protocol_version="HTTP/1.1",
+                     start_loop=False
+                     )
+
+    if config["verbose"] >= 3:
+        __handle_one_request = server.RequestHandlerClass.handle_one_request
+        def handle_one_request(self):
+            __handle_one_request(self)
+            if self.close_connection == 1:
+                _logger.debug("HTTP Connection : close")
+            else:
+                _logger.debug("HTTP Connection : continue")
+
+        server.RequestHandlerClass.handle_one_request = handle_one_request
+
+        __handle = server.RequestHandlerClass.handle
+        def handle(self):
+            _logger.debug("open HTTP connection")
+            __handle(self)
+
+        server.RequestHandlerClass.handle_one_request = handle_one_request
+
+    host, port = server.server_address
+    if host == '0.0.0.0':
+        print('serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % (port, 'http', port))
+    else:
+        print("serving on %s://%s:%s" % ('http', host, port))
     try:
-        from paste import httpserver
-        version = "WsgiDAV/%s %s" % (__version__, httpserver.WSGIHandler.server_version)
+        server.serve_forever()
+    except KeyboardInterrupt:
         if config["verbose"] >= 1:
-            print("Running %s..." % version)
+            print("Caught Ctrl-C, shutting down...")
+    return
 
-        # See http://pythonpaste.org/modules/httpserver.html for more options
-        server = httpserver.serve(app,
-                         host=config["host"], 
-                         port=config["port"],
-                         server_version=version,
-                         # This option enables handling of keep-alive 
-                         # and expect-100:
-                         protocol_version="HTTP/1.1",
-                         start_loop=False
-                         )
-
-        if config["verbose"] >=3:
-            __handle_one_request = server.RequestHandlerClass.handle_one_request
-            def handle_one_request(self):
-                __handle_one_request(self)
-                if self.close_connection == 1:
-                    _logger.debug("HTTP Connection : close")
-                else:
-                    _logger.debug("HTTP Connection : continue")
-
-            server.RequestHandlerClass.handle_one_request = handle_one_request
-
-            __handle = server.RequestHandlerClass.handle
-            def handle(self):
-                _logger.debug("open HTTP connection")
-                __handle(self)
-
-            server.RequestHandlerClass.handle_one_request = handle_one_request
-
-
-        host, port = server.server_address
-        if host == '0.0.0.0':
-            print('serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % (port, 'http', port))
-        else:
-            print("serving on %s://%s:%s" % ('http', host, port))
-        try:
-            server.serve_forever()
-        except KeyboardInterrupt:
-            # allow CTRL+C to shutdown
-            pass
-    except ImportError as e:
-        if config["verbose"] >= 1:
-            print("Could not import paste.httpserver.")
-        return False
-    return True
 
 def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver if CherryPy is installed."""
@@ -341,180 +340,149 @@ def _runCherryPy(app, config, mode):
     try:
         from cherrypy import wsgiserver
         from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
-
-        version = "WsgiDAV/%s %s Python/%s" % (
-            __version__, 
-            wsgiserver.CherryPyWSGIServer.version, 
-            PYTHON_VERSION)
-        wsgiserver.CherryPyWSGIServer.version = version
-
-        # Support SSL
-        ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
-        ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
-        ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
-        protocol = "http"
-        if ssl_certificate:
-            assert ssl_private_key
-            wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(ssl_certificate, ssl_private_key, ssl_certificate_chain)
-            protocol = "https"
-            if config["verbose"] >= 1:
-                print("SSL / HTTPS enabled.")
-
-        if config["verbose"] >= 1:
-            print("Running %s" % version)
-            print("Listening on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
-        server = wsgiserver.CherryPyWSGIServer(
-            (config["host"], config["port"]), 
-            app,
-            server_name=version,
-            )
-
-        try:
-            server.start()
-        except KeyboardInterrupt:
-            if config["verbose"] >= 1:
-                print("Caught Ctrl-C, shutting down...")
-            server.stop()
     except ImportError:
+        # if config["verbose"] >= 1:
+        print("ERROR: Could not import CherryPy, Try `pip install cherrypy`.")
+        raise
+
+    server_name = "WsgiDAV/%s %s Python/%s" % (
+        __version__, 
+        wsgiserver.CherryPyWSGIServer.version, 
+        PYTHON_VERSION)
+    wsgiserver.CherryPyWSGIServer.version = server_name
+
+    # Support SSL
+    ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
+    ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
+    ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
+    protocol = "http"
+    if ssl_certificate:
+        assert ssl_private_key
+        wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(ssl_certificate, ssl_private_key, ssl_certificate_chain)
+        protocol = "https"
         if config["verbose"] >= 1:
-            print("Could not import cherrypy.wsgiserver.CherryPyWSGIServer.")
-        return False
-    return True
+            print("SSL / HTTPS enabled.")
 
+    if config["verbose"] >= 1:
+        print("Running %s" % server_name)
+        print("Listening on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
 
+    server_args = {"bind_addr": (config["host"], config["port"]),
+                   "wsgi_app": app,
+                   "server_name": server_name,
+                   }
+    # Override or add custom args
+    server_args.update(config.get("server_args", {}))
+
+    server = wsgiserver.CherryPyWSGIServer(**server_args)
+    # server = wsgiserver.CherryPyWSGIServer(
+    #     bind_addr=(config["host"], config["port"]), 
+    #     wsgi_app=app,
+    #     server_name=server_name,
+    #     numthreads=server_args.get("numthreads", 10),
+    #     max=server_args.get("max", -1),
+    #     request_queue_size=server_args.get("request_queue_size", 5),
+    #     timeout=server_args.get("timeout", 10),
+    #     shutdown_timeout=server_args.get("shutdown_timeout", 5),
+    #     verbose=server_args.get("verbose", 0),
+    #     )
+
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        if config["verbose"] >= 1:
+            print("Caught Ctrl-C, shutting down...")
+    finally:
+        server.stop()
+    return
 
 
 def _runFlup(app, config, mode):
     """Run WsgiDAV using flup.server.fcgi, if Flup is installed."""
-    try:
-        # http://trac.saddi.com/flup/wiki/FlupServers
-        if mode == "flup-fcgi":
-            from flup.server.fcgi import WSGIServer, __version__ as flupver
-        elif mode == "flup-fcgi_fork":
-            from flup.server.fcgi_fork import WSGIServer, __version__ as flupver
-        else:
-            raise ValueError    
+    # http://trac.saddi.com/flup/wiki/FlupServers
+    if mode == "flup-fcgi":
+        from flup.server.fcgi import WSGIServer, __version__ as flupver
+    elif mode == "flup-fcgi-fork":
+        from flup.server.fcgi_fork import WSGIServer, __version__ as flupver
+    else:
+        raise ValueError    
 
-        if config["verbose"] >= 2:
-            print("Running WsgiDAV/%s %s/%s..." % (__version__,
-                                                   WSGIServer.__module__,
-                                                   flupver))
-        server = WSGIServer(app,
-                            bindAddress=(config["host"], config["port"]),
-#                            bindAddress=("127.0.0.1", 8001),
+    if config["verbose"] >= 2:
+        print("Running WsgiDAV/%s %s/%s..." % (__version__,
+                                               WSGIServer.__module__,
+                                               flupver))
+    server = WSGIServer(app,
+                        bindAddress=(config["host"], config["port"]),
 #                            debug=True,
-                            )
-        server.run()
-    except ImportError as e:
-        if config["verbose"] >= 1:
-            print("Could not import flup.server.fcgi", e)
-        return False
-    return True
-
-
-
-
-def _runSimpleServer(app, config, mode):
-    """Run WsgiDAV using wsgiref.simple_server, on Python 2.5+."""
+                        )
     try:
-        # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
-        from wsgiref.simple_server import make_server, software_version
+        server.run()
+    except KeyboardInterrupt:
+        if config["verbose"] >= 1:
+            print("Caught Ctrl-C, shutting down...")
+    return
+
+
+def _runWsgiref(app, config, mode):
+    """Run WsgiDAV using wsgiref.simple_server, on Python 2.5+."""
+    # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
+    from wsgiref.simple_server import make_server, software_version
 #        if config["verbose"] >= 1:
 #            print "Running WsgiDAV %s on wsgiref.simple_server (single threaded)..." % __version__
-        version = "WsgiDAV/%s %s" % (__version__, software_version)
-        if config["verbose"] >= 1:
-            print("Running %s..." % version)
-        httpd = make_server(config["host"], config["port"], app)
+    version = "WsgiDAV/%s %s" % (__version__, software_version)
+    if config["verbose"] >= 1:
+        print("Running %s..." % version)
+        print("WARNING: This single threaded server is not menat for production.")
+    httpd = make_server(config["host"], config["port"], app)
 #        print "Serving HTTP on port 8000..."
-        httpd.serve_forever()
-    except ImportError as e:
-        if config["verbose"] >= 1:
-            print("Could not import wsgiref.simple_server (part of standard lib since Python 2.5).")
-        return False
-    return True
-
-
-
-
-def _runBuiltIn(app, config, mode):
-    """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     try:
-        from wsgidav.server import ext_wsgiutils_server
-        if config["verbose"] >= 2:
-            print("Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__)
-        ext_wsgiutils_server.serve(config, app)
-    except ImportError as e:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
         if config["verbose"] >= 1:
-            print("Could not import wsgidav.ext_wsgiutils_server (part of WsgiDAV).")
-        return False
-    return True
+            print("Caught Ctrl-C, shutting down...")
+    return
 
 
-SUPPORTED_SERVERS = {"paste": _runPaste,
-                     "cherrypy": _runCherryPy,
-                     "cherrypy-bundled": _runCherryPy,
-                     "wsgiref": _runSimpleServer,
-                     "flup-fcgi": _runFlup,
-                     "flup-fcgi_fork": _runFlup,
-                     "wsgidav": _runBuiltIn,
-                     }
+def _runExtWsgiutils(app, config, mode):
+    """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
+    from wsgidav.server import ext_wsgiutils_server
+    if config["verbose"] >= 2:
+        print("Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__)
+    if config["verbose"] >= 1:
+        print("WARNING: This single threaded server is not meant for production.")
+    try:
+        ext_wsgiutils_server.serve(config, app)
+    except KeyboardInterrupt:
+        if config["verbose"] >= 1:
+            print("Caught Ctrl-C, shutting down...")
+    return
 
 
-#def _run_real(config):
-#    app = WsgiDAVApp(config)
-#    
-#    # Try running WsgiDAV inside the following external servers:
-#    res = False
-#    for e in config["ext_servers"]:
-#        fn = SUPPORTED_SERVERS.get(e)
-#        if fn is None:
-#            print "Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys()))
-#            
-#        elif fn(app, config, e):
-#            res = True
-#            break
-#    
-#    if not res:
-#        print "No supported WSGI server installed."   
-#
-#    
-#def run():
-#    config = _initConfig()
-#    if config.get("profile"):
-#        import cProfile, pstats, StringIO
-#        prof = cProfile.Profile()
-#        prof = prof.runctx("_run_real(config)", globals(), locals())
-#        stream = StringIO.StringIO()
-#        stats = pstats.Stats(prof, stream=stream)
-#        stats.sort_stats("time")  # Or cumulative
-#        stats.print_stats(80)  # 80 = how many to print
-#        # The rest is optional.
-#        # stats.print_callees()
-#        # stats.print_callers()
-##        logging.info("Profile data:\n%s", stream.getvalue())
-#        print(stream.getvalue())
-#        return
-#    return _real_run(config) 
 
 
 def run():
+    SUPPORTED_SERVERS = {"paste": _runPaste,
+                         "cherrypy": _runCherryPy,
+                         "ext-wsgiutils": _runExtWsgiutils,
+                         "flup-fcgi": _runFlup,
+                         "flup-fcgi_fork": _runFlup,
+                         "wsgiref": _runWsgiref,
+                         }
     config = _initConfig()
     
     app = WsgiDAVApp(config)
-    
-    # Try running WsgiDAV inside the following external servers:
-    res = False
-    for e in config["ext_servers"]:
-        fn = SUPPORTED_SERVERS.get(e)
-        if fn is None:
-            print("Invalid external server '%s'. (expected: '%s')" % (e, "', '".join(SUPPORTED_SERVERS.keys())))
-            
-        elif fn(app, config, e):
-            res = True
-            break
-    
-    if not res:
-        print("No supported WSGI server installed.")
+    server = config["server"]
+    handler = SUPPORTED_SERVERS.get(server)
+    if not handler:
+        raise RuntimeError("Unsupported server type {!r} (expected {!r})"
+            .format(server, "', '".join(SUPPORTED_SERVERS.keys())))
+
+    if not useLxml and config["verbose"] >= 1:
+        print("WARNING: Could not import lxml: using xml instead (slower).")
+        print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
+
+    handler(app, config, server)
+
 
     
 if __name__ == "__main__":

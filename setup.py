@@ -53,10 +53,18 @@ if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
     print("Initializing HOME environment variable to '%s'" % os.environ["HOME"])
 
-install_requires = ["cherrypy",
+# CherryPy is required for the tests and benchmarks. It is also the preferrred
+# server for the stand-alone mode (`wsgidav.server.run_server.py`).
+# We currently do not add it as an installation requirement, because 
+#   1. users may not need the command line server at all
+#   2. users may prefer another server
+#   3. there may already cherrypy versions installed
+
+install_requires = [#"cherrypy",
                     #"lxml",
                     ]
-tests_require = ["pytest",
+tests_require = ["cherrypy",
+                 "pytest",
                  "pytest-cov",
                  "tox",
                  "webtest",

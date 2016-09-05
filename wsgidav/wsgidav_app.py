@@ -70,14 +70,7 @@ DEFAULT_CONFIG = {
     "provider_mapping": {},
     "host": "localhost",
     "port": 8080, 
-    "ext_servers": [
-#                   "paste", 
-#                   "cherrypy",
-#                   "wsgiref",
-                   "cherrypy-bundled",
-                   "wsgidav",
-                   ],
-
+    "server": "cherrypy",
     "add_header_MS_Author_Via": True,
     "unquote_path_info": False, # See #8
 #    "use_text_files": False,

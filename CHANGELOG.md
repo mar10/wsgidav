@@ -6,7 +6,16 @@ CHANGES
 ==================
 - #4: Support Python 3
 - Drop support for Python 2.6
-- Add CherryPy wsgiserver 7.1 
+- cherrypy.wsgiserver is no longer included as source package.
+  CherryPy is still the recommended standalone WSGI server, and deployed with the
+  binary installation. It is also installed as dependency by `setup.py test`.
+  However if a source installation is used, either install cherrypy using
+  `pip install cherrypy` or choose another server using the `--server` option.
+- Configuration:
+  - New options `server` and `server_args`
+  - Removed `ext_servers` option
+- Standalone server:
+  - New command line option `--server` (defaults to cherrypy)
 - Use py.test & tox
 
 

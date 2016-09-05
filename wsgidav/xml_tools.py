@@ -22,15 +22,22 @@ useLxml = False
 try:
     from lxml import etree
     useLxml = True
+    _ElementType = etree._Element
 except ImportError:
     # Try xml module (Python 2.5 or later) 
     from xml.etree import ElementTree as etree
-    print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
+    _ElementType = etree.Element
+    # print("WARNING: Could not import lxml: using xml instead (slower).")
+    # print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
 
 #===============================================================================
 # XML
 #===============================================================================
+
+def isEtreeElement(obj):
+    return isinstance(obj, _ElementType)
+
 
 def stringToXML(text):
     """Convert XML string into etree.Element."""
