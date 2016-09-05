@@ -49,13 +49,9 @@ Test cases
 """
 from __future__ import print_function
 
-try:
-    from cherrypy import __version__ as cp_version
-except ImportError:
-    cp_version = "unknown"
-
 import datetime
 import logging
+import os
 import platform
 import subprocess
 import sys
@@ -79,6 +75,21 @@ except ImportError:
             return s
 
 from tests.util import Timing, WsgiDavTestServer
+from wsgidav.xml_tools import useLxml
+
+try:
+    try:
+        from cherrypy import __version__ as cp_version
+    except ImportError:
+        # Bundled CherryPy wsgiserver in WsgDAV 1.x
+        server_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "wsgidav", "server"))
+        sys.path.append(server_folder)
+        from cherrypy import wsgiserver
+        cp_version = wsgiserver.CherryPyWSGIServer.version
+except ImportError:
+    cp_version = "unknown"
+    raise
+
 
 
 def _setup_fixture(opts, client):
@@ -206,10 +217,10 @@ def run_benchmarks(opts):
     print("CherryPy: {}".format(cp_version))
     print("OS:       {}".format(platform.platform(aliased=True)))
 
-    try:
-        from lxml import __version__ as lxml_version
+    if useLxml:
+        from lxml.etree import LXML_VERSION as lxml_version
         print("lxml:     {}".format(lxml_version))
-    except ImportError:
+    else:
         print("lxml:     (not installed)")
 
     def _runner(opts):
