@@ -4,7 +4,6 @@ run_server
 ==========
 
 :Author: Martin Wendt, moogle(at)wwwendt.de
-:Author: Ho Chun Wei, fuzzybr80(at)gmail.com (author of original PyFileServer)
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Standalone server that runs WsgiDAV.
@@ -74,13 +73,7 @@ def _initCommandLineOptions():
 
 Run a WEBDAV server to share file system folders.
 
-It uses WsgiDAV inside a pre-installed WSGI server (cherrypy.wsgiserver,
-paste.httpserver, wsgiref.simple_server) or uses the built-in
-ext_wsgiutils_server.py.
-
-%prog [options]
-
-Examples:
+Examples: 
 
   Share filesystem folder '/temp': 
     wsgidav --port=80 --host=0.0.0.0 --root=/temp
@@ -93,8 +86,6 @@ Examples:
   See
     http://wsgidav.readthedocs.io/en/latest/run-configure.html
   for some explanation of the configuration file format.
-
-  If no config file is found, a default FilesystemProvider is used.
   """
 
     epilog = """\
@@ -119,30 +110,31 @@ See https://github.com/mar10/wsgidav for additional information.
                         help="host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
     parser.add_argument("-r", "--root",
                         dest="root_path", 
-                        help="Path to a file system folder to publish as share '/'.")
+                        help="path to a file system folder to publish as share '/'.")
     parser.add_argument("--server",
                         choices=("cherrypy", "ext-wsgiutils", "flup-fcgi", "flup-fcgi-fork", "paste", "wsgiref"),
                         default="cherrypy",
                         # dest="server", 
-                        help="Type of pre-installed WSGI server to use. (Default: cherrypy)")
+                        help="type of pre-installed WSGI server to use. (Default: cherrypy)")
 
+    parser.add_argument("-v", "--verbose", action="count", default=1,
+                        help="increment verbosity by one (default: %(default)s, range: 0..5)")
     parser.add_argument("-q", "--quiet",
-                        action="store_const", const=0, dest="verbose",
-                        help="suppress any output except for errors.")
-    parser.add_argument("-v", "--verbose",
-                        action="store_const", const=2, dest="verbose",# default=1,
-                        help="Set verbose = 2: print informational output.")
-    parser.add_argument("-d", "--debug",
-                        action="store_const", const=3, dest="verbose",
-                        help="Set verbose = 3: print requests and responses.")
+                        action="store_true",
+                        help="set verbosity 0: suppress any output except for errors")
     
     parser.add_argument("-c", "--config",
                         dest="config_file", 
-                        help="Configuration file (default: %s in current directory)." % DEFAULT_CONFIG_FILE)
+                        help="configuration file (default: %s in current directory)" % DEFAULT_CONFIG_FILE)
+    parser.add_argument("--no-config",
+                        action="store_true", dest="no_config", 
+                        help="do not try to load default %s" % DEFAULT_CONFIG_FILE)
 
-    parser.add_argument("--reload",
-                        action="store_true", dest="reload", 
-                        help="Restart server when source files are changed. Used by run_reloading_server. (Requires paste.reloader.)")
+    parser.add_argument('-V', '--version', action='version', version=__version__)    
+
+#    parser.add_argument("--reload",
+#                        action="store_true", dest="reload", 
+#                        help="restart server when source files are changed. Used by run_reloading_server (requires paste.reloader)")
 
 #    parser.add_argument("", "--profile",
 #                      action="store_true", dest="profile", 
@@ -155,11 +147,20 @@ See https://github.com/mar10/wsgidav for additional information.
     # if len(args) > 0:
     #     parser.error("Too many arguments")
 
-    # verbose = 1 if args.verbose is None else args.verbose
-    if args.verbose is None:
-        args.verbose = 1
+    if args.quiet:
+        if args.verbose > 1:
+            parser.error("-v and -q are mutually exclusive")
+        args.verbose = 0
+        del args.quiet
+    # print("Verbosity: {}".format(args.verbose))
 
-    if args.config_file is None:
+    if args.config_file and args.no_config:
+        parser.error("--config and --no-config are mutually exclusive")
+
+    if args.no_config:
+        if args.config_file:
+            parser.error("--config and --no-config are mutually exclusive")
+    elif args.config_file is None:
         # If --config was omitted, use default (if it exists)
         defPath = os.path.abspath(DEFAULT_CONFIG_FILE)
         if os.path.exists(defPath):
@@ -169,7 +170,7 @@ See https://github.com/mar10/wsgidav for additional information.
     else:
         # If --config was specified convert to absolute path and assert it exists
         args.config_file = os.path.abspath(args.config_file)
-        if not os.path.exists(args.config_file):
+        if not os.path.isfile(args.config_file):
             parser.error("Could not find specified configuration file: %s" % args.config_file)
 
     # Convert args object to dictionary
@@ -321,10 +322,10 @@ def _runPaste(app, config, mode):
         server.RequestHandlerClass.handle_one_request = handle_one_request
 
     host, port = server.server_address
-    if host == '0.0.0.0':
-        print('serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % (port, 'http', port))
+    if host == "0.0.0.0":
+        print("Serving on 0.0.0.0:%s view at %s://127.0.0.1:%s" % (port, "http", port))
     else:
-        print("serving on %s://%s:%s" % ('http', host, port))
+        print("Serving on %s://%s:%s" % ("http", host, port))
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -365,7 +366,7 @@ def _runCherryPy(app, config, mode):
 
     if config["verbose"] >= 1:
         print("Running %s" % server_name)
-        print("Listening on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
+        print("Serving on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
 
     server_args = {"bind_addr": (config["host"], config["port"]),
                    "wsgi_app": app,
@@ -375,17 +376,6 @@ def _runCherryPy(app, config, mode):
     server_args.update(config.get("server_args", {}))
 
     server = wsgiserver.CherryPyWSGIServer(**server_args)
-    # server = wsgiserver.CherryPyWSGIServer(
-    #     bind_addr=(config["host"], config["port"]), 
-    #     wsgi_app=app,
-    #     server_name=server_name,
-    #     numthreads=server_args.get("numthreads", 10),
-    #     max=server_args.get("max", -1),
-    #     request_queue_size=server_args.get("request_queue_size", 5),
-    #     timeout=server_args.get("timeout", 10),
-    #     shutdown_timeout=server_args.get("shutdown_timeout", 5),
-    #     verbose=server_args.get("verbose", 0),
-    #     )
 
     try:
         server.start()
@@ -432,7 +422,7 @@ def _runWsgiref(app, config, mode):
     version = "WsgiDAV/%s %s" % (__version__, software_version)
     if config["verbose"] >= 1:
         print("Running %s..." % version)
-        print("WARNING: This single threaded server is not menat for production.")
+        print("WARNING: This single threaded server is not meant for production.")
     httpd = make_server(config["host"], config["port"], app)
 #        print "Serving HTTP on port 8000..."
     try:
@@ -486,4 +476,5 @@ def run():
 
     
 if __name__ == "__main__":
+    # This would be executed by Sphinx autosummary?
     run()

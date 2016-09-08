@@ -2,14 +2,14 @@
 .coverage
 .eggs
 .tox
-doc/sphinx/_build
-doc/sphinx-api/
+doc/sphinx/_build/
+doc/sphinx/_generated/
+doc/sphinx-build/
 htmlcov/
 *.pyc
 *.confc
 *.egg-info
 *.egg
-server-192-168-178-39.*
 child.log
 debug.log
 wsgidav.conf

@@ -16,6 +16,8 @@ CHANGES
   - Removed `ext_servers` option
 - Standalone server:
   - New command line option `--server` (defaults to cherrypy)
+  - New command line option `--no-config`
+  - Removed command line option `-d` use `-vv` instead
 - Use py.test & tox
 
 

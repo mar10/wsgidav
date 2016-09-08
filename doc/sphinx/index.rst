@@ -20,7 +20,8 @@ written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-0333/>`
 
 Status
 ======
-1.1.0 is released. 
+The 1.3 is stable and released. 
+Version 2.x introduces Python 3 compatibility and is currently beta.
 
 .. seealso::
 	The `Change Log <https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md>`_.

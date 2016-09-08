@@ -2,7 +2,8 @@ Copyright (c) 2012-2016 Martin Wendt,
 
 Status
 ------
-**This project has beta status: use at your own risk!**
+**Release 2.0 supports Python 3, but has beta status: use at your own risk!**
+Use 1.x for a stable release.
 
 Summary
 -------

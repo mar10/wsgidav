@@ -10,13 +10,14 @@ import sys
 # RELEASE = False
 
 from setuptools import setup, find_packages
+from setuptools import Command
 from setuptools.command.test import test as TestCommand
 
 from wsgidav._version import __version__
 
 
 # Override 'setup.py test' command
-class Tox(TestCommand):
+class ToxCommand(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = []
@@ -28,8 +29,31 @@ class Tox(TestCommand):
         sys.exit(errcode)
 
 
-# TODO: Add support for 'setup.py sphinx'
-#       see http://stackoverflow.com/a/22273180/19166
+# Add custom command 'setup.py sphinx'
+# See https://dankeder.com/posts/adding-custom-commands-to-setup-py/
+# and http://stackoverflow.com/a/22273180/19166
+class SphinxCommand(Command):
+    user_options = []
+    description = 'Build docs using Sphinx'
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess
+        sourcedir = os.path.join("doc", "sphinx")
+        outdir = os.path.join("doc", "sphinx-build")
+        res = subprocess.call("sphinx-build -b html doc/sphinx doc/sphinx-build",
+            shell=True)
+        if res:
+            print("ERROR: sphinx-build exited with code {}".format(res))
+        else:
+            print("Documentation created at {}.".format(os.path.abspath(outdir)))
+
+
 
 try:
     from cx_Freeze import setup, Executable
@@ -136,12 +160,14 @@ setup(name="WsgiDAV",
 #      include_package_data = True, # TODO: PP
       zip_safe = False,
       extras_require = {},
-      cmdclass = {"test": Tox},
+      cmdclass = {"test": ToxCommand,
+                  "sphinx": SphinxCommand,
+                  },
       entry_points = {
           "console_scripts" : ["wsgidav = wsgidav.server.run_server:run"],
           },
       executables = executables,
       options = {"build_exe": build_exe_options,
                  "bdist_msi": bdist_msi_options,
-                 }
+                 },
       )
