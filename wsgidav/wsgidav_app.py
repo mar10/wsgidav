@@ -273,12 +273,12 @@ class WsgiDAVApp(object):
                 share = r
                 break
         
-        share_data = self.providerMap.get(share)
-        
         # Note: we call the next app, even if provider is None, because OPTIONS 
         #       must still be handled.
         #       All other requests will result in '404 Not Found'  
-        environ["wsgidav.provider"] = share_data['provider']
+        if share is not None:
+            share_data = self.providerMap.get(share)
+            environ["wsgidav.provider"] = share_data['provider']
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
         
