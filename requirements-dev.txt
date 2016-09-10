@@ -1,4 +1,5 @@
 -r requirements.txt
+cx_Freeze
 Paste~=2.0
 pytest~=2.7
 pytest-cov~=1.8

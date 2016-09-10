@@ -54,19 +54,6 @@ class SphinxCommand(Command):
             print("Documentation created at {}.".format(os.path.abspath(outdir)))
 
 
-
-try:
-    from cx_Freeze import setup, Executable
-    executables = [
-        Executable("wsgidav/server/run_server.py")
-        ]
-except ImportError:
-    # tox has problems to install cx_Freeze to it's venvs, but it is not needed
-    # for the tests anyway
-    print("Could not import cx_Freeze; 'build' and 'bdist' commands will not be available.")
-    print("See https://pypi.python.org/pypi/cx_Freeze")
-    executables = []
-
 try:
   readme = open("readme_pypi.rst", "rt").read()
 except IOError:
@@ -96,18 +83,39 @@ tests_require = ["cherrypy",
 
 setup_requires = install_requires
 
+try:
+    from cx_Freeze import setup, Executable
+    executables = [
+        Executable(script="wsgidav/server/run_server.py",
+                   base=None,
+                   # base="Win32GUI",
+                   targetName= "wsgidav.exe",
+                   icon= "doc/logo.ico",
+                   shortcutName= "WsgiDAV",
+                   )
+        ]
+except ImportError:
+    # tox has problems to install cx_Freeze to it's venvs, but it is not needed
+    # for the tests anyway
+    print("Could not import cx_Freeze; 'build' and 'bdist' commands will not be available.")
+    print("See https://pypi.python.org/pypi/cx_Freeze")
+    executables = []
+
 build_exe_options = {
     # "init_script": "Console",
     "includes": install_requires,
-    "packages": [#"keyring.backends",  # loaded dynamically
-                 ],
-    # "constants": "BUILD_COPYRIGHT=(c) 2012-2015 Martin Wendt",
+    "packages": [],
+    "constants": "BUILD_COPYRIGHT='(c) 2010-2016 Martin Wendt'",
+    "init_script": "Console",
     }
 
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
+    # TODO: configure target dir
 #   "initial_target_dir": r"[ProgramFilesFolder]\%s\%s" % (company_name, product_name),
+    # TODO: configure shortcuts:
+    # http://stackoverflow.com/a/15736406/19166
     }
 
 
@@ -166,8 +174,8 @@ setup(name="WsgiDAV",
       entry_points = {
           "console_scripts" : ["wsgidav = wsgidav.server.run_server:run"],
           },
-      executables = executables,
       options = {"build_exe": build_exe_options,
                  "bdist_msi": bdist_msi_options,
                  },
+      executables = executables,
       )
