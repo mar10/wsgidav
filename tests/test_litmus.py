@@ -39,6 +39,7 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         print("This test requires the litmus test suite.")
         print("See http://www.webdav.org/neon/litmus/")
         print("*" * 70)
+        raise unittest.SkipTest("Test requires litmus test suite")
 
     def test_litmus_with_authentication(self):
         """Run litmus test suite on HTTP with authentification."""
