@@ -92,7 +92,7 @@ class ShelveTest(BasicTest):
 #        if os.path.exists(self.path):
 #            os.remove(self.path)
         self.pm = property_manager.ShelvePropertyManager(self.path)
-        self.pm._verbose = 1
+        self.pm._verbose = 2
 
     def tearDown(self):
 #        self.pm.storage.clear()

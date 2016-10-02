@@ -5,6 +5,7 @@
 from tempfile import gettempdir
 from wsgidav.dav_error import DAVError
 import os
+import sys
 from time import sleep
 import unittest
 from wsgidav import lock_manager, lock_storage
@@ -239,10 +240,14 @@ class ShelveTest(BasicTest):
     """Test lock_manager.ShelveLockManager()."""
 
     def setUp(self):
-        self.path = os.path.join(gettempdir(), "wsgidav-locks.shelve")
+        if sys.version_info < (3, 0):
+            modifier = "-py2" # shelve formats are incompatible
+        else:
+            modifier = "-py3"
+        self.path = os.path.join(gettempdir(), "wsgidav-locks%s.shelve" % modifier)
         storage = lock_storage.LockStorageShelve(self.path)
         self.lm = lock_manager.LockManager(storage)
-        self.lm._verbose = 1
+        self.lm._verbose = 2
 
 
     def tearDown(self):
