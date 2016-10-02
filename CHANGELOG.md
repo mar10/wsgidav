@@ -2,9 +2,14 @@
 CHANGES
 =======
 
-2.0.0 / Unreleased
+2.0.1 / Unreleased
+==================
+-
+
+2.0.0 / 2016-10-02
 ==================
 - #4: Support Python 3
+- Windows MSI Installer
 - Drop support for Python 2.6
 - cherrypy.wsgiserver is no longer included as source package.
   CherryPy is still the recommended standalone WSGI server, and deployed with the
