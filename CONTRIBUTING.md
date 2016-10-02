@@ -26,12 +26,18 @@ so we will change to this directory when `workon` is called.
 For example Python 3.4
 ```
 $ mkvirtualenv wsgidav3_py34 -p /Library/Frameworks/Python.framework/Versions/3.4/bin/python3.4 -a .
+$ workon wsgidav3_py34
 ```
 
-The new environment should now exist and can be activated.
+or using Python's builtin `venv` instead of `virtualenvwrapper`:
+```
+> py -3.4 -m venv c:\env\wsgidav3_py34
+> c:\env\wsgidav3_py34\Scripts\activate.bat
+```
+
+The new environment exists and is activated.
 Now install the development dependencies into that environemt:
 ```
-$ workon wsgidav3_py34
 (wsgidav3_py34) $ pip install -r requirements-dev.txt
 ```
 
