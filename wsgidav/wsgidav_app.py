@@ -98,6 +98,7 @@ DEFAULT_CONFIG = {
                          # 2 - show additional events
                          # 3 - show full request/response header info (HTTP Logging)
                          #     request body and GET response bodies not shown
+    "logfile" : None,    # log to file or stdout
     
     "dir_browser": {
         "enable": True,               # Render HTML listing for GET requests on collections
@@ -135,7 +136,7 @@ class WsgiDAVApp(object):
     def __init__(self, config):
         self.config = config
 
-        util.initLogging(config["verbose"], config.get("enable_loggers", []))
+        util.initLogging(config["verbose"], config.get("enable_loggers", []),config["logfile"])
         
         util.log("Default encoding: %s (file system: %s)" % (sys.getdefaultencoding(), sys.getfilesystemencoding()))
         
