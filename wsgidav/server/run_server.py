@@ -117,7 +117,7 @@ See https://github.com/mar10/wsgidav for additional information.
                         # dest="server", 
                         help="type of pre-installed WSGI server to use. (Default: cherrypy)")
 
-    parser.add_argument("-v", "--verbose", action="count", default=1,
+    parser.add_argument("-v", "--verbose", action="count", default=0,
                         help="increment verbosity by one (default: %(default)s, range: 0..5)")
     parser.add_argument("-q", "--quiet",
                         action="store_true",
@@ -139,6 +139,9 @@ See https://github.com/mar10/wsgidav for additional information.
 #    parser.add_argument("", "--profile",
 #                      action="store_true", dest="profile", 
 #                      help="Profile ")
+    parser.add_argument("-l", "--logfile",
+                        dest="logfile", 
+                        help="Log to file (default: stdout)")
 
    
     args = parser.parse_args()
@@ -276,6 +279,9 @@ def _initConfig():
             reloader.watch_file(config_file)
 #        import pydevd
 #        pydevd.settrace()
+
+    if cmdLineOpts.get("logfile") is not None:
+        config["logfile"] = cmdLineOpts.get("logfile")
 
     return config
 

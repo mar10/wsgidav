@@ -118,7 +118,7 @@ def _parsegmtime(timestring):
 # Logging
 #===============================================================================
 
-def initLogging(verbose=2, enable_loggers=[]):
+def initLogging(verbose=2, enable_loggers=[], logfile=None):
     """Initialize base logger named 'wsgidav'.
 
     The base logger is filtered by the `verbose` configuration option.
@@ -175,15 +175,21 @@ def initLogging(verbose=2, enable_loggers=[]):
 
     formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",
                                   "%H:%M:%S")
-    
-    # Define handlers
-    consoleHandler = logging.StreamHandler(sys.stdout)
-#    consoleHandler = logging.StreamHandler(sys.stderr)
-    consoleHandler.setFormatter(formatter)
-    consoleHandler.setLevel(logging.DEBUG)
-
     # Add the handlers to the base logger
     logger = logging.getLogger(BASE_LOGGER_NAME)
+
+    # Define handlers
+    if logfile:
+        logHandler = logging.FileHandler(logfile)
+        # redirect stdout & stderr to logger
+        sys.stdout = LoggerWriter(logger.info)
+        sys.stderr = LoggerWriter(logger.error)
+    else: 
+        logHandler = logging.StreamHandler(sys.stdout)
+    #    logHandler = logging.StreamHandler(sys.stderr)
+
+    logHandler.setFormatter(formatter)
+    logHandler.setLevel(logging.DEBUG)
 
     if verbose >= 3: # --debug
         logger.setLevel(logging.DEBUG)
@@ -191,10 +197,10 @@ def initLogging(verbose=2, enable_loggers=[]):
         logger.setLevel(logging.INFO)
     elif verbose >= 1: # standard 
         logger.setLevel(logging.WARN)
-        consoleHandler.setLevel(logging.WARN)
+        logHandler.setLevel(logging.WARN)
     else: # --quiet
         logger.setLevel(logging.ERROR)
-        consoleHandler.setLevel(logging.ERROR)
+        logHandler.setLevel(logging.ERROR)
 
     # Don't call the root's handlers after our custom handlers
     logger.propagate = False
@@ -208,7 +214,7 @@ def initLogging(verbose=2, enable_loggers=[]):
             pass
         logger.removeHandler(hdlr)
 
-    logger.addHandler(consoleHandler)
+    logger.addHandler(logHandler)
 
     if verbose >= 2:
         for e in enable_loggers:
@@ -1227,7 +1233,21 @@ def testLogging():
     status("util.status()")
     note("util.note()")
     debug("util.debug()")
-    
+
+class LoggerWriter:
+    def __init__(self, level):
+        # self.level is really like using log.debug(message)
+        # at least in my case
+        self.level = level
+
+    def write(self, message):
+        # if statement reduces the amount of newlines that are
+        # printed to the logger
+        if message != '\n':
+            self.level(message.rstrip())
+
+    def flush(self):
+        pass 
 
 if __name__ == "__main__":
     testLogging()
