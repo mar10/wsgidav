@@ -23,10 +23,6 @@ Valid options are (sample shows defaults)::
             }
 
 """
-from __future__ import print_function
-
-from pprint import pformat
-
 import pymongo
 from bson.objectid import ObjectId
 

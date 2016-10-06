@@ -95,8 +95,6 @@ When accessed using WebDAV, the following URLs both return the same resource
     <share>/by_tag/hot/My doc 1
     <share>/by_key/1
 """
-from __future__ import print_function
-
 import os
 import stat
 import urllib

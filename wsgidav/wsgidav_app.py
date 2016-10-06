@@ -42,8 +42,6 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
-from __future__ import print_function
-
 import time
 import sys
 import threading
@@ -63,6 +61,7 @@ from wsgidav.request_resolver import RequestResolver
 from wsgidav import util
 
 __docformat__ = "reStructuredText"
+_logger = util.getModuleLogger(__name__)
 
 
 # Use these settings, if config file does not define them (or is totally
@@ -209,7 +208,7 @@ class WsgiDAVApp(object):
         for mw in middleware_stack:
             if mw.isSuitable(config):
                 if self._verbose >= 2:
-                    print("Middleware %s is suitable" % mw)
+                    _logger.debug("Middleware %s is suitable" % mw)
                 application = mw(application, config)
 
                 if issubclass(mw, HTTPAuthenticator):
@@ -219,23 +218,20 @@ class WsgiDAVApp(object):
                         if application.allowAnonymousAccess(share):
                             data['allow_anonymous'] = True
             else:
-                if self._verbose >= 2:
-                    print("Middleware %s is not suitable" % mw)
+                _logger.debug("Middleware %s is not suitable" % mw)
 
         # Print info
-        if self._verbose >= 2:
-            print("Using lock manager: %r" % locksManager)
-            print("Using property manager: %r" % propsManager)
-            print("Using domain controller: %s" % domain_controller)
-            print("Registered DAV providers:")
-            for share, data in self.providerMap.items():
-                hint = " (anonymous)" if data['allow_anonymous'] else ""
-                print("  Share '%s': %s%s" % (share, provider, hint))
-        if self._verbose >= 1:
-            for share, data in self.providerMap.items():
-                if data['allow_anonymous']:
-                    # TODO: we should only warn here, if --no-auth is not given
-                    print("WARNING: share '%s' will allow anonymous access." % share)
+        _logger.debug("Using lock manager: %r" % locksManager)
+        _logger.debug("Using property manager: %r" % propsManager)
+        _logger.debug("Using domain controller: %s" % domain_controller)
+        _logger.debug("Registered DAV providers:")
+        for share, data in self.providerMap.items():
+            hint = " (anonymous)" if data['allow_anonymous'] else ""
+            _logger.debug("  Share '%s': %s%s" % (share, provider, hint))
+        for share, data in self.providerMap.items():
+            if data['allow_anonymous']:
+                # TODO: we should only warn here, if --no-auth is not given
+                _logger.warning("WARNING: share '%s' will allow anonymous access." % share)
 
         self._application = application
 
@@ -328,7 +324,6 @@ class WsgiDAVApp(object):
             contentLengthRequired = (environ["REQUEST_METHOD"] != "HEAD"
                                      and statusCode >= 200
                                      and not statusCode in (204, 304))
-#            print(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
@@ -398,17 +393,16 @@ class WsgiDAVApp(object):
 #               This is the CherryPy format:
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"
 #                print >>sys.stderr, '%s - %s - [%s] "%s" %s -> %s' % (
-                print('%s - %s - [%s] "%s" %s -> %s' % (
-                    threadInfo + environ.get("REMOTE_ADDR", ""),
-                    userInfo,
-                    util.getLogTime(),
-                    environ.get("REQUEST_METHOD") + " " +
-                    environ.get("PATH_INFO", ""),
-                    extra,
-                    status,
-                    #                                        response_headers.get(""), # response Content-Length
-                    # referer
-                ), file=sys.stdout)
+                _logger.info('%s - %s - [%s] "%s" %s -> %s' % (
+                        threadInfo + environ.get("REMOTE_ADDR",""),
+                        userInfo,
+                        util.getLogTime(),
+                        environ.get("REQUEST_METHOD") + " " + environ.get("PATH_INFO", ""),
+                        extra,
+                        status,
+#                                        response_headers.get(""), # response Content-Length
+                        # referer
+                     ))
 
             return start_response(status, response_headers, exc_info)
 

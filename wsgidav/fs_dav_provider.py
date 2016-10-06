@@ -16,8 +16,6 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
-from __future__ import print_function
-
 import os
 import shutil
 import stat
@@ -58,12 +56,10 @@ class FileResource(DAVNonCollection):
         return self.filestat[stat.ST_SIZE]
 
     def getContentType(self):
-        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
-        #        print "mimetype(%s): %r, %r" % (self.path, mimetype, _mimeencoding)
-        #        if not mimetype:
-        #            mimetype = "application/octet-stream"
-        #        print "mimetype(%s): return %r" % (self.path, mimetype)
-        #        return mimetype
+#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
+#        if not mimetype:
+#            mimetype = "application/octet-stream"
+#        return mimetype
         return util.guessMimeType(self.path)
 
     def getCreationDate(self):
@@ -379,7 +375,6 @@ class FilesystemProvider(DAVProvider):
             raise RuntimeError(
                 "Security exception: tried to access file outside root.")
         r = util.toUnicode(r)
-#        print "_locToFilePath(%s, %s): %s" % (path, environ, r)
         return r
 
     def isReadOnly(self):

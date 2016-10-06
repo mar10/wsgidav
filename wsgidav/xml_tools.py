@@ -33,8 +33,6 @@ except ImportError:
     etree.Element = _ElementType = Element
     etree.SubElement = SubElement
     etree.tostring = tostring
-    # print("WARNING: Could not import lxml: using xml instead (slower).")
-    # print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
 
 #=========================================================================
@@ -55,10 +53,13 @@ def stringToXML(text):
         # litmus fails, when xml is used instead of lxml
         # 18. propget............... FAIL (PROPFIND on `/temp/litmus/prop2': Could not read status line: connection was closed by server)
         # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
-        #        t2 = text.encode("utf8")
-        #        return etree.XML(t2)
-        print("Error parsing XML string. If lxml is not available, and unicode is involved, then installing lxml _may_ solve this issue.", file=sys.stderr)
-        print("XML source:", text, file=sys.stderr)
+#        t2 = text.encode("utf8")
+#        return etree.XML(t2)
+        # Import here otherwise we get a recursive dependency
+        from wsgidav import util
+        _logger = util.getModuleLogger(__name__)
+        _logger.error("Error parsing XML string. If lxml is not available, and unicode is involved, then installing lxml _may_ solve this issue.")
+        _logger.error("XML source: %s", text)
         raise
 
 
