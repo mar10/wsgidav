@@ -23,7 +23,7 @@ _logger = util.getModuleLogger(__name__)
 
 class VirtualCollection(DAVCollection):
     """Abstract base class for collections that contain a list of static members.
-    
+
     Member names are passed to the constructor.
     getMember() is implemented by calling self.provider.getResourceInst()
     """
@@ -35,20 +35,20 @@ class VirtualCollection(DAVCollection):
         assert type(memberNameList) is list
         self.displayInfo = displayInfo
         self.memberNameList = memberNameList
-        
+
     def getDisplayInfo(self):
         return self.displayInfo
-    
+
     def getMemberNames(self):
         return self.memberNameList
-    
+
     def preventLocking(self):
         """Return True, since we don't want to lock virtual collections."""
         return True
-    
+
     def getMember(self, name):
 #        raise NotImplementedError()
-        return self.provider.getResourceInst(util.joinUri(self.path, name), 
+        return self.provider.getResourceInst(util.joinUri(self.path, name),
                                              self.environ)
 
 
@@ -89,7 +89,7 @@ class _VirtualNonCollection(DAVNonCollection):
 #===============================================================================
 class VirtualTextResource(_VirtualNonCollection):
     """A virtual file, containing a string."""
-    def __init__(self, path, environ, content, 
+    def __init__(self, path, environ, content,
                  displayName=None, displayType=None):
         _VirtualNonCollection.__init__(self, path, environ)
         self.content = content
@@ -127,23 +127,23 @@ class FileResource(_VirtualNonCollection):
         self.filePath = filePath
     def getContentLength(self):
         statresults = os.stat(self.filePath)
-        return statresults[stat.ST_SIZE]      
+        return statresults[stat.ST_SIZE]
     def getContentType(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
-#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath) 
+#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
 #        if not mimetype:
-#            mimetype = "application/octet-stream" 
+#            mimetype = "application/octet-stream"
 #        return mimetype
         return util.guessMimeType(self.filePath)
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
-        return statresults[stat.ST_CTIME]      
+        return statresults[stat.ST_CTIME]
     def getDisplayInfo(self):
         return {"type": "File"}
     def getLastModified(self):
         statresults = os.stat(self.filePath)
-        return statresults[stat.ST_MTIME]      
+        return statresults[stat.ST_MTIME]
 #    def getRefUrl(self):
 #        refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.filePath))
 #        return compat.quote(self.provider.sharePath + refPath)
@@ -153,8 +153,8 @@ class FileResource(_VirtualNonCollection):
 #        if mime.startswith("text"):
 #            return file(self.filePath, "r", FileResource.BUFFER_SIZE)
         return file(self.filePath, "rb", FileResource.BUFFER_SIZE)
-        
-         
+
+
 #===============================================================================
 # Resolvers
 #===============================================================================

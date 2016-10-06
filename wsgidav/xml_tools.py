@@ -6,7 +6,7 @@ Small wrapper for different etree packages.
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -24,7 +24,7 @@ try:
     useLxml = True
     _ElementType = etree._Element
 except ImportError:
-    # Try xml module (Python 2.5 or later) 
+    # Try xml module (Python 2.5 or later)
     from xml.etree import ElementTree as etree
     _ElementType = etree.Element
     # print("WARNING: Could not import lxml: using xml instead (slower).")
@@ -57,12 +57,12 @@ def stringToXML(text):
 
 
 def xmlToBytes(element, pretty_print=False):
-    """Wrapper for etree.tostring, that takes care of unsupported pretty_print 
+    """Wrapper for etree.tostring, that takes care of unsupported pretty_print
     option and prepends an encoding header."""
     if useLxml:
-        xml = etree.tostring(element, 
-                             encoding="UTF-8", 
-                             xml_declaration=True, 
+        xml = etree.tostring(element,
+                             encoding="UTF-8",
+                             xml_declaration=True,
                              pretty_print=pretty_print)
     else:
         xml = etree.tostring(element, encoding="UTF-8")
@@ -96,13 +96,13 @@ def makeSubElement(parent, tag, nsmap=None):
 
 def elementContentAsString(element):
     """Serialize etree.Element.
-    
-    Note: element may contain more than one child or only text (i.e. no child 
+
+    Note: element may contain more than one child or only text (i.e. no child
           at all). Therefore the resulting string may raise an exception, when
-          passed back to etree.XML(). 
+          passed back to etree.XML().
     """
     if len(element) == 0:
-        return element.text or ""  # Make sure, None is returned as '' 
+        return element.text or ""  # Make sure, None is returned as ''
     stream = compat.StringIO()
     for childnode in element:
         print(xmlToBytes(childnode, pretty_print=False), file=stream)
@@ -114,6 +114,6 @@ def elementContentAsString(element):
 #===============================================================================
 # TEST
 #===============================================================================
-    
+
 if __name__ == "__main__":
     pass

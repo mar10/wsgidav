@@ -2,18 +2,18 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Implementation of a domain controller that allows users to authenticate against 
+Implementation of a domain controller that allows users to authenticate against
 a Windows NT domain or a local computer (used by HTTPAuthenticator).
 
 Purpose
 -------
 
 Usage::
-   
+
    from wsgidav.addons.nt_domain_controller import NTDomainController
    domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
-   
-where: 
+
+where:
 
 + domaincontroller object corresponds to that in ``wsgidav.conf`` or
   as input into ``wsgidav.http_authenticator.HTTPAuthenticator``.
@@ -22,9 +22,9 @@ where:
   may come as part of the username in domain\\user). This is useful only if there
   is one domain to be authenticated against and you want to spare users from typing the
   domain name
-  
+
 + presetserver allows the admin to specify the NETBIOS name of the domain controller to
-  be used (complete with the preceding \\\\). if absent, it will look for trusted 
+  be used (complete with the preceding \\\\). if absent, it will look for trusted
   domain controllers on the localhost.
 
 This class allows the user to authenticate against a Windows NT domain or a local computer,
@@ -47,19 +47,19 @@ Testability and caveats
 
 **Digest Authentication**
    Digest authentication requires the password to be retrieve from the system to compute
-   the correct digest for comparison. This is so far impossible (and indeed would be a 
+   the correct digest for comparison. This is so far impossible (and indeed would be a
    big security loophole if it was allowed), so digest authentication WILL not work
-   with this class. 
-   
+   with this class.
+
    Highly recommend basic authentication over SSL support.
 
 **User Login**
    Authentication will count as a user login attempt, so any security in place for
    invalid password attempts may be triggered.
-   
+
    Also note that, even though the user is logged in, the application does not impersonate
    the user - the application will continue to run under the account and permissions it
-   started with. The user has the read/write permissions to the share of the running account 
+   started with. The user has the read/write permissions to the share of the running account
    and not his own account.
 
 **Using on a local computer**
@@ -71,7 +71,7 @@ Testability and caveats
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -86,7 +86,7 @@ _logger = util.getModuleLogger(__name__)
 
 
 class NTDomainController(object):
-      
+
     def __init__(self, presetdomain = None, presetserver = None):
         self._presetdomain = presetdomain
         self._presetserver = presetserver
@@ -103,18 +103,18 @@ class NTDomainController(object):
     def requireAuthentication(self, realmname, environ):
         return True
 
-                    
+
     def isRealmUser(self, realmname, username, environ):
         (domain, usern) = self._getDomainUsername(username)
         dcname = self._getDomainControllerName(domain)
         return self._isUser(usern, domain, dcname)
 
-            
+
     def getRealmUserPassword(self, realmname, username, environ):
         (domain, user) = self._getDomainUsername(username)
         dcname = self._getDomainControllerName(domain)
-        
-        try: 
+
+        try:
             userdata = win32net.NetUserGetInfo(dcname, user, 1)
         except:
             _logger.exception("NetUserGetInfo")
@@ -125,7 +125,7 @@ class NTDomainController(object):
 #        return None
         return userdata.get("password")
 
-      
+
     def authDomainUser(self, realmname, username, password, environ):
         (domain, usern) = self._getDomainUsername(username)
         dcname = self._getDomainControllerName(domain)
@@ -140,7 +140,7 @@ class NTDomainController(object):
         else:
             domain = userdata[0]
             username = userdata[1]
-        
+
         if self._presetdomain != None:
             domain = self._presetdomain
 
@@ -150,13 +150,13 @@ class NTDomainController(object):
     def _getDomainControllerName(self, domain):
         if self._presetserver != None:
             return self._presetserver
-        
+
         try:
             # execute this on the localhost
             pdc = win32net.NetGetAnyDCName(None, domain)
         except:
             pdc = None
-        
+
         return pdc
 
 
@@ -180,21 +180,21 @@ class NTDomainController(object):
                 return False
         _logger.info("User '%s' not found on server '%s'" % (username, server))
         return False
-        
+
 
     def _authUser(self, username, password, domain, server):
         if not self._isUser(username, domain, server):
             return False
-        
+
         try:
             htoken = win32security.LogonUser(username, domain, password, win32security.LOGON32_LOGON_NETWORK, win32security.LOGON32_PROVIDER_DEFAULT)
         except win32security.error as err:
             _logger.warning("LogonUser failed for user '%s': %s" % (username, err))
             return False
         else:
-            if htoken: 
+            if htoken:
                 htoken.Close() #guarantee's cleanup
                 _logger.debug("User '%s' logged on." % username)
                 return True
             _logger.warning("Logon failed for user '%s'." % username)
-            return False    
+            return False

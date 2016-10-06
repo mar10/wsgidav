@@ -13,23 +13,23 @@ These tasks are performed:
     - Set up the configuration from defaults, configuration file, and command line
       options.
     - Instantiate the WsgiDAVApp object (which is a WSGI application)
-    - Start a WSGI server for this WsgiDAVApp object   
+    - Start a WSGI server for this WsgiDAVApp object
 
 Configuration is defined like this:
 
     1. Get the name of a configuration file from command line option
        ``--config-file=FILENAME`` (or short ``-cFILENAME``).
-       If this option is omitted, we use ``wsgidav.conf`` in the current 
+       If this option is omitted, we use ``wsgidav.conf`` in the current
        directory.
-    2. Set reasonable default settings. 
+    2. Set reasonable default settings.
     3. If configuration file exists: read and use it to overwrite defaults.
     4. If command line options are passed, use them to override settings:
-    
+
        ``--host`` option overrides ``hostname`` setting.
-         
-       ``--port`` option overrides ``port`` setting.  
-       
-       ``--root=FOLDER`` option creates a FilesystemProvider that publishes 
+
+       ``--port`` option overrides ``port`` setting.
+
+       ``--root=FOLDER`` option creates a FilesystemProvider that publishes
        FOLDER on the '/' share.
 """
 from __future__ import print_function
@@ -68,17 +68,17 @@ def _get_checked_path(path, mustExist=True, allowNone=True):
 
 def _initCommandLineOptions():
     """Parse command line options into a dictionary."""
-    
+
     description = """\
 
 Run a WEBDAV server to share file system folders.
 
-Examples: 
+Examples:
 
-  Share filesystem folder '/temp': 
+  Share filesystem folder '/temp':
     wsgidav --port=80 --host=0.0.0.0 --root=/temp
 
-  Run using a specific configuration file: 
+  Run using a specific configuration file:
     wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.conf
 
   If no config file is specified, the application will look for a file named
@@ -99,22 +99,22 @@ See https://github.com/mar10/wsgidav for additional information.
                                      # allow_abbrev=False,  # Py3.5+
                                      formatter_class=argparse.RawTextHelpFormatter,
                                      )
-    parser.add_argument("-p", "--port", 
+    parser.add_argument("-p", "--port",
                         dest="port",
                         type=int,
                         # default=8080,
                         help="port to serve on (default: 8080)")
-    parser.add_argument("-H", "--host", # '-h' conflicts with --help  
+    parser.add_argument("-H", "--host", # '-h' conflicts with --help
                         dest="host",
                         # default="localhost",
                         help="host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
     parser.add_argument("-r", "--root",
-                        dest="root_path", 
+                        dest="root_path",
                         help="path to a file system folder to publish as share '/'.")
     parser.add_argument("--server",
                         choices=("cherrypy", "ext-wsgiutils", "flup-fcgi", "flup-fcgi-fork", "paste", "wsgiref"),
                         default="cherrypy",
-                        # dest="server", 
+                        # dest="server",
                         help="type of pre-installed WSGI server to use. (Default: cherrypy)")
 
     parser.add_argument("-v", "--verbose", action="count", default=1,
@@ -122,25 +122,25 @@ See https://github.com/mar10/wsgidav for additional information.
     parser.add_argument("-q", "--quiet",
                         action="store_true",
                         help="set verbosity 0: suppress any output except for errors")
-    
+
     parser.add_argument("-c", "--config",
-                        dest="config_file", 
+                        dest="config_file",
                         help="configuration file (default: %s in current directory)" % DEFAULT_CONFIG_FILE)
     parser.add_argument("--no-config",
-                        action="store_true", dest="no_config", 
+                        action="store_true", dest="no_config",
                         help="do not try to load default %s" % DEFAULT_CONFIG_FILE)
 
-    parser.add_argument('-V', '--version', action='version', version=__version__)    
+    parser.add_argument('-V', '--version', action='version', version=__version__)
 
 #    parser.add_argument("--reload",
-#                        action="store_true", dest="reload", 
+#                        action="store_true", dest="reload",
 #                        help="restart server when source files are changed. Used by run_reloading_server (requires paste.reloader)")
 
 #    parser.add_argument("", "--profile",
-#                      action="store_true", dest="profile", 
+#                      action="store_true", dest="profile",
 #                      help="Profile ")
 
-   
+
     args = parser.parse_args()
 
     # print("ARGS", args)
@@ -187,7 +187,7 @@ def _readConfigFile(config_file, verbose):
 
     if not os.path.exists(config_file):
         raise RuntimeError("Couldn't open configuration file '%s'." % config_file)
-    
+
     try:
         import imp
         conf = {}
@@ -198,18 +198,18 @@ def _readConfigFile(config_file, verbose):
                 continue
             elif isfunction(v):
                 continue
-            conf[k] = v               
+            conf[k] = v
     except Exception as e:
 #        if verbose >= 1:
-#            traceback.print_exc() 
+#            traceback.print_exc()
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value) #@UndefinedVariable
         exceptiontext = ""
         for einfo in exceptioninfo:
-            exceptiontext += einfo + "\n"   
+            exceptiontext += einfo + "\n"
 #        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
         print("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext, file=sys.stderr)
         raise
-    
+
     return conf
 
 
@@ -228,13 +228,13 @@ def _initConfig():
 
     # Configuration file overrides defaults
     config_file = cmdLineOpts.get("config_file")
-    if config_file: 
+    if config_file:
         fileConf = _readConfigFile(config_file, temp_verbose)
         config.update(fileConf)
     else:
         if temp_verbose >= 2:
             print("Running without configuration file.")
-    
+
     # print "verbose #2: ", config.get("verbose")
 
     # Command line overrides file
@@ -252,7 +252,7 @@ def _initConfig():
     if cmdLineOpts.get("root_path"):
         root_path = os.path.abspath(cmdLineOpts.get("root_path"))
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
-    
+
     if config["verbose"] >= 3:
         print("Configuration(%s):" % cmdLineOpts["config_file"])
         pprint(config)
@@ -282,7 +282,7 @@ def _initConfig():
 
 def _runPaste(app, config, mode):
     """Run WsgiDAV using paste.httpserver, if Paste is installed.
-    
+
     See http://pythonpaste.org/modules/httpserver.html for more options
     """
     _logger = util.getModuleLogger(__name__, True)
@@ -294,10 +294,10 @@ def _runPaste(app, config, mode):
 
     # See http://pythonpaste.org/modules/httpserver.html for more options
     server = httpserver.serve(app,
-                     host=config["host"], 
+                     host=config["host"],
                      port=config["port"],
                      server_version=version,
-                     # This option enables handling of keep-alive 
+                     # This option enables handling of keep-alive
                      # and expect-100:
                      protocol_version="HTTP/1.1",
                      start_loop=False
@@ -347,8 +347,8 @@ def _runCherryPy(app, config, mode):
         raise
 
     server_name = "WsgiDAV/%s %s Python/%s" % (
-        __version__, 
-        wsgiserver.CherryPyWSGIServer.version, 
+        __version__,
+        wsgiserver.CherryPyWSGIServer.version,
         PYTHON_VERSION)
     wsgiserver.CherryPyWSGIServer.version = server_name
 
@@ -395,7 +395,7 @@ def _runFlup(app, config, mode):
     elif mode == "flup-fcgi-fork":
         from flup.server.fcgi_fork import WSGIServer, __version__ as flupver
     else:
-        raise ValueError    
+        raise ValueError
 
     if config["verbose"] >= 2:
         print("Running WsgiDAV/%s %s/%s..." % (__version__,
@@ -459,7 +459,7 @@ def run():
                          "wsgiref": _runWsgiref,
                          }
     config = _initConfig()
-    
+
     app = WsgiDAVApp(config)
     server = config["server"]
     handler = SUPPORTED_SERVERS.get(server)
@@ -474,7 +474,7 @@ def run():
     handler(app, config, server)
 
 
-    
+
 if __name__ == "__main__":
     # Just in case...
     from multiprocessing import freeze_support

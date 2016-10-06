@@ -72,7 +72,7 @@ if PY2:
         elif type(s) is not str:
             s = str(s)
         return s
-    
+
     to_native = to_bytes
     """Convert data to native str type, i.e. bytestring on Py2 and unicode on Py3."""
 
@@ -109,7 +109,7 @@ else:   # Python 3
         if type(s) is not bytes:
             s = bytes(s, encoding)
         return s
-    
+
     def to_native(s, encoding="utf8"):
         """Convert data to native str type, i.e. bytestring on Py2 and unicode on Py3."""
         # print("to_native", s)
@@ -117,7 +117,7 @@ else:   # Python 3
             s = str(s, encoding)
         elif type(s) is not str:
             s = str(s)
-        return s 
+        return s
 
     to_unicode = to_native
     """Convert binary data to unicode (text strings) on Python 2 and 3."""

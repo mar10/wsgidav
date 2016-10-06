@@ -6,12 +6,12 @@ Implements a property manager based on MongoDB.
 Usage: add this lines to wsgidav.conf::
 
     from wsgidav.addons.mongo_property_manager import MongoPropertyManager
-    prop_man_opts = {} 
+    prop_man_opts = {}
     propsmanager = MongoPropertyManager(prop_man_opts)
 
 Valid options are (sample shows defaults)::
 
-    opts = {"host": "localhost",       # MongoDB server 
+    opts = {"host": "localhost",       # MongoDB server
             "port": 27017,             # MongoDB port
             "dbName": "wsgidav-props", # Name of DB to store the properties
             # This options are used with `mongod --auth`
@@ -37,7 +37,7 @@ HIDDEN_KEYS = ("_id", "_url", "_title")
 
 ### MongiDB doesn't accept '.' in key names, so we have to escape it.
 # Use a key that is unlikely to occur in proprty names
-DOT_ESCAPE = "^"    
+DOT_ESCAPE = "^"
 
 def encodeMongoKey(s):
     """Return an encoded version of `s` that may be used as MongoDB key."""
@@ -60,7 +60,7 @@ class MongoPropertyManager(object):
 
     def __del__(self):
         self._disconnect()
-            
+
     def _connect(self):
         opts = self.options
         self.conn = pymongo.Connection(opts.get("host"), opts.get("port"))
@@ -69,10 +69,10 @@ class MongoPropertyManager(object):
         # If credentials are passed, logon to the property storage db
         if opts.get("user"):
             if not self.db.authenticate(opts.get("user"), opts.get("pwd")):
-                raise RuntimeError("Failed to logon to db %s as user %s" % 
+                raise RuntimeError("Failed to logon to db %s as user %s" %
                                    (self.db.name, opts.get("user")))
             util.log("Logged on to mongo db '%s' as user '%s'" % (self.db.name, opts.get("user")))
-            
+
         self.collection = self.db["properties"]
         util.log("MongoPropertyManager connected %r" % self.collection)
         _res = self.collection.ensure_index("_url")
@@ -87,7 +87,7 @@ class MongoPropertyManager(object):
 
     def _sync(self):
         pass
-    
+
     def _check(self, msg=""):
         pass
 
@@ -117,7 +117,7 @@ class MongoPropertyManager(object):
         assert propname
         assert propertyvalue is not None
         assert propname not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % propname
-        
+
         _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
@@ -136,7 +136,7 @@ class MongoPropertyManager(object):
         _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
-            return  
+            return
         doc = self.collection.find_one({"_url": normurl})
         # Specifying the removal of a property that does not exist is NOT an error.
         if not doc or doc.get(encodeMongoKey(propname)) is None:
@@ -172,14 +172,14 @@ class MongoPropertyManager(object):
             for doc in docList:
                 newDest = doc["_url"].replace(srcUrl, destUrl)
                 _logger.debug("move property %s -> %s" % (doc["_url"], newDest))
-                doc["_url"] = newDest 
+                doc["_url"] = newDest
                 self.collection.save(doc)
         else:
-            # Move srcUrl only      
+            # Move srcUrl only
             # TODO: use findAndModify()?
             doc = self.collection.find_one({"_url": srcUrl})
             if doc:
                 _logger.debug("move property %s -> %s" % (doc["_url"], destUrl))
-                doc["_url"] = destUrl 
+                doc["_url"] = destUrl
                 self.collection.save(doc)
         return

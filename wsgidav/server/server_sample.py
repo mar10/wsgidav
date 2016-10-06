@@ -21,8 +21,8 @@ def main():
         "user_mapping": {},
         "verbose": 1,
         "enable_loggers": [],
-        "propsmanager": True,      # True: use property_manager.PropertyManager                    
-        "locksmanager": True,      # True: use lock_manager.LockManager                   
+        "propsmanager": True,      # True: use property_manager.PropertyManager
+        "locksmanager": True,      # True: use lock_manager.LockManager
         "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
         })
     app = WsgiDAVApp(config)
@@ -46,8 +46,8 @@ def main():
     # For an example, use paste.httpserver
     # (See http://pythonpaste.org/modules/httpserver.html for more options)
 #    from paste import httpserver
-#    httpserver.serve(app, 
-#                     host="localhost", 
+#    httpserver.serve(app,
+#                     host="localhost",
 #                     port=8080,
 #                     server_version="WsgiDAV/%s" % __version__,
 #                     )

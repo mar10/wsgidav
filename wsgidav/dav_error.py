@@ -2,7 +2,7 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Implements a DAVError class that is used to signal WebDAV and HTTP errors. 
+Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 from __future__ import print_function
 
@@ -21,7 +21,7 @@ if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedI
 __docformat__ = "reStructuredText"
 
 #===============================================================================
-# List of HTTP Response Codes. 
+# List of HTTP Response Codes.
 #===============================================================================
 HTTP_CONTINUE = 100
 HTTP_SWITCHING_PROTOCOLS = 101
@@ -77,8 +77,8 @@ HTTP_NOT_EXTENDED = 510
 
 
 #===============================================================================
-# if ERROR_DESCRIPTIONS exists for an error code, the error description will be 
-# sent as the error response code. 
+# if ERROR_DESCRIPTIONS exists for an error code, the error description will be
+# sent as the error response code.
 # Otherwise only the numeric code itself is sent.
 #===============================================================================
 # TODO: paste.httpserver may raise exceptions, if a status code is not followed by a description, so should define all of them.
@@ -133,17 +133,17 @@ class DAVErrorCondition(object):
     def __init__(self, conditionCode):
         self.conditionCode = conditionCode
         self.hrefs = []
-        
+
     def __str__(self):
         return "%s(%s)" % (self.conditionCode, self.hrefs)
-    
+
     def add_href(self, href):
         assert href.startswith("/")
         assert self.conditionCode in (PRECONDITION_CODE_LockConflict,
                                       PRECONDITION_CODE_MissingLockToken)
         if not href in self.hrefs:
             self.hrefs.append(href)
-            
+
     def as_xml(self):
         if self.conditionCode == PRECONDITION_CODE_MissingLockToken:
             assert len(self.hrefs) > 0, "lock-token-submitted requires at least one href"
@@ -152,7 +152,7 @@ class DAVErrorCondition(object):
         for href in self.hrefs:
             etree.SubElement(condEL, "{DAV:}href").text = href
         return errorEL
-    
+
     def as_string(self):
         return compat.to_native(xml_tools.xmlToBytes(self.as_xml(), True))
 
@@ -166,13 +166,13 @@ class DAVErrorCondition(object):
 #     you want (or you can catch an abstract superclass to get any of them)
 
 class DAVError(Exception):
-    # TODO: Ian Bicking proposed to add an additional 'comment' arg, but 
+    # TODO: Ian Bicking proposed to add an additional 'comment' arg, but
     #       couldn't we use the existing 'contextinfo'?
     # @@: This should also take some message value, for a detailed error message.
     #     This would be helpful for debugging.
-    def __init__(self, 
-                 statusCode, 
-                 contextinfo=None, 
+    def __init__(self,
+                 statusCode,
+                 contextinfo=None,
                  srcexception=None,
                  errcondition=None):  # allow passing of Pre- and Postconditions, see http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
         self.value = int(statusCode)
@@ -185,7 +185,7 @@ class DAVError(Exception):
 
     def __repr__(self):
         return "DAVError(%s)" % self.getUserInfo()
-    
+
     def __str__(self): # Required for 2.4
         return self.__repr__()
 
@@ -200,7 +200,7 @@ class DAVError(Exception):
             s+= ": %s" % self.contextinfo
         elif self.value in ERROR_RESPONSES:
             s += ": %s" % ERROR_RESPONSES[self.value]
-        
+
         if self.srcexception:
             s += "\n    Source exception: '%s'" % self.srcexception
 
@@ -210,27 +210,27 @@ class DAVError(Exception):
 
     def getResponsePage(self):
         """Return an tuple (content-type, response page)."""
-        # If it has pre- or post-condition: return as XML response 
+        # If it has pre- or post-condition: return as XML response
         if self.errcondition:
             return ("application/xml",
                     compat.to_bytes(self.errcondition.as_string()))
 
-        # Else return as HTML 
+        # Else return as HTML
         status = getHttpStatusString(self)
         html = []
         html.append("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>");
-        html.append("<html><head>") 
+        html.append("<html><head>")
         html.append("  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
-        html.append("  <title>%s</title>" % status) 
-        html.append("</head><body>") 
-        html.append("  <h1>%s</h1>" % status) 
-        html.append("  <p>%s</p>" % compat.html_escape(self.getUserInfo()))         
+        html.append("  <title>%s</title>" % status)
+        html.append("</head><body>")
+        html.append("  <h1>%s</h1>" % status)
+        html.append("  <p>%s</p>" % compat.html_escape(self.getUserInfo()))
 #        html.append("  <hr>")
-#        html.append("  <p>%s</p>" % cgi.escape(str(datetime.datetime.now())))         
+#        html.append("  <p>%s</p>" % cgi.escape(str(datetime.datetime.now())))
 #        if self._server_descriptor:
 #            respbody.append(self._server_descriptor + "<hr>")
-        html.append("<hr/>") 
-        html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s" 
+        html.append("<hr/>")
+        html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s"
                     % (__version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")))
         html.append("</body></html>")
         html = "\n".join(html)
@@ -241,15 +241,15 @@ def getHttpStatusCode(v):
     """Return HTTP response code as integer, e.g. 204."""
     if hasattr(v, "value"):
         return int(v.value)  # v is a DAVError
-    else:  
+    else:
         return int(v)
 
 
 def getHttpStatusString(v):
     """Return HTTP response string, e.g. 204 -> ('204 No Content').
     The return string always includes descriptive text, to satisfy Apache mod_dav.
-    
-    `v`: status code or DAVError 
+
+    `v`: status code or DAVError
     """
     code = getHttpStatusCode(v)
     try:

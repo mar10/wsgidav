@@ -6,7 +6,7 @@ WSGI middleware that handles GET requests on collections to display directories.
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -57,11 +57,11 @@ function onLoad() {
 function onClickTable(event) {
     var target = event.target || event.srcElement,
         href = target.href;
-    
+
     if( href && target.className === "msoffice" ){
         if( openWithSharePointPlugin(href) ){
             // prevent default processing
-            return false;        
+            return false;
         }
     }
 }
@@ -120,7 +120,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
-        
+
         davres = None
         if environ["wsgidav.provider"]:
             davres = environ["wsgidav.provider"].getResourceInst(path, environ)
@@ -137,7 +137,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             if util.getContentLength(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                            "The server does not handle any body content.")
-            
+
             if environ["REQUEST_METHOD"] == "HEAD":
                 return util.sendStatusResponse(environ, start_response, HTTP_OK)
 
@@ -153,13 +153,13 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     </dm:mount>""" % (collectionUrl)
                 # TODO: support <dm:open>%s</dm:open>
 
-                start_response("200 OK", [("Content-Type", "application/davmount+xml"), 
+                start_response("200 OK", [("Content-Type", "application/davmount+xml"),
                                           ("Content-Length", str(len(res))),
                                           ("Cache-Control", "private"),
                                           ("Date", util.getRfc1123Time()),
                                           ])
                 return [ res ]
-            
+
             # Profile calls
 #            if True:
 #                from cProfile import Profile
@@ -168,7 +168,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
 #                # sort: 0:"calls",1:"time", 2: "cumulative"
 #                profile.print_stats(sort=2)
             return self._listDirectory(davres, environ, start_response)
-        
+
         return self._application(environ, start_response)
 
     @staticmethod
@@ -183,27 +183,27 @@ class WsgiDavDirBrowser(BaseMiddleware):
             print("Raising DAVError %s" % e.getUserInfo(), file=sys.stdout)
         raise e
 
-    
+
     def _listDirectory(self, davres, environ, start_response):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#rfc.section.9.4
         """
         assert davres.isCollection
-        
+
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
         displaypath = compat.unquote(davres.getHref())
         isReadOnly = environ["wsgidav.provider"].isReadOnly()
 
         trailer = dirConfig.get("response_trailer")
         if trailer:
-            trailer = trailer.replace("${version}", 
+            trailer = trailer.replace("${version}",
                 "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a>" % __version__)
             trailer = trailer.replace("${time}", util.getRfc1123Time())
         else:
-            trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s" 
+            trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s"
                        % (__version__, util.getRfc1123Time()))
 
-        
+
         html = []
         html.append("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>");
         html.append("<html>")
@@ -211,14 +211,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
         html.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
         html.append("<meta name='generator' content='WsgiDAV %s'>" % __version__)
         html.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
-        
+
         html.append("<script type='text/javascript'>%s</script>" % PAGE_SCRIPT)
         html.append("<style type='text/css'>%s</style>" % PAGE_CSS)
 
         # Special CSS to enable MS Internet Explorer behaviour
         if dirConfig.get("ms_mount"):
             html.append("<style type='text/css'> A {behavior: url(#default#AnchorClick);} </style>")
-        
+
         if dirConfig.get("ms_sharepoint_plugin"):
             html.append("<object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' height='0' style=''visibility: hidden;'></object>")
 
@@ -244,7 +244,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         html.append("<thead>")
         html.append("<tr><th>Name</th> <th>Type</th> <th class='right'>Size</th> <th class='right'>Last modified</th> </tr>")
         html.append("</thead>")
-            
+
         html.append("<tbody>")
         if davres.path in ("", "/"):
             html.append("<tr><td>Top level share</td> <td></td> <td></td> <td></td> </tr>")
@@ -284,14 +284,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
                             infoDict["href"] = "ms-%s:ofe|u|%s" % (officeType, href)
 
                 dirInfoList.append(infoDict)
-        # 
+        #
         for infoDict in dirInfoList:
             lastModified = infoDict.get("lastModified")
             if lastModified is None:
                 infoDict["strModified"] = ""
             else:
                 infoDict["strModified"] = util.getRfc1123Time(lastModified)
-            
+
             infoDict["strSize"] = "-"
             if not infoDict.get("isCollection"):
                 contentLength = infoDict.get("contentLength")
@@ -303,15 +303,15 @@ class WsgiDavDirBrowser(BaseMiddleware):
             <td>%(displayType)s</td>
             <td class='right'>%(strSize)s</td>
             <td class='right'>%(strModified)s</td></tr>""" % infoDict)
-            
+
         html.append("</tbody>")
         html.append("</table>")
 
-        html.append("<hr>") 
+        html.append("<hr>")
 
         if "http_authenticator.username" in environ:
             if environ.get("http_authenticator.username"):
-                html.append("<p>Authenticated user: '%s', realm: '%s'.</p>" 
+                html.append("<p>Authenticated user: '%s', realm: '%s'.</p>"
                               % (environ.get("http_authenticator.username"),
                                  environ.get("http_authenticator.realm")))
 #            else:
@@ -325,8 +325,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
         body = "\n".join(html)
         body = compat.to_bytes(body)
 
-        start_response("200 OK", [("Content-Type", "text/html"), 
+        start_response("200 OK", [("Content-Type", "text/html"),
                                   ("Content-Length", str(len(body))),
                                   ("Date", util.getRfc1123Time()),
                                   ])
-        return [ body ] 
+        return [ body ]

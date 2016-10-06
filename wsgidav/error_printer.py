@@ -2,12 +2,12 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-WSGI middleware to catch application thrown DAVErrors and return proper 
+WSGI middleware to catch application thrown DAVErrors and return proper
 responses.
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -32,7 +32,7 @@ class ErrorPrinter(BaseMiddleware):
         self._application = application
         self._catch_all_exceptions = config.get("catchall", False)
 
-    def __call__(self, environ, start_response):      
+    def __call__(self, environ, start_response):
         # Intercept start_response
         sub_app_start_response = util.SubAppStartResponse()
 
@@ -40,7 +40,7 @@ class ErrorPrinter(BaseMiddleware):
             try:
                 # request_server app may be a generator (for example the GET handler)
                 # So we must iterate - not return self._application(..)!
-                # Otherwise the we could not catch exceptions here. 
+                # Otherwise the we could not catch exceptions here.
                 response_started = False
                 app_iter = self._application(environ, sub_app_start_response)
                 for v in app_iter:
@@ -70,14 +70,14 @@ class ErrorPrinter(BaseMiddleware):
                 _logger.debug("re-raising %s" % e)
                 raise
             except Exception as e:
-                # Caught a non-DAVError 
+                # Caught a non-DAVError
                 if self._catch_all_exceptions:
                     # Catch all exceptions to return as 500 Internal Error
                     traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
                     raise asDAVError(e)
                 else:
                     util.warn("ErrorPrinter: caught Exception")
-                    traceback.print_exc(10, sys.stderr) 
+                    traceback.print_exc(10, sys.stderr)
                     raise
         except DAVError as e:
             _logger.debug("caught %s" % e)
@@ -97,14 +97,14 @@ class ErrorPrinter(BaseMiddleware):
                 yield b""
                 return
 
-            # If exception has pre-/post-condition: return as XML response, 
-            # else return as HTML 
-            content_type, body = e.getResponsePage()            
+            # If exception has pre-/post-condition: return as XML response,
+            # else return as HTML
+            content_type, body = e.getResponsePage()
 
             # TODO: provide exc_info=sys.exc_info()?
-            start_response(status, [("Content-Type", content_type), 
+            start_response(status, [("Content-Type", content_type),
                                     ("Content-Length", str(len(body))),
                                     ("Date", util.getRfc1123Time()),
                                     ])
-            yield body 
+            yield body
             return

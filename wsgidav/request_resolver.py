@@ -2,7 +2,7 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-WSGI middleware that finds the registered mapped DAV-Provider, creates a new 
+WSGI middleware that finds the registered mapped DAV-Provider, creates a new
 RequestServer instance, and dispatches the request.
 
 
@@ -14,17 +14,17 @@ RequestServer instance, and dispatches the request.
 WsgiDAV file sharing
 --------------------
 
-WsgiDAV allows the user to specify in wsgidav.conf a number of 
-realms, and a number of users for each realm. 
+WsgiDAV allows the user to specify in wsgidav.conf a number of
+realms, and a number of users for each realm.
 
 Realms
-   Each realm corresponds to a filestructure on disk to be stored, 
+   Each realm corresponds to a filestructure on disk to be stored,
    for example::
-   
-      addShare('pubshare','/home/public/share') 
-   
-   would allow the users to access using WebDAV the directory/file 
-   structure at /home/public/share from the url 
+
+      addShare('pubshare','/home/public/share')
+
+   would allow the users to access using WebDAV the directory/file
+   structure at /home/public/share from the url
    http://<servername:port>/<approot>/pubshare
 
    The realm name is set as '/pubshare'
@@ -34,20 +34,20 @@ Realms
 
 Users
    A number of username/password pairs can be set for each realm::
-      
+
       adduser('pubshare', 'username', 'password', 'description/unused')
-   
+
    would add a username/password pair to realm /pubshare.
 
-Note: if developers wish to maintain a separate users database, you can 
-write your own domain controller for the HTTPAuthenticator. See 
+Note: if developers wish to maintain a separate users database, you can
+write your own domain controller for the HTTPAuthenticator. See
 http_authenticator.py and domain_controller.py for more details.
 
 
 Request Resolver
 ----------------
 
-WSGI middleware for resolving Realm and Paths for the WsgiDAV 
+WSGI middleware for resolving Realm and Paths for the WsgiDAV
 application.
 
 Usage::
@@ -55,7 +55,7 @@ Usage::
    from wsgidav.request_resolver import RequestResolver
    WSGIApp = RequestResolver(InternalWSGIApp)
 
-The RequestResolver resolves the requested URL to the following values 
+The RequestResolver resolves the requested URL to the following values
 placed in the environ dictionary. First it resolves the corresponding
 realm::
 
@@ -66,30 +66,30 @@ Based on the configuration given, the resource abstraction layer for the
 realm is determined. if no configured abstraction layer is found, the
 default abstraction layer fileabstractionlayer.FilesystemAbstractionLayer()
 is used::
-   
+
    environ['wsgidav.resourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
 
 The path identifiers for the requested url are then resolved using the
 resource abstraction layer::
 
-   environ['wsgidav.mappedpath'] = /home/public/share/WsgiDAV/LICENSE 
+   environ['wsgidav.mappedpath'] = /home/public/share/WsgiDAV/LICENSE
    environ['wsgidav.mappedURI'] = /pubshare/WsgiDAV/LICENSE
 
-in this case, FilesystemAbstractionLayer resolves any relative paths 
+in this case, FilesystemAbstractionLayer resolves any relative paths
 to its canonical absolute path
 
-The RequestResolver also resolves any value in the Destination request 
+The RequestResolver also resolves any value in the Destination request
 header, if present, to::
-   
+
    Destination: http://<servername:port>/<approot>/pubshare/WsgiDAV/LICENSE-dest
    environ['wsgidav.destrealm'] = /pubshare
-   environ['wsgidav.destpath'] = /home/public/share/WsgiDAV/LICENSE-dest 
+   environ['wsgidav.destpath'] = /home/public/share/WsgiDAV/LICENSE-dest
    environ['wsgidav.destURI'] = /pubshare/WsgiDAV/LICENSE
    environ['wsgidav.destresourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -101,8 +101,8 @@ __docformat__ = "reStructuredText"
 
 # NOTE (Martin Wendt, 2009-05):
 # The following remarks were made by Ian Bicking when reviewing PyFileServer in 2005.
-# I leave them here after my refactoring for reference.  
-#      
+# I leave them here after my refactoring for reference.
+#
 #Remarks:
 #@@: If this were just generalized URL mapping, you'd map it like:
 #    Incoming:
@@ -157,9 +157,9 @@ class RequestResolver(object):
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
-        
-        # We want to answer OPTIONS(*), even if no handler was registered for 
-        # the top-level realm (e.g. required to map drive letters). 
+
+        # We want to answer OPTIONS(*), even if no handler was registered for
+        # the top-level realm (e.g. required to map drive letters).
 
         provider = environ["wsgidav.provider"]
 
@@ -167,14 +167,14 @@ class RequestResolver(object):
         if environ["REQUEST_METHOD"] == "OPTIONS" and path in ("/", "*"):
             # Answer HTTP 'OPTIONS' method on server-level.
             # From RFC 2616:
-            # If the Request-URI is an asterisk ("*"), the OPTIONS request is 
-            # intended to apply to the server in general rather than to a specific 
-            # resource. Since a server's communication options typically depend on 
-            # the resource, the "*" request is only useful as a "ping" or "no-op" 
-            # type of method; it does nothing beyond allowing the client to test the 
-            # capabilities of the server. For example, this can be used to test a 
-            # proxy for HTTP/1.1 compliance (or lack thereof). 
-            
+            # If the Request-URI is an asterisk ("*"), the OPTIONS request is
+            # intended to apply to the server in general rather than to a specific
+            # resource. Since a server's communication options typically depend on
+            # the resource, the "*" request is only useful as a "ping" or "no-op"
+            # type of method; it does nothing beyond allowing the client to test the
+            # capabilities of the server. For example, this can be used to test a
+            # proxy for HTTP/1.1 compliance (or lack thereof).
+
             dav_compliance_level = "1,2"
 
             if provider is None or provider.isReadOnly() or provider.lockManager is None:
@@ -188,11 +188,11 @@ class RequestResolver(object):
 
             if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
                 headers.append( ("MS-Author-Via", "DAV") )
-                
+
             start_response("200 OK", headers)
-            yield b""        
+            yield b""
             return
-   
+
         if provider is None:
             raise DAVError(HTTP_NOT_FOUND,
                            "Could not find resource provider for '%s'" % path)

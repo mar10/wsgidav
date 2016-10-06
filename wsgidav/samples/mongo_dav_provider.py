@@ -12,10 +12,10 @@ Usage: add the following entries to wsgidav.conf::
 
 Valid options are (sample shows defaults)::
 
-    opts = {"host": "localhost",       # MongoDB server 
+    opts = {"host": "localhost",       # MongoDB server
             "port": 27017,             # MongoDB port
             # This options are used with `mongod --auth`
-            # The user must be created in the admin db with 
+            # The user must be created in the admin db with
             # > use admin
             # > db.addUser(username, password)
             "user": None,              # Authenticate with this user
@@ -41,7 +41,7 @@ _logger = util.getModuleLogger(__name__)
 
 
 #===============================================================================
-# 
+#
 #===============================================================================
 class ConnectionCollection(DAVCollection):
     """Root collection, lists all mongo databases."""
@@ -54,7 +54,7 @@ class ConnectionCollection(DAVCollection):
 
     def getMember(self, name):
         return DbCollection(joinUri(self.path, name), self.environ)
-    
+
 
 class DbCollection(DAVCollection):
     """Mongo database, contains mongo collections."""
@@ -70,9 +70,9 @@ class DbCollection(DAVCollection):
         return [ name.encode("utf8") for name in self.db.collection_names() ]
 
     def getMember(self, name):
-        coll = self.db[name]        
+        coll = self.db[name]
         return CollCollection(joinUri(self.path, name), self.environ, coll)
-    
+
 
 class CollCollection(DAVCollection):
     """Mongo collections, contains mongo documents."""
@@ -80,7 +80,7 @@ class CollCollection(DAVCollection):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
         self.coll = coll
-    
+
     def getDisplayInfo(self):
         return {"type": "Mongo collection"}
 
@@ -89,7 +89,7 @@ class CollCollection(DAVCollection):
         for doc in self.coll.find():
             res.append(to_native(doc["_id"]))
         return res
-    
+
     def getMember(self, name):
         doc = self.coll.find_one(ObjectId(name))
         return DocResource(joinUri(self.path, name), self.environ, doc)
@@ -134,7 +134,7 @@ class MongoResourceProvider(DAVProvider):
             db = self.conn["admin"]
             res = db.authenticate(options.get("user"), options.get("pwd"))
             if not res:
-                raise RuntimeError("Failed to logon to db %s as user %s" % 
+                raise RuntimeError("Failed to logon to db %s as user %s" %
                                    (db.name, options.get("user")))
             util.log("Logged on to mongo db '%s' as user '%s'" % (db.name, options.get("user")))
         util.log("MongoResourceProvider connected to %s" % self.conn)
@@ -151,7 +151,7 @@ class MongoResourceProvider(DAVProvider):
 
 
 #===============================================================================
-# Main 
+# Main
 #===============================================================================
 def test():
     pass

@@ -9,12 +9,12 @@ on current debug configuration.
 
 On init:
     Define HTTP methods and litmus tests, that should turn on the verbose mode
-    (currently hard coded).              
+    (currently hard coded).
 For every request:
     Increase value of ``environ['verbose']``, if the request should be debugged.
     Also dump request and response headers and body.
-    
-    Then pass the request to the next middleware.  
+
+    Then pass the request to the next middleware.
 
 These configuration settings are evaluated:
 
@@ -23,16 +23,16 @@ These configuration settings are evaluated:
     depending on the value.
 
     =======  ===================================================================
-    verbose  Effect  
+    verbose  Effect
     =======  ===================================================================
      0        No additional output.
      1        No additional output (only standard request logging).
      2        Dump headers of all requests and responses.
-     3        Dump headers and bodies of all requests and responses. 
+     3        Dump headers and bodies of all requests and responses.
     =======  ===================================================================
 
 *debug_methods*
-    Boost verbosity to 3 while processing certain request methods. This option 
+    Boost verbosity to 3 while processing certain request methods. This option
     is ignored, when ``verbose < 2``.
 
     Configured like::
@@ -40,19 +40,19 @@ These configuration settings are evaluated:
         debug_methods = ["PROPPATCH", "PROPFIND", "GET", "HEAD","DELETE",
                          "PUT", "COPY", "MOVE", "LOCK", "UNLOCK",
                          ]
- 
+
 *debug_litmus*
-    Boost verbosity to 3 while processing litmus tests that contain certain 
+    Boost verbosity to 3 while processing litmus tests that contain certain
     substrings. This option is ignored, when ``verbose < 2``.
 
     Configured like::
-    
+
         debug_litmus = ["notowner_modify", "props: 16", ]
 
- 
+
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -95,7 +95,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         debugBreak = False
         dumpRequest = False
         dumpResponse = False
-        
+
         if verbose >= 3:
             dumpRequest = dumpResponse = True
 
@@ -111,7 +111,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 2:
             print("----\nRunning litmus test '%s'..." % litmusTag, file=self.out)
-            for litmusSubstring in self.debug_litmus: 
+            for litmusSubstring in self.debug_litmus:
                 if litmusSubstring in litmusTag:
                     verbose = 3
                     debugBreak = True
@@ -124,7 +124,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     sys.exit(-1)
                 if litmusSubstring in litmusTag:
                     self.passedLitmus[litmusSubstring] = True
-                
+
         # Turn on max. debugging for selected request methods
         if verbose >= 2 and method in self.debug_methods:
             verbose = 3
@@ -140,7 +140,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         environ["wsgidav.dump_response_body"] = dumpResponse
 
         # Dump request headers
-        if dumpRequest:      
+        if dumpRequest:
             print("<%s> --- %s Request ---" % (threading.currentThread().ident, method), file=self.out)
             for k, v in environ.items():
                 if k == k.upper():
@@ -165,8 +165,8 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
             # Dump response headers
             if first_yield and dumpResponse:
-                print("<%s> --- %s Response(%s): ---" % (threading.currentThread().ident, 
-                                                         method, 
+                print("<%s> --- %s Response(%s): ---" % (threading.currentThread().ident,
+                                                         method,
                                                          sub_app_start_response.status),
                       file=self.out)
                 headersdict = dict(sub_app_start_response.response_headers)
@@ -174,25 +174,25 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     print("%s: %s" % (envitem, repr(headersdict[envitem])), file=self.out)
                 print("", file=self.out)
 
-            # Check, if response is a binary string, otherwise we probably have 
+            # Check, if response is a binary string, otherwise we probably have
             # calculated a wrong content-length
             assert compat.is_bytes(v), v
-            
+
             # Dump response body
             drb = environ.get("wsgidav.dump_response_body")
             if compat.is_basestring(drb):
-                # Middleware provided a formatted body representation 
+                # Middleware provided a formatted body representation
                 print(drb, file=self.out)
                 drb = environ["wsgidav.dump_response_body"] = None
             elif drb is True:
-                # Else dump what we get, (except for long GET responses) 
+                # Else dump what we get, (except for long GET responses)
                 if method == "GET":
                     if first_yield:
                         print(v[:50], "...", file=self.out)
                 elif len(v) > 0:
                     print(v, file=self.out)
 
-            nbytes += len(v) 
+            nbytes += len(v)
             first_yield = False
             yield v
         if hasattr(app_iter, "close"):
@@ -207,4 +207,4 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         if dumpResponse:
             print("\n<%s> --- End of %s Response (%i bytes) ---" % (threading.currentThread().ident, method, nbytes), file=self.out)
-        return 
+        return

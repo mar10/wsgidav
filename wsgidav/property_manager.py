@@ -2,7 +2,7 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Implements two property managers: one in-memory (dict-based), and one 
+Implements two property managers: one in-memory (dict-based), and one
 persistent low performance variant using shelve.
 
 The properties dictionaray is built like::
@@ -17,7 +17,7 @@ The properties dictionaray is built like::
 
 See `Developers info`_ for more information about the WsgiDAV architecture.
 
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html  
+.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -45,20 +45,20 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 
-    
+
 #===============================================================================
 # PropertyManager
 #===============================================================================
 class PropertyManager(object):
     """
     An in-memory property manager implementation using a dictionary.
-    
+
     This is obviously not persistent, but should be enough in some cases.
     For a persistent implementation, see property_manager.ShelvePropertyManager().
     """
     def __init__(self):
         self._dict = None
-        self._loaded = False      
+        self._loaded = False
         self._lock = ReadWriteLock()
         self._verbose = 2
 
@@ -69,7 +69,7 @@ class PropertyManager(object):
 
     def __del__(self):
         if __debug__ and self._verbose >= 2:
-            self._check()         
+            self._check()
         self._close()
 
 
@@ -80,13 +80,13 @@ class PropertyManager(object):
             self._dict = {}
             self._loaded = True
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
     def _sync(self):
         pass
 
-    
+
     def _close(self):
         _logger.debug("_close()")
         self._lock.acquireWrite()
@@ -94,9 +94,9 @@ class PropertyManager(object):
             self._dict = None
             self._loaded = False
         finally:
-            self._lock.release()         
+            self._lock.release()
 
-    
+
     def _check(self, msg=""):
         try:
             if not self._loaded:
@@ -143,7 +143,7 @@ class PropertyManager(object):
         self._lock.acquireRead()
         try:
             if not self._loaded:
-                self._lazyOpen()        
+                self._lazyOpen()
             returnlist = []
             if normurl in self._dict:
                 for propdata in self._dict[normurl].keys():
@@ -177,25 +177,25 @@ class PropertyManager(object):
         assert normurl and normurl.startswith("/")
         assert propname #and propname.startswith("{")
         assert propertyvalue is not None
-        
+
         _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
-        
+
         self._lock.acquireWrite()
         try:
             if not self._loaded:
                 self._lazyOpen()
             if normurl in self._dict:
-                locatordict = self._dict[normurl] 
+                locatordict = self._dict[normurl]
             else:
-                locatordict = {} #dict([])    
+                locatordict = {} #dict([])
             locatordict[propname] = propertyvalue
             # This re-assignment is important, so Shelve realizes the change:
             self._dict[normurl] = locatordict
             self._sync()
             if __debug__ and self._verbose >= 2:
-                self._check()         
+                self._check()
         finally:
             self._lock.release()
 
@@ -207,22 +207,22 @@ class PropertyManager(object):
         _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
-            return  
+            return
         self._lock.acquireWrite()
         try:
             if not self._loaded:
                 self._lazyOpen()
-            if normurl in self._dict:      
-                locatordict = self._dict[normurl] 
+            if normurl in self._dict:
+                locatordict = self._dict[normurl]
                 if propname in locatordict:
                     del locatordict[propname]
                     # This re-assignment is important, so Shelve realizes the change:
                     self._dict[normurl] = locatordict
                     self._sync()
             if __debug__ and self._verbose >= 2:
-                self._check()         
+                self._check()
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
     def removeProperties(self, normurl):
@@ -231,11 +231,11 @@ class PropertyManager(object):
         try:
             if not self._loaded:
                 self._lazyOpen()
-            if normurl in self._dict:      
-                del self._dict[normurl] 
+            if normurl in self._dict:
+                del self._dict[normurl]
                 self._sync()
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
     def copyProperties(self, srcurl, desturl):
@@ -243,16 +243,16 @@ class PropertyManager(object):
         self._lock.acquireWrite()
         try:
             if __debug__ and self._verbose >= 2:
-                self._check()         
+                self._check()
             if not self._loaded:
                 self._lazyOpen()
-            if srcurl in self._dict:      
-                self._dict[desturl] = self._dict[srcurl].copy() 
+            if srcurl in self._dict:
+                self._dict[desturl] = self._dict[srcurl].copy()
                 self._sync()
             if __debug__ and self._verbose >= 2:
-                self._check("after copy")         
+                self._check("after copy")
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
     def moveProperties(self, srcurl, desturl, withChildren):
@@ -260,11 +260,11 @@ class PropertyManager(object):
         self._lock.acquireWrite()
         try:
             if __debug__ and self._verbose >= 2:
-                self._check()         
+                self._check()
             if not self._loaded:
                 self._lazyOpen()
             if withChildren:
-                # Move srcurl\*      
+                # Move srcurl\*
                 for url in self._dict.keys():
                     if util.isEqualOrChildUri(srcurl, url):
                         d = url.replace(srcurl, desturl)
@@ -272,14 +272,14 @@ class PropertyManager(object):
                         del self._dict[url]
 #                        print "moveProperties:", url, d
             elif srcurl in self._dict:
-                # Move srcurl only      
+                # Move srcurl only
                 self._dict[desturl] = self._dict[srcurl]
                 del self._dict[srcurl]
             self._sync()
             if __debug__ and self._verbose >= 2:
-                self._check("after move")         
+                self._check("after move")
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
 #===============================================================================
@@ -297,7 +297,7 @@ class ShelvePropertyManager(PropertyManager):
 
     def __repr__(self):
         return "ShelvePropertyManager(%s)" % self._storagePath
-        
+
 
     def _lazyOpen(self):
         _logger.debug("_lazyOpen(%s)" % self._storagePath)
@@ -306,16 +306,16 @@ class ShelvePropertyManager(PropertyManager):
             # Test again within the critical section
             if self._loaded:
                 return True
-            # Open with writeback=False, which is faster, but we have to be 
+            # Open with writeback=False, which is faster, but we have to be
             # careful to re-assign values to _dict after modifying them
-            self._dict = shelve.open(self._storagePath, 
+            self._dict = shelve.open(self._storagePath,
                                      writeback=False)
             self._loaded = True
             if __debug__ and self._verbose >= 2:
                 self._check("After shelve.open()")
                 self._dump("After shelve.open()")
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
     def _sync(self):
@@ -326,7 +326,7 @@ class ShelvePropertyManager(PropertyManager):
             if self._loaded:
                 self._dict.sync()
         finally:
-            self._lock.release()         
+            self._lock.release()
 
 
     def _close(self):
@@ -338,11 +338,11 @@ class ShelvePropertyManager(PropertyManager):
                 self._dict = None
                 self._loaded = False
         finally:
-            self._lock.release()         
+            self._lock.release()
 
     def clear(self):
         """Delete all entries."""
-        self._lock.acquireWrite() 
+        self._lock.acquireWrite()
         try:
             was_closed = self._dict is None
             if was_closed:

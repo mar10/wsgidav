@@ -2,53 +2,53 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-ext_wsgiutils_server.py is an extension of the wsgiutils server in Paste. 
+ext_wsgiutils_server.py is an extension of the wsgiutils server in Paste.
 It supports passing all of the HTTP and WebDAV (rfc 2518) methods.
 
 It includes code from the following sources:
-``wsgiServer.py`` from wsgiKit <http://www.owlfish.com/software/wsgiutils/> under PSF license, 
-``wsgiutils_server.py`` from Paste <http://pythonpaste.org> under PSF license, 
-flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618> under public domain. 
+``wsgiServer.py`` from wsgiKit <http://www.owlfish.com/software/wsgiutils/> under PSF license,
+``wsgiutils_server.py`` from Paste <http://pythonpaste.org> under PSF license,
+flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618> under public domain.
 
 
 Running as standalone server
 ----------------------------
 
-To run as a standalone server using the bundled ext_wsgiutils_server.py:: 
+To run as a standalone server using the bundled ext_wsgiutils_server.py::
 
         usage: python ext_wsgiutils_server.py [options] [config-file]
-        
+
         config-file:
           The configuration file for WsgiDAV. if omitted, the application
           will look for a file named 'WsgiDAV.conf' in the current directory
-        
+
         options:
           --port=PORT  Port to serve on (default: 8080)
           --host=HOST  Host to serve from (default: localhost, which is only
                             accessible from the local computer; use 0.0.0.0 to make your
                             application public)
           -h, --help   show this help message and exit
-        
-        
+
+
 Running using other web servers
 -------------------------------
 
 To run it with other WSGI web servers, you can::
-    
+
         from wsgidav.mainappwrapper import PyFileApp
-        publish_app = PyFileApp('WsgiDAV.conf')   
-        # construct the application with configuration file 
+        publish_app = PyFileApp('WsgiDAV.conf')
+        # construct the application with configuration file
         # if configuration file is omitted, the application
         # will look for a file named 'WsgiDAV.conf'
         # in the current directory
- 
-where ``publish_app`` is the WSGI application to be run, it will be called with 
-``publish_app(environ, start_response)`` for each incoming request, as described in 
+
+where ``publish_app`` is the WSGI application to be run, it will be called with
+``publish_app(environ, start_response)`` for each incoming request, as described in
 WSGI <http://www.python.org/peps/pep-0333.html>
 
-Note: if you are using the paster development server (from Paste <http://pythonpaste.org>), you can 
-copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use this server to run the 
-application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate paste 
+Note: if you are using the paster development server (from Paste <http://pythonpaste.org>), you can
+copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use this server to run the
+application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate paste
 configuration.
 """
 from __future__ import print_function
@@ -100,14 +100,14 @@ SERVER_ERROR = """\
 """
 
 class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    
+
     _SUPPORTED_METHODS = ["HEAD", "GET", "PUT", "POST", "OPTIONS", "TRACE",
-                          "DELETE", "PROPFIND", "PROPPATCH", "MKCOL", "COPY", 
+                          "DELETE", "PROPFIND", "PROPPATCH", "MKCOL", "COPY",
                           "MOVE", "LOCK", "UNLOCK"]
-    
+
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
-    
+
     server_version = "WsgiDAV/%s ExtServer/%s %s Python %s" % (
         __version__,
         _version,
@@ -117,14 +117,14 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def log_message (self, *args):
         pass
 #        BaseHTTPServer.BaseHTTPRequestHandler.log_message(self, *args)
-        
+
     def log_request (self, *args):
         pass
 #        BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, *args)
-        
+
     def getApp (self):
-        # We want fragments to be returned as part of <path> 
-        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse ("http://dummyhost%s" % self.path, 
+        # We want fragments to be returned as part of <path>
+        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse ("http://dummyhost%s" % self.path,
                                                                                  allow_fragments=False)
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
@@ -144,9 +144,9 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def handlerFunctionClosure(self,name):
         def handlerFunction(*args,**kwargs):
-            self.do_method()            
+            self.do_method()
         return handlerFunction
-                  
+
     def do_method(self):
         app, scriptName, pathInfo, query = self.getApp ()
         if (not app):
@@ -165,10 +165,10 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def runWSGIApp (self, application, scriptName, pathInfo, query):
         # logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
-        
+
         if self.command == "PUT":
             pass # breakpoint
-        
+
         env = {"wsgi.version": (1, 0),
                "wsgi.url_scheme": "http",
                "wsgi.input": self.rfile,
@@ -217,7 +217,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if not self.wsgiSentHeaders:
                 self.wsgiStartResponse("500 Server Error", [("Content-type", "text/html")])
             self.wsgiWriteData(SERVER_ERROR)
-        
+
         if not self.wsgiSentHeaders:
             # GC issue 29 sending one byte, when content-length is '0' seems wrong
             # We must write out something!
@@ -296,25 +296,25 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         """Stop serve_forever_stoppable()."""
         assert hasattr(self, "stop_request"), "serve_forever_stoppable() must be called before"
         assert not self.stop_request, "stop_serve_forever() must only be called once"
-        
+
 #        # Flag stop request
         self.stop_request = True
         time.sleep(.1)
         if self.stopped:
 #            print "stop_serve_forever() 'stopped'."
             return
-        
+
         # Add a do_SHUTDOWN method to to the ExtHandler class
         def _shutdownHandler(self):
             """Send 200 OK response, and set server.stop_request to True.
-            
+
             http://code.activestate.com/recipes/336012/
             """
-#            print "Handling do_SHUTDOWN request" 
+#            print "Handling do_SHUTDOWN request"
             self.send_response(200)
             self.end_headers()
             self.server.stop_request = True
-        if not hasattr(ExtHandler, "do_SHUTDOWN"): 
+        if not hasattr(ExtHandler, "do_SHUTDOWN"):
             setattr(ExtHandler, "do_SHUTDOWN", _shutdownHandler)
 
         # Send request, so socket is unblocked
@@ -326,16 +326,16 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         conn.getresponse()
 #        print "stop_serve_forever() received SHUTDOWN response."
         assert self.stop_request
-        
-    
+
+
     def serve_forever_stoppable(self):
         """Handle one request at a time until stop_serve_forever().
-        
+
         http://code.activestate.com/recipes/336012/
         """
         self.stop_request = False
         self.stopped = False
-        
+
         while not self.stop_request:
             self.handle_request()
 
@@ -355,7 +355,7 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 def serve(conf, app):
     host = conf.get("host", "localhost")
-    port = int(conf.get("port", 8080)) 
+    port = int(conf.get("port", 8080))
     server = ExtServer((host, port), {"": app})
     server_version = ExtHandler.server_version
     if conf.get("verbose") >= 1:

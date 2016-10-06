@@ -16,7 +16,7 @@ Usage: add this lines to wsgidav.conf::
 
 Valid options are (sample shows defaults)::
 
-    opts = {"url": "http://localhost:5984/",  # CouchDB server 
+    opts = {"url": "http://localhost:5984/",  # CouchDB server
             "dbName": "wsgidav-props",        # Name of DB to store the properties
             }
 
@@ -45,7 +45,7 @@ class CouchPropertyManager(object):
 
     def __del__(self):
         self._disconnect()
-            
+
     def _connect(self):
         opts = self.options
         if opts.get("url"):
@@ -90,22 +90,22 @@ class CouchPropertyManager(object):
 
     def _disconnect(self):
         pass
-    
+
     def __repr__(self):
         return "CouchPropertyManager(%s)" % self.db
 
     def _sync(self):
         pass
-    
+
     def _check(self, msg=""):
         pass
 
     def _dump(self, msg="", out=None):
         pass
-    
+
     def _find(self, url):
         """Return properties document for path."""
-        # Query the permanent view to find a url   
+        # Query the permanent view to find a url
         vr = self.db.view("properties/by_url", key=url, include_docs=True)
         _logger.debug("find(%r) returned %s" % (url, len(vr)))
         assert len(vr) <= 1, "Found multiple matches for %r" % url
@@ -123,7 +123,7 @@ class CouchPropertyManager(object):
                     emit(doc.url, { 'id': doc._id, 'url': doc.url });
                 }
             }""" % (url + "/")
-        vr = self.db.query(map_fun, include_docs=True)    
+        vr = self.db.query(map_fun, include_docs=True)
         for row in vr:
             yield row.doc
         return
@@ -149,7 +149,7 @@ class CouchPropertyManager(object):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
-        
+
         _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
@@ -170,7 +170,7 @@ class CouchPropertyManager(object):
         _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
-            return  
+            return
         doc = self._find(normurl)
         # Specifying the removal of a property that does not exist is NOT an error.
         if not doc or doc["properties"].get(propname) is None:
@@ -208,20 +208,20 @@ class CouchPropertyManager(object):
             for doc in docList:
                 newDest = doc["url"].replace(srcUrl, destUrl)
                 _logger.debug("move property %s -> %s" % (doc["url"], newDest))
-                doc["url"] = newDest 
+                doc["url"] = newDest
                 self.db.save(doc)
         else:
-            # Move srcUrl only      
+            # Move srcUrl only
             # TODO: use findAndModify()?
             doc = self._find(srcUrl)
             if doc:
                 _logger.debug("move property %s -> %s" % (doc["url"], destUrl))
-                doc["url"] = destUrl 
+                doc["url"] = destUrl
                 self.db.save(doc)
         return
 
 #===============================================================================
-# 
+#
 #===============================================================================
 def test():
     pass

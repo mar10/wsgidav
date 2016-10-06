@@ -377,7 +377,7 @@ class LockStorageShelve(LockStorageDict):
                 self.close()
         finally:
             self._lock.release()
-    
+
 
     def open(self):
         _logger.debug("open(%r)" % self._storagePath)
