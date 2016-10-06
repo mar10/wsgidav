@@ -5,7 +5,7 @@
 
 # from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
-from wsgidav.util import * #@UnusedWildImport
+from wsgidav.util import joinUri, isChildUri, isEqualOrChildUri, lstripstr, popPath, shiftPath
 
 class BasicTest(unittest.TestCase):
     """Test ."""
