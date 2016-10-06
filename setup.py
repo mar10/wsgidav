@@ -71,7 +71,8 @@ if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
 #   2. users may prefer another server
 #   3. there may already cherrypy versions installed
 
-install_requires = [#"cherrypy",
+install_requires = ["defusedxml",
+                    #"cherrypy",
                     #"lxml",
                     ]
 tests_require = ["cherrypy",

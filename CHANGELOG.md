@@ -4,7 +4,8 @@ CHANGES
 
 2.0.1 / Unreleased
 ==================
--
+- Wrap xml libraries with the equivalent defusedxml packages (thanks Tom Viner)
+
 
 2.0.0 / 2016-10-02
 ==================
@@ -62,7 +63,7 @@ CHANGES
 - Files are always stored in binary mode.
 - Port and hostname can now be specified in config file (before: command line only).
 - New option for dir_browser: 'msSharepointUrls' will prepend 'ms-word:ofe|u|' to URL for MS Offce documents.
-- New option 'add_header_MS_Author_Via = True' to support editing with Microsoft Office 
+- New option 'add_header_MS_Author_Via = True' to support editing with Microsoft Office
 - FilesystemProvider expands variables like '~', '$Name' and '%NAME%' in folder paths (i.e. '~/foo' -> '/Users/joe/foo')
 - Issue #55 Failure operating with litmus test suite, Mac OS X WebDAV Client, Windows 7 (thanks to Ben Allums)
 - Fixed issue #48 Allow the dirbrowser to be configured from the config file (thanks to Herman Grecco)

@@ -20,13 +20,18 @@ from wsgidav import compat
 # Import XML support
 useLxml = False
 try:
-    from lxml import etree
+    # lxml with safe defaults
+    from defusedxml.lxml import etree
     useLxml = True
     _ElementType = etree._Element
 except ImportError:
-    # Try xml module (Python 2.5 or later)
-    from xml.etree import ElementTree as etree
-    _ElementType = etree.Element
+    # Try xml module (Python 2.5 or later) with safe defaults
+    from defusedxml import ElementTree as etree
+    # defusedxml doesn't define these non-parsing related objects
+    from xml.etree.ElementTree import Element, SubElement, tostring
+    etree.Element = _ElementType = Element
+    etree.SubElement = SubElement
+    etree.tostring = tostring
     # print("WARNING: Could not import lxml: using xml instead (slower).")
     # print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
