@@ -1103,6 +1103,14 @@ class _DAVResource(object):
         """
         raise NotImplementedError()
 
+    def finalizeHeaders(self, environ, responseHeaders):
+        """Perform custom operations on the response headers.
+
+        This gets called before the response is started.
+        It enables adding additional headers or modifying the default ones.
+        """
+        pass
+
 
 #=========================================================================
 # DAVCollection
