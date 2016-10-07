@@ -2,9 +2,14 @@
 CHANGES
 =======
 
-2.0.1 / Unreleased
+2.0.2 / Unreleased
 ==================
-- Wrap xml libraries with the equivalent defusedxml packages (thanks Tom Viner)
+- 
+
+
+2.0.1 / 2016-10-07
+==================
+- #46 Wrap xml libraries with the equivalent defusedxml packages (thanks Tom Viner)
 
 
 2.0.0 / 2016-10-02
