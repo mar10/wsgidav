@@ -1452,6 +1452,8 @@ class RequestServer(object):
         if res.supportEtag():
             responseHeaders.append(("ETag", '"%s"' % entitytag))
 
+        res.finalizeHeaders(environ, responseHeaders)
+
         if ispartialranges:
 #            responseHeaders.append(("Content-Ranges", "bytes " + str(rangestart) + "-" + str(rangeend) + "/" + str(rangelength)))
             responseHeaders.append(("Content-Range", "bytes %s-%s/%s" % (rangestart, rangeend, filesize)))
