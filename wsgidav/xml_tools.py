@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 Small wrapper for different etree packages.
 
@@ -31,9 +32,9 @@ except ImportError:
     # print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
 
-#===============================================================================
+#=========================================================================
 # XML
-#===============================================================================
+#=========================================================================
 
 def isEtreeElement(obj):
     return isinstance(obj, _ElementType)
@@ -49,8 +50,8 @@ def stringToXML(text):
         # litmus fails, when xml is used instead of lxml
         # 18. propget............... FAIL (PROPFIND on `/temp/litmus/prop2': Could not read status line: connection was closed by server)
         # text = <ns0:high-unicode xmlns:ns0="http://example.com/neon/litmus/">&#55296;&#56320;</ns0:high-unicode>
-#        t2 = text.encode("utf8")
-#        return etree.XML(t2)
+        #        t2 = text.encode("utf8")
+        #        return etree.XML(t2)
         print("Error parsing XML string. If lxml is not available, and unicode is involved, then installing lxml _may_ solve this issue.", file=sys.stderr)
         print("XML source:", text, file=sys.stderr)
         raise
@@ -111,9 +112,9 @@ def elementContentAsString(element):
     return s
 
 
-#===============================================================================
+#=========================================================================
 # TEST
-#===============================================================================
+#=========================================================================
 
 if __name__ == "__main__":
     pass

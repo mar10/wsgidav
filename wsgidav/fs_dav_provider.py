@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 Implementation of a DAV provider that serves resource from a file system.
 
@@ -35,14 +36,15 @@ _logger = util.getModuleLogger(__name__)
 BUFFER_SIZE = 8192
 
 
-#===============================================================================
+#=========================================================================
 # FileResource
-#===============================================================================
+#=========================================================================
 class FileResource(DAVNonCollection):
     """Represents a single existing DAV resource instance.
 
     See also _DAVResource, DAVNonCollection, and FilesystemProvider.
     """
+
     def __init__(self, path, environ, filePath):
         super(FileResource, self).__init__(path, environ)
         self._filePath = filePath
@@ -54,24 +56,31 @@ class FileResource(DAVNonCollection):
     # Getter methods for standard live properties
     def getContentLength(self):
         return self.filestat[stat.ST_SIZE]
+
     def getContentType(self):
-#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
-#        print "mimetype(%s): %r, %r" % (self.path, mimetype, _mimeencoding)
-#        if not mimetype:
-#            mimetype = "application/octet-stream"
-#        print "mimetype(%s): return %r" % (self.path, mimetype)
-#        return mimetype
+        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
+        #        print "mimetype(%s): %r, %r" % (self.path, mimetype, _mimeencoding)
+        #        if not mimetype:
+        #            mimetype = "application/octet-stream"
+        #        print "mimetype(%s): return %r" % (self.path, mimetype)
+        #        return mimetype
         return util.guessMimeType(self.path)
+
     def getCreationDate(self):
         return self.filestat[stat.ST_CTIME]
+
     def getDisplayName(self):
         return self.name
+
     def getEtag(self):
         return util.getETag(self._filePath)
+
     def getLastModified(self):
         return self.filestat[stat.ST_MTIME]
+
     def supportEtag(self):
         return True
+
     def supportRanges(self):
         return True
 
@@ -86,7 +95,6 @@ class FileResource(DAVNonCollection):
         # content-length will be wrong.
         return open(self._filePath, "rb", BUFFER_SIZE)
 
-
     def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
 
@@ -99,7 +107,6 @@ class FileResource(DAVNonCollection):
         # GC issue 57: always store as binary
         return open(self._filePath, "wb", BUFFER_SIZE)
 
-
     def delete(self):
         """Remove this resource or collection (recursive).
 
@@ -110,7 +117,6 @@ class FileResource(DAVNonCollection):
         os.unlink(self._filePath)
         self.removeAllProperties(True)
         self.removeAllLocks(True)
-
 
     def copyMoveSingle(self, destPath, isMove):
         """See DAVResource.copyMoveSingle() """
@@ -131,11 +137,9 @@ class FileResource(DAVNonCollection):
             else:
                 propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl())
 
-
     def supportRecursiveMove(self, destPath):
         """Return True, if moveRecursive() is available (see comments there)."""
         return True
-
 
     def moveRecursive(self, destPath):
         """See DAVResource.moveRecursive() """
@@ -153,7 +157,6 @@ class FileResource(DAVNonCollection):
             self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
                                                      withChildren=True)
 
-
     def setLastModified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         # Translate time from RFC 1123 to seconds since epoch format
@@ -163,14 +166,15 @@ class FileResource(DAVNonCollection):
         return True
 
 
-#===============================================================================
+#=========================================================================
 # FolderResource
-#===============================================================================
+#=========================================================================
 class FolderResource(DAVCollection):
     """Represents a single existing file system folder DAV resource.
 
     See also _DAVResource, DAVCollection, and FilesystemProvider.
     """
+
     def __init__(self, path, environ, filePath):
         super(FolderResource, self).__init__(path, environ)
         self._filePath = filePath
@@ -178,18 +182,21 @@ class FolderResource(DAVCollection):
         self.filestat = os.stat(self._filePath)
         # Setting the name from the file path should fix the case on Windows
         self.name = os.path.basename(self._filePath)
-        self.name = compat.to_native(self.name)  #.encode("utf8")
-
+        self.name = compat.to_native(self.name)  # .encode("utf8")
 
     # Getter methods for standard live properties
     def getCreationDate(self):
         return self.filestat[stat.ST_CTIME]
+
     def getDisplayName(self):
         return self.name
+
     def getDirectoryInfo(self):
         return None
+
     def getEtag(self):
         return None
+
     def getLastModified(self):
         return self.filestat[stat.ST_MTIME]
 
@@ -240,7 +247,7 @@ class FolderResource(DAVCollection):
             res = None
         return res
 
-    # --- Read / write ---------------------------------------------------------
+    # --- Read / write -------------------------------------------------------
 
     def createEmptyResource(self, name):
         """Create an empty (length-0) resource.
@@ -256,7 +263,6 @@ class FolderResource(DAVCollection):
         f.close()
         return self.provider.getResourceInst(path, self.environ)
 
-
     def createCollection(self, name):
         """Create a new collection as member of self.
 
@@ -269,7 +275,6 @@ class FolderResource(DAVCollection):
         fp = self.provider._locToFilePath(path, self.environ)
         os.mkdir(fp)
 
-
     def delete(self):
         """Remove this resource or collection (recursive).
 
@@ -281,7 +286,6 @@ class FolderResource(DAVCollection):
         self.removeAllProperties(True)
         self.removeAllLocks(True)
 
-
     def copyMoveSingle(self, destPath, isMove):
         """See DAVResource.copyMoveSingle() """
         if self.provider.readonly:
@@ -292,7 +296,8 @@ class FolderResource(DAVCollection):
         if not os.path.exists(fpDest):
             os.mkdir(fpDest)
         try:
-            # may raise: [Error 5] Permission denied: u'C:\\temp\\litmus\\ccdest'
+            # may raise: [Error 5] Permission denied:
+            # u'C:\\temp\\litmus\\ccdest'
             shutil.copystat(self._filePath, fpDest)
         except Exception as e:
             _logger.debug("Could not copy folder stats: %s" % e)
@@ -307,11 +312,9 @@ class FolderResource(DAVCollection):
             else:
                 propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl())
 
-
     def supportRecursiveMove(self, destPath):
         """Return True, if moveRecursive() is available (see comments there)."""
         return True
-
 
     def moveRecursive(self, destPath):
         """See DAVResource.moveRecursive() """
@@ -329,7 +332,6 @@ class FolderResource(DAVCollection):
             self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
                                                      withChildren=True)
 
-
     def setLastModified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         # Translate time from RFC 1123 to seconds since epoch format
@@ -339,9 +341,9 @@ class FolderResource(DAVCollection):
         return True
 
 
-#===============================================================================
+#=========================================================================
 # FilesystemProvider
-#===============================================================================
+#=========================================================================
 class FilesystemProvider(DAVProvider):
 
     def __init__(self, rootFolderPath, readonly=False):
@@ -356,14 +358,12 @@ class FilesystemProvider(DAVProvider):
         self.rootFolderPath = rootFolderPath
         self.readonly = readonly
 
-
     def __repr__(self):
         rw = "Read-Write"
         if self.readonly:
             rw = "Read-Only"
         return "%s for path '%s' (%s)" % (self.__class__.__name__,
                                           self.rootFolderPath, rw)
-
 
     def _locToFilePath(self, path, environ=None):
         """Convert resource path to a unicode absolute file path.
@@ -376,11 +376,11 @@ class FilesystemProvider(DAVProvider):
 
         r = os.path.abspath(os.path.join(self.rootFolderPath, *pathInfoParts))
         if not r.startswith(self.rootFolderPath):
-            raise RuntimeError("Security exception: tried to access file outside root.")
+            raise RuntimeError(
+                "Security exception: tried to access file outside root.")
         r = util.toUnicode(r)
 #        print "_locToFilePath(%s, %s): %s" % (path, environ, r)
         return r
-
 
     def isReadOnly(self):
         return self.readonly

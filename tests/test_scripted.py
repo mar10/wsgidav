@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
     Functional test suite for WsgiDAV.
 
@@ -24,7 +25,7 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 
 
-#===============================================================================
+#=========================================================================
 # EXTERNAL_SERVER_ADDRESS
 # <None> means 'start WsgiDAV as parallel thread'
 #
@@ -32,12 +33,13 @@ from wsgidav.server.ext_wsgiutils_server import ExtServer
 # (i.e. will not be handled by WsgiDAVServerThread)
 # In this case, run WsgiDAV as external process and specify the URL here.
 # This is also recommended when doing benchmarks
-#===============================================================================
+#=========================================================================
 EXTERNAL_SERVER_ADDRESS = None  # Start temporary server in own thread
 # EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
 # EXTERNAL_SERVER_ADDRESS = "http://localhost:8080"
 
 _test_server_thread = None
+
 
 def setUpModule():
     global _test_server_thread
@@ -60,12 +62,13 @@ def tearDownModule():
         print("tearDownModule joined")
 
 
-#===============================================================================
+#=========================================================================
 # WsgiDAVServerThread
-#===============================================================================
+#=========================================================================
 class WsgiDAVServerThread(Thread):
     """WsgiDAV server that can be run in a parallel thread."""
-    def __init__ (self):
+
+    def __init__(self):
         self.ext_server = None
         Thread.__init__(self)
 
@@ -87,15 +90,16 @@ class WsgiDAVServerThread(Thread):
             "host": "localhost",
             "port": 8080,
             "enable_loggers": [
-#                               "http_authenticator",
-#                               "lock_manager",
-                               ],
-            "debug_methods": [ ],
+                #                               "http_authenticator",
+                #                               "lock_manager",
+            ],
+            "debug_methods": [],
             "propsmanager": True,      # True: use lock_manager.LockManager
             "locksmanager": True,      # True: use lock_manager.LockManager
-            "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
+            # None: domain_controller.WsgiDAVDomainController(user_mapping)
+            "domaincontroller": None,
             "verbose": 2,
-            })
+        })
 
         if withAuthentication:
             config["user_mapping"] = {"/": {"tester": {"password": "secret",
@@ -126,20 +130,23 @@ class WsgiDAVServerThread(Thread):
     def shutdown(self):
         if self.ext_server:
             print("WsgiDAVServerThread.shutdown()...")
-            # let server process pending requests, otherwise shutdown might lock
+            # let server process pending requests, otherwise shutdown might
+            # lock
             time.sleep(.1)
             self.ext_server.stop_serve_forever()
             self.ext_server = None
             print("WsgiDAVServerThread.shutdown()... complete")
 
-#===============================================================================
+#=========================================================================
 # ServerTest
-#===============================================================================
+#=========================================================================
+
+
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using davclient."""
 
     def setUp(self):
-#        print "setUp"
+        #        print "setUp"
         if EXTERNAL_SERVER_ADDRESS:
             # self.server_thread = None
             self.client = davclient.DAVClient(EXTERNAL_SERVER_ADDRESS)
@@ -153,9 +160,8 @@ class ServerTest(unittest.TestCase):
         self.client.set_basic_auth("tester", "secret")
 #        self.client.headers['new_header_for_session'] = "useful_example"
 
-
     def tearDown(self):
-#        print "tearDown"
+        #        print "tearDown"
         del self.client
         # if self.server_thread:
         #     print("tearDown shutdown...")
@@ -166,11 +172,10 @@ class ServerTest(unittest.TestCase):
         #     print("tearDown joined")
 #        os.rmdir(self.rootpath)
 
-
     def testPreconditions(self):
         """Environment must be set."""
-        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
-
+        self.assertTrue(
+            __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
     def testGetPut(self):
         """Read and write file contents."""
@@ -181,8 +186,8 @@ class ServerTest(unittest.TestCase):
         data2 = b"this is another file\nwith three lines\nsee?"
         # Big file with 10 MB
         lines = []
-        line = "." * (1000-6-len("\n"))
-        for i in compat.xrange(10*1000):
+        line = "." * (1000 - 6 - len("\n"))
+        for i in compat.xrange(10 * 1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
         data3 = compat.to_bytes(data3)
@@ -204,7 +209,6 @@ class ServerTest(unittest.TestCase):
         client.checkResponse(200)
         assert body == data1, "Put/Get produced different bytes"
 
-
         # PUT with overwrite must return 204 No Content, instead of 201 Created
         client.put("/test/file2.txt", data2)
         client.checkResponse(204)
@@ -225,7 +229,8 @@ class ServerTest(unittest.TestCase):
         client.unlock("/test/lock-0", token)
         client.checkResponse(204)  # no content
         client.unlock("/test/lock-0", token)
-        # 409 Conflict, because resource was not locked (http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK)
+        # 409 Conflict, because resource was not locked
+        # (http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK)
         client.checkResponse(409)
 
         client.proppatch("/test/file1.txt",
@@ -293,7 +298,6 @@ class ServerTest(unittest.TestCase):
 #        # PUT a small file (expect '201 Created')
 #        app.put("/file1.txt", params=data1, status=201)
 
-
     def _prepareTree0(self):
         """Create a resource structure for testing.
 
@@ -316,7 +320,6 @@ class ServerTest(unittest.TestCase):
         client.put("/test/a/b/d", data)
         client.put("/test/x/y", data)
         client.checkResponse(201)
-
 
     def _checkCommonLock(self, client2):
         """Check for access when /test/a/ of our sample tree is locked.
@@ -372,7 +375,6 @@ class ServerTest(unittest.TestCase):
                           set_props=[("{testns:}testname", "testval")])
         client2.checkResponse(423)
 
-
     def testLocking(self):
         """Locking."""
         client1 = self.client
@@ -382,7 +384,7 @@ class ServerTest(unittest.TestCase):
 
         self._prepareTree0()
 
-        # --- Check with deoth-infinity lock -----------------------------------
+        # --- Check with deoth-infinity lock ----------------------------------
         # LOCK-infinity parent collection and try to access members
         locks = client1.set_lock("/test/a",
                                  owner="test-bench",
@@ -393,7 +395,8 @@ class ServerTest(unittest.TestCase):
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
 
-        # Unlock with correct token, but other principal: expect '403 Forbidden'
+        # Unlock with correct token, but other principal: expect '403
+        # Forbidden'
         client2.unlock("/test/a", token)
         client2.checkResponse(403)
 
@@ -436,8 +439,7 @@ class ServerTest(unittest.TestCase):
 #        assert len(locks) == 1, "Locking inside below locked collection failed"
 #        tokenABD = locks[0]
 
-
-        # --- Check with depth-0 lock ------------------------------------------
+        # --- Check with depth-0 lock -----------------------------------------
         # LOCK-0 parent collection and try to access members
         client1.unlock("/test/a", token)
         client1.checkResponse(204)
@@ -472,7 +474,7 @@ class ServerTest(unittest.TestCase):
         client2.delete("/test/a/b/g2")
         client2.checkResponse(204)
 
-        # --- Check root access, when a child is locked ------------------------
+        # --- Check root access, when a child is locked -----------------------
         client1.unlock("/test/a", token)
         client1.checkResponse(204)
 
@@ -492,9 +494,9 @@ class ServerTest(unittest.TestCase):
         client2.checkMultiStatusResponse(423)
 
 
-#===============================================================================
+#=========================================================================
 # suite
-#===============================================================================
+#=========================================================================
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 WSGI container, that handles the HTTP requests. This object is passed to the
 WSGI server and represents our WsgiDAV application to the outside.
@@ -64,7 +65,8 @@ from wsgidav import util
 __docformat__ = "reStructuredText"
 
 
-# Use these settings, if config file does not define them (or is totally missing)
+# Use these settings, if config file does not define them (or is totally
+# missing)
 DEFAULT_CONFIG = {
     "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
     "provider_mapping": {},
@@ -72,25 +74,27 @@ DEFAULT_CONFIG = {
     "port": 8080,
     "server": "cherrypy",
     "add_header_MS_Author_Via": True,
-    "unquote_path_info": False, # See #8
-#    "use_text_files": False,
+    "unquote_path_info": False,  # See #8
+    #    "use_text_files": False,
 
     "propsmanager": None,  # True: use property_manager.PropertyManager
     "locksmanager": True,  # True: use lock_manager.LockManager
 
     # HTTP Authentication Options
     "user_mapping": {},       # dictionary of dictionaries
-    "domaincontroller": None, # None: domain_controller.WsgiDAVDomainController(user_mapping)
+    # None: domain_controller.WsgiDAVDomainController(user_mapping)
+    "domaincontroller": None,
     "acceptbasic": True,      # Allow basic authentication, True or False
     "acceptdigest": True,     # Allow digest authentication, True or False
     "defaultdigest": True,    # True (default digest) or False (default basic)
-    "trusted_auth_header": None,  # Name of a header field that will be accepted as authorized user
+    # Name of a header field that will be accepted as authorized user
+    "trusted_auth_header": None,
 
     # Error printer options
     "catchall": False,
 
     "enable_loggers": [
-                      ],
+    ],
 
     # Verbose Output
     "verbose": 1,        # 0 - no output (excepting application exceptions)
@@ -102,9 +106,11 @@ DEFAULT_CONFIG = {
     "dir_browser": {
         "enable": True,               # Render HTML listing for GET requests on collections
         "response_trailer": "",       # Raw HTML code, appended as footer
-        "davmount": False,            # Send <dm:mount> response if request URL contains '?davmount'
-        "ms_mount": False,            # Add an 'open as webfolder' link (requires Windows)
-        "ms_sharepoint_plugin": True, # Invoke MS Offce documents for editing using WebDAV
+        # Send <dm:mount> response if request URL contains '?davmount'
+        "davmount": False,
+        # Add an 'open as webfolder' link (requires Windows)
+        "ms_mount": False,
+        "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
         "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
     },
     "middleware_stack": [
@@ -116,20 +122,18 @@ DEFAULT_CONFIG = {
 }
 
 
-
 def _checkConfig(config):
     mandatoryFields = ["provider_mapping",
                        ]
     for field in mandatoryFields:
         if not field in config:
-            raise ValueError("Invalid configuration: missing required field '%s'" % field)
+            raise ValueError(
+                "Invalid configuration: missing required field '%s'" % field)
 
 
-
-
-#===============================================================================
+#=========================================================================
 # WsgiDAVApp
-#===============================================================================
+#=========================================================================
 class WsgiDAVApp(object):
 
     def __init__(self, config):
@@ -137,7 +141,8 @@ class WsgiDAVApp(object):
 
         util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
-        util.log("Default encoding: %s (file system: %s)" % (sys.getdefaultencoding(), sys.getfilesystemencoding()))
+        util.log("Default encoding: %s (file system: %s)" %
+                 (sys.getdefaultencoding(), sys.getfilesystemencoding()))
 
         # Evaluate configuration and set defaults
         _checkConfig(config)
@@ -180,13 +185,13 @@ class WsgiDAVApp(object):
             if mount_path:
                 provider.setMountPath(mount_path)
 
-            # TODO: someday we may want to configure different lock/prop managers per provider
+            # TODO: someday we may want to configure different lock/prop
+            # managers per provider
             provider.setLockManager(locksManager)
             provider.setPropManager(propsManager)
 
-            self.providerMap[share] = {"provider": provider, "allow_anonymous": False}
-
-
+            self.providerMap[share] = {
+                "provider": provider, "allow_anonymous": False}
 
         # Define WSGI application stack
         application = RequestResolver()
@@ -198,7 +203,8 @@ class WsgiDAVApp(object):
         # Replace WsgiDavDirBrowser to custom class for backward compatibility only
         # In normal way you should insert it into middleware_stack
         if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
-            config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser['app_class'] for m in middleware_stack]
+            config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser[
+                'app_class'] for m in middleware_stack]
 
         for mw in middleware_stack:
             if mw.isSuitable(config):
@@ -233,10 +239,9 @@ class WsgiDAVApp(object):
 
         self._application = application
 
-
     def __call__(self, environ, start_response):
 
-#        util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
+        #        util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         # We optionall unquote PATH_INFO here, although this should already be
         # done by the server (#8).
@@ -255,7 +260,7 @@ class WsgiDAVApp(object):
         environ["wsgidav.provider"] = None
         environ["wsgidav.verbose"] = self._verbose
 
-        ## Find DAV provider that matches the share
+        # Find DAV provider that matches the share
 
         # sorting share list by reverse length
 #        shareList = self.providerMap.keys()
@@ -265,11 +270,11 @@ class WsgiDAVApp(object):
         share = None
         for r in shareList:
             # @@: Case sensitivity should be an option of some sort here;
-            #     os.path.normpath might give the preferred case for a filename.
+            # os.path.normpath might give the preferred case for a filename.
             if r == "/":
                 share = r
                 break
-            elif path.upper() == r.upper() or path.upper().startswith(r.upper()+"/"):
+            elif path.upper() == r.upper() or path.upper().startswith(r.upper() + "/"):
                 share = r
                 break
 
@@ -296,13 +301,17 @@ class WsgiDAVApp(object):
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty
-        assert environ["SCRIPT_NAME"] == "" or environ["SCRIPT_NAME"].startswith("/")
+        assert environ["SCRIPT_NAME"] == "" or environ[
+            "SCRIPT_NAME"].startswith("/")
         # SCRIPT_NAME must not have a trailing '/'
-        assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
+        assert environ["SCRIPT_NAME"] in (
+            "", "/") or not environ["SCRIPT_NAME"].endswith("/")
         # PATH_INFO starts with '/'
-        assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
+        assert environ["PATH_INFO"] == "" or environ[
+            "PATH_INFO"].startswith("/")
 
         start_time = time.time()
+
         def _start_response_wrapper(status, response_headers, exc_info=None):
             # Postprocess response headers
             headerDict = {}
@@ -323,10 +332,12 @@ class WsgiDAVApp(object):
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
-                util.warn("Missing required Content-Length header in %s-response: closing connection" % statusCode)
+                util.warn(
+                    "Missing required Content-Length header in %s-response: closing connection" % statusCode)
                 forceCloseConnection = True
             elif not type(currentContentLength) is str:
-                util.warn("Invalid Content-Length header in response (%r): closing connection" % headerDict.get("content-length"))
+                util.warn("Invalid Content-Length header in response (%r): closing connection" %
+                          headerDict.get("content-length"))
                 forceCloseConnection = True
 
             # HOTFIX for Vista and Windows 7 (GC issue 13, issue 23)
@@ -342,7 +353,8 @@ class WsgiDAVApp(object):
             # current input was consumed
             if(util.getContentLength(environ) != 0
                and not environ.get("wsgidav.all_input_read")):
-                util.warn("Input stream not completely consumed: closing connection")
+                util.warn(
+                    "Input stream not completely consumed: closing connection")
                 forceCloseConnection = True
 
             if forceCloseConnection and headerDict.get("connection") != "close":
@@ -367,15 +379,18 @@ class WsgiDAVApp(object):
                 if "HTTP_RANGE" in environ:
                     extra.append("range=%s" % environ.get("HTTP_RANGE"))
                 if "HTTP_OVERWRITE" in environ:
-                    extra.append("overwrite=%s" % environ.get("HTTP_OVERWRITE"))
+                    extra.append("overwrite=%s" %
+                                 environ.get("HTTP_OVERWRITE"))
                 if self._verbose >= 1 and "HTTP_EXPECT" in environ:
                     extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
                 if self._verbose >= 2 and "HTTP_CONNECTION" in environ:
-                    extra.append('connection="%s"' % environ.get("HTTP_CONNECTION"))
+                    extra.append('connection="%s"' %
+                                 environ.get("HTTP_CONNECTION"))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
                 if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
-                    extra.append('transfer-enc=%s' % environ.get("HTTP_TRANSFER_ENCODING"))
+                    extra.append('transfer-enc=%s' %
+                                 environ.get("HTTP_TRANSFER_ENCODING"))
                 if self._verbose >= 1:
                     extra.append('elap=%.3fsec' % (time.time() - start_time))
                 extra = ", ".join(extra)
@@ -384,15 +399,16 @@ class WsgiDAVApp(object):
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"
 #                print >>sys.stderr, '%s - %s - [%s] "%s" %s -> %s' % (
                 print('%s - %s - [%s] "%s" %s -> %s' % (
-                        threadInfo + environ.get("REMOTE_ADDR",""),
-                        userInfo,
-                        util.getLogTime(),
-                        environ.get("REQUEST_METHOD") + " " + environ.get("PATH_INFO", ""),
-                        extra,
-                        status,
-#                                        response_headers.get(""), # response Content-Length
-                        # referer
-                     ), file=sys.stdout)
+                    threadInfo + environ.get("REMOTE_ADDR", ""),
+                    userInfo,
+                    util.getLogTime(),
+                    environ.get("REQUEST_METHOD") + " " +
+                    environ.get("PATH_INFO", ""),
+                    extra,
+                    status,
+                    #                                        response_headers.get(""), # response Content-Length
+                    # referer
+                ), file=sys.stdout)
 
             return start_response(status, response_headers, exc_info)
 

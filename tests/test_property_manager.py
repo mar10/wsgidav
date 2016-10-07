@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """Unit test for property_manager.py"""
 from tempfile import gettempdir
 import unittest
@@ -9,9 +10,11 @@ import os
 import sys
 from wsgidav import property_manager
 
-#===============================================================================
+#=========================================================================
 # BasicTest
-#===============================================================================
+#=========================================================================
+
+
 class BasicTest(unittest.TestCase):
     """Test property_manager.PropertyManager()."""
     respath = "/dav/res"
@@ -26,21 +29,18 @@ class BasicTest(unittest.TestCase):
 #         suite.addTest(cls("testReadWrite"))
 #         return suite
 
-
     def setUp(self):
         self.pm = property_manager.PropertyManager()
         self.pm._verbose = 2
-
 
     def tearDown(self):
         self.pm._close()
         self.pm = None
 
-
     def testPreconditions(self):
         """Environment must be set."""
-        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
-
+        self.assertTrue(
+            __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
     def testOpen(self):
         """Property manager should be lazy opening on first access."""
@@ -48,7 +48,6 @@ class BasicTest(unittest.TestCase):
         assert not pm._loaded, "PM must be closed until first access"
         pm.getProperties(self.respath)
         assert pm._loaded, "PM must be opened after first access"
-
 
     def testValidation(self):
         """Property manager should raise errors on bad args."""
@@ -65,7 +64,6 @@ class BasicTest(unittest.TestCase):
 
         assert pm._dict is None, "No properties should have been created by this test"
 
-
     def testReadWrite(self):
         """Property manager should raise errors on bad args."""
         pm = self.pm
@@ -74,19 +72,19 @@ class BasicTest(unittest.TestCase):
         assert pm.getProperty(url, "foo") == "my name is joe"
 
 
-
-#===============================================================================
+#=========================================================================
 # ShelveTest
-#===============================================================================
+#=========================================================================
 class ShelveTest(BasicTest):
     """Test property_manager.ShelvePropertyManager()."""
 
     def setUp(self):
         if sys.version_info < (3, 0):
-            modifier = "-py2" # shelve formats are incompatible
+            modifier = "-py2"  # shelve formats are incompatible
         else:
             modifier = "-py3"
-        self.path = os.path.join(gettempdir(), "wsgidav-props%s.shelve" % modifier)
+        self.path = os.path.join(
+            gettempdir(), "wsgidav-props%s.shelve" % modifier)
         # Note: os.remove(self.path) does not work, because Shelve may append
         # a file extension.
 #        if os.path.exists(self.path):
@@ -95,13 +93,13 @@ class ShelveTest(BasicTest):
         self.pm._verbose = 2
 
     def tearDown(self):
-#        self.pm.storage.clear()
+        #        self.pm.storage.clear()
         self.pm._close()
         self.pm = None
 #        os.remove(self.path)
 
 
-#===============================================================================
+#=========================================================================
 
 
 if __name__ == "__main__":

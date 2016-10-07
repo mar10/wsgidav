@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 Miscellaneous support functions for WsgiDAV.
 
@@ -31,8 +32,9 @@ from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIF
     HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
     HTTP_OK
 from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree, isEtreeElement
-## Trick PyDev to do intellisense and don't produce warnings:
-if False: from xml.etree import ElementTree as etree     #@Reimport @UnresolvedImport
+# Trick PyDev to do intellisense and don't produce warnings:
+if False:
+    from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"
 
@@ -43,9 +45,9 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 logging.basicConfig(level=logging.INFO)
 
 
-#===============================================================================
+#=========================================================================
 # Time tools
-#===============================================================================
+#=========================================================================
 
 def getRfc1123Time(secs=None):
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
@@ -105,7 +107,8 @@ def _parsegmtime(timestring):
     except:
         pass
 
-    # Sun Nov  6 08:49:37 1994 +0100      ; ANSI C's asctime() format with timezon
+    # Sun Nov  6 08:49:37 1994 +0100      ; ANSI C's asctime() format with
+    # timezon
     try:
         return parsedate(timestring)
     except:
@@ -114,9 +117,9 @@ def _parsegmtime(timestring):
     return None
 
 
-#===============================================================================
+#=========================================================================
 # Logging
-#===============================================================================
+#=========================================================================
 
 def initLogging(verbose=2, enable_loggers=[]):
     """Initialize base logger named 'wsgidav'.
@@ -185,14 +188,14 @@ def initLogging(verbose=2, enable_loggers=[]):
     # Add the handlers to the base logger
     logger = logging.getLogger(BASE_LOGGER_NAME)
 
-    if verbose >= 3: # --debug
+    if verbose >= 3:  # --debug
         logger.setLevel(logging.DEBUG)
-    elif verbose >= 2: # --verbose
+    elif verbose >= 2:  # --verbose
         logger.setLevel(logging.INFO)
-    elif verbose >= 1: # standard
+    elif verbose >= 1:  # standard
         logger.setLevel(logging.WARN)
         consoleHandler.setLevel(logging.WARN)
-    else: # --quiet
+    else:  # --quiet
         logger.setLevel(logging.ERROR)
         consoleHandler.setLevel(logging.ERROR)
 
@@ -218,7 +221,6 @@ def initLogging(verbose=2, enable_loggers=[]):
 #            if verbose >= 2:
 #                log("Logger(%s).setLevel(DEBUG)" % e.strip())
             l.setLevel(logging.DEBUG)
-
 
 
 def getModuleLogger(moduleName, defaultToVerbose=False):
@@ -250,7 +252,7 @@ def log(msg, var=None):
 
 def _write(msg, var, module, level, flush):
     if module:
-        logger = logging.getLogger(BASE_LOGGER_NAME+"."+module)
+        logger = logging.getLogger(BASE_LOGGER_NAME + "." + module)
         # Disable debug messages for module loggers by default
         if logger.level == logging.NOTSET:
             logger.setLevel(logging.INFO)
@@ -264,18 +266,27 @@ def _write(msg, var, module, level, flush):
         for hdlr in logger.handlers:
             hdlr.flush()
 
+
 def write(msg, var=None, module=None, flush=True):
     """Log always."""
     _write(msg, var, module, logging.CRITICAL, flush)
+
+
 def warn(msg, var=None, module=None, flush=True):
     """Log to stderr."""
     _write(msg, var, module, logging.ERROR, flush)
+
+
 def status(msg, var=None, module=None, flush=True):
     """Log if not --quiet."""
     _write(msg, var, module, logging.WARNING, flush)
+
+
 def note(msg, var=None, module=None, flush=True):
     """Log if --verbose."""
     _write(msg, var, module, logging.INFO, flush)
+
+
 def debug(msg, var=None, module=None, flush=True):
     """Log if --debug."""
     _write(msg, var, module, logging.DEBUG, flush)
@@ -289,12 +300,13 @@ def traceCall(msg=None):
             msg = ": %s"
         else:
             msg = ""
-        print("%s.%s #%s%s" % (f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
+        print("%s.%s #%s%s" % (f_code.co_filename,
+                               f_code.co_name, f_code.co_lineno, msg))
 
 
-#===============================================================================
+#=========================================================================
 # Strings
-#===============================================================================
+#=========================================================================
 
 def lstripstr(s, prefix, ignoreCase=False):
     if ignoreCase:
@@ -320,7 +332,7 @@ def popPath(path):
         return ("", "")
     assert path.startswith("/")
     first, _sep, rest = path.lstrip("/").partition("/")
-    return (first, "/"+rest)
+    return (first, "/" + rest)
 
 
 def popPath2(path):
@@ -329,7 +341,7 @@ def popPath2(path):
         return ("", "", "")
     first, rest = popPath(path)
     second, rest = popPath(rest)
-    return (first, second, "/"+rest)
+    return (first, second, "/" + rest)
 
 
 def shiftPath(scriptName, pathInfo):
@@ -423,10 +435,9 @@ def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, 
     return "%s%s%s" % (snum, magsuffix, bytesuffix)
 
 
-
-#===============================================================================
+#=========================================================================
 # WSGI
-#===============================================================================
+#=========================================================================
 def getContentLength(environ):
     """Return a positive CONTENT_LENGTH in a safe way (return 0 otherwise)."""
     # TODO: http://www.wsgi.org/wsgi/WSGI_2.0
@@ -436,7 +447,7 @@ def getContentLength(environ):
         return 0
 
 
-#def readAllInput(environ):
+# def readAllInput(environ):
 #    """Read and discard all from from wsgi.input, if this has not been done yet."""
 #    cl = getContentLength(environ)
 #    if environ.get("wsgidav.all_input_read") or cl == 0:
@@ -476,7 +487,6 @@ def readAndDiscardInput(environ):
     if READ_ALL:
         environ["wsgidav.all_input_read"] = 1
 
-
     wsgi_input = environ["wsgi.input"]
 
     # TODO: check if still required after GC issue 24 is fixed
@@ -492,7 +502,8 @@ def readAndDiscardInput(environ):
             else:
                 n = 1
             body = wsgi_input.read(n)
-            debug("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (n, body[:50]))
+            debug("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (
+                n, body[:50]))
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
@@ -508,7 +519,8 @@ def readAndDiscardInput(environ):
                 else:
                     n = 1
                 body = wsgi_input.read(n)
-                debug("Reading %s bytes from potentially unread POST body: '%s'..." % (n, body[:50]))
+                debug("Reading %s bytes from potentially unread POST body: '%s'..." % (
+                    n, body[:50]))
             except socket.error as se:
                 # se(10035, 'The socket operation could not complete without blocking')
                 warn("-> read %s bytes failed: %s" % (n, se))
@@ -518,10 +530,11 @@ def readAndDiscardInput(environ):
             warn("--> wsgi_input.read(): %s" % sys.exc_info())
 
 
-#===============================================================================
+#=========================================================================
 # SubAppStartResponse
-#===============================================================================
+#=========================================================================
 class SubAppStartResponse(object):
+
     def __init__(self):
         self.__status = ""
         self.__response_headers = []
@@ -547,10 +560,9 @@ class SubAppStartResponse(object):
         self.__exc_info = exc_info
 
 
-
-#===============================================================================
+#=========================================================================
 # URLs
-#===============================================================================
+#=========================================================================
 
 def joinUri(uri, *segments):
     """Append segments to URI.
@@ -586,7 +598,7 @@ def isChildUri(parentUri, childUri):
     children of '/a/b' (and also of '/a/b/').
     Note that '/a/b/cd' is NOT a child of 'a/b/c'.
     """
-    return parentUri and childUri and childUri.rstrip("/").startswith(parentUri.rstrip("/")+"/")
+    return parentUri and childUri and childUri.rstrip("/").startswith(parentUri.rstrip("/") + "/")
 
 
 def isEqualOrChildUri(parentUri, childUri):
@@ -595,14 +607,14 @@ def isEqualOrChildUri(parentUri, childUri):
     Similar to <util.isChildUri>_ ,  but this method also returns True, if parent
     equals child. ('/a/b' is considered identical with '/a/b/').
     """
-    return parentUri and childUri and (childUri.rstrip("/")+"/").startswith(parentUri.rstrip("/")+"/")
+    return parentUri and childUri and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/")
 
 
 def makeCompleteUrl(environ, localUri=None):
     """URL reconstruction according to PEP 333.
     @see http://www.python.org/dev/peps/pep-0333/#id33
     """
-    url = environ["wsgi.url_scheme"]+"://"
+    url = environ["wsgi.url_scheme"] + "://"
 
     if environ.get("HTTP_HOST"):
         url += environ["HTTP_HOST"]
@@ -616,20 +628,20 @@ def makeCompleteUrl(environ, localUri=None):
             if environ["SERVER_PORT"] != "80":
                 url += ":" + environ["SERVER_PORT"]
 
-    url += compat.quote(environ.get("SCRIPT_NAME",""))
+    url += compat.quote(environ.get("SCRIPT_NAME", ""))
 
     if localUri is None:
-        url += compat.quote(environ.get("PATH_INFO",""))
+        url += compat.quote(environ.get("PATH_INFO", ""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:
-        url += localUri # TODO: quote?
+        url += localUri  # TODO: quote?
     return url
 
 
-#===============================================================================
+#=========================================================================
 # XML
-#===============================================================================
+#=========================================================================
 
 def parseXmlBody(environ, allowEmpty=False):
     """Read request body XML into an etree.Element.
@@ -674,8 +686,9 @@ def parseXmlBody(environ, allowEmpty=False):
     if clHeader == "":
         # No Content-Length given: read to end of stream
         # TODO: etree.parse() locks, if input is invalid?
-#        pfroot = etree.parse(environ["wsgi.input"]).getroot()
-#        requestbody = environ["wsgi.input"].read()  # TODO: read() should be called in a loop?
+        #        pfroot = etree.parse(environ["wsgi.input"]).getroot()
+        # requestbody = environ["wsgi.input"].read()  # TODO: read() should be
+        # called in a loop?
         requestbody = ""
     else:
         try:
@@ -711,7 +724,7 @@ def parseXmlBody(environ, allowEmpty=False):
     return rootEL
 
 
-#def sendResponse(environ, start_response, body, content_type):
+# def sendResponse(environ, start_response, body, content_type):
 #    """Send a WSGI response for a HTML or XML string."""
 #    assert content_type in ("application/xml", "text/html")
 #
@@ -736,7 +749,7 @@ def sendStatusResponse(environ, start_response, e):
         start_response(status, [("Content-Length", "0"),
                                 ("Date", getRfc1123Time()),
                                 ] + headers)
-        return [ b"" ]
+        return [b""]
 
     if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
@@ -744,16 +757,17 @@ def sendStatusResponse(environ, start_response, e):
 
     content_type, body = e.getResponsePage()
 
-    assert compat.is_bytes(body), body # If not, Content-Length is wrong!
+    assert compat.is_bytes(body), body  # If not, Content-Length is wrong!
     start_response(status, [("Content-Type", content_type),
                             ("Date", getRfc1123Time()),
                             ("Content-Length", str(len(body))),
                             ] + headers)
-    return [ body ]
+    return [body]
 
 
 def sendMultiStatusResponse(environ, start_response, multistatusEL):
-    # If logging of the body is desired, then this is the place to do it pretty:
+    # If logging of the body is desired, then this is the place to do it
+    # pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
                                              compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
@@ -763,7 +777,8 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
     xml_data = xmlToBytes(multistatusEL, pretty_print=False)
-    assert compat.is_bytes(xml_data), xml_data # If not, Content-Length is wrong!
+    # If not, Content-Length is wrong!
+    assert compat.is_bytes(xml_data), xml_data
 
     headers = [
         ("Content-Type", "application/xml"),
@@ -777,7 +792,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
 #        ]
 
     start_response("207 Multi-Status", headers)
-    return [ xml_data ]
+    return [xml_data]
 
 
 def addPropertyResponse(multistatusEL, href, propList):
@@ -809,12 +824,12 @@ def addPropertyResponse(multistatusEL, href, propList):
         # Collect namespaces, so we can declare them in the <response> for
         # compacter output
         ns, _ = splitNamespace(name)
-        if ns!="DAV:" and not ns in nsDict and ns != "":
+        if ns != "DAV:" and not ns in nsDict and ns != "":
             nsDict[ns] = True
             nsMap["NS%s" % nsCount] = ns
             nsCount += 1
 
-        propDict.setdefault(status, []).append( (name, value) )
+        propDict.setdefault(status, []).append((name, value))
 
     # <response>
     responseEL = makeSubElement(multistatusEL, "{DAV:}response", nsmap=nsMap)
@@ -823,7 +838,6 @@ def addPropertyResponse(multistatusEL, href, propList):
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
 #    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'()," + "$-_|.")
-
 
     # One <propstat> per status code
     for status in propDict:
@@ -837,16 +851,17 @@ def addPropertyResponse(multistatusEL, href, propList):
                 propEL.append(value)
             else:
                 # value must be string or unicode
-#                log("%s value:%s" % (name, stringRepr(value)))
-#                etree.SubElement(propEL, name).text = value
+                #                log("%s value:%s" % (name, stringRepr(value)))
+                #                etree.SubElement(propEL, name).text = value
                 etree.SubElement(propEL, name).text = toUnicode(value)
         # <status>
-        etree.SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
+        etree.SubElement(
+            propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
 
 
-#===============================================================================
+#=========================================================================
 # ETags
-#===============================================================================
+#=========================================================================
 
 def calc_hexdigest(s):
     """Return md5 digest for a string."""
@@ -892,13 +907,14 @@ def getETag(filePath):
         return str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
 
 
-#===============================================================================
+#=========================================================================
 # Ranges
-#===============================================================================
+#=========================================================================
 
 # Range Specifiers
 reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
 reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
+
 
 def obtainContentRanges(rangetext, filesize):
     """
@@ -917,7 +933,7 @@ def obtainContentRanges(rangetext, filesize):
         if not matched:
             mObj = reByteRangeSpecifier.search(subrange)
             if mObj:
-#                print(mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3))
+                #                print(mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3))
                 firstpos = int(mObj.group(2))
                 if mObj.group(3) == "":
                     lastpos = filesize - 1
@@ -926,7 +942,7 @@ def obtainContentRanges(rangetext, filesize):
                 if firstpos <= lastpos and firstpos < filesize:
                     if lastpos >= filesize:
                         lastpos = filesize - 1
-                    listReturn.append( (firstpos , lastpos) )
+                    listReturn.append((firstpos, lastpos))
                     matched = True
         if not matched:
             mObj = reSuffixByteRangeSpecifier.search(subrange)
@@ -935,7 +951,7 @@ def obtainContentRanges(rangetext, filesize):
                 if firstpos < 0:
                     firstpos = 0
                 lastpos = filesize - 1
-                listReturn.append( (firstpos , lastpos) )
+                listReturn.append((firstpos, lastpos))
 
                 matched = True
 
@@ -947,25 +963,26 @@ def obtainContentRanges(rangetext, filesize):
         (rfirstpos, rlastpos) = listReturn.pop()
         counter = len(listReturn)
         while counter > 0:
-            (nfirstpos, nlastpos) = listReturn[counter-1]
+            (nfirstpos, nlastpos) = listReturn[counter - 1]
             if nlastpos < rfirstpos - 1 or nfirstpos > nlastpos + 1:
                 pass
             else:
                 rfirstpos = min(rfirstpos, nfirstpos)
                 rlastpos = max(rlastpos, nlastpos)
-                del listReturn[counter-1]
+                del listReturn[counter - 1]
             counter = counter - 1
-        listReturn2.append((rfirstpos,rlastpos,rlastpos - rfirstpos + 1 ))
+        listReturn2.append((rfirstpos, rlastpos, rlastpos - rfirstpos + 1))
         totallength = totallength + rlastpos - rfirstpos + 1
 
     return (listReturn2, totallength)
 
-#===============================================================================
+#=========================================================================
 #
-#===============================================================================
+#=========================================================================
 # any numofsecs above the following limit is regarded as infinite
-MAX_FINITE_TIMEOUT_LIMIT = 10*365*24*60*60  #approx 10 years
+MAX_FINITE_TIMEOUT_LIMIT = 10 * 365 * 24 * 60 * 60  # approx 10 years
 reSecondsReader = re.compile(r'second\-([0-9]+)', re.I)
+
 
 def readTimeoutValueHeader(timeoutvalue):
     """Return -1 if infinite, else return numofsecs."""
@@ -986,9 +1003,9 @@ def readTimeoutValueHeader(timeoutvalue):
     return None
 
 
-#===============================================================================
+#=========================================================================
 # If Headers
-#===============================================================================
+#=========================================================================
 
 def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
@@ -1016,7 +1033,7 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     """
     if not davres:
         return
-    ## Conditions
+    # Conditions
 
     # An HTTP/1.1 origin server, upon receiving a conditional request that includes both a Last-Modified date
     # (e.g., in an If-Modified-Since or If-Unmodified-Since header field) and one or more entity tags (e.g.,
@@ -1073,8 +1090,6 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     return
 
 
-
-
 reIfSeparator = re.compile(r'(\<([^>]+)\>)|(\(([^\)]+)\))')
 reIfHeader = re.compile(r'\<([^>]+)\>([^<]+)')
 reIfTagList = re.compile(r'\(([^)]+)\)')
@@ -1111,9 +1126,11 @@ def parseIfHeaderDict(environ):
             for listitem in reIfTagListContents.findall(contentVar):
                 if listitem.upper() != "NOT":
                     if listitem.startswith("["):
-                        listTagContents.append((testflag,"entity",listitem.strip('\"[]')))
+                        listTagContents.append(
+                            (testflag, "entity", listitem.strip('\"[]')))
                     else:
-                        listTagContents.append((testflag,"locktoken",listitem.strip("<>")))
+                        listTagContents.append(
+                            (testflag, "locktoken", listitem.strip("<>")))
                         ifLockList.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"
 
@@ -1153,7 +1170,7 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
                 testresult = testflag
             elif checkstyle == "locktoken":
                 testresult = checkvalue in locktokenlist
-            else: # unknown
+            else:  # unknown
                 testresult = True
             checkresult = testresult == testflag
             if not checkresult:
@@ -1164,17 +1181,19 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
     debug("  -> FAILED", module="if")
     return False
 
-testIfHeaderDict.__test__ = False # Tell nose to ignore this function
+testIfHeaderDict.__test__ = False  # Tell nose to ignore this function
 
 
-#===============================================================================
+#=========================================================================
 # guessMimeType
-#===============================================================================
-_MIME_TYPES ={".oga": "audio/ogg",
-              ".ogg": "audio/ogg",
-              ".ogv": "video/ogg",
-              ".webm": "video/webm",
-              }
+#=========================================================================
+_MIME_TYPES = {".oga": "audio/ogg",
+               ".ogg": "audio/ogg",
+               ".ogv": "video/ogg",
+               ".webm": "video/webm",
+               }
+
+
 def guessMimeType(url):
     """Use the mimetypes module to lookup the type for an extension.
 
@@ -1192,9 +1211,11 @@ def guessMimeType(url):
 #    print "mimetype(%s): return %r" % (url, mimetype)
     return mimetype
 
-#===============================================================================
+#=========================================================================
 # TEST
-#===============================================================================
+#=========================================================================
+
+
 def testLogging():
     enable_loggers = ["test",
                       ]

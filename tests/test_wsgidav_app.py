@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
     Unit test for wsgidav HTTP request functionality
 
@@ -32,9 +33,11 @@ except ImportError:
     print("*" * 70, file=sys.stderr)
     raise
 
-#===============================================================================
+#=========================================================================
 # ServerTest
-#===============================================================================
+#=========================================================================
+
+
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using paste.fixture."""
 
@@ -52,8 +55,9 @@ class ServerTest(unittest.TestCase):
             "enable_loggers": [],
             "propsmanager": None,      # None: no property manager
             "locksmanager": True,      # True: use lock_manager.LockManager
-            "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
-            })
+            # None: domain_controller.WsgiDAVDomainController(user_mapping)
+            "domaincontroller": None,
+        })
 
         if withAuthentication:
             config["user_mapping"] = {"/": {"tester": {"password": "secret",
@@ -68,21 +72,18 @@ class ServerTest(unittest.TestCase):
 
         return WsgiDAVApp(config)
 
-
     def setUp(self):
         wsgi_app = self._makeWsgiDAVApp(False)
         self.app = webtest.TestApp(wsgi_app)
-
 
     def tearDown(self):
         shutil.rmtree(compat.to_unicode(self.rootpath))
         del self.app
 
-
     def testPreconditions(self):
         """Environment must be set."""
-        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
-
+        self.assertTrue(
+            __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
     def testDirBrowser(self):
         """Server must respond to GET on a collection."""
@@ -94,7 +95,6 @@ class ServerTest(unittest.TestCase):
         # Access unmapped resource (expect '404 Not Found')
         res = app.get("/not-existing-124/", status=404)
 
-
     def testGetPut(self):
         """Read and write file contents."""
         app = self.app
@@ -104,8 +104,8 @@ class ServerTest(unittest.TestCase):
         data2 = b"this is another file\nwith three lines\nsee?"
         # Big file with 10 MB
         lines = []
-        line = "." * (1000-6-len("\n"))
-        for i in compat.xrange(10*1000):
+        line = "." * (1000 - 6 - len("\n"))
+        for i in compat.xrange(10 * 1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
         data3 = compat.to_bytes(data3)
@@ -137,7 +137,8 @@ class ServerTest(unittest.TestCase):
         res = app.get("/file2.txt", status=200)
         assert res.body == data3, "GET file content different from PUT"
 
-        # Request must not contain a body (expect '415 Media Type Not Supported')
+        # Request must not contain a body (expect '415 Media Type Not
+        # Supported')
         app.request("/file1.txt",
                     method="GET",
                     headers={"Content-Length": compat.to_native(len(data1))},
@@ -151,7 +152,6 @@ class ServerTest(unittest.TestCase):
 
         # PUT a small file (expect '201 Created')
         app.put("/file1.txt", params=data1, status=201)
-
 
     def testEncoding(self):
         """Handle special characters."""
@@ -183,7 +183,7 @@ class ServerTest(unittest.TestCase):
         # See https://www.python.org/dev/peps/pep-3333/#unicode-issues
         # NOTE:
         #   Only latin-1 encoded bytestrings are allowed in filenames
-        #        
+        #
         # TODO: Py3: seems that webtest.TestApp
         #   - Py2: only supports latin-1 bytestrings?
         #   - Py3: only supports ascii
@@ -199,13 +199,12 @@ class ServerTest(unittest.TestCase):
         # Male sign (only utf8)
         __testrw(unicode_to_url(u"/file male(\u2642).txt"))
 
-
     def testAuthentication(self):
         """Require login."""
         # Prepare file content (currently without authentication)
         data1 = b"this is a file\nwith two lines"
         app = self.app
-        app.get("/file1.txt", status=404) # not found
+        app.get("/file1.txt", status=404)  # not found
         app.put("/file1.txt", params=data1, status=201)
         app.get("/file1.txt", status=200)
 
@@ -233,7 +232,7 @@ class ServerTest(unittest.TestCase):
         app.get("/not_existing_file.txt", headers=headers, status=404)
 
 
-#===============================================================================
+#=========================================================================
 
 
 if __name__ == "__main__":
