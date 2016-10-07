@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
     Run litmus against WsgiDAV server.
 """
@@ -20,9 +21,9 @@ from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 
 
-#===============================================================================
+#=========================================================================
 # WsgiDAVServerTest
-#===============================================================================
+#=========================================================================
 
 @unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
 class WsgiDAVLitmusTest(unittest.TestCase):
@@ -45,7 +46,8 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         """Run litmus test suite on HTTP with authentification."""
         with WsgiDavTestServer(with_auth=True, with_ssl=False):
             try:
-                res = subprocess.call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
+                res = subprocess.call(
+                    ["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
                 self.assertEqual(res, 0, "litmus suite failed: check the log")
             except OSError:
                 self._report_missing_litmus()
@@ -67,7 +69,8 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         """Run litmus test suite on SSL / HTTPS with authentification."""
         with WsgiDavTestServer(with_auth=True, with_ssl=True):
             try:
-                res = subprocess.call(["litmus", "https://127.0.0.1:8080/", "tester", "secret"])
+                res = subprocess.call(
+                    ["litmus", "https://127.0.0.1:8080/", "tester", "secret"])
                 self.assertEqual(res, 0, "litmus suite failed: check the log")
             except OSError:
                 self._report_missing_litmus()
@@ -75,9 +78,9 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         return
 
 
-#===============================================================================
+#=========================================================================
 # suite
-#===============================================================================
+#=========================================================================
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 WSGI middleware that finds the registered mapped DAV-Provider, creates a new
 RequestServer instance, and dispatches the request.
@@ -103,7 +104,7 @@ __docformat__ = "reStructuredText"
 # The following remarks were made by Ian Bicking when reviewing PyFileServer in 2005.
 # I leave them here after my refactoring for reference.
 #
-#Remarks:
+# Remarks:
 #@@: If this were just generalized URL mapping, you'd map it like:
 #    Incoming:
 #        SCRIPT_NAME=<approot>; PATH_INFO=/pubshare/PyFileServer/LICENSE
@@ -146,14 +147,15 @@ __docformat__ = "reStructuredText"
 #    dispatching that can be done at a higher level.
 #
 
-#===============================================================================
+#=========================================================================
 # RequestResolver
-#===============================================================================
+#=========================================================================
+
+
 class RequestResolver(object):
 
     def __init__(self):
         pass
-
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
@@ -187,7 +189,7 @@ class RequestResolver(object):
                        ]
 
             if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
-                headers.append( ("MS-Author-Via", "DAV") )
+                headers.append(("MS-Author-Via", "DAV"))
 
             start_response("200 OK", headers)
             yield b""
@@ -197,7 +199,8 @@ class RequestResolver(object):
             raise DAVError(HTTP_NOT_FOUND,
                            "Could not find resource provider for '%s'" % path)
 
-        # Let the appropriate resource provider for the realm handle the request
+        # Let the appropriate resource provider for the realm handle the
+        # request
         app = RequestServer(provider)
         app_iter = app(environ, start_response)
         for v in app_iter:

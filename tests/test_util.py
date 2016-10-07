@@ -1,11 +1,13 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """Unit tests for wsgidav.util"""
 
 # from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
 from wsgidav.util import joinUri, isChildUri, isEqualOrChildUri, lstripstr, popPath, shiftPath
+
 
 class BasicTest(unittest.TestCase):
     """Test ."""
@@ -18,19 +20,16 @@ class BasicTest(unittest.TestCase):
 #         suite.addTest(cls("testBasics"))
 #         return suite
 
-
     def setUp(self):
         pass
-
 
     def tearDown(self):
         pass
 
-
     def testPreconditions(self):
         """Environment must be set."""
-        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
-
+        self.assertTrue(
+            __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
     def testBasics(self):
         """Test basic tool functions."""
@@ -46,19 +45,19 @@ class BasicTest(unittest.TestCase):
         assert not isChildUri("/a/b", "/a/b/")
         assert not isChildUri("/a/b", "/a/bc")
         assert not isChildUri("/a/b", "/a/bc/")
-        assert     isChildUri("/a/b", "/a/b/c")
-        assert     isChildUri("/a/b", "/a/b/c")
+        assert isChildUri("/a/b", "/a/b/c")
+        assert isChildUri("/a/b", "/a/b/c")
 
         assert not isEqualOrChildUri("/a/b", "/a/")
-        assert     isEqualOrChildUri("/a/b", "/a/b")
-        assert     isEqualOrChildUri("/a/b", "/a/b/")
+        assert isEqualOrChildUri("/a/b", "/a/b")
+        assert isEqualOrChildUri("/a/b", "/a/b/")
         assert not isEqualOrChildUri("/a/b", "/a/bc")
         assert not isEqualOrChildUri("/a/b", "/a/bc/")
-        assert     isEqualOrChildUri("/a/b", "/a/b/c")
-        assert     isEqualOrChildUri("/a/b", "/a/b/c")
+        assert isEqualOrChildUri("/a/b", "/a/b/c")
+        assert isEqualOrChildUri("/a/b", "/a/b/c")
 
-        assert lstripstr("/dav/a/b", "/dav")       == "/a/b"
-        assert lstripstr("/dav/a/b", "/DAV")       == "/dav/a/b"
+        assert lstripstr("/dav/a/b", "/dav") == "/a/b"
+        assert lstripstr("/dav/a/b", "/DAV") == "/dav/a/b"
         assert lstripstr("/dav/a/b", "/DAV", True) == "/a/b"
 
         assert popPath("/a/b/c") == ("a", "/b/c")
@@ -80,9 +79,9 @@ class BasicTest(unittest.TestCase):
                          ("", "/a/b/c", ""))
 
 
-#===============================================================================
+#=========================================================================
 # suite
-#===============================================================================
+#=========================================================================
 # def suite():
 #     """Return suites of all test cases."""
 #     return TestSuite([BasicTest.suite(),

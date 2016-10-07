@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
     Benchmark suite for WsgiDAV. 
     
@@ -62,9 +63,11 @@ try:
     # WsgiDAV 2.x
     from wsgidav import compat
 except ImportError:
-    # WsgiDAV 1.x: mock the compat module, so benchmark.py runs in both versions:
+    # WsgiDAV 1.x: mock the compat module, so benchmark.py runs in both
+    # versions:
     class compat(object):
         xrange = xrange
+
         @staticmethod
         def to_bytes(s, encoding="utf8"):
             """Convert unicode (text strings) to binary data, i.e. str on Py2 and bytes on Py3."""
@@ -82,14 +85,14 @@ try:
         from cherrypy import __version__ as cp_version
     except ImportError:
         # Bundled CherryPy wsgiserver in WsgDAV 1.x
-        server_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "wsgidav", "server"))
+        server_folder = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "..", "wsgidav", "server"))
         sys.path.append(server_folder)
         from cherrypy import wsgiserver
         cp_version = wsgiserver.CherryPyWSGIServer.version
 except ImportError:
     cp_version = "unknown"
     raise
-
 
 
 def _setup_fixture(opts, client):
@@ -104,9 +107,10 @@ def _bench_litmus(opts):
     try:
         with Timing("litmus test suite"):
             # Run litmus test suite without printing output
-            res = subprocess.check_output(["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
+            res = subprocess.check_output(
+                ["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
             # res = subprocess.check_call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"],
-            #                             stdout=DEVNULL, stderr=subprocess.STDOUT)
+            # stdout=DEVNULL, stderr=subprocess.STDOUT)
     except OSError:
         print("This test requires the litmus test suite (see http://www.webdav.org/neon/litmus/)")
         raise
@@ -116,7 +120,7 @@ def _bench_litmus(opts):
 def _bench_script(opts):
     # print("Scriptes benchmarks")
     # print("_bench_script(), {}...".format(opts))
-    
+
     from tests import davclient
     server_url = opts.get("external_server") or "http://localhost:8080/"
     client = davclient.DAVClient(server_url)
@@ -127,8 +131,8 @@ def _bench_script(opts):
 
     # Prepare big file with 10 MB
     lines = []
-    line = "." * (1000-6-len("\n"))
-    for i in compat.xrange(10*1000):
+    line = "." * (1000 - 6 - len("\n"))
+    for i in compat.xrange(10 * 1000):
         lines.append("%04i: %s\n" % (i, line))
     data_10m = "".join(lines)
     data_10m = compat.to_bytes(data_10m)
@@ -202,9 +206,9 @@ def _bench_script(opts):
         client.checkResponse()
 
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 #
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
 def run_benchmarks(opts):
 
@@ -234,7 +238,8 @@ def run_benchmarks(opts):
     else:
         with WsgiDavTestServer(with_auth=False, with_ssl=False, profile=opts.get("profile_server")):
             if opts.get("profile_client"):
-                import cProfile, pstats
+                import cProfile
+                import pstats
                 prof = cProfile.Profile()
                 prof = prof.runctx("_runner(opts)", globals(), locals())
                 stream = compat.StringIO()
@@ -257,9 +262,9 @@ def main():
     opts = {"profile_client": False,  #
             "profile_server": False,
             "external_server": None,  # "http://localhost:8080",
-            }    
+            }
     run_benchmarks(opts)
-    
+
 
 if __name__ == "__main__":
     main()

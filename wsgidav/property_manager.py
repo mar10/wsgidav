@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 Implements two property managers: one in-memory (dict-based), and one
 persistent low performance variant using shelve.
@@ -45,10 +46,9 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 
-
-#===============================================================================
+#=========================================================================
 # PropertyManager
-#===============================================================================
+#=========================================================================
 class PropertyManager(object):
     """
     An in-memory property manager implementation using a dictionary.
@@ -56,22 +56,20 @@ class PropertyManager(object):
     This is obviously not persistent, but should be enough in some cases.
     For a persistent implementation, see property_manager.ShelvePropertyManager().
     """
+
     def __init__(self):
         self._dict = None
         self._loaded = False
         self._lock = ReadWriteLock()
         self._verbose = 2
 
-
     def __repr__(self):
         return "PropertyManager"
-
 
     def __del__(self):
         if __debug__ and self._verbose >= 2:
             self._check()
         self._close()
-
 
     def _lazyOpen(self):
         _logger.debug("_lazyOpen()")
@@ -82,10 +80,8 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-
     def _sync(self):
         pass
-
 
     def _close(self):
         _logger.debug("_close()")
@@ -95,7 +91,6 @@ class PropertyManager(object):
             self._loaded = False
         finally:
             self._lock.release()
-
 
     def _check(self, msg=""):
         try:
@@ -110,21 +105,22 @@ class PropertyManager(object):
 #            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
             return True
         except Exception:
-            _logger.exception("%s _check: ERROR %s" % (self.__class__.__name__, msg))
+            _logger.exception("%s _check: ERROR %s" %
+                              (self.__class__.__name__, msg))
 #            traceback.print_exc()
 #            raise
 #            sys.exit(-1)
             return False
 
-
     def _dump(self, msg="", out=None):
         if out is None:
             out = sys.stdout
-        print("%s(%s): %s" % (self.__class__.__name__, self.__repr__(), msg), file=out)
+        print("%s(%s): %s" %
+              (self.__class__.__name__, self.__repr__(), msg), file=out)
         if not self._loaded:
             self._lazyOpen()
             if self._verbose >= 2:
-                return # Already dumped in _lazyOpen
+                return  # Already dumped in _lazyOpen
         try:
             for k, v in self._dict.items():
                 print("    ", k, file=out)
@@ -136,7 +132,6 @@ class PropertyManager(object):
             out.flush()
         except Exception as e:
             util.warn("PropertyManager._dump()  ERROR: %s" % e)
-
 
     def getProperties(self, normurl):
         _logger.debug("getProperties(%s)" % normurl)
@@ -152,7 +147,6 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-
     def getProperty(self, normurl, propname):
         _logger.debug("getProperty(%s, %s)" % (normurl, propname))
         self._lock.acquireRead()
@@ -161,24 +155,26 @@ class PropertyManager(object):
                 self._lazyOpen()
             if normurl not in self._dict:
                 return None
-            # TODO: sometimes we get exceptions here: (catch or otherwise make more robust?)
+            # TODO: sometimes we get exceptions here: (catch or otherwise make
+            # more robust?)
             try:
                 resourceprops = self._dict[normurl]
             except Exception as e:
-                _logger.exception("getProperty(%s, %s) failed : %s" % (normurl, propname, e))
+                _logger.exception("getProperty(%s, %s) failed : %s" %
+                                  (normurl, propname, e))
                 raise
             return resourceprops.get(propname)
         finally:
             self._lock.release()
 
-
     def writeProperty(self, normurl, propname, propertyvalue, dryRun=False):
-#        self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+        #        self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
         assert normurl and normurl.startswith("/")
-        assert propname #and propname.startswith("{")
+        assert propname  # and propname.startswith("{")
         assert propertyvalue is not None
 
-        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" %
+                      (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
 
@@ -189,7 +185,7 @@ class PropertyManager(object):
             if normurl in self._dict:
                 locatordict = self._dict[normurl]
             else:
-                locatordict = {} #dict([])
+                locatordict = {}  # dict([])
             locatordict[propname] = propertyvalue
             # This re-assignment is important, so Shelve realizes the change:
             self._dict[normurl] = locatordict
@@ -199,12 +195,12 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-
     def removeProperty(self, normurl, propname, dryRun=False):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
-        _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
+        _logger.debug("removeProperty(%s, %s, dryRun=%s)" %
+                      (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
@@ -216,14 +212,14 @@ class PropertyManager(object):
                 locatordict = self._dict[normurl]
                 if propname in locatordict:
                     del locatordict[propname]
-                    # This re-assignment is important, so Shelve realizes the change:
+                    # This re-assignment is important, so Shelve realizes the
+                    # change:
                     self._dict[normurl] = locatordict
                     self._sync()
             if __debug__ and self._verbose >= 2:
                 self._check()
         finally:
             self._lock.release()
-
 
     def removeProperties(self, normurl):
         _logger.debug("removeProperties(%s)" % normurl)
@@ -236,7 +232,6 @@ class PropertyManager(object):
                 self._sync()
         finally:
             self._lock.release()
-
 
     def copyProperties(self, srcurl, desturl):
         _logger.debug("copyProperties(%s, %s)" % (srcurl, desturl))
@@ -254,9 +249,9 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-
     def moveProperties(self, srcurl, desturl, withChildren):
-        _logger.debug("moveProperties(%s, %s, %s)" % (srcurl, desturl, withChildren))
+        _logger.debug("moveProperties(%s, %s, %s)" %
+                      (srcurl, desturl, withChildren))
         self._lock.acquireWrite()
         try:
             if __debug__ and self._verbose >= 2:
@@ -282,22 +277,21 @@ class PropertyManager(object):
             self._lock.release()
 
 
-#===============================================================================
+#=========================================================================
 # ShelvePropertyManager
-#===============================================================================
+#=========================================================================
 
 class ShelvePropertyManager(PropertyManager):
     """
     A low performance property manager implementation using shelve
     """
+
     def __init__(self, storagePath):
         self._storagePath = os.path.abspath(storagePath)
         super(ShelvePropertyManager, self).__init__()
 
-
     def __repr__(self):
         return "ShelvePropertyManager(%s)" % self._storagePath
-
 
     def _lazyOpen(self):
         _logger.debug("_lazyOpen(%s)" % self._storagePath)
@@ -317,17 +311,15 @@ class ShelvePropertyManager(PropertyManager):
         finally:
             self._lock.release()
 
-
     def _sync(self):
         """Write persistent dictionary to disc."""
         _logger.debug("_sync()")
-        self._lock.acquireWrite() # TODO: read access is enough?
+        self._lock.acquireWrite()  # TODO: read access is enough?
         try:
             if self._loaded:
                 self._dict.sync()
         finally:
             self._lock.release()
-
 
     def _close(self):
         _logger.debug("_close()")

@@ -20,6 +20,7 @@ class BaseMiddleware(object):
         wsgidav.debug_filter.WsgiDavDebugFilter
         wsgidav.http_authenticator.HTTPAuthenticator
     """
+
     def __init__(self, application, config):
         pass
 

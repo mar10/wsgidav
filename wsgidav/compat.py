@@ -1,5 +1,6 @@
 # (c) 2009-2015 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 Tool functions to support Python 2 and 3.
 
@@ -36,7 +37,7 @@ except ImportError:
     from urlparse import urlparse
 
 try:
-    xrange = xrange # py2
+    xrange = xrange  # py2
 except NameError:
     xrange = range  # py3
 

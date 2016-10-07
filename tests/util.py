@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
     Test helpers.
 
@@ -24,9 +25,9 @@ from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 
 
-#===============================================================================
+#=========================================================================
 # Timing
-#===============================================================================
+#=========================================================================
 
 class Timing(object):
     """Print timing"""
@@ -55,13 +56,14 @@ class Timing(object):
         print(", ".join(msg))
 
 
-#===============================================================================
+#=========================================================================
 # Timing
-#===============================================================================
+#=========================================================================
 
 def run_wsgidav_server(with_auth, with_ssl):
     """Start blocking WsgiDAV server (called as a separate process)."""
-    package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    package_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), ".."))
 
     share_path = os.path.join(gettempdir(), "wsgidav-test")
     if not os.path.exists(share_path):
@@ -74,14 +76,16 @@ def run_wsgidav_server(with_auth, with_ssl):
         "host": "127.0.0.1",
         "port": 8080,
         "provider_mapping": {"/": provider},
-        "domaincontroller": None, # None: domain_controller.WsgiDAVDomainController(user_mapping)
+        # None: domain_controller.WsgiDAVDomainController(user_mapping)
+        "domaincontroller": None,
         "user_mapping": {},
         "verbose": 0,
         "enable_loggers": [],
         "propsmanager": True,      # None: no property manager
         "locksmanager": True,      # True: use lock_manager.LockManager
-        "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        })
+        # None: domain_controller.WsgiDAVDomainController(user_mapping)
+        "domaincontroller": None,
+    })
 
     if with_auth:
         config.update({
@@ -89,12 +93,12 @@ def run_wsgidav_server(with_auth, with_ssl):
                                               "description": "",
                                               "roles": [],
                                               },
-                                       },
-                                 },
+                                   },
+                             },
             "acceptbasic": True,
             "acceptdigest": False,
             "defaultdigest": False,
-            })
+        })
 
     if with_ssl:
         config.update({
@@ -103,7 +107,7 @@ def run_wsgidav_server(with_auth, with_ssl):
             "ssl_certificate_chain": None,
             # "acceptdigest": True,
             # "defaultdigest": True,
-            })
+        })
 
     app = WsgiDAVApp(config)
 
@@ -114,9 +118,9 @@ def run_wsgidav_server(with_auth, with_ssl):
     # blocking...
 
 
-#===============================================================================
+#=========================================================================
 # WsgiDavTestServer
-#===============================================================================
+#=========================================================================
 
 class WsgiDavTestServer(object):
     """Run wsgidav in a separate process."""
@@ -133,7 +137,7 @@ class WsgiDavTestServer(object):
         kwargs = {
             "with_auth": self.with_auth,
             "with_ssl": self.with_ssl,
-            }
+        }
         print("Starting WsgiDavTestServer...")
         self.proc = Process(target=run_wsgidav_server, kwargs=kwargs)
         self.proc.daemon = True

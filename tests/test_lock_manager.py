@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """Unit test for lock_manager.py"""
 from tempfile import gettempdir
 from wsgidav.dav_error import DAVError
@@ -10,9 +11,11 @@ from time import sleep
 import unittest
 from wsgidav import lock_manager, lock_storage
 
-#===============================================================================
+#=========================================================================
 # BasicTest
-#===============================================================================
+#=========================================================================
+
+
 class BasicTest(unittest.TestCase):
     """Test lock_manager.LockManager()."""
     principal = "Joe Tester"
@@ -32,19 +35,16 @@ class BasicTest(unittest.TestCase):
 #         suite.addTest(cls("testConflict"))
 #         return suite
 
-
     def setUp(self):
         storage = lock_storage.LockStorageDict()
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 1
 
-
     def tearDown(self):
         del self.lm
 
-
     def _acquire(self, url, locktype, lockscope, lockdepth, lockowner, timeout,
-                principal, tokenList):
+                 principal, tokenList):
         """Wrapper for lm.acquire, that returns None instead of raising DAVError."""
         try:
             return self.lm.acquire(url, locktype, lockscope, lockdepth, lockowner,
@@ -52,14 +52,12 @@ class BasicTest(unittest.TestCase):
         except DAVError:
             return None
 
-
     def _isLockDict(self, o):
         try:
             _ = o["root"]
         except:
             return False
         return True
-
 
     def _isLockResultOK(self, resultTupleList):
         """Return True, if result is [ (lockDict, None) ]."""
@@ -71,7 +69,6 @@ class BasicTest(unittest.TestCase):
         except:
             return False
 
-
     def _isLockResultFault(self, lock, conflictList, status=None):
         """Return True, if it is a valid result tuple containing a DAVError."""
         try:
@@ -82,16 +79,16 @@ class BasicTest(unittest.TestCase):
             resultTuple = conflictList[0]
             if len(resultTuple) != 2 or not self._isLockDict(resultTuple[0]) or not isinstance(resultTuple[1], DAVError):
                 return False
-            elif status and status!=DAVError.value:
+            elif status and status != DAVError.value:
                 return False
             return True
         except:
             return False
 
-
     def testPreconditions(self):
         """Environment must be set."""
-        self.assertTrue(__debug__, "__debug__ must be True, otherwise asserts are ignored")
+        self.assertTrue(
+            __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
 
 #    def testOpen(self):
@@ -104,28 +101,26 @@ class BasicTest(unittest.TestCase):
 #                        10)
 #        assert lm._loaded, "LM must be opened after first access"
 
-
     def testValidation(self):
         """Lock manager should raise errors on bad args."""
         lm = self.lm
         self.assertRaises(AssertionError,
                           lm._generateLock, lm, "writeX", "exclusive", "infinity",
-                                           self.owner, self.root, self.timeout)
+                          self.owner, self.root, self.timeout)
         self.assertRaises(AssertionError,
                           lm._generateLock, lm, "write", "exclusiveX", "infinity",
-                                           self.owner, self.root, self.timeout)
+                          self.owner, self.root, self.timeout)
         self.assertRaises(AssertionError,
                           lm._generateLock, lm, "write", "exclusive", "infinityX",
-                                           self.owner, self.root, self.timeout)
+                          self.owner, self.root, self.timeout)
         self.assertRaises(AssertionError,
                           lm._generateLock, lm, "write", "exclusive", "infinity",
-                                           None, self.root, self.timeout)
+                          None, self.root, self.timeout)
         self.assertRaises(AssertionError,
                           lm._generateLock, lm, "write", "exclusive", "infinity",
-                                           self.owner, None, self.timeout)
+                          self.owner, None, self.timeout)
 
 #        assert lm._dict is None, "No locks should have been created by this test"
-
 
     def testLock(self):
         """Lock manager should create and find locks."""
@@ -133,7 +128,7 @@ class BasicTest(unittest.TestCase):
         url = "/dav/res"
         # Create a new lock
         lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity",
-                                   self.owner, url, self.timeout)
+                                    self.owner, url, self.timeout)
         # Check returned dictionary
         assert lockDict is not None
         assert lockDict["root"] == url
@@ -167,21 +162,26 @@ class BasicTest(unittest.TestCase):
 #        res = lm.getUrlLockList(url, "another user")
 #        assert len(res) == 0
 
-        assert lm.isUrlLockedByToken("/dav/res", tok), "url not directly locked by locktoken."
-        assert lm.isUrlLockedByToken("/dav/res/", tok), "url not directly locked by locktoken."
-        assert lm.isUrlLockedByToken("/dav/res/sub", tok), "child url not indirectly locked"
+        assert lm.isUrlLockedByToken(
+            "/dav/res", tok), "url not directly locked by locktoken."
+        assert lm.isUrlLockedByToken(
+            "/dav/res/", tok), "url not directly locked by locktoken."
+        assert lm.isUrlLockedByToken(
+            "/dav/res/sub", tok), "child url not indirectly locked"
 
-        assert not lm.isUrlLockedByToken("/dav/ressub", tok), "non-child url reported as locked"
-        assert not lm.isUrlLockedByToken("/dav", tok), "parent url reported as locked"
-        assert not lm.isUrlLockedByToken("/dav/", tok), "parent url reported as locked"
-
+        assert not lm.isUrlLockedByToken(
+            "/dav/ressub", tok), "non-child url reported as locked"
+        assert not lm.isUrlLockedByToken(
+            "/dav", tok), "parent url reported as locked"
+        assert not lm.isUrlLockedByToken(
+            "/dav/", tok), "parent url reported as locked"
 
     def testTimeout(self):
         """Locks should be purged after expiration date."""
         lm = self.lm
         timeout = 1
         lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity",
-                                   self.owner, self.root, timeout)
+                                    self.owner, self.root, timeout)
 
         assert lockDict is not None
         tok = lockDict.get("token")
@@ -194,7 +194,6 @@ class BasicTest(unittest.TestCase):
         sleep(1)
         lockDict = lm.getLock(tok)
         assert lockDict is None, "Lock has not expired"
-
 
     def testConflict(self):
         """Locks should prevent conflicts."""
@@ -233,22 +232,22 @@ class BasicTest(unittest.TestCase):
         assert l is None, "Could acquire a conflicting child lock (same principal)"
 
 
-#===============================================================================
+#=========================================================================
 # ShelveTest
-#===============================================================================
+#=========================================================================
 class ShelveTest(BasicTest):
     """Test lock_manager.ShelveLockManager()."""
 
     def setUp(self):
         if sys.version_info < (3, 0):
-            modifier = "-py2" # shelve formats are incompatible
+            modifier = "-py2"  # shelve formats are incompatible
         else:
             modifier = "-py3"
-        self.path = os.path.join(gettempdir(), "wsgidav-locks%s.shelve" % modifier)
+        self.path = os.path.join(
+            gettempdir(), "wsgidav-locks%s.shelve" % modifier)
         storage = lock_storage.LockStorageShelve(self.path)
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 2
-
 
     def tearDown(self):
         self.lm.storage.clear()
@@ -259,9 +258,9 @@ class ShelveTest(BasicTest):
 #             os.remove(self.path)
 
 
-#===============================================================================
+#=========================================================================
 # suite
-#===============================================================================
+#=========================================================================
 # def suite():
 #     """Return suites of all test cases."""
 #     return TestSuite([BasicTest.suite(),

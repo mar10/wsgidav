@@ -1,6 +1,7 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 """
 WSGI middleware used for debugging (optional).
 
@@ -66,7 +67,6 @@ from wsgidav import util
 __docformat__ = "reStructuredText"
 
 
-
 class WsgiDavDebugFilter(BaseMiddleware):
 
     def __init__(self, application, config):
@@ -81,9 +81,8 @@ class WsgiDavDebugFilter(BaseMiddleware):
         self.debug_litmus = config.get("debug_litmus", [])
         # Exit server, as soon as this litmus test has finished
         self.break_after_litmus = [
-#                                   "locks: 15",
-                                   ]
-
+            #                                   "locks: 15",
+        ]
 
     def __call__(self, environ, start_response):
         """"""
@@ -108,9 +107,11 @@ class WsgiDavDebugFilter(BaseMiddleware):
                 dav.propManager._dump()
 
         # Turn on max. debugging for selected litmus tests
-        litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
+        litmusTag = environ.get(
+            "HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 2:
-            print("----\nRunning litmus test '%s'..." % litmusTag, file=self.out)
+            print("----\nRunning litmus test '%s'..." %
+                  litmusTag, file=self.out)
             for litmusSubstring in self.debug_litmus:
                 if litmusSubstring in litmusTag:
                     verbose = 3
@@ -120,7 +121,8 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     break
             for litmusSubstring in self.break_after_litmus:
                 if litmusSubstring in self.passedLitmus and litmusSubstring not in litmusTag:
-                    print(" *** break after litmus %s" % litmusTag, file=self.out)
+                    print(" *** break after litmus %s" %
+                          litmusTag, file=self.out)
                     sys.exit(-1)
                 if litmusSubstring in litmusTag:
                     self.passedLitmus[litmusSubstring] = True
@@ -141,7 +143,8 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         # Dump request headers
         if dumpRequest:
-            print("<%s> --- %s Request ---" % (threading.currentThread().ident, method), file=self.out)
+            print("<%s> --- %s Request ---" %
+                  (threading.currentThread().ident, method), file=self.out)
             for k, v in environ.items():
                 if k == k.upper():
                     print("%20s: '%s'" % (k, v), file=self.out)
@@ -171,7 +174,8 @@ class WsgiDavDebugFilter(BaseMiddleware):
                       file=self.out)
                 headersdict = dict(sub_app_start_response.response_headers)
                 for envitem in headersdict.keys():
-                    print("%s: %s" % (envitem, repr(headersdict[envitem])), file=self.out)
+                    print("%s: %s" %
+                          (envitem, repr(headersdict[envitem])), file=self.out)
                 print("", file=self.out)
 
             # Check, if response is a binary string, otherwise we probably have
@@ -206,5 +210,6 @@ class WsgiDavDebugFilter(BaseMiddleware):
                            sub_app_start_response.exc_info)
 
         if dumpResponse:
-            print("\n<%s> --- End of %s Response (%i bytes) ---" % (threading.currentThread().ident, method, nbytes), file=self.out)
+            print("\n<%s> --- End of %s Response (%i bytes) ---" %
+                  (threading.currentThread().ident, method, nbytes), file=self.out)
         return
