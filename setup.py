@@ -90,9 +90,11 @@ try:
         Executable(script="wsgidav/server/run_server.py",
                    base=None,
                    # base="Win32GUI",
-                   targetName= "wsgidav.exe",
-                   icon= "doc/logo.ico",
-                   shortcutName= "WsgiDAV",
+                   targetName="wsgidav.exe",
+                   icon="doc/logo.ico",
+                   shortcutName="WsgiDAV",
+                   # copyright="(c) 2010-2016 Martin Wendt",  # requires cx_Freeze PR#94
+                   # trademarks="...",
                    )
         ]
 except ImportError:

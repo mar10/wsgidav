@@ -2,14 +2,16 @@
 CHANGES
 =======
 
-2.0.2 / Unreleased
+2.1.0 / Unreleased
 ==================
-- 
+- #42: Remove print usage in favor of logging (Sergi Almacellas Abellana)
+- #43: PEP8 (Sergi Almacellas Abellana, Tom Viner)
+- #45 New method `_DAVResource.finalizeHeaders(environ, responseHeaders)` (Samuel Fekete)
 
 
 2.0.1 / 2016-10-07
 ==================
-- #46 Wrap xml libraries with the equivalent defusedxml packages (thanks Tom Viner)
+- #46 Wrap xml libraries with the equivalent defusedxml packages (Tom Viner)
 
 
 2.0.0 / 2016-10-02

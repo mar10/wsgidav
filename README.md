@@ -11,6 +11,9 @@ See the ([change log](CHANGELOG.md)) for details.
 
 **Note:** This project was hosted on Google Code until 2014-01-01 ([see old project page](https://code.google.com/p/wsgidav/)).
 
+**Note 2016-10-08:** Release 2.0.1 includes a security patch that prevents certain XML
+attacks (thanks Tom Viner). We highly recommend to update!
+
 
 ## More info
 
