@@ -138,14 +138,12 @@ class LockManager(object):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.storage)
 
-    def _dump(self, msg="", out=None):
-        if out is None:
-            out = sys.stdout
 
-        urlDict = {}  # { <url>: [<tokenlist>] }
-        ownerDict = {}  # { <LOCKOWNER>: [<tokenlist>] }
-        userDict = {}  # { <LOCKUSER>: [<tokenlist>] }
-        tokenDict = {}  # { <token>: <LOCKURLS> }
+    def _dump(self, msg=""):
+        urlDict = {} # { <url>: [<tokenlist>] }
+        ownerDict = {} # { <LOCKOWNER>: [<tokenlist>] }
+        userDict = {} # { <LOCKUSER>: [<tokenlist>] }
+        tokenDict = {} # { <token>: <LOCKURLS> }
 
         _logger.debug("%s: %s", self, msg)
 

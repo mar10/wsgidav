@@ -231,7 +231,7 @@ class WsgiDAVApp(object):
         for share, data in self.providerMap.items():
             if data['allow_anonymous']:
                 # TODO: we should only warn here, if --no-auth is not given
-                _logger.warning("WARNING: share '%s' will allow anonymous access." % share)
+                _logger.info("WARNING: share '%s' will allow anonymous access." % share)
 
         self._application = application
 
