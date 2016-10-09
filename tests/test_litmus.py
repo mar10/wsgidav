@@ -25,7 +25,6 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 # WsgiDAVServerTest
 #=========================================================================
 
-@unittest.skipIf(os.environ.get("TRAVIS") == "true", "Skipping litmus suite on Travis")
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Run litmus test suite against builtin server."""
 

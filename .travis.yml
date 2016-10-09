@@ -5,5 +5,9 @@ python:
     - "3.3"
     - "3.4"
     - "3.5"
+sudo: required
+before_install:
+    - sudo apt-get install libneon27-dev
+    - ./install_litmus.sh
 install: pip install tox-travis
 script: tox
