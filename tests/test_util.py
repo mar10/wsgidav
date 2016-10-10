@@ -6,7 +6,15 @@
 
 # from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
-from wsgidav.util import joinUri, isChildUri, isEqualOrChildUri, lstripstr, popPath, shiftPath
+
+from wsgidav.util import (
+    isChildUri,
+    isEqualOrChildUri,
+    joinUri,
+    lstripstr,
+    popPath,
+    shiftPath
+)
 
 
 class BasicTest(unittest.TestCase):

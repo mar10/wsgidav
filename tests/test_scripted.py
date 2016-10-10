@@ -14,16 +14,15 @@ from __future__ import print_function
 
 import os
 import time
+import unittest
 from tempfile import gettempdir
 from threading import Thread
-import unittest
 
 from tests import davclient
 from wsgidav import compat
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
-
+from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
 #=========================================================================
 # EXTERNAL_SERVER_ADDRESS

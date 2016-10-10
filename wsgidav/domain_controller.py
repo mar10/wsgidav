@@ -37,9 +37,10 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
+import sys
+
 __docformat__ = "reStructuredText"
 
-import sys
 
 
 class WsgiDAVDomainController(object):

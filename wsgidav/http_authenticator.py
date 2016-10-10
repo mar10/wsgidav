@@ -81,16 +81,15 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from __future__ import print_function
 
 import base64
-from hashlib import md5
 import random
 import re
 import time
+from hashlib import md5
 
-from wsgidav import compat
+from wsgidav import compat, util
 from wsgidav.domain_controller import WsgiDAVDomainController
 from wsgidav.middleware import BaseMiddleware
-from wsgidav import util
-from wsgidav.util import calc_hexdigest, calc_base64
+from wsgidav.util import calc_base64, calc_hexdigest
 
 __docformat__ = "reStructuredText"
 

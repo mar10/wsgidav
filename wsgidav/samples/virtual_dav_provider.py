@@ -101,11 +101,14 @@ import os
 import stat
 import urllib
 
-from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, DAVNonCollection, DAVCollection
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
+from wsgidav import compat, util
+from wsgidav.dav_error import (
+    HTTP_FORBIDDEN,
+    HTTP_INTERNAL_ERROR,
+    DAVError,
     PRECONDITION_CODE_ProtectedProperty
-from wsgidav import util
+)
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import joinUri
 
 __docformat__ = "reStructuredText en"

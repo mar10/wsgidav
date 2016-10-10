@@ -13,25 +13,33 @@ from __future__ import print_function
 
 import base64
 import calendar
-from email.utils import formatdate, parsedate
-from hashlib import md5
 import locale
 import logging
 import mimetypes
 import os
-from pprint import pformat
 import re
 import socket
 import stat
 import sys
 import time
 import urllib
+from email.utils import formatdate, parsedate
+from hashlib import md5
+from pprint import pformat
 
 from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
-    HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
-    HTTP_OK
-from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree, isEtreeElement
+from wsgidav.dav_error import (
+    HTTP_BAD_REQUEST,
+    HTTP_CREATED,
+    HTTP_NO_CONTENT,
+    HTTP_NOT_MODIFIED,
+    HTTP_OK,
+    HTTP_PRECONDITION_FAILED,
+    DAVError,
+    getHttpStatusString
+)
+from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
+
 # Trick PyDev to do intellisense and don't produce warnings:
 if False:
     from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport

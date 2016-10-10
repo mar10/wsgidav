@@ -7,16 +7,15 @@ Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 from __future__ import print_function
 
-import traceback
-import datetime
 import cgi
+import datetime
 import sys
+import traceback
 
-from wsgidav import __version__
-from wsgidav import compat
 # Trick PyDev to do intellisense and don't produce warnings:
-from wsgidav import xml_tools
+from wsgidav import __version__, compat, xml_tools
 from wsgidav.xml_tools import etree  # @UnusedImport
+
 if False:
     from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
 

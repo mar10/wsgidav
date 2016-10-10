@@ -7,18 +7,18 @@
 """
 from __future__ import print_function
 
-# from multiprocessing.process import Process
-from multiprocessing import Process
 import os
 import subprocess
 import sys
-from tempfile import gettempdir
 import time
 import unittest
+# from multiprocessing.process import Process
+from multiprocessing import Process
+from tempfile import gettempdir
 
 from tests.util import WsgiDavTestServer
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
+from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
 
 #=========================================================================

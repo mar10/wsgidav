@@ -58,7 +58,10 @@ import subprocess
 import sys
 import time
 
+from tests.util import Timing, WsgiDavTestServer
 from wsgidav import __version__
+from wsgidav.xml_tools import useLxml
+
 try:
     # WsgiDAV 2.x
     from wsgidav import compat
@@ -77,8 +80,6 @@ except ImportError:
                 s = str(s)
             return s
 
-from tests.util import Timing, WsgiDavTestServer
-from wsgidav.xml_tools import useLxml
 
 try:
     try:

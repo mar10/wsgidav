@@ -24,9 +24,7 @@ Valid options are (sample shows defaults)::
 from __future__ import print_function
 
 import pymongo
-
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 

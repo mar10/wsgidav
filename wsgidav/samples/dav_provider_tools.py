@@ -9,9 +9,8 @@ from __future__ import print_function
 import os
 import stat
 
-from wsgidav import compat
+from wsgidav import compat, util
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection
-from wsgidav import util
 
 __docformat__ = "reStructuredText en"
 

@@ -13,10 +13,11 @@ from __future__ import print_function
 
 import sys
 
+from wsgidav import compat
+
 __docformat__ = "reStructuredText"
 
 
-from wsgidav import compat
 
 # Import XML support
 useLxml = False

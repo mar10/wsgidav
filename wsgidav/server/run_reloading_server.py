@@ -10,6 +10,7 @@ import os
 import sys
 from subprocess import Popen
 
+
 def run():
     args = sys.argv[1:]
     if not "--reload" in args:

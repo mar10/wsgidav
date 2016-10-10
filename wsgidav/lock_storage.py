@@ -20,11 +20,14 @@ import os
 import shelve
 import time
 
-from wsgidav import compat
-from wsgidav.lock_manager import normalizeLockRoot, lockString,\
-    generateLockToken, validateLock
+from wsgidav import compat, util
+from wsgidav.lock_manager import (
+    generateLockToken,
+    lockString,
+    normalizeLockRoot,
+    validateLock
+)
 from wsgidav.rw_lock import ReadWriteLock
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

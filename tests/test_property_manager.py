@@ -3,12 +3,13 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """Unit test for property_manager.py"""
-from tempfile import gettempdir
-import unittest
-
 import os
 import sys
+import unittest
+from tempfile import gettempdir
+
 from wsgidav import property_manager
+
 
 #=========================================================================
 # BasicTest

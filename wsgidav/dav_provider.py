@@ -85,17 +85,20 @@ import time
 import traceback
 import urllib
 
-from wsgidav import compat
-from wsgidav import util
-from wsgidav import xml_tools
+from wsgidav import compat, util, xml_tools
+from wsgidav.dav_error import (
+    HTTP_FORBIDDEN,
+    HTTP_NOT_FOUND,
+    DAVError,
+    PRECONDITION_CODE_ProtectedProperty,
+    asDAVError
+)
 # Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav.util import etree  # @UnusedImport
+
 if False:
     from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
 
-from wsgidav.dav_error import DAVError, \
-    HTTP_NOT_FOUND, HTTP_FORBIDDEN,\
-    PRECONDITION_CODE_ProtectedProperty, asDAVError
 
 __docformat__ = "reStructuredText"
 

@@ -40,16 +40,19 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-from pprint import pprint
-import sys
 import random
+import sys
 import time
+from pprint import pprint
 
-from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_LOCKED, PRECONDITION_CODE_LockConflict
-from wsgidav.dav_error import DAVErrorCondition
+from wsgidav import compat, util
+from wsgidav.dav_error import (
+    HTTP_LOCKED,
+    DAVError,
+    DAVErrorCondition,
+    PRECONDITION_CODE_LockConflict
+)
 from wsgidav.rw_lock import ReadWriteLock
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

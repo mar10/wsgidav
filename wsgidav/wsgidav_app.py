@@ -44,23 +44,22 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-import time
 import sys
 import threading
+import time
 import urllib
 
-from wsgidav import compat
+from wsgidav import compat, util
 from wsgidav.dav_provider import DAVProvider
-from wsgidav.dir_browser import WsgiDavDirBrowser
-from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.lock_storage import LockStorageDict
 from wsgidav.debug_filter import WsgiDavDebugFilter
+from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
+from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.lock_manager import LockManager
+from wsgidav.lock_storage import LockStorageDict
 from wsgidav.property_manager import PropertyManager
 from wsgidav.request_resolver import RequestResolver
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

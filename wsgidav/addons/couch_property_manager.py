@@ -26,9 +26,7 @@ from __future__ import print_function
 from uuid import uuid4
 
 import couchdb
-
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 

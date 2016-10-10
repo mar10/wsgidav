@@ -13,21 +13,33 @@ from __future__ import print_function
 
 import urllib
 
-from wsgidav import compat
-from wsgidav.dav_error import DAVError, asDAVError,\
-    HTTP_BAD_REQUEST, HTTP_OK, HTTP_LENGTH_REQUIRED,\
-    HTTP_NOT_IMPLEMENTED, HTTP_NOT_FOUND, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
-    HTTP_FAILED_DEPENDENCY, HTTP_METHOD_NOT_ALLOWED,\
-    PRECONDITION_CODE_PropfindFiniteDepth, HTTP_MEDIATYPE_NOT_SUPPORTED,\
-    HTTP_CONFLICT, \
-    PRECONDITION_CODE_LockTokenMismatch, getHttpStatusString,\
-    HTTP_PRECONDITION_FAILED, HTTP_BAD_GATEWAY, HTTP_NO_CONTENT, HTTP_CREATED,\
-    HTTP_RANGE_NOT_SATISFIABLE
-from wsgidav import util
-from wsgidav import xml_tools
-
+from wsgidav import compat, util, xml_tools
+from wsgidav.dav_error import (
+    HTTP_BAD_GATEWAY,
+    HTTP_BAD_REQUEST,
+    HTTP_CONFLICT,
+    HTTP_CREATED,
+    HTTP_FAILED_DEPENDENCY,
+    HTTP_FORBIDDEN,
+    HTTP_INTERNAL_ERROR,
+    HTTP_LENGTH_REQUIRED,
+    HTTP_MEDIATYPE_NOT_SUPPORTED,
+    HTTP_METHOD_NOT_ALLOWED,
+    HTTP_NO_CONTENT,
+    HTTP_NOT_FOUND,
+    HTTP_NOT_IMPLEMENTED,
+    HTTP_OK,
+    HTTP_PRECONDITION_FAILED,
+    HTTP_RANGE_NOT_SATISFIABLE,
+    DAVError,
+    PRECONDITION_CODE_LockTokenMismatch,
+    PRECONDITION_CODE_PropfindFiniteDepth,
+    asDAVError,
+    getHttpStatusString
+)
 # Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav.util import etree  # @UnusedImport
+
 if False:
     from xml.etree import ElementTree as etree  # @Reimport
 

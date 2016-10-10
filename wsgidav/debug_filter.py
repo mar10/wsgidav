@@ -60,9 +60,8 @@ from __future__ import print_function
 import sys
 import threading
 
-from wsgidav import compat
+from wsgidav import compat, util
 from wsgidav.middleware import BaseMiddleware
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

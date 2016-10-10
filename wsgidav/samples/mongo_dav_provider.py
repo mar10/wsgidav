@@ -29,10 +29,8 @@ from pprint import pformat
 
 import pymongo
 from bson.objectid import ObjectId
-
-from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-from wsgidav import util
+from wsgidav import compat, util
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import joinUri
 
 __docformat__ = "reStructuredText"

@@ -23,11 +23,9 @@ import shutil
 import stat
 import sys
 
-from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-from wsgidav import util
-
+from wsgidav import compat, util
+from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 
 __docformat__ = "reStructuredText"
 
