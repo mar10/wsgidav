@@ -244,9 +244,6 @@ def log(msg, var=None):
 
     This message will only display, if verbose >= 2.
     """
-#    _logger.info(msg)
-#    if var and logging.INFO >= _logger.getEffectiveLevel():
-#        pprint(var, sys.stderr, indent=4)
     note(msg, var=var)
 
 
@@ -1200,7 +1197,6 @@ def guessMimeType(url):
     This function also adds some extensions required for HTML5
     """
     (mimetype, _mimeencoding) = mimetypes.guess_type(url)
-#    print "mimetype(%s): %r, %r" % (url, mimetype, _mimeencoding)
     if not mimetype:
         ext = os.path.splitext(url)[1]
 #        mimetype = _MIME_TYPES[ext]
@@ -1208,7 +1204,6 @@ def guessMimeType(url):
         debug("mimetype(%s): %r" % (url, mimetype))
     if not mimetype:
         mimetype = "application/octet-stream"
-#    print "mimetype(%s): return %r" % (url, mimetype)
     return mimetype
 
 #=========================================================================

@@ -38,9 +38,7 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
-from __future__ import print_function
-
-from pprint import pprint
+from pprint import pformat
 import sys
 import random
 import time
@@ -140,16 +138,14 @@ class LockManager(object):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.storage)
 
-    def _dump(self, msg="", out=None):
-        if out is None:
-            out = sys.stdout
 
-        urlDict = {}  # { <url>: [<tokenlist>] }
-        ownerDict = {}  # { <LOCKOWNER>: [<tokenlist>] }
-        userDict = {}  # { <LOCKUSER>: [<tokenlist>] }
-        tokenDict = {}  # { <token>: <LOCKURLS> }
+    def _dump(self, msg=""):
+        urlDict = {} # { <url>: [<tokenlist>] }
+        ownerDict = {} # { <LOCKOWNER>: [<tokenlist>] }
+        userDict = {} # { <LOCKUSER>: [<tokenlist>] }
+        tokenDict = {} # { <token>: <LOCKURLS> }
 
-        print("%s: %s" % (self, msg), file=out)
+        _logger.debug("%s: %s", self, msg)
 
         for lock in self.storage.getLockList("/", includeRoot=True,
                                              includeChildren=True,
@@ -163,15 +159,15 @@ class LockManager(object):
 #            assert ("URL2TOKEN:" + v["root"]) in self._dict, "Inconsistency: missing URL2TOKEN:%s" % v["root"]
 #            assert v["token"] in self._dict["URL2TOKEN:" + v["root"]], "Inconsistency: missing token %s in URL2TOKEN:%s" % (v["token"], v["root"])
 
-        print("Locks:", file=out)
-        pprint(tokenDict, indent=0, width=255)
+        _logger.debug("Locks:")
+        _logger.debug(pformat(tokenDict, indent=0, width=255))
         if tokenDict:
-            print("Locks by URL:", file=out)
-            pprint(urlDict, indent=4, width=255, stream=out)
-            print("Locks by principal:", file=out)
-            pprint(userDict, indent=4, width=255, stream=out)
-            print("Locks by owner:", file=out)
-            pprint(ownerDict, indent=4, width=255, stream=out)
+            _logger.debug("Locks by URL:")
+            _logger.debug(pformat(urlDict, indent=4, width=255))
+            _logger.debug("Locks by principal:")
+            _logger.debug(pformat(userDict, indent=4, width=255))
+            _logger.debug("Locks by owner:")
+            _logger.debug(pformat(ownerDict, indent=4, width=255))
 
     def _generateLock(self, principal,
                       locktype, lockscope, lockdepth, lockowner, path, timeout):

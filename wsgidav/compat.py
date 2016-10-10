@@ -6,8 +6,6 @@ Tool functions to support Python 2 and 3.
 
 Inspired by six https://pythonhosted.org/six/
 """
-from __future__ import print_function
-
 import sys
 
 __docformat__ = "reStructuredText"
@@ -113,7 +111,6 @@ else:   # Python 3
 
     def to_native(s, encoding="utf8"):
         """Convert data to native str type, i.e. bytestring on Py2 and unicode on Py3."""
-        # print("to_native", s)
         if type(s) is bytes:
             s = str(s, encoding)
         elif type(s) is not str:

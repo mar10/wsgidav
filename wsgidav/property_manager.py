@@ -23,7 +23,6 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from __future__ import print_function
 
 import os
-import sys
 import shelve
 
 from wsgidav.rw_lock import ReadWriteLock
@@ -112,23 +111,21 @@ class PropertyManager(object):
 #            sys.exit(-1)
             return False
 
-    def _dump(self, msg="", out=None):
-        if out is None:
-            out = sys.stdout
-        print("%s(%s): %s" %
-              (self.__class__.__name__, self.__repr__(), msg), file=out)
+
+    def _dump(self, msg=""):
+        _logger.debug("%s(%s): %s" % (self.__class__.__name__, self.__repr__(), msg))
         if not self._loaded:
             self._lazyOpen()
             if self._verbose >= 2:
                 return  # Already dumped in _lazyOpen
         try:
             for k, v in self._dict.items():
-                print("    ", k, file=out)
+                _logger.debug("    ", k)
                 for k2, v2 in v.items():
                     try:
-                        print("        %s: '%s'" % (k2, v2), file=out)
+                        _logger.debug("        %s: '%s'", k2, v2)
                     except Exception as e:
-                        print("        %s: ERROR %s" % (k2, e), file=out)
+                        _logger.debug("        %s: ERROR %s", k2, e)
             out.flush()
         except Exception as e:
             util.warn("PropertyManager._dump()  ERROR: %s" % e)

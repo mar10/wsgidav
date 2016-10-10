@@ -35,11 +35,11 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 
 .. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
-from __future__ import print_function
-
 __docformat__ = "reStructuredText"
 
-import sys
+from wsgidav import util
+
+_logger = util.getModuleLogger(__name__)
 
 
 class WsgiDAVDomainController(object):
@@ -57,15 +57,11 @@ class WsgiDAVDomainController(object):
         # request_resolver
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
-            if environ["wsgidav.verbose"] >= 2:
-                print("getDomainRealm(%s): '%s'" %
-                      (inputURL, None), file=sys.stdout)
+            _logger.debug("getDomainRealm(%s): '%s'" %(inputURL, None))
             return None
         realm = davProvider.sharePath
         if realm == "":
             realm = "/"
-#        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stdout, "getDomainRealm(%s): '%s'" %(inputURL, realm)
         return realm
 
     def requireAuthentication(self, realmname, environ):
@@ -77,8 +73,6 @@ class WsgiDAVDomainController(object):
 
     def isRealmUser(self, realmname, username, environ):
         """Returns True if this username is valid for the realm, False otherwise."""
-#        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stdout, "isRealmUser('%s', '%s'): %s" %(realmname, username, realmname in self.userMap and username in self.userMap[realmname])
         return realmname in self.userMap and username in self.userMap[realmname]
 
     def getRealmUserPassword(self, realmname, username, environ):
