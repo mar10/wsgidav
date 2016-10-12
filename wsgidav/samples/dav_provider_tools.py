@@ -9,17 +9,16 @@ from __future__ import print_function
 import os
 import stat
 
-from wsgidav import compat
+from wsgidav import compat, util
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection
-from wsgidav import util
 
 __docformat__ = "reStructuredText en"
 
 _logger = util.getModuleLogger(__name__)
 
-#===============================================================================
+# ============================================================================
 # VirtualCollection
-#===============================================================================
+# ============================================================================
 
 class VirtualCollection(DAVCollection):
     """Abstract base class for collections that contain a list of static members.
@@ -53,9 +52,9 @@ class VirtualCollection(DAVCollection):
 
 
 
-#===============================================================================
+# ============================================================================
 # _VirtualNonCollection classes
-#===============================================================================
+# ============================================================================
 class _VirtualNonCollection(DAVNonCollection):
     """Abstract base class for all non-collection resources."""
     def __init__(self, path, environ):
@@ -84,9 +83,9 @@ class _VirtualNonCollection(DAVNonCollection):
 #        raise DAVError(HTTP_FORBIDDEN)
 
 
-#===============================================================================
+# ============================================================================
 # VirtualTextResource
-#===============================================================================
+# ============================================================================
 class VirtualTextResource(_VirtualNonCollection):
     """A virtual file, containing a string."""
     def __init__(self, path, environ, content,
@@ -114,9 +113,9 @@ class VirtualTextResource(_VirtualNonCollection):
         return compat.StringIO(self.content)
 
 
-#===============================================================================
+# ============================================================================
 # FileResource
-#===============================================================================
+# ============================================================================
 class FileResource(_VirtualNonCollection):
     """Represents an existing file."""
     BUFFER_SIZE = 8192
@@ -155,9 +154,9 @@ class FileResource(_VirtualNonCollection):
         return file(self.filePath, "rb", FileResource.BUFFER_SIZE)
 
 
-#===============================================================================
+# ============================================================================
 # Resolvers
-#===============================================================================
+# ============================================================================
 class DAVResolver(object):
     """Return a DAVResource object for a path (None, if not found)."""
     def __init__(self, parentResolver, name):

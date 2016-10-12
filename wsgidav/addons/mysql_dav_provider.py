@@ -61,17 +61,18 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
+import csv
 import md5
 import time
-import csv
 
-import MySQLdb  #@UnresolvedImport
-
-from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, _DAVResource
-from wsgidav import util
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN,\
+import MySQLdb  # @UnresolvedImport
+from wsgidav import compat, util
+from wsgidav.dav_error import (
+    HTTP_FORBIDDEN,
+    DAVError,
     PRECONDITION_CODE_ProtectedProperty
+)
+from wsgidav.dav_provider import DAVProvider, _DAVResource
 
 __docformat__ = "reStructuredText"
 
@@ -285,9 +286,9 @@ class MySQLBrowserResource(_DAVResource):
         raise DAVError(HTTP_FORBIDDEN,
                        errcondition=PRECONDITION_CODE_ProtectedProperty)
 
-#===============================================================================
+# ============================================================================
 # MySQLBrowserProvider
-#===============================================================================
+# ============================================================================
 class MySQLBrowserProvider(DAVProvider):
 
     def __init__(self, host, user, passwd, db):

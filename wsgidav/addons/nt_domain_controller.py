@@ -75,11 +75,10 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
+import win32net  # @UnresolvedImport
+import win32netcon  # @UnresolvedImport
+import win32security  # @UnresolvedImport
 from wsgidav import util
-
-import win32net    #@UnresolvedImport
-import win32security #@UnresolvedImport
-import win32netcon #@UnresolvedImport
 
 __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)

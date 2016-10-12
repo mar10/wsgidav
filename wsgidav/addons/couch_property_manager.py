@@ -26,17 +26,15 @@ from __future__ import print_function
 from uuid import uuid4
 
 import couchdb
-
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
-#===============================================================================
+# ============================================================================
 # CouchPropertyManager
-#===============================================================================
+# ============================================================================
 class CouchPropertyManager(object):
     """Implements a property manager based on CouchDB."""
     def __init__(self, options):
@@ -220,9 +218,9 @@ class CouchPropertyManager(object):
                 self.db.save(doc)
         return
 
-#===============================================================================
+# ============================================================================
 #
-#===============================================================================
+# ============================================================================
 def test():
     pass
 

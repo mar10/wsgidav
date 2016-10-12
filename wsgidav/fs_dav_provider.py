@@ -23,11 +23,9 @@ import shutil
 import stat
 import sys
 
-from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-from wsgidav import util
-
+from wsgidav import compat, util
+from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 
 __docformat__ = "reStructuredText"
 
@@ -36,9 +34,9 @@ _logger = util.getModuleLogger(__name__)
 BUFFER_SIZE = 8192
 
 
-#=========================================================================
+# ========================================================================
 # FileResource
-#=========================================================================
+# ========================================================================
 class FileResource(DAVNonCollection):
     """Represents a single existing DAV resource instance.
 
@@ -166,9 +164,9 @@ class FileResource(DAVNonCollection):
         return True
 
 
-#=========================================================================
+# ========================================================================
 # FolderResource
-#=========================================================================
+# ========================================================================
 class FolderResource(DAVCollection):
     """Represents a single existing file system folder DAV resource.
 
@@ -341,9 +339,9 @@ class FolderResource(DAVCollection):
         return True
 
 
-#=========================================================================
+# ========================================================================
 # FilesystemProvider
-#=========================================================================
+# ========================================================================
 class FilesystemProvider(DAVProvider):
 
     def __init__(self, rootFolderPath, readonly=False):

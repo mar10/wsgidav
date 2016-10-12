@@ -13,10 +13,11 @@ from __future__ import print_function
 
 import sys
 
+from wsgidav import compat
+
 __docformat__ = "reStructuredText"
 
 
-from wsgidav import compat
 
 # Import XML support
 useLxml = False
@@ -37,9 +38,9 @@ except ImportError:
     # print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
 
-#=========================================================================
+# ========================================================================
 # XML
-#=========================================================================
+# ========================================================================
 
 def isEtreeElement(obj):
     return isinstance(obj, _ElementType)
@@ -117,9 +118,9 @@ def elementContentAsString(element):
     return s
 
 
-#=========================================================================
+# ========================================================================
 # TEST
-#=========================================================================
+# ========================================================================
 
 if __name__ == "__main__":
     pass

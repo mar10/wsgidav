@@ -101,11 +101,14 @@ import os
 import stat
 import urllib
 
-from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, DAVNonCollection, DAVCollection
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN, HTTP_INTERNAL_ERROR,\
+from wsgidav import compat, util
+from wsgidav.dav_error import (
+    HTTP_FORBIDDEN,
+    HTTP_INTERNAL_ERROR,
+    DAVError,
     PRECONDITION_CODE_ProtectedProperty
-from wsgidav import util
+)
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import joinUri
 
 __docformat__ = "reStructuredText en"
@@ -114,9 +117,9 @@ _logger = util.getModuleLogger(__name__)
 
 BUFFER_SIZE = 8192
 
-#===============================================================================
+# ============================================================================
 # Fake hierarchical repository
-#===============================================================================
+# ============================================================================
 """
 This is a dummy 'database', that serves as an example source for the
 VirtualResourceProvider.
@@ -177,9 +180,9 @@ def _getResByKey(key):
     return None
 
 
-#===============================================================================
+# ============================================================================
 #
-#===============================================================================
+# ============================================================================
 class RootCollection(DAVCollection):
     """Resolve top-level requests '/'."""
     _visibleMemberNames = ("by_orga", "by_tag", "by_status")
@@ -254,9 +257,9 @@ class CategoryCollection(DAVCollection):
         return None
 
 
-#===============================================================================
+# ============================================================================
 # VirtualResource
-#===============================================================================
+# ============================================================================
 class VirtualResource(DAVCollection):
     """A virtual 'resource', displayed as a collection of artifacts and files."""
     _artifactNames = (".Info.txt",
@@ -398,9 +401,9 @@ class VirtualResource(DAVCollection):
 
 
 
-#===============================================================================
+# ============================================================================
 # _VirtualNonCollection classes
-#===============================================================================
+# ============================================================================
 class _VirtualNonCollection(DAVNonCollection):
     """Abstract base class for all non-collection resources."""
     def __init__(self, path, environ):
@@ -429,9 +432,9 @@ class _VirtualNonCollection(DAVNonCollection):
 #        raise DAVError(HTTP_FORBIDDEN)
 
 
-#===============================================================================
+# ============================================================================
 # VirtualArtifact
-#===============================================================================
+# ============================================================================
 class VirtualArtifact(_VirtualNonCollection):
     """A virtual file, containing resource descriptions."""
     def __init__(self, path, environ, data):
@@ -505,9 +508,9 @@ class VirtualArtifact(_VirtualNonCollection):
         return compat.StringIO(html)
 
 
-#===============================================================================
+# ============================================================================
 # VirtualResFile
-#===============================================================================
+# ============================================================================
 class VirtualResFile(_VirtualNonCollection):
     """Represents an existing file, that is a member of a VirtualResource."""
     def __init__(self, path, environ, data, filePath):
@@ -549,9 +552,9 @@ class VirtualResFile(_VirtualNonCollection):
         return file(self.filePath, "rb", BUFFER_SIZE)
 
 
-#===============================================================================
+# ============================================================================
 # VirtualResourceProvider
-#===============================================================================
+# ============================================================================
 class VirtualResourceProvider(DAVProvider):
     """
     DAV provider that serves a VirtualResource derived structure.

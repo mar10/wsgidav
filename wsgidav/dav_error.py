@@ -7,24 +7,23 @@ Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 from __future__ import print_function
 
-import traceback
-import datetime
 import cgi
+import datetime
 import sys
+import traceback
 
-from wsgidav import __version__
-from wsgidav import compat
 # Trick PyDev to do intellisense and don't produce warnings:
-from wsgidav import xml_tools
+from wsgidav import __version__, compat, xml_tools
 from wsgidav.xml_tools import etree  # @UnusedImport
+
 if False:
     from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"
 
-#=========================================================================
+# ========================================================================
 # List of HTTP Response Codes.
-#=========================================================================
+# ========================================================================
 HTTP_CONTINUE = 100
 HTTP_SWITCHING_PROTOCOLS = 101
 HTTP_PROCESSING = 102
@@ -78,11 +77,11 @@ HTTP_INSUFFICIENT_STORAGE = 507
 HTTP_NOT_EXTENDED = 510
 
 
-#=========================================================================
+# ========================================================================
 # if ERROR_DESCRIPTIONS exists for an error code, the error description will be
 # sent as the error response code.
 # Otherwise only the numeric code itself is sent.
-#=========================================================================
+# ========================================================================
 # TODO: paste.httpserver may raise exceptions, if a status code is not
 # followed by a description, so should define all of them.
 ERROR_DESCRIPTIONS = {
@@ -105,11 +104,11 @@ ERROR_DESCRIPTIONS = {
     HTTP_BAD_GATEWAY: "502 Bad Gateway",
 }
 
-#=========================================================================
+# ========================================================================
 # if ERROR_RESPONSES exists for an error code, a html output will be sent as response
 # body including the ERROR_RESPONSES value. Otherwise a null response body is sent.
 # Mostly for browser viewing
-#=========================================================================
+# ========================================================================
 
 ERROR_RESPONSES = {
     HTTP_BAD_REQUEST: "An invalid request was specified",
@@ -120,10 +119,10 @@ ERROR_RESPONSES = {
 }
 
 
-#=========================================================================
+# ========================================================================
 # Condition codes
 # http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
-#=========================================================================
+# ========================================================================
 
 PRECONDITION_CODE_ProtectedProperty = "{DAV:}cannot-modify-protected-property"
 PRECONDITION_CODE_MissingLockToken = "{DAV:}lock-token-submitted"
@@ -162,9 +161,9 @@ class DAVErrorCondition(object):
         return compat.to_native(xml_tools.xmlToBytes(self.as_xml(), True))
 
 
-#=========================================================================
+# ========================================================================
 # DAVError
-#=========================================================================
+# ========================================================================
 # @@: I prefer having a separate exception type for each response,
 #     as in paste.httpexceptions.  This way you can catch just the exceptions
 #     you want (or you can catch an abstract superclass to get any of them)

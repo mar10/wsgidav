@@ -15,11 +15,9 @@ import os
 import sys
 import urllib
 
-from wsgidav import __version__
-from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_OK, HTTP_MEDIATYPE_NOT_SUPPORTED
+from wsgidav import __version__, compat, util
+from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.middleware import BaseMiddleware
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

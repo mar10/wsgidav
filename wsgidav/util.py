@@ -13,25 +13,33 @@ from __future__ import print_function
 
 import base64
 import calendar
-from email.utils import formatdate, parsedate
-from hashlib import md5
 import locale
 import logging
 import mimetypes
 import os
-from pprint import pformat
 import re
 import socket
 import stat
 import sys
 import time
 import urllib
+from email.utils import formatdate, parsedate
+from hashlib import md5
+from pprint import pformat
 
 from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_PRECONDITION_FAILED, HTTP_NOT_MODIFIED,\
-    HTTP_NO_CONTENT, HTTP_CREATED, getHttpStatusString, HTTP_BAD_REQUEST,\
-    HTTP_OK
-from wsgidav.xml_tools import xmlToBytes, makeSubElement, etree, isEtreeElement
+from wsgidav.dav_error import (
+    HTTP_BAD_REQUEST,
+    HTTP_CREATED,
+    HTTP_NO_CONTENT,
+    HTTP_NOT_MODIFIED,
+    HTTP_OK,
+    HTTP_PRECONDITION_FAILED,
+    DAVError,
+    getHttpStatusString
+)
+from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
+
 # Trick PyDev to do intellisense and don't produce warnings:
 if False:
     from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
@@ -45,9 +53,9 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 logging.basicConfig(level=logging.INFO)
 
 
-#=========================================================================
+# ========================================================================
 # Time tools
-#=========================================================================
+# ========================================================================
 
 def getRfc1123Time(secs=None):
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
@@ -117,9 +125,9 @@ def _parsegmtime(timestring):
     return None
 
 
-#=========================================================================
+# ========================================================================
 # Logging
-#=========================================================================
+# ========================================================================
 
 def initLogging(verbose=2, enable_loggers=[]):
     """Initialize base logger named 'wsgidav'.
@@ -304,9 +312,9 @@ def traceCall(msg=None):
                                f_code.co_name, f_code.co_lineno, msg))
 
 
-#=========================================================================
+# ========================================================================
 # Strings
-#=========================================================================
+# ========================================================================
 
 def lstripstr(s, prefix, ignoreCase=False):
     if ignoreCase:
@@ -435,9 +443,9 @@ def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, 
     return "%s%s%s" % (snum, magsuffix, bytesuffix)
 
 
-#=========================================================================
+# ========================================================================
 # WSGI
-#=========================================================================
+# ========================================================================
 def getContentLength(environ):
     """Return a positive CONTENT_LENGTH in a safe way (return 0 otherwise)."""
     # TODO: http://www.wsgi.org/wsgi/WSGI_2.0
@@ -530,9 +538,9 @@ def readAndDiscardInput(environ):
             warn("--> wsgi_input.read(): %s" % sys.exc_info())
 
 
-#=========================================================================
+# ========================================================================
 # SubAppStartResponse
-#=========================================================================
+# ========================================================================
 class SubAppStartResponse(object):
 
     def __init__(self):
@@ -560,9 +568,9 @@ class SubAppStartResponse(object):
         self.__exc_info = exc_info
 
 
-#=========================================================================
+# ========================================================================
 # URLs
-#=========================================================================
+# ========================================================================
 
 def joinUri(uri, *segments):
     """Append segments to URI.
@@ -639,9 +647,9 @@ def makeCompleteUrl(environ, localUri=None):
     return url
 
 
-#=========================================================================
+# ========================================================================
 # XML
-#=========================================================================
+# ========================================================================
 
 def parseXmlBody(environ, allowEmpty=False):
     """Read request body XML into an etree.Element.
@@ -859,9 +867,9 @@ def addPropertyResponse(multistatusEL, href, propList):
             propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
 
 
-#=========================================================================
+# ========================================================================
 # ETags
-#=========================================================================
+# ========================================================================
 
 def calc_hexdigest(s):
     """Return md5 digest for a string."""
@@ -907,9 +915,9 @@ def getETag(filePath):
         return str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
 
 
-#=========================================================================
+# ========================================================================
 # Ranges
-#=========================================================================
+# ========================================================================
 
 # Range Specifiers
 reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
@@ -976,9 +984,9 @@ def obtainContentRanges(rangetext, filesize):
 
     return (listReturn2, totallength)
 
-#=========================================================================
+# ========================================================================
 #
-#=========================================================================
+# ========================================================================
 # any numofsecs above the following limit is regarded as infinite
 MAX_FINITE_TIMEOUT_LIMIT = 10 * 365 * 24 * 60 * 60  # approx 10 years
 reSecondsReader = re.compile(r'second\-([0-9]+)', re.I)
@@ -1003,9 +1011,9 @@ def readTimeoutValueHeader(timeoutvalue):
     return None
 
 
-#=========================================================================
+# ========================================================================
 # If Headers
-#=========================================================================
+# ========================================================================
 
 def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
@@ -1184,9 +1192,9 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
 testIfHeaderDict.__test__ = False  # Tell nose to ignore this function
 
 
-#=========================================================================
+# ========================================================================
 # guessMimeType
-#=========================================================================
+# ========================================================================
 _MIME_TYPES = {".oga": "audio/ogg",
                ".ogg": "audio/ogg",
                ".ogv": "video/ogg",
@@ -1211,9 +1219,9 @@ def guessMimeType(url):
 #    print "mimetype(%s): return %r" % (url, mimetype)
     return mimetype
 
-#=========================================================================
+# ========================================================================
 # TEST
-#=========================================================================
+# ========================================================================
 
 
 def testLogging():

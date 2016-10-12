@@ -14,18 +14,17 @@ from __future__ import print_function
 
 import os
 import time
+import unittest
 from tempfile import gettempdir
 from threading import Thread
-import unittest
 
 from tests import davclient
 from wsgidav import compat
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
+from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
-
-#=========================================================================
+# ========================================================================
 # EXTERNAL_SERVER_ADDRESS
 # <None> means 'start WsgiDAV as parallel thread'
 #
@@ -33,7 +32,7 @@ from wsgidav.server.ext_wsgiutils_server import ExtServer
 # (i.e. will not be handled by WsgiDAVServerThread)
 # In this case, run WsgiDAV as external process and specify the URL here.
 # This is also recommended when doing benchmarks
-#=========================================================================
+# ========================================================================
 EXTERNAL_SERVER_ADDRESS = None  # Start temporary server in own thread
 # EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
 # EXTERNAL_SERVER_ADDRESS = "http://localhost:8080"
@@ -62,9 +61,9 @@ def tearDownModule():
         print("tearDownModule joined")
 
 
-#=========================================================================
+# ========================================================================
 # WsgiDAVServerThread
-#=========================================================================
+# ========================================================================
 class WsgiDAVServerThread(Thread):
     """WsgiDAV server that can be run in a parallel thread."""
 
@@ -137,9 +136,9 @@ class WsgiDAVServerThread(Thread):
             self.ext_server = None
             print("WsgiDAVServerThread.shutdown()... complete")
 
-#=========================================================================
+# ========================================================================
 # ServerTest
-#=========================================================================
+# ========================================================================
 
 
 class ServerTest(unittest.TestCase):
@@ -494,9 +493,9 @@ class ServerTest(unittest.TestCase):
         client2.checkMultiStatusResponse(423)
 
 
-#=========================================================================
+# ========================================================================
 # suite
-#=========================================================================
+# ========================================================================
 
 if __name__ == "__main__":
     unittest.main()

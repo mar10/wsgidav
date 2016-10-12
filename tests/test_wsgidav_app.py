@@ -16,11 +16,10 @@ from __future__ import print_function
 import os
 import shutil
 import sys
-from tempfile import gettempdir
 import unittest
+from tempfile import gettempdir
 
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
@@ -33,9 +32,9 @@ except ImportError:
     print("*" * 70, file=sys.stderr)
     raise
 
-#=========================================================================
+# ========================================================================
 # ServerTest
-#=========================================================================
+# ========================================================================
 
 
 class ServerTest(unittest.TestCase):
@@ -232,7 +231,7 @@ class ServerTest(unittest.TestCase):
         app.get("/not_existing_file.txt", headers=headers, status=404)
 
 
-#=========================================================================
+# ========================================================================
 
 
 if __name__ == "__main__":

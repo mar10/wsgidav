@@ -11,23 +11,22 @@ Example:
 """
 from __future__ import print_function
 
-# from multiprocessing.process import Process
-from multiprocessing import Process
-
 import os
 import subprocess
 import sys
-from tempfile import gettempdir
 import time
 import unittest
+# from multiprocessing.process import Process
+from multiprocessing import Process
+from tempfile import gettempdir
 
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
+from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
 
-#=========================================================================
+# ========================================================================
 # Timing
-#=========================================================================
+# ========================================================================
 
 class Timing(object):
     """Print timing"""
@@ -56,9 +55,9 @@ class Timing(object):
         print(", ".join(msg))
 
 
-#=========================================================================
+# ========================================================================
 # Timing
-#=========================================================================
+# ========================================================================
 
 def run_wsgidav_server(with_auth, with_ssl):
     """Start blocking WsgiDAV server (called as a separate process)."""
@@ -118,9 +117,9 @@ def run_wsgidav_server(with_auth, with_ssl):
     # blocking...
 
 
-#=========================================================================
+# ========================================================================
 # WsgiDavTestServer
-#=========================================================================
+# ========================================================================
 
 class WsgiDavTestServer(object):
     """Run wsgidav in a separate process."""

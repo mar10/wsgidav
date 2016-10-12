@@ -6,7 +6,15 @@
 
 # from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
-from wsgidav.util import joinUri, isChildUri, isEqualOrChildUri, lstripstr, popPath, shiftPath
+
+from wsgidav.util import (
+    isChildUri,
+    isEqualOrChildUri,
+    joinUri,
+    lstripstr,
+    popPath,
+    shiftPath
+)
 
 
 class BasicTest(unittest.TestCase):
@@ -79,9 +87,9 @@ class BasicTest(unittest.TestCase):
                          ("", "/a/b/c", ""))
 
 
-#=========================================================================
+# ========================================================================
 # suite
-#=========================================================================
+# ========================================================================
 # def suite():
 #     """Return suites of all test cases."""
 #     return TestSuite([BasicTest.suite(),

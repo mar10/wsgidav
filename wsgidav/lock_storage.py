@@ -20,11 +20,14 @@ import os
 import shelve
 import time
 
-from wsgidav import compat
-from wsgidav.lock_manager import normalizeLockRoot, lockString,\
-    generateLockToken, validateLock
+from wsgidav import compat, util
+from wsgidav.lock_manager import (
+    generateLockToken,
+    lockString,
+    normalizeLockRoot,
+    validateLock
+)
 from wsgidav.rw_lock import ReadWriteLock
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -43,9 +46,9 @@ _logger = util.getModuleLogger(__name__)
 # (pickles aren't particularly readable)
 
 
-#=========================================================================
+# ========================================================================
 # LockStorageDict
-#=========================================================================
+# ========================================================================
 class LockStorageDict(object):
     """
     An in-memory lock manager storage implementation using a dictionary.
@@ -331,9 +334,9 @@ class LockStorageDict(object):
             self._lock.release()
 
 
-#=========================================================================
+# ========================================================================
 # LockStorageShelve
-#=========================================================================
+# ========================================================================
 
 class LockStorageShelve(LockStorageDict):
     """
@@ -391,9 +394,9 @@ class LockStorageShelve(LockStorageDict):
             self._lock.release()
 
 
-#=========================================================================
+# ========================================================================
 # test
-#=========================================================================
+# ========================================================================
 def test():
     #    l = ShelveLockManager("wsgidav-locks.shelve")
     #    l._lazyOpen()

@@ -73,17 +73,16 @@ Requirements:
 """
 from __future__ import print_function
 
-from hashlib import md5
 import os
-from pprint import pprint
 import sys
 import time
+from hashlib import md5
+from pprint import pprint
 
-from wsgidav import compat
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
-from wsgidav.samples.dav_provider_tools import VirtualCollection
+from wsgidav import compat, util
+from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
 from wsgidav.dav_provider import DAVProvider, _DAVResource
-from wsgidav import util
+from wsgidav.samples.dav_provider_tools import VirtualCollection
 
 try:
     import mercurial.ui
@@ -101,9 +100,9 @@ _logger = util.getModuleLogger(__name__)
 BUFFER_SIZE = 8192
 
 
-#===============================================================================
+# ============================================================================
 # HgResource
-#===============================================================================
+# ============================================================================
 class HgResource(_DAVResource):
     """Abstract base class for all resources."""
     def __init__(self, path, isCollection, environ, rev, localHgPath):
@@ -391,9 +390,9 @@ class HgResource(_DAVResource):
         return True
 
 
-#===============================================================================
+# ============================================================================
 # HgResourceProvider
-#===============================================================================
+# ============================================================================
 
 class HgResourceProvider(DAVProvider):
     """

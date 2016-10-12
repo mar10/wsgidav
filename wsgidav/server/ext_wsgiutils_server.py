@@ -53,14 +53,17 @@ configuration.
 """
 from __future__ import print_function
 
-__docformat__ = "reStructuredText"
-
 import logging
-import sys
 import socket
+import sys
 import threading
 import time
 import traceback
+
+from wsgidav import __version__, compat, util
+
+__docformat__ = "reStructuredText"
+
 
 try:
     from http import client as http_client  # py3
@@ -77,9 +80,6 @@ try:
 except ImportError:
     import SocketServer as socketserver
 
-from wsgidav import __version__
-from wsgidav import compat
-from wsgidav import util
 
 _logger = util.getModuleLogger(__name__, True)
 

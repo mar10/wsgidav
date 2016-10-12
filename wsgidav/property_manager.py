@@ -23,11 +23,11 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from __future__ import print_function
 
 import os
-import sys
 import shelve
+import sys
 
-from wsgidav.rw_lock import ReadWriteLock
 from wsgidav import util
+from wsgidav.rw_lock import ReadWriteLock
 
 # TODO: comment's from Ian Bicking (2005)
 #@@: Use of shelve means this is only really useful in a threaded environment.
@@ -46,9 +46,9 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 
-#=========================================================================
+# ========================================================================
 # PropertyManager
-#=========================================================================
+# ========================================================================
 class PropertyManager(object):
     """
     An in-memory property manager implementation using a dictionary.
@@ -277,9 +277,9 @@ class PropertyManager(object):
             self._lock.release()
 
 
-#=========================================================================
+# ========================================================================
 # ShelvePropertyManager
-#=========================================================================
+# ========================================================================
 
 class ShelvePropertyManager(PropertyManager):
     """

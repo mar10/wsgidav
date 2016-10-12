@@ -35,13 +35,13 @@ Configuration is defined like this:
 from __future__ import print_function
 
 import argparse
-from pprint import pprint
-from inspect import isfunction
-import traceback
-import sys
 import os
+import sys
+import traceback
+from inspect import isfunction
+from pprint import pprint
 
-from wsgidav import util, __version__
+from wsgidav import __version__, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.xml_tools import useLxml

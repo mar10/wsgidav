@@ -15,18 +15,24 @@ from __future__ import print_function
 import sys
 import traceback
 
-from wsgidav.dav_error import DAVError, getHttpStatusString, asDAVError,\
-    HTTP_INTERNAL_ERROR, HTTP_NOT_MODIFIED, HTTP_NO_CONTENT
-from wsgidav.middleware import BaseMiddleware
 from wsgidav import util
+from wsgidav.dav_error import (
+    HTTP_INTERNAL_ERROR,
+    HTTP_NO_CONTENT,
+    HTTP_NOT_MODIFIED,
+    DAVError,
+    asDAVError,
+    getHttpStatusString
+)
+from wsgidav.middleware import BaseMiddleware
 
 __docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
-#=========================================================================
+# ========================================================================
 # ErrorPrinter
-#=========================================================================
+# ========================================================================
 
 
 class ErrorPrinter(BaseMiddleware):

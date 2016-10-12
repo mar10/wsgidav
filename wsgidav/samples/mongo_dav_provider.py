@@ -29,10 +29,8 @@ from pprint import pformat
 
 import pymongo
 from bson.objectid import ObjectId
-
-from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-from wsgidav import util
+from wsgidav import compat, util
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import joinUri
 
 __docformat__ = "reStructuredText"
@@ -40,9 +38,9 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 
-#===============================================================================
+# ============================================================================
 #
-#===============================================================================
+# ============================================================================
 class ConnectionCollection(DAVCollection):
     """Root collection, lists all mongo databases."""
     def __init__(self, path, environ):
@@ -120,9 +118,9 @@ class DocResource(DAVNonCollection):
         return {"type": "Mongo document"}
 
 
-#===============================================================================
+# ============================================================================
 # MongoResourceProvider
-#===============================================================================
+# ============================================================================
 class MongoResourceProvider(DAVProvider):
     """DAV provider that serves a MongoDB structure."""
     def __init__(self, options):
@@ -150,9 +148,9 @@ class MongoResourceProvider(DAVProvider):
         return root.resolve("/", path)
 
 
-#===============================================================================
+# ============================================================================
 # Main
-#===============================================================================
+# ============================================================================
 def test():
     pass
 

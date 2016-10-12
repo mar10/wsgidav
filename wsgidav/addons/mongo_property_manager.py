@@ -24,9 +24,7 @@ Valid options are (sample shows defaults)::
 from __future__ import print_function
 
 import pymongo
-
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 
@@ -49,9 +47,9 @@ def decodeMongoKey(key):
     return key.replace(DOT_ESCAPE, ".")
 
 
-#===============================================================================
+# ============================================================================
 # MongoPropertyManager
-#===============================================================================
+# ============================================================================
 class MongoPropertyManager(object):
     """Implements a property manager based on MongoDB."""
     def __init__(self, options):

@@ -3,17 +3,19 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """Unit test for lock_manager.py"""
-from tempfile import gettempdir
-from wsgidav.dav_error import DAVError
 import os
 import sys
-from time import sleep
 import unittest
-from wsgidav import lock_manager, lock_storage
+from tempfile import gettempdir
+from time import sleep
 
-#=========================================================================
+from wsgidav import lock_manager, lock_storage
+from wsgidav.dav_error import DAVError
+
+
+# ========================================================================
 # BasicTest
-#=========================================================================
+# ========================================================================
 
 
 class BasicTest(unittest.TestCase):
@@ -232,9 +234,9 @@ class BasicTest(unittest.TestCase):
         assert l is None, "Could acquire a conflicting child lock (same principal)"
 
 
-#=========================================================================
+# ========================================================================
 # ShelveTest
-#=========================================================================
+# ========================================================================
 class ShelveTest(BasicTest):
     """Test lock_manager.ShelveLockManager()."""
 
@@ -258,9 +260,9 @@ class ShelveTest(BasicTest):
 #             os.remove(self.path)
 
 
-#=========================================================================
+# ========================================================================
 # suite
-#=========================================================================
+# ========================================================================
 # def suite():
 #     """Return suites of all test cases."""
 #     return TestSuite([BasicTest.suite(),
