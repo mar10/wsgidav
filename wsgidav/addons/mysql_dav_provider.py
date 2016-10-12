@@ -286,9 +286,9 @@ class MySQLBrowserResource(_DAVResource):
         raise DAVError(HTTP_FORBIDDEN,
                        errcondition=PRECONDITION_CODE_ProtectedProperty)
 
-#===============================================================================
+# ============================================================================
 # MySQLBrowserProvider
-#===============================================================================
+# ============================================================================
 class MySQLBrowserProvider(DAVProvider):
 
     def __init__(self, host, user, passwd, db):
