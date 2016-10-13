@@ -538,6 +538,16 @@ def readAndDiscardInput(environ):
             warn("--> wsgi_input.read(): %s" % sys.exc_info())
 
 
+def fail(value, contextinfo=None, srcexception=None, errcondition=None):
+    """Wrapper to raise (and log) DAVError."""
+    if isinstance(value, Exception):
+        e = asDAVError(value)
+    else:
+        e = DAVError(value, contextinfo, srcexception, errcondition)
+    log("Raising DAVError %s" % e.getUserInfo())
+    raise e
+
+
 # ========================================================================
 # SubAppStartResponse
 # ========================================================================
