@@ -36,6 +36,7 @@ from wsgidav.dav_error import (
     HTTP_OK,
     HTTP_PRECONDITION_FAILED,
     DAVError,
+    asDAVError,
     getHttpStatusString
 )
 from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
