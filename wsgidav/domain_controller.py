@@ -42,7 +42,6 @@ import sys
 __docformat__ = "reStructuredText"
 
 
-
 class WsgiDAVDomainController(object):
 
     def __init__(self, userMap):

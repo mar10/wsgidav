@@ -105,6 +105,7 @@ BUFFER_SIZE = 8192
 # ============================================================================
 class HgResource(_DAVResource):
     """Abstract base class for all resources."""
+
     def __init__(self, path, isCollection, environ, rev, localHgPath):
         super(HgResource, self).__init__(path, isCollection, environ)
         self.rev = rev
@@ -170,7 +171,7 @@ class HgResource(_DAVResource):
         return "%s@%s" % (self.name, self.fctx.filerev())
 
     def getEtag(self):
-        return md5(self.path).hexdigest() + "-" + to_native(self.getLastModified()) + "-" + str(self.getContentLength())
+        return md5(self.path).hexdigest() + "-" + compat.to_native(self.getLastModified()) + "-" + str(self.getContentLength())
 
     def getLastModified(self):
         if self.isCollection:
@@ -183,7 +184,7 @@ class HgResource(_DAVResource):
 
     def getMemberNames(self):
         assert self.isCollection
-        cache = self.environ["wsgidav.hg.cache"][to_native(self.rev)]
+        cache = self.environ["wsgidav.hg.cache"][compat.to_native(self.rev)]
         dirinfos = cache["dirinfos"]
         if not dirinfos.has_key(self.localHgPath):
             return []
@@ -195,6 +196,7 @@ class HgResource(_DAVResource):
         assert self.isCollection
         return self.provider.getResourceInst(util.joinUri(self.path, name),
                                              self.environ)
+
     def getDisplayInfo(self):
         if self.isCollection:
             return {"type": "Directory"}
@@ -228,15 +230,15 @@ class HgResource(_DAVResource):
             return self.fctx.branch()
         elif propname == "{hg:}date":
             # (secs, tz-ofs)
-            return to_native(self.fctx.date()[0])
+            return compat.to_native(self.fctx.date()[0])
         elif propname == "{hg:}description":
             return self.fctx.description()
         elif propname == "{hg:}filerev":
-            return to_native(self.fctx.filerev())
+            return compat.to_native(self.fctx.filerev())
         elif propname == "{hg:}rev":
-            return to_native(self.fctx.rev())
+            return compat.to_native(self.fctx.rev())
         elif propname == "{hg:}user":
-            return to_native(self.fctx.user())
+            return compat.to_native(self.fctx.user())
 
         # Let base class implementation report live and dead properties
         return super(HgResource, self).getPropertyValue(propname)
@@ -271,8 +273,8 @@ class HgResource(_DAVResource):
         commands.add(self.provider.ui, self.provider.repo, filepath)
         # getResourceInst() won't work, because the cached manifest is outdated
 #        return self.provider.getResourceInst(self.path.rstrip("/")+"/"+name, self.environ)
-        return HgResource(self.path.rstrip("/")+"/"+name, False,
-                          self.environ, self.rev, self.localHgPath+"/"+name)
+        return HgResource(self.path.rstrip("/") + "/" + name, False,
+                          self.environ, self.rev, self.localHgPath + "/" + name)
 
     def createCollection(self, name):
         """Create a new collection as member of self.
@@ -309,7 +311,7 @@ class HgResource(_DAVResource):
         # GC issue 57: always store as binary
 #        if contentType and contentType.startswith("text"):
 #            mode = "w"
-        return file(self.absFilePath, mode, BUFFER_SIZE)
+        return open(self.absFilePath, mode, BUFFER_SIZE)
 
     def endWrite(self, withErrors):
         """Called when PUT has finished writing.
@@ -326,12 +328,10 @@ class HgResource(_DAVResource):
 #        self._checkWriteAccess()
 #        return False
 
-
     def supportRecursiveDelete(self):
         """Return True, if delete() may be called on non-empty collections
         (see comments there)."""
         return True
-
 
     def delete(self):
         """Remove this resource (recursive)."""
@@ -340,7 +340,6 @@ class HgResource(_DAVResource):
         commands.remove(self.provider.ui, self.provider.repo,
                         filepath,
                         force=True)
-
 
     def handleCopy(self, destPath, depthInfinity):
         """Handle a COPY request natively.
@@ -365,7 +364,6 @@ class HgResource(_DAVResource):
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
         return True
-
 
     def handleMove(self, destPath):
         """Handle a MOVE request natively.
@@ -398,6 +396,7 @@ class HgResourceProvider(DAVProvider):
     """
     DAV provider that serves a VirtualResource derived structure.
     """
+
     def __init__(self, repoRoot):
         super(HgResourceProvider, self).__init__()
         self.repoRoot = repoRoot
@@ -420,7 +419,8 @@ class HgResourceProvider(DAVProvider):
 #        self.ui.status("Changelog: %s\n" % self.repo.changelog)
         print("Status:")
         pprint(self.repo.status())
-        self.repo.ui.status("the default username to be used in commits: %s\n" % self.repo.ui.username())
+        self.repo.ui.status("the default username to be used in commits: %s\n" %
+                            self.repo.ui.username())
 #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
         self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
 
@@ -428,7 +428,7 @@ class HgResourceProvider(DAVProvider):
         self.ui.pushbuffer()
         commands.summary(self.ui, self.repo, remote=False)
         res = self.ui.popbuffer().strip()
-        reslines = [ tuple(line.split(":", 1)) for line in res.split("\n")]
+        reslines = [tuple(line.split(":", 1)) for line in res.split("\n")]
         pprint(reslines)
 
         print("Repository state summary:")
@@ -436,11 +436,10 @@ class HgResourceProvider(DAVProvider):
         commands.identify(self.ui, self.repo,
                           num=True, id=True, branch=True, tags=True)
         res = self.ui.popbuffer().strip()
-        reslines = [ tuple(line.split(":", 1)) for line in res.split("\n")]
+        reslines = [tuple(line.split(":", 1)) for line in res.split("\n")]
         pprint(reslines)
 
         self._getLog()
-
 
     def _getLog(self, limit=None):
         """Read log entries into a list of dictionaries."""
@@ -463,7 +462,6 @@ class HgResourceProvider(DAVProvider):
             log["unid"] = unid
 #        pprint(logList)
         return logList
-
 
     def _getRepoInfo(self, environ, rev, reload=False):
         """Return a dictionary containing all files under source control.
@@ -507,9 +505,9 @@ class HgResourceProvider(DAVProvider):
                            }
         """
         caches = environ.setdefault("wsgidav.hg.cache", {})
-        if caches.get(to_native(rev)) is not None:
+        if caches.get(compat.to_native(rev)) is not None:
             util.debug("_getRepoInfo(%s): cache hit." % rev)
-            return caches[to_native(rev)]
+            return caches[compat.to_native(rev)]
 
         start_time = time.time()
         self.ui.pushbuffer()
@@ -526,7 +524,7 @@ class HgResourceProvider(DAVProvider):
             parents = file.split("/")
             if len(parents) >= 1:
                 p1 = ""
-                for i in range(0, len(parents)-1):
+                for i in range(0, len(parents) - 1):
                     p2 = parents[i]
                     dir = dirinfos.setdefault(p1, ([], []))
                     if not p2 in dir[0]:
@@ -543,7 +541,7 @@ class HgResourceProvider(DAVProvider):
                  "dirinfos": dirinfos,
                  "filedict": filedict,
                  }
-        caches[to_native(rev)] = cache
+        caches[compat.to_native(rev)] = cache
         util.note("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time)
 #                  , var=cache
                   )
@@ -562,7 +560,6 @@ class HgResourceProvider(DAVProvider):
 #        lines = self.ui.popbuffer().strip().split("\n")
 #        pprint(lines)
 #        return dict
-
 
     def getResourceInst(self, path, environ):
         """Return HgResource object for path.
@@ -590,7 +587,7 @@ class HgResourceProvider(DAVProvider):
             if rest == "/":
                 # Browse /archive: return a list of revision folders:
                 loglist = self._getLog(limit=10)
-                members = [ to_native(l["local_id"])  for l in loglist ]
+                members = [compat.to_native(l["local_id"]) for l in loglist]
                 return VirtualCollection(path, environ, "Revisions", members)
             revid, rest = util.popPath(rest)
             try:

@@ -99,6 +99,7 @@ SERVER_ERROR = """\
 </html>
 """
 
+
 class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     _SUPPORTED_METHODS = ["HEAD", "GET", "PUT", "POST", "OPTIONS", "TRACE",
@@ -114,27 +115,27 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         BaseHTTPServer.BaseHTTPRequestHandler.server_version,
         PYTHON_VERSION)
 
-    def log_message (self, *args):
+    def log_message(self, *args):
         pass
 #        BaseHTTPServer.BaseHTTPRequestHandler.log_message(self, *args)
 
-    def log_request (self, *args):
+    def log_request(self, *args):
         pass
 #        BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, *args)
 
-    def getApp (self):
+    def getApp(self):
         # We want fragments to be returned as part of <path>
-        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse ("http://dummyhost%s" % self.path,
-                                                                                 allow_fragments=False)
+        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse("http://dummyhost%s" % self.path,
+                                                                                allow_fragments=False)
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
-            if (path.startswith (appPath)):
+            if (path.startswith(appPath)):
                 # We found the application to use - work out the scriptName and pathInfo
-                pathInfo = path [len (appPath):]
-                if (len (pathInfo) > 0):
-                    if (not pathInfo.startswith ("/")):
+                pathInfo = path[len(appPath):]
+                if (len(pathInfo) > 0):
+                    if (not pathInfo.startswith("/")):
                         pathInfo = "/" + pathInfo
-                if (appPath.endswith ("/")):
+                if (appPath.endswith("/")):
                     scriptName = appPath[:-1]
                 else:
                     scriptName = appPath
@@ -142,32 +143,32 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 return app, scriptName, pathInfo, query
         return None, None, None, None
 
-    def handlerFunctionClosure(self,name):
-        def handlerFunction(*args,**kwargs):
+    def handlerFunctionClosure(self, name):
+        def handlerFunction(*args, **kwargs):
             self.do_method()
         return handlerFunction
 
     def do_method(self):
-        app, scriptName, pathInfo, query = self.getApp ()
+        app, scriptName, pathInfo, query = self.getApp()
         if (not app):
-            self.send_error (404, "Application not found.")
+            self.send_error(404, "Application not found.")
             return
-        self.runWSGIApp (app, scriptName, pathInfo, query)
+        self.runWSGIApp(app, scriptName, pathInfo, query)
 
     def __getattr__(self, name):
-        if len(name)>3 and name[0:3] == "do_" and name[3:] in self._SUPPORTED_METHODS:
+        if len(name) > 3 and name[0:3] == "do_" and name[3:] in self._SUPPORTED_METHODS:
             return self.handlerFunctionClosure(name)
         elif name == "_headers_buffer":
             # 2015-10-22: py3: prevent recursion/stackovervlow
             raise AttributeError
-        self.send_error (501, "Method Not Implemented.")
+        self.send_error(501, "Method Not Implemented.")
         return
 
-    def runWSGIApp (self, application, scriptName, pathInfo, query):
+    def runWSGIApp(self, application, scriptName, pathInfo, query):
         # logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
 
         if self.command == "PUT":
-            pass # breakpoint
+            pass  # breakpoint
 
         env = {"wsgi.version": (1, 0),
                "wsgi.url_scheme": "http",
@@ -189,7 +190,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                }
         for httpHeader, httpValue in self.headers.items():
             if not httpHeader.lower() in ("content-type", "content-length"):
-                env ["HTTP_%s" % httpHeader.replace ("-", "_").upper()] = httpValue
+                env["HTTP_%s" % httpHeader.replace("-", "_").upper()] = httpValue
 
         # Setup the state
         self.wsgiSentHeaders = 0
@@ -198,7 +199,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             # We have there environment, now invoke the application
             _logger.debug("runWSGIApp application()...")
-            result = application (env, self.wsgiStartResponse)
+            result = application(env, self.wsgiStartResponse)
             try:
                 for data in result:
                     if data:
@@ -213,7 +214,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             _logger.debug("runWSGIApp caught exception...")
             errorMsg = compat.StringIO()
             traceback.print_exc(file=errorMsg)
-            logging.error (errorMsg.getvalue())
+            logging.error(errorMsg.getvalue())
             if not self.wsgiSentHeaders:
                 self.wsgiStartResponse("500 Server Error", [("Content-type", "text/html")])
             self.wsgiWriteData(SERVER_ERROR)
@@ -221,33 +222,35 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not self.wsgiSentHeaders:
             # GC issue 29 sending one byte, when content-length is '0' seems wrong
             # We must write out something!
-#            self.wsgiWriteData (" ")
+            #            self.wsgiWriteData (" ")
             self.wsgiWriteData(b"")
         return
 
-    def wsgiStartResponse (self, response_status, response_headers, exc_info=None):
-        _logger.debug("wsgiStartResponse(%s, %s, %s)" % (response_status, response_headers, exc_info))
+    def wsgiStartResponse(self, response_status, response_headers, exc_info=None):
+        _logger.debug("wsgiStartResponse(%s, %s, %s)" %
+                      (response_status, response_headers, exc_info))
         if (self.wsgiSentHeaders):
-            raise Exception ("Headers already sent and start_response called again!")
+            raise Exception("Headers already sent and start_response called again!")
         # Should really take a copy to avoid changes in the application....
         self.wsgiHeaders = (response_status, response_headers)
         return self.wsgiWriteData
 
-    def wsgiWriteData (self, data):
+    def wsgiWriteData(self, data):
         if not self.wsgiSentHeaders:
             status, headers = self.wsgiHeaders
             # Need to send header prior to data
-            statusCode = status [:status.find (" ")]
-            statusMsg = status [status.find (" ") + 1:]
+            statusCode = status[:status.find(" ")]
+            statusMsg = status[status.find(" ") + 1:]
             _logger.debug("wsgiWriteData: send headers '%r', %r" % (status, headers))
-            self.send_response (int(statusCode), statusMsg)
+            self.send_response(int(statusCode), statusMsg)
             for header, value in headers:
-                self.send_header (header, value)
+                self.send_header(header, value)
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
         # assert type(data) is str # If not, Content-Length is propably wrong!
-        _logger.debug("wsgiWriteData: write %s bytes: '%r'..." % (len(data), compat.to_native(data[:50])))
+        _logger.debug("wsgiWriteData: write %s bytes: '%r'..." %
+                      (len(data), compat.to_native(data[:50])))
         if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
             print("ext_wsgiutils_server: Got unicode data: %r" % data)
             # data = compat.wsgi_to_bytes(data)
@@ -283,14 +286,14 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             return
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
-        print('-'*40, file=sys.stderr)
-        print('<%s> Exception happened during processing of request from %s' % (threading.currentThread().ident, client_address), file=sys.stderr)
+        print('-' * 40, file=sys.stderr)
+        print('<%s> Exception happened during processing of request from %s' %
+              (threading.currentThread().ident, client_address), file=sys.stderr)
         print(client_address, file=sys.stderr)
         traceback.print_exc()
-        print('-'*40, file=sys.stderr)
+        print('-' * 40, file=sys.stderr)
         print(request, file=sys.stderr)
 #        BaseHTTPServer.HTTPServer.handle_error(self, request, client_address)
-
 
     def stop_serve_forever(self):
         """Stop serve_forever_stoppable()."""
@@ -327,7 +330,6 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 #        print "stop_serve_forever() received SHUTDOWN response."
         assert self.stop_request
 
-
     def serve_forever_stoppable(self):
         """Handle one request at a time until stop_serve_forever().
 
@@ -342,12 +344,11 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 #        print "serve_forever_stoppable() stopped."
         self.stopped = True
 
-
-    def __init__ (self, serverAddress, wsgiApplications, serveFiles=1):
-        BaseHTTPServer.HTTPServer.__init__ (self, serverAddress, ExtHandler)
+    def __init__(self, serverAddress, wsgiApplications, serveFiles=1):
+        BaseHTTPServer.HTTPServer.__init__(self, serverAddress, ExtHandler)
         appList = []
         for urlPath, wsgiApp in wsgiApplications.items():
-            appList.append ((urlPath, wsgiApp))
+            appList.append((urlPath, wsgiApp))
         self.wsgiApplications = appList
         self.serveFiles = serveFiles
         self.serverShuttingDown = 0

@@ -104,7 +104,7 @@ See https://github.com/mar10/wsgidav for additional information.
                         type=int,
                         # default=8080,
                         help="port to serve on (default: 8080)")
-    parser.add_argument("-H", "--host", # '-h' conflicts with --help
+    parser.add_argument("-H", "--host",  # '-h' conflicts with --help
                         dest="host",
                         # default="localhost",
                         help="host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
@@ -112,7 +112,8 @@ See https://github.com/mar10/wsgidav for additional information.
                         dest="root_path",
                         help="path to a file system folder to publish as share '/'.")
     parser.add_argument("--server",
-                        choices=("cherrypy", "ext-wsgiutils", "flup-fcgi", "flup-fcgi-fork", "paste", "wsgiref"),
+                        choices=("cherrypy", "ext-wsgiutils", "flup-fcgi",
+                                 "flup-fcgi-fork", "paste", "wsgiref"),
                         default="cherrypy",
                         # dest="server",
                         help="type of pre-installed WSGI server to use. (Default: cherrypy)")
@@ -139,7 +140,6 @@ See https://github.com/mar10/wsgidav for additional information.
 #    parser.add_argument("", "--profile",
 #                      action="store_true", dest="profile",
 #                      help="Profile ")
-
 
     args = parser.parse_args()
 
@@ -207,7 +207,8 @@ def _readConfigFile(config_file, verbose):
         for einfo in exceptioninfo:
             exceptiontext += einfo + "\n"
 #        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
-        print("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext, file=sys.stderr)
+        print("Failed to read configuration file: " + config_file +
+              "\nDue to " + exceptiontext, file=sys.stderr)
         raise
 
     return conf
@@ -269,7 +270,7 @@ def _initConfig():
 
     if cmdLineOpts.get("reload"):
         print("Installing paste.reloader.", file=sys.stderr)
-        from paste import reloader  #@UnresolvedImport
+        from paste import reloader  # @UnresolvedImport
         reloader.install()
         if config_file:
             # Add config file changes
@@ -294,17 +295,18 @@ def _runPaste(app, config, mode):
 
     # See http://pythonpaste.org/modules/httpserver.html for more options
     server = httpserver.serve(app,
-                     host=config["host"],
-                     port=config["port"],
-                     server_version=version,
-                     # This option enables handling of keep-alive
-                     # and expect-100:
-                     protocol_version="HTTP/1.1",
-                     start_loop=False
-                     )
+                              host=config["host"],
+                              port=config["port"],
+                              server_version=version,
+                              # This option enables handling of keep-alive
+                              # and expect-100:
+                              protocol_version="HTTP/1.1",
+                              start_loop=False
+                              )
 
     if config["verbose"] >= 3:
         __handle_one_request = server.RequestHandlerClass.handle_one_request
+
         def handle_one_request(self):
             __handle_one_request(self)
             if self.close_connection == 1:
@@ -315,6 +317,7 @@ def _runPaste(app, config, mode):
         server.RequestHandlerClass.handle_one_request = handle_one_request
 
         __handle = server.RequestHandlerClass.handle
+
         def handle(self):
             _logger.debug("open HTTP connection")
             __handle(self)
@@ -362,7 +365,8 @@ def _runCherryPy(app, config, mode):
     protocol = "http"
     if ssl_certificate:
         assert ssl_private_key
-        wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(ssl_certificate, ssl_private_key, ssl_certificate_chain)
+        wsgiserver.CherryPyWSGIServer.ssl_adapter = BuiltinSSLAdapter(
+            ssl_certificate, ssl_private_key, ssl_certificate_chain)
         protocol = "https"
         if config["verbose"] >= 1:
             print("SSL / HTTPS enabled.")
@@ -451,8 +455,6 @@ def _runExtWsgiutils(app, config, mode):
     return
 
 
-
-
 def run():
     SUPPORTED_SERVERS = {"paste": _runPaste,
                          "cherrypy": _runCherryPy,
@@ -468,14 +470,13 @@ def run():
     handler = SUPPORTED_SERVERS.get(server)
     if not handler:
         raise RuntimeError("Unsupported server type {!r} (expected {!r})"
-            .format(server, "', '".join(SUPPORTED_SERVERS.keys())))
+                           .format(server, "', '".join(SUPPORTED_SERVERS.keys())))
 
     if not useLxml and config["verbose"] >= 1:
         print("WARNING: Could not import lxml: using xml instead (slower).")
         print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
     handler(app, config, server)
-
 
 
 if __name__ == "__main__":

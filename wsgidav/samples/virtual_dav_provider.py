@@ -99,7 +99,6 @@ from __future__ import print_function
 
 import os
 import stat
-import urllib
 
 from wsgidav import compat, util
 from wsgidav.dav_error import (
@@ -157,18 +156,18 @@ _resourceData = [
      "resPathList": [os.path.join(FILE_FOLDER, "My URS.doc"),
                      ],
      },
-    ]
+]
 
 
 def _getResListByAttr(attrName, attrVal):
     """"""
     assert attrName in RootCollection._visibleMemberNames
     if attrName == "by_status":
-        return [ data for data in _resourceData if data.get("status") == attrVal ]
+        return [data for data in _resourceData if data.get("status") == attrVal]
     elif attrName == "by_orga":
-        resList =[ data for data in _resourceData if data.get("orga") == attrVal ]
+        resList = [data for data in _resourceData if data.get("orga") == attrVal]
     elif attrName == "by_tag":
-        resList =[ data for data in _resourceData if attrVal in data.get("tags") ]
+        resList = [data for data in _resourceData if attrVal in data.get("tags")]
     return resList
 
 
@@ -203,6 +202,7 @@ class RootCollection(DAVCollection):
 
 class CategoryTypeCollection(DAVCollection):
     """Resolve '/catType' URLs, for example '/by_tag'."""
+
     def __init__(self, path, environ):
         DAVCollection.__init__(self, path, environ)
 
@@ -238,6 +238,7 @@ class CategoryTypeCollection(DAVCollection):
 
 class CategoryCollection(DAVCollection):
     """Resolve '/catType/cat' URLs, for example '/by_tag/cool'."""
+
     def __init__(self, path, environ, catType):
         DAVCollection.__init__(self, path, environ)
         self.catType = catType
@@ -246,7 +247,7 @@ class CategoryCollection(DAVCollection):
         return {"type": "Category"}
 
     def getMemberNames(self):
-        names = [ data["title"] for data in _getResListByAttr(self.catType, self.name) ]
+        names = [data["title"] for data in _getResListByAttr(self.catType, self.name)]
         names.sort()
         return names
 
@@ -308,7 +309,7 @@ class VirtualResource(DAVCollection):
         assert catType == "by_tag"
         assert tag in self.data["tags"]
         self.data["tags"].remove(tag)
-        return True # OK
+        return True  # OK
 
     def handleCopy(self, destPath, depthInfinity):
         """Change semantic of COPY to add resource tags."""
@@ -319,7 +320,7 @@ class VirtualResource(DAVCollection):
         assert catType == "by_tag"
         if not tag in self.data["tags"]:
             self.data["tags"].append(tag)
-        return True # OK
+        return True  # OK
 
     def handleMove(self, destPath):
         """Change semantic of MOVE to change resource tags."""
@@ -336,7 +337,7 @@ class VirtualResource(DAVCollection):
         assert catType == "by_tag"
         if not tag in self.data["tags"]:
             self.data["tags"].append(tag)
-        return True # OK
+        return True  # OK
 
     def getRefUrl(self):
         refPath = "/by_key/%s" % self.data["key"]
@@ -400,28 +401,36 @@ class VirtualResource(DAVCollection):
         return
 
 
-
 # ============================================================================
 # _VirtualNonCollection classes
 # ============================================================================
 class _VirtualNonCollection(DAVNonCollection):
     """Abstract base class for all non-collection resources."""
+
     def __init__(self, path, environ):
         DAVNonCollection.__init__(self, path, environ)
+
     def getContentLength(self):
         return None
+
     def getContentType(self):
         return None
+
     def getCreationDate(self):
         return None
+
     def getDisplayName(self):
         return self.name
+
     def getDisplayInfo(self):
         raise NotImplementedError()
+
     def getEtag(self):
         return None
+
     def getLastModified(self):
         return None
+
     def supportRanges(self):
         return False
 #    def handleDelete(self):
@@ -437,19 +446,23 @@ class _VirtualNonCollection(DAVNonCollection):
 # ============================================================================
 class VirtualArtifact(_VirtualNonCollection):
     """A virtual file, containing resource descriptions."""
+
     def __init__(self, path, environ, data):
-#        assert name in _artifactNames
+        #        assert name in _artifactNames
         _VirtualNonCollection.__init__(self, path, environ)
         self.data = data
 
     def getContentLength(self):
         return len(self.getContent().read())
+
     def getContentType(self):
         if self.name.endswith(".txt"):
             return "text/plain"
         return "text/html"
+
     def getDisplayInfo(self):
         return {"type": "Virtual info file"}
+
     def preventLocking(self):
         return True
 
@@ -458,7 +471,8 @@ class VirtualArtifact(_VirtualNonCollection):
         return compat.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
-        fileLinks = [ "<a href='%s'>%s</a>\n" % (os.path.basename(f), f) for f in self.data["resPathList"] ]
+        fileLinks = ["<a href='%s'>%s</a>\n" %
+                     (os.path.basename(f), f) for f in self.data["resPathList"]]
         dict = self.data.copy()
         dict["fileLinks"] = ", ".join(fileLinks)
         if self.name == ".Info.html":
@@ -513,6 +527,7 @@ class VirtualArtifact(_VirtualNonCollection):
 # ============================================================================
 class VirtualResFile(_VirtualNonCollection):
     """Represents an existing file, that is a member of a VirtualResource."""
+
     def __init__(self, path, environ, data, filePath):
         if not os.path.exists(filePath):
             util.warn("VirtualResFile(%r) does not exist." % filePath)
@@ -523,6 +538,7 @@ class VirtualResFile(_VirtualNonCollection):
     def getContentLength(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_SIZE]
+
     def getContentType(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
@@ -531,11 +547,14 @@ class VirtualResFile(_VirtualNonCollection):
 #            mimetype = "application/octet-stream"
 #        return mimetype
         return util.guessMimeType(self.filePath)
+
     def getCreationDate(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]
+
     def getDisplayInfo(self):
         return {"type": "Content file"}
+
     def getLastModified(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_MTIME]
@@ -545,11 +564,11 @@ class VirtualResFile(_VirtualNonCollection):
         return compat.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
-        mime = self.getContentType()
+#        mime = self.getContentType()
         # GC issue 57: always store as binary
 #        if mime.startswith("text"):
-#            return file(self.filePath, "r", BUFFER_SIZE)
-        return file(self.filePath, "rb", BUFFER_SIZE)
+#            return open(self.filePath, "r", BUFFER_SIZE)
+        return open(self.filePath, "rb", BUFFER_SIZE)
 
 
 # ============================================================================
@@ -559,6 +578,7 @@ class VirtualResourceProvider(DAVProvider):
     """
     DAV provider that serves a VirtualResource derived structure.
     """
+
     def __init__(self):
         super(VirtualResourceProvider, self).__init__()
         self.resourceData = _resourceData
@@ -578,7 +598,7 @@ class VirtualResourceProvider(DAVProvider):
         root = RootCollection(environ)
         return root.resolve("", path)
 
-#class VirtualResourceProvider(DAVProvider):
+# class VirtualResourceProvider(DAVProvider):
 #    """
 #    DAV provider that serves a VirtualResource derived structure.
 #    """

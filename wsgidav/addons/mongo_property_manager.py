@@ -33,14 +33,16 @@ _logger = util.getModuleLogger(__name__)
 # We use these keys internally, so they must be protected
 HIDDEN_KEYS = ("_id", "_url", "_title")
 
-### MongiDB doesn't accept '.' in key names, so we have to escape it.
+# MongiDB doesn't accept '.' in key names, so we have to escape it.
 # Use a key that is unlikely to occur in proprty names
 DOT_ESCAPE = "^"
+
 
 def encodeMongoKey(s):
     """Return an encoded version of `s` that may be used as MongoDB key."""
     assert not DOT_ESCAPE in s
     return s.replace(".", DOT_ESCAPE)
+
 
 def decodeMongoKey(key):
     """Decode a string that was encoded by encodeMongoKey()."""
@@ -52,6 +54,7 @@ def decodeMongoKey(key):
 # ============================================================================
 class MongoPropertyManager(object):
     """Implements a property manager based on MongoDB."""
+
     def __init__(self, options):
         self.options = options
         self._connect()
@@ -116,7 +119,8 @@ class MongoPropertyManager(object):
         assert propertyvalue is not None
         assert propname not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % propname
 
-        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" %
+                      (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
 
