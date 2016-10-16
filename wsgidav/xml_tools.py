@@ -18,7 +18,6 @@ from wsgidav import compat
 __docformat__ = "reStructuredText"
 
 
-
 # Import XML support
 useLxml = False
 try:

@@ -12,6 +12,7 @@ from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
 __docformat__ = "reStructuredText"
 
+
 def main():
     rootpath = gettempdir()
     provider = FilesystemProvider(rootpath)

@@ -86,28 +86,23 @@ _logger = util.getModuleLogger(__name__)
 
 class NTDomainController(object):
 
-    def __init__(self, presetdomain = None, presetserver = None):
+    def __init__(self, presetdomain=None, presetserver=None):
         self._presetdomain = presetdomain
         self._presetserver = presetserver
-
 
     def __repr__(self):
         return self.__class__.__name__
 
-
     def getDomainRealm(self, inputURL, environ):
         return "Windows Domain Authentication"
 
-
     def requireAuthentication(self, realmname, environ):
         return True
-
 
     def isRealmUser(self, realmname, username, environ):
         (domain, usern) = self._getDomainUsername(username)
         dcname = self._getDomainControllerName(domain)
         return self._isUser(usern, domain, dcname)
-
 
     def getRealmUserPassword(self, realmname, username, environ):
         (domain, user) = self._getDomainUsername(username)
@@ -124,12 +119,10 @@ class NTDomainController(object):
 #        return None
         return userdata.get("password")
 
-
     def authDomainUser(self, realmname, username, password, environ):
         (domain, usern) = self._getDomainUsername(username)
         dcname = self._getDomainControllerName(domain)
         return self._authUser(usern, password, domain, dcname)
-
 
     def _getDomainUsername(self, inusername):
         userdata = inusername.split("\\", 1)
@@ -145,7 +138,6 @@ class NTDomainController(object):
 
         return (domain, username)
 
-
     def _getDomainControllerName(self, domain):
         if self._presetserver != None:
             return self._presetserver
@@ -158,14 +150,14 @@ class NTDomainController(object):
 
         return pdc
 
-
     def _isUser(self, username, domain, server):
         resume = "init"
         while resume:
             if resume == "init":
                 resume = 0
             try:
-                users, _total, resume = win32net.NetUserEnum(server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0)
+                users, _total, resume = win32net.NetUserEnum(
+                    server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0)
                 # Make sure, we compare unicode
                 un = username.decode("utf8").lower()
                 for userinfo in users:
@@ -180,19 +172,19 @@ class NTDomainController(object):
         _logger.info("User '%s' not found on server '%s'" % (username, server))
         return False
 
-
     def _authUser(self, username, password, domain, server):
         if not self._isUser(username, domain, server):
             return False
 
         try:
-            htoken = win32security.LogonUser(username, domain, password, win32security.LOGON32_LOGON_NETWORK, win32security.LOGON32_PROVIDER_DEFAULT)
+            htoken = win32security.LogonUser(
+                username, domain, password, win32security.LOGON32_LOGON_NETWORK, win32security.LOGON32_PROVIDER_DEFAULT)
         except win32security.error as err:
             _logger.warning("LogonUser failed for user '%s': %s" % (username, err))
             return False
         else:
             if htoken:
-                htoken.Close() #guarantee's cleanup
+                htoken.Close()  # guarantee's cleanup
                 _logger.debug("User '%s' logged on." % username)
                 return True
             _logger.warning("Logon failed for user '%s'." % username)

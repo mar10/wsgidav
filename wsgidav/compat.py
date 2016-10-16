@@ -8,6 +8,8 @@ Inspired by six https://pythonhosted.org/six/
 """
 from __future__ import print_function
 
+# flake8: noqa    
+
 import sys
 
 __docformat__ = "reStructuredText"

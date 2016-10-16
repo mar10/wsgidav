@@ -35,8 +35,11 @@ _logger = util.getModuleLogger(__name__)
 # ============================================================================
 # CouchPropertyManager
 # ============================================================================
+
+
 class CouchPropertyManager(object):
     """Implements a property manager based on CouchDB."""
+
     def __init__(self, options):
         self.options = options
         self._connect()
@@ -57,7 +60,8 @@ class CouchPropertyManager(object):
             util.log("CouchPropertyManager connected to %s v%s" % (self.db, self.couch.version()))
         else:
             self.db = self.couch.create(dbName)
-            util.log("CouchPropertyManager created new db %s v%s" % (self.db, self.couch.version()))
+            util.log("CouchPropertyManager created new db %s v%s" %
+                     (self.db, self.couch.version()))
 
         # Ensure that we have a permanent view
         if not "_design/properties" in self.db:
@@ -75,13 +79,13 @@ class CouchPropertyManager(object):
                 "views": {
                     "titles": {
                         "map": "function(doc) { emit(null, { 'id': doc._id, 'title': doc.title }); }"
-                        },
+                    },
                     # http://127.0.0.1:5984/wsgidav_props/_design/properties/_view/by_url
                     "by_url": {
                         "map": map
-                        }
                     }
                 }
+            }
             self.db.save(designDoc)
 
 #        pprint(self.couch.stats())
@@ -148,7 +152,8 @@ class CouchPropertyManager(object):
         assert propname
         assert propertyvalue is not None
 
-        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" %
+                      (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
 
@@ -221,6 +226,8 @@ class CouchPropertyManager(object):
 # ============================================================================
 #
 # ============================================================================
+
+
 def test():
     pass
 

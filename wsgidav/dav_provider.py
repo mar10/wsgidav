@@ -83,7 +83,6 @@ import os
 import sys
 import time
 import traceback
-import urllib
 
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (

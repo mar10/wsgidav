@@ -43,12 +43,13 @@ _logger = util.getModuleLogger(__name__)
 # ============================================================================
 class ConnectionCollection(DAVCollection):
     """Root collection, lists all mongo databases."""
+
     def __init__(self, path, environ):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
 
     def getMemberNames(self):
-        return [ name.encode("utf8") for name in self.conn.database_names() ]
+        return [name.encode("utf8") for name in self.conn.database_names()]
 
     def getMember(self, name):
         return DbCollection(joinUri(self.path, name), self.environ)
@@ -56,6 +57,7 @@ class ConnectionCollection(DAVCollection):
 
 class DbCollection(DAVCollection):
     """Mongo database, contains mongo collections."""
+
     def __init__(self, path, environ):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
@@ -65,7 +67,7 @@ class DbCollection(DAVCollection):
         return {"type": "Mongo database"}
 
     def getMemberNames(self):
-        return [ name.encode("utf8") for name in self.db.collection_names() ]
+        return [name.encode("utf8") for name in self.db.collection_names()]
 
     def getMember(self, name):
         coll = self.db[name]
@@ -74,6 +76,7 @@ class DbCollection(DAVCollection):
 
 class CollCollection(DAVCollection):
     """Mongo collections, contains mongo documents."""
+
     def __init__(self, path, environ, coll):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
@@ -85,7 +88,7 @@ class CollCollection(DAVCollection):
     def getMemberNames(self):
         res = []
         for doc in self.coll.find():
-            res.append(to_native(doc["_id"]))
+            res.append(compat.to_native(doc["_id"]))
         return res
 
     def getMember(self, name):
@@ -95,16 +98,21 @@ class CollCollection(DAVCollection):
 
 class DocResource(DAVNonCollection):
     """Mongo document, returned as virtual text resource."""
+
     def __init__(self, path, environ, doc):
         DAVNonCollection.__init__(self, path, environ)
         self.doc = doc
+
     def getContent(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
         return compat.StringIO(html.encode("utf8"))
+
     def getContentLength(self):
         return len(self.getContent().read())
+
     def getContentType(self):
         return "text/html"
+
     def getDisplayName(self):
         doc = self.doc
         if doc.get("_title"):
@@ -112,8 +120,9 @@ class DocResource(DAVNonCollection):
         elif doc.get("title"):
             return doc["title"].encode("utf8")
         elif doc.get("_id"):
-            return to_native(doc["_id"])
-        return to_native(doc["key"])
+            return compat.to_native(doc["_id"])
+        return compat.to_native(doc["key"])
+
     def getDisplayInfo(self):
         return {"type": "Mongo document"}
 
@@ -123,6 +132,7 @@ class DocResource(DAVNonCollection):
 # ============================================================================
 class MongoResourceProvider(DAVProvider):
     """DAV provider that serves a MongoDB structure."""
+
     def __init__(self, options):
         super(MongoResourceProvider, self).__init__()
         self.options = options
