@@ -343,7 +343,10 @@ def _runCherryPy(app, config, mode):
         from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
     except ImportError:
         # if config["verbose"] >= 1:
-        print("ERROR: Could not import CherryPy, Try `pip install cherrypy`.")
+        print("*" * 78)
+        print("ERROR: Could not import CherryPy.")
+        print("Try `pip install cherrypy` or specify another server using the --server option.")
+        print("*" * 78)
         raise
 
     server_name = "WsgiDAV/%s %s Python/%s" % (
