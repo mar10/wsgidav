@@ -86,8 +86,14 @@ import traceback
 
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (
+    HTTP_BAD_REQUEST,
+    HTTP_CREATED,
     HTTP_FORBIDDEN,
+    HTTP_LENGTH_REQUIRED,
+    HTTP_METHOD_NOT_ALLOWED,
+    HTTP_NO_CONTENT,
     HTTP_NOT_FOUND,
+    HTTP_NOT_IMPLEMENTED,
     DAVError,
     PRECONDITION_CODE_ProtectedProperty,
     asDAVError
@@ -1115,7 +1121,7 @@ class _DAVResource(object):
 
 
 # ========================================================================
-# DAVCollection
+# DAVNonCollection
 # ========================================================================
 class DAVNonCollection(_DAVResource):
     """
@@ -1191,6 +1197,158 @@ class DAVNonCollection(_DAVResource):
         if pathInfo in ("", "/"):
             return self
         return None
+
+    def streamDataChunked(self, environ):
+        """Get the data from a chunked transfer."""
+        # Chunked Transfer Coding
+        # http://www.servlets.com/rfcs/rfc2616-sec3.html#sec3.6.1
+
+        if "Darwin" in environ.get("HTTP_USER_AGENT", "") and \
+                environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH"):
+            # Mac Finder, that does not prepend chunk-size + CRLF ,
+            # like it should to comply with the spec. It sends chunk
+            # size as integer in a HTTP header instead.
+            WORKAROUND_CHUNK_LENGTH = True
+            buf = environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH", "0")
+            l = int(buf)
+        else:
+            WORKAROUND_CHUNK_LENGTH = False
+            buf = environ["wsgi.input"].readline()
+            environ["wsgidav.some_input_read"] = 1
+            if buf == '':
+                l = 0
+            else:
+                l = int(buf, 16)
+
+        while l > 0:
+            buf = environ["wsgi.input"].read(l)
+            yield buf
+            if WORKAROUND_CHUNK_LENGTH:
+                environ["wsgidav.some_input_read"] = 1
+                # Keep receiving until we read expected size or reach
+                # EOF
+                if buf == '':
+                    l = 0
+                else:
+                    l -= len(buf)
+            else:
+                environ["wsgi.input"].readline()
+                buf = environ["wsgi.input"].readline()
+                if buf == '':
+                    l = 0
+                else:
+                    l = int(buf, 16)
+        environ["wsgidav.all_input_read"] = 1
+
+    def streamData(self, environ, contentlength, block_size):
+        """Get the data from a non-chunked transfer."""
+        if contentlength == 0:
+            # TODO: review this
+            # XP and Vista MiniRedir submit PUT with Content-Length 0,
+            # before LOCK and the real PUT. So we have to accept this.
+            _logger.info(
+                "PUT: Content-Length == 0. Creating empty file...")
+
+#        elif contentlength < 0:
+#            # TODO: review this
+#            # If CONTENT_LENGTH is invalid, we may try to workaround this
+#            # by reading until the end of the stream. This may block however!
+#            # The iterator produced small chunks of varying size, but not
+#            # sure, if we always get everything before it times out.
+#            _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
+#            nb = 0
+#            try:
+#                for s in environ["wsgi.input"]:
+#                    environ["wsgidav.some_input_read"] = 1
+#                    _logger.debug("PUT: read from wsgi.input.__iter__, len=%s" % len(s))
+#                    yield s
+#                    nb += len (s)
+#            except socket.timeout:
+#                _logger.warning("PUT: input timed out after writing %s bytes" % nb)
+#                hasErrors = True
+        else:
+            assert contentlength > 0
+            contentremain = contentlength
+            while contentremain > 0:
+                n = min(contentremain, block_size)
+                readbuffer = environ["wsgi.input"].read(n)
+                # This happens with litmus expect-100 test:
+#                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
+                if not len(readbuffer) > 0:
+                    util.warn("input.read(%s) returned 0 bytes" % n)
+                    break
+                environ["wsgidav.some_input_read"] = 1
+                yield readbuffer
+                contentremain -= len(readbuffer)
+
+            if contentremain == 0:
+                environ["wsgidav.all_input_read"] = 1
+
+    def processData(self, data_stream, fileobj):
+        """Process the data in the request body."""
+        for data in data_stream:
+            fileobj.write(data)
+
+    def handlePUT(self, environ, start_response, block_size, isnewfile):
+        """Handle a PUT request."""
+        # Test for unsupported stuff
+        if "HTTP_CONTENT_ENCODING" in environ:
+            util.fail(HTTP_NOT_IMPLEMENTED,
+                       "Content-encoding header is not supported.")
+
+        # An origin server that allows PUT on a given target resource MUST send
+        # a 400 (Bad Request) response to a PUT request that contains a
+        # Content-Range header field
+        # (http://tools.ietf.org/html/rfc7231#section-4.3.4)
+        if "HTTP_CONTENT_RANGE" in environ:
+            util.fail(HTTP_BAD_REQUEST,
+                       "Content-range header is not allowed on PUT requests.")
+
+        # Start Content Processing
+        # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.)
+#        WORKAROUND_BAD_LENGTH = True
+        try:
+            contentlength = max(-1, int(environ.get("CONTENT_LENGTH", -1)))
+        except ValueError:
+            contentlength = -1
+
+#        if contentlength < 0 and not WORKAROUND_BAD_LENGTH:
+        if (
+            (contentlength < 0) and
+            (environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked")
+        ):
+            # HOTFIX: not fully understood, but MS sends PUT without content-length,
+            # when creating new files
+            agent = environ.get("HTTP_USER_AGENT", "")
+            if "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent:  # issue #10
+                _logger.warning(
+                    "Setting misssing Content-Length to 0 for MS / gvfs client")
+                contentlength = 0
+            else:
+                util.fail(HTTP_LENGTH_REQUIRED,
+                           "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
+
+        hasErrors = False
+        try:
+            if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
+                data_stream = self.streamDataChunked(environ)
+            else:
+                data_stream = self.streamData(environ, contentlength, block_size)
+
+            fileobj = self.beginWrite(contentType=environ.get("CONTENT_TYPE"))
+            self.processData(data_stream, fileobj)
+            fileobj.close()
+
+        except Exception as e:
+            self.endWrite(withErrors=True)
+            _logger.exception("PUT: byte copy failed")
+            util.fail(e)
+
+        self.endWrite(hasErrors)
+
+        if isnewfile:
+            return util.sendStatusResponse(environ, start_response, HTTP_CREATED)
+        return util.sendStatusResponse(environ, start_response, HTTP_NO_CONTENT)
 
 
 # ========================================================================
@@ -1356,6 +1514,9 @@ class DAVCollection(_DAVResource):
             return res
         return res.resolve(util.joinUri(scriptName, name), rest)
 
+    def handlePUT(self, environ, start_response, block_size, isnewfile):
+        """Handle a PUT request."""
+        util.fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
 
 # ========================================================================
 # DAVProvider
