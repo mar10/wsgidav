@@ -56,7 +56,6 @@ import os
 import platform
 import subprocess
 import sys
-import time
 
 from tests.util import Timing, WsgiDavTestServer
 from wsgidav import __version__
@@ -115,7 +114,7 @@ def _bench_litmus(opts):
     except OSError:
         print("This test requires the litmus test suite (see http://www.webdav.org/neon/litmus/)")
         raise
-    return
+    return res
 
 
 def _bench_script(opts):

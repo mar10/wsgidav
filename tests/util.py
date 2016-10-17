@@ -12,11 +12,8 @@ Example:
 from __future__ import print_function
 
 import os
-import subprocess
 import sys
 import time
-import unittest
-# from multiprocessing.process import Process
 from multiprocessing import Process
 from tempfile import gettempdir
 

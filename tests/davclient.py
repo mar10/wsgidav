@@ -21,7 +21,6 @@
 # Modified 2015-10-20, Martin Wendt:
 # - Fix for Py3: StringIO, string-exceptions, bytestring bodies
 
-import base64
 import copy
 import sys
 

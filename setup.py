@@ -175,7 +175,7 @@ setup(name="WsgiDAV",
                   "sphinx": SphinxCommand,
                   },
       entry_points = {
-          "console_scripts" : ["wsgidav = wsgidav.server.run_server:run"],
+          "console_scripts": ["wsgidav = wsgidav.server.run_server:run"],
           },
       options = {"build_exe": build_exe_options,
                  "bdist_msi": bdist_msi_options,
