@@ -47,7 +47,6 @@ from __future__ import print_function
 import sys
 import threading
 import time
-import urllib
 
 from wsgidav import compat, util
 from wsgidav.dav_provider import DAVProvider
@@ -125,7 +124,7 @@ def _checkConfig(config):
     mandatoryFields = ["provider_mapping",
                        ]
     for field in mandatoryFields:
-        if not field in config:
+        if field not in config:
             raise ValueError(
                 "Invalid configuration: missing required field '%s'" % field)
 
@@ -240,7 +239,8 @@ class WsgiDAVApp(object):
 
     def __call__(self, environ, start_response):
 
-        #        util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
+        # util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (
+        #    environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         # We optionall unquote PATH_INFO here, although this should already be
         # done by the server (#8).
@@ -332,7 +332,8 @@ class WsgiDAVApp(object):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
                 util.warn(
-                    "Missing required Content-Length header in %s-response: closing connection" % statusCode)
+                    "Missing required Content-Length header in %s-response: closing connection" %
+                    statusCode)
                 forceCloseConnection = True
             elif not type(currentContentLength) is str:
                 util.warn("Invalid Content-Length header in response (%r): closing connection" %
@@ -405,7 +406,7 @@ class WsgiDAVApp(object):
                     environ.get("PATH_INFO", ""),
                     extra,
                     status,
-                    #                                        response_headers.get(""), # response Content-Length
+                    # response_headers.get(""), # response Content-Length
                     # referer
                 ), file=sys.stdout)
 

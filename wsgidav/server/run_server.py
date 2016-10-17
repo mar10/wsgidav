@@ -107,7 +107,9 @@ See https://github.com/mar10/wsgidav for additional information.
     parser.add_argument("-H", "--host",  # '-h' conflicts with --help
                         dest="host",
                         # default="localhost",
-                        help="host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public"),
+                        help=("host to serve from (default: localhost). 'localhost' is only "
+                            "accessible from the local computer. Use 0.0.0.0 to make your "
+                            "application public")),
     parser.add_argument("-r", "--root",
                         dest="root_path",
                         help="path to a file system folder to publish as share '/'.")
@@ -126,7 +128,8 @@ See https://github.com/mar10/wsgidav for additional information.
 
     parser.add_argument("-c", "--config",
                         dest="config_file",
-                        help="configuration file (default: %s in current directory)" % DEFAULT_CONFIG_FILE)
+                        help=("configuration file (default: %s in current directory)" %
+                            DEFAULT_CONFIG_FILE))
     parser.add_argument("--no-config",
                         action="store_true", dest="no_config",
                         help="do not try to load default %s" % DEFAULT_CONFIG_FILE)
@@ -135,7 +138,8 @@ See https://github.com/mar10/wsgidav for additional information.
 
 #    parser.add_argument("--reload",
 #                        action="store_true", dest="reload",
-#                        help="restart server when source files are changed. Used by run_reloading_server (requires paste.reloader)")
+#                        help=("restart server when source files are changed. Used by "
+#                            "run_reloading_server (requires paste.reloader)"))
 
 #    parser.add_argument("", "--profile",
 #                      action="store_true", dest="profile",
@@ -200,13 +204,14 @@ def _readConfigFile(config_file, verbose):
                 continue
             conf[k] = v
     except Exception as e:
-#        if verbose >= 1:
-#            traceback.print_exc()
-        exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value) #@UndefinedVariable
+        # if verbose >= 1:
+        #    traceback.print_exc()
+        exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value)
         exceptiontext = ""
         for einfo in exceptioninfo:
             exceptiontext += einfo + "\n"
-#        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to " + exceptiontext)
+#        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to "
+#            + exceptiontext)
         print("Failed to read configuration file: " + config_file +
               "\nDue to " + exceptiontext, file=sys.stderr)
         raise
@@ -259,14 +264,16 @@ def _initConfig():
         pprint(config)
 
     # if not useLxml and config["verbose"] >= 1:
-    #     print("WARNING: Could not import lxml: using xml instead (slower). Consider installing lxml from http://codespeak.net/lxml/.")
+    #     print("WARNING: Could not import lxml: using xml instead (slower). Consider installing"
+    #         "lxml from http://codespeak.net/lxml/.")
 
     # print "verbose #3: ", config.get("verbose")
 
     if not config["provider_mapping"]:
         print("ERROR: No DAV provider defined. Try --help option.", file=sys.stderr)
         sys.exit(-1)
-#        raise RuntimeWarning("At least one DAV provider must be specified by a --root option, or in a configuration file.")
+#        raise RuntimeWarning("At least one DAV provider must be specified by a --root option,"
+#             or in a configuration file.")
 
     if cmdLineOpts.get("reload"):
         print("Installing paste.reloader.", file=sys.stderr)

@@ -34,7 +34,7 @@ __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
 
 # TODO: comment's from Ian Bicking (2005)
-#@@: Use of shelve means this is only really useful in a threaded environment.
+# @@: Use of shelve means this is only really useful in a threaded environment.
 #    And if you have just a single-process threaded environment, you could get
 #    nearly the same effect with a dictionary of threading.Lock() objects.  Of course,
 #    it would be better to move off shelve anyway, probably to a system with
@@ -205,7 +205,7 @@ class LockStorageDict(object):
 
             # Store locked path reference
             key = "URL2TOKEN:%s" % path
-            if not key in self._dict:
+            if key not in self._dict:
                 self._dict[key] = [token]
             else:
                 # Note: Shelve dictionary returns copies, so we must reassign
@@ -265,7 +265,7 @@ class LockStorageDict(object):
             # Remove url to lock mapping
             key = "URL2TOKEN:%s" % lock.get("root")
             if key in self._dict:
-                #                _logger.debug("    delete token %s from url %s" % (token, lock.get("root")))
+                # _logger.debug("    delete token %s from url %s" % (token, lock.get("root")))
                 tokList = self._dict[key]
                 if len(tokList) > 1:
                     # Note: shelve dictionary returns copies, so we must
@@ -380,7 +380,7 @@ class LockStorageShelve(LockStorageDict):
         # careful to re-assign values to _dict after modifying them
         self._dict = shelve.open(self._storagePath, writeback=False)
 #        if __debug__ and self._verbose >= 2:
-##                self._check("After shelve.open()")
+#                self._check("After shelve.open()")
 #            self._dump("After shelve.open()")
 
     def close(self):

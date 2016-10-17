@@ -11,8 +11,6 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-import urllib
-
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (
     HTTP_BAD_GATEWAY,
@@ -78,9 +76,10 @@ class RequestServer(object):
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
-        # TODO: allow anonymous somehow: this should run, even if http_authenticator middleware is not installed
+        # TODO: allow anonymous somehow: this should run, even if http_authenticator middleware
+        # is not installed
 #        assert "http_authenticator.username" in environ
-        if not "http_authenticator.username" in environ:
+        if "http_authenticator.username" not in environ:
             _logger.info(
                 "*** missing 'http_authenticator.username' in environ")
 
@@ -228,7 +227,7 @@ class RequestServer(object):
             util.evaluateHTTPConditionals(
                 res, lastmodified, entitytag, environ)
 
-        if not "HTTP_IF" in environ:
+        if "HTTP_IF" not in environ:
             return
 
         # Raise HTTP_PRECONDITION_FAILED, if DAV 'If' condition fails
@@ -301,7 +300,8 @@ class RequestServer(object):
             # TODO: implement <include> option
 #            elif pfnode.tag == "{DAV:}include":
 #                if not propFindMode in (None, "allprop"):
-#                    self._fail(HTTP_BAD_REQUEST, "<include> element is only valid with 'allprop'.")
+#                    self._fail(HTTP_BAD_REQUEST,
+#                        "<include> element is only valid with 'allprop'.")
 #                for pfpnode in pfnode:
 #                    propNameList.append(pfpnode.tag)
             elif pfnode.tag == "{DAV:}propname":
@@ -672,7 +672,7 @@ class RequestServer(object):
                 contentlength = 0
             else:
                 self._fail(HTTP_LENGTH_REQUIRED,
-                           "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
+                   "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
 
         hasErrors = False
         try:
@@ -732,7 +732,8 @@ class RequestServer(object):
 #                # by reading until the end of the stream. This may block however!
 #                # The iterator produced small chunks of varying size, but not
 #                # sure, if we always get everything before it times out.
-#                _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
+#                _logger.warning("PUT with invalid Content-Length (%s). Trying to read all "
+#                    "(this may timeout)..." % environ.get("CONTENT_LENGTH"))
 #                nb = 0
 #                try:
 #                    for s in environ["wsgi.input"]:
@@ -750,7 +751,8 @@ class RequestServer(object):
                     n = min(contentremain, self.block_size)
                     readbuffer = environ["wsgi.input"].read(n)
                     # This happens with litmus expect-100 test:
-#                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
+#                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (
+#                        n, len(readbuffer))
                     if not len(readbuffer) > 0:
                         util.warn("input.read(%s) returned 0 bytes" % n)
                         break
@@ -960,7 +962,7 @@ class RequestServer(object):
                         "check unmatched dest before copy: %s" % dRes)
                     relUrl = dRes.path[destRootLen:]
                     sp = srcPath + relUrl
-                    if not sp in srcPathList:
+                    if sp not in srcPathList:
                         _logger.debug(
                             "Remove unmatched dest before copy: %s" % dRes)
                         dRes.delete()
@@ -1246,13 +1248,15 @@ class RequestServer(object):
 #        for nu, e in dictStatus.items():
 #            responseEL = etree.SubElement(multistatusEL, "{DAV:}response")
 #            etree.SubElement(responseEL, "{DAV:}href").text = nu
-#            etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
+#            etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" %
+#                getHttpStatusString(e)
 #            # TODO: all responses should have this(?):
 #            if e.contextinfo:
 #                etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = e.contextinfo
 #
 # if responsedescription:
-##            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = "\n".join(responsedescription)
+#            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = "\n".join(
+#                responsedescription)
 #
 # return util.sendMultiStatusResponse(environ, start_response,
 # multistatusEL)
@@ -1272,7 +1276,7 @@ class RequestServer(object):
         elif util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                        "The server does not handle any body content.")
-        elif not "HTTP_LOCK_TOKEN" in environ:
+        elif "HTTP_LOCK_TOKEN" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing lock token.")
 
         self._evaluateIfHeaders(res, environ)
@@ -1399,7 +1403,8 @@ class RequestServer(object):
             self._fail(HTTP_NOT_FOUND)
         elif res.isCollection:
             self._fail(HTTP_FORBIDDEN,
-                       "Directory browsing not enabled (WsgiDavDirBrowser middleware may be enabled using the dir_browser option).")
+               ("Directory browsing not enabled (WsgiDavDirBrowser middleware may be enabled using"
+                " the dir_browser option)."))
 
         self._evaluateIfHeaders(res, environ)
 
@@ -1468,7 +1473,8 @@ class RequestServer(object):
         res.finalizeHeaders(environ, responseHeaders)
 
         if ispartialranges:
-            #            responseHeaders.append(("Content-Ranges", "bytes " + str(rangestart) + "-" + str(rangeend) + "/" + str(rangelength)))
+            # responseHeaders.append(("Content-Ranges", "bytes " + str(rangestart) + "-" +
+            #    str(rangeend) + "/" + str(rangelength)))
             responseHeaders.append(
                 ("Content-Range", "bytes %s-%s/%s" % (rangestart, rangeend, filesize)))
             start_response("206 Partial Content", responseHeaders)

@@ -72,13 +72,15 @@ class WsgiDAVDomainController(object):
         """Return True if this realm requires authentication or False if it is
         available for general access."""
         # TODO: Should check for --allow_anonymous?
-#        assert realmname in environ["wsgidav.config"]["user_mapping"], "Currently there must be at least on user mapping for this realm"
+#        assert realmname in environ["wsgidav.config"]["user_mapping"], (
+#            "Currently there must be at least on user mapping for this realm")
         return realmname in self.userMap
 
     def isRealmUser(self, realmname, username, environ):
         """Returns True if this username is valid for the realm, False otherwise."""
 #        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stdout, "isRealmUser('%s', '%s'): %s" %(realmname, username, realmname in self.userMap and username in self.userMap[realmname])
+#            print >>sys.stdout, "isRealmUser('%s', '%s'): %s" %(realmname, username,
+#                realmname in self.userMap and username in self.userMap[realmname])
         return realmname in self.userMap and username in self.userMap[realmname]
 
     def getRealmUserPassword(self, realmname, username, environ):

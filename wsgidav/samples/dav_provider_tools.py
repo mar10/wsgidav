@@ -48,7 +48,7 @@ class VirtualCollection(DAVCollection):
         return True
 
     def getMember(self, name):
-#        raise NotImplementedError()
+        # raise NotImplementedError()
         return self.provider.getResourceInst(util.joinUri(self.path, name),
                                              self.environ)
 
@@ -171,10 +171,10 @@ class FileResource(_VirtualNonCollection):
 #        return compat.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
-#        mime = self.getContentType()
+        # mime = self.getContentType()
         # GC issue 57: always store as binary
-#        if mime.startswith("text"):
-#            return open(self.filePath, "r", FileResource.BUFFER_SIZE)
+        # if mime.startswith("text"):
+        #     return open(self.filePath, "r", FileResource.BUFFER_SIZE)
         return open(self.filePath, "rb", FileResource.BUFFER_SIZE)
 
 

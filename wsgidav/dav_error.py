@@ -7,9 +7,7 @@ Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 from __future__ import print_function
 
-import cgi
 import datetime
-import sys
 import traceback
 
 # Trick PyDev to do intellisense and don't produce warnings:
@@ -144,7 +142,7 @@ class DAVErrorCondition(object):
         assert href.startswith("/")
         assert self.conditionCode in (PRECONDITION_CODE_LockConflict,
                                       PRECONDITION_CODE_MissingLockToken)
-        if not href in self.hrefs:
+        if href not in self.hrefs:
             self.hrefs.append(href)
 
     def as_xml(self):
@@ -178,7 +176,9 @@ class DAVError(Exception):
                  statusCode,
                  contextinfo=None,
                  srcexception=None,
-                 errcondition=None):  # allow passing of Pre- and Postconditions, see http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
+                 errcondition=None):
+        # allow passing of Pre- and Postconditions, see
+        # http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
         self.value = int(statusCode)
         self.contextinfo = contextinfo
         self.srcexception = srcexception
@@ -224,7 +224,8 @@ class DAVError(Exception):
         status = getHttpStatusString(self)
         html = []
         html.append(
-            "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>")
+            "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' "
+            "'http://www.w3.org/TR/html4/strict.dtd'>")
         html.append("<html><head>")
         html.append(
             "  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")

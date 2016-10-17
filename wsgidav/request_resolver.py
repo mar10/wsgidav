@@ -105,7 +105,7 @@ __docformat__ = "reStructuredText"
 # I leave them here after my refactoring for reference.
 #
 # Remarks:
-#@@: If this were just generalized URL mapping, you'd map it like:
+# @@: If this were just generalized URL mapping, you'd map it like:
 #    Incoming:
 #        SCRIPT_NAME=<approot>; PATH_INFO=/pubshare/PyFileServer/LICENSE
 #    After transforamtion:

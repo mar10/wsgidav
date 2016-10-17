@@ -116,8 +116,8 @@ _standardLivePropNames = ["{DAV:}creationdate",
 _lockPropertyNames = ["{DAV:}lockdiscovery",
                       "{DAV:}supportedlock"]
 
-#DAVHRES_Continue = "continue"
-#DAVHRES_Done = "done"
+# DAVHRES_Continue = "continue"
+# DAVHRES_Done = "done"
 
 # ========================================================================
 # _DAVResource
@@ -456,7 +456,7 @@ class _DAVResource(object):
         if depth != "0" and self.isCollection:
             for child in self.getMemberList():
                 if not child:
-                    _ = self.getMemberList()
+                    self.getMemberList()
                 want = (collections and child.isCollection) or (
                     resources and not child.isCollection)
                 if want and not depthFirst:
@@ -1240,7 +1240,8 @@ class DAVCollection(_DAVResource):
 #        return self.memberCache["members"]
 #
 #    def _cachePurge(self):
-#        self.memberCache["created"] = self.memberCache["lastUsed"] = self.memberCache["members"] = None
+#        self.memberCache["created"] = self.memberCache["lastUsed"] = None
+#        self.memberCache["members"] = None
 
 #    def getContentLanguage(self):
 #        return None
@@ -1406,13 +1407,13 @@ class DAVProvider(object):
         self.sharePath = sharePath
 
     def setLockManager(self, lockManager):
-        assert not lockManager or hasattr(
-            lockManager, "checkWritePermission"), "Must be compatible with wsgidav.lock_manager.LockManager"
+        assert not lockManager or hasattr(lockManager, "checkWritePermission"), ("Must be "
+            "compatible with wsgidav.lock_manager.LockManager")
         self.lockManager = lockManager
 
     def setPropManager(self, propManager):
-        assert not propManager or hasattr(
-            propManager, "copyProperties"), "Must be compatible with wsgidav.property_manager.PropertyManager"
+        assert not propManager or hasattr(propManager, "copyProperties"), ("Must be compatible "
+            "with wsgidav.property_manager.PropertyManager")
         self.propManager = propManager
 
     def refUrlToPath(self, refUrl):
