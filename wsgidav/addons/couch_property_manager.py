@@ -64,7 +64,7 @@ class CouchPropertyManager(object):
                      (self.db, self.couch.version()))
 
         # Ensure that we have a permanent view
-        if not "_design/properties" in self.db:
+        if "_design/properties" not in self.db:
             map = """
             function(doc) {
                 if(doc.type == 'properties') {
@@ -74,11 +74,12 @@ class CouchPropertyManager(object):
             """
             designDoc = {
                 "_id": "_design/properties",
-#                "_rev": "42351258",
+                # "_rev": "42351258",
                 "language": "javascript",
                 "views": {
                     "titles": {
-                        "map": "function(doc) { emit(null, { 'id': doc._id, 'title': doc.title }); }"
+                        "map": ("function(doc) { emit(null, { 'id': doc._id, "
+                            "'title': doc.title }); }")
                     },
                     # http://127.0.0.1:5984/wsgidav_props/_design/properties/_view/by_url
                     "by_url": {

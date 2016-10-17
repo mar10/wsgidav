@@ -303,7 +303,8 @@ class MySQLBrowserProvider(DAVProvider):
         self._count_initConnection = 0
 
     def __repr__(self):
-        return "%s for db '%s' on '%s' (user: '%s')'" % (self.__class__.__name__, self._db, self._host, self._user)
+        return "%s for db '%s' on '%s' (user: '%s')'" % (
+            self.__class__.__name__, self._db, self._host, self._user)
 
     def _splitPath(self, path):
         """Return (tableName, primaryKey) tuple for a request path."""

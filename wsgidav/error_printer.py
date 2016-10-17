@@ -95,13 +95,14 @@ class ErrorPrinter(BaseMiddleware):
             status = getHttpStatusString(e)
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
-                print(
-                    "ErrorPrinter: caught HTTPRequestException(HTTP_INTERNAL_ERROR)", file=sys.stdout)
+                print("ErrorPrinter: caught HTTPRequestException("
+                    "HTTP_INTERNAL_ERROR)", file=sys.stdout)
                 traceback.print_exc(10, environ.get(
                     "wsgi.errors") or sys.stdout)
                 print("e.srcexception:\n%s" % e.srcexception, file=sys.stdout)
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
-                #                util.log("ErrorPrinter: forcing empty error response for %s" % e.value)
+                # util.log("ErrorPrinter: forcing empty error response for %s"
+                #    % e.value)
                 # See paste.lint: these code don't have content
                 start_response(status, [("Content-Length", "0"),
                                         ("Date", util.getRfc1123Time()),

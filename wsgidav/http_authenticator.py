@@ -80,7 +80,6 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
-import base64
 import random
 import re
 import time
@@ -165,13 +164,15 @@ class HTTPAuthenticator(BaseMiddleware):
         if self._domaincontroller.__class__.__name__ == wdcName:
             if self._authacceptdigest or self._authdefaultdigest or not self._authacceptbasic:
                 util.warn(
-                    "WARNING: %s requires basic authentication.\n\tSet acceptbasic=True, acceptdigest=False, defaultdigest=False" % wdcName)
+                    "WARNING: %s requires basic authentication.\n\tSet acceptbasic=True, "
+                    "acceptdigest=False, defaultdigest=False" % wdcName)
 
     def getDomainController(self):
         return self._domaincontroller
 
     def allowAnonymousAccess(self, share):
-        return isinstance(self._domaincontroller, WsgiDAVDomainController) and not self._user_mapping.get(share)
+        return (isinstance(self._domaincontroller, WsgiDAVDomainController)
+            and not self._user_mapping.get(share))
 
     def __call__(self, environ, start_response):
         realmname = self._domaincontroller.getDomainRealm(
@@ -195,8 +196,8 @@ class HTTPAuthenticator(BaseMiddleware):
 
         if self._trusted_auth_header and environ.get(self._trusted_auth_header):
             # accept a username that was injected by a trusted upstream server
-            _logger.debug("Accept trusted username %s='%s'for realm '%s'"
-                          % (self._trusted_auth_header, environ.get(self._trusted_auth_header), realmname))
+            _logger.debug("Accept trusted username %s='%s'for realm '%s'" % (
+                    self._trusted_auth_header, environ.get(self._trusted_auth_header), realmname))
             environ["http_authenticator.realm"] = realmname
             environ["http_authenticator.username"] = environ.get(
                 self._trusted_auth_header)
@@ -397,7 +398,8 @@ class HTTPAuthenticator(BaseMiddleware):
             req_method = environ["REQUEST_METHOD"]
 
             required_digest = self.computeDigestResponse(
-                req_username, realmname, req_password, req_method, req_uri, req_nonce, req_cnonce, req_qop, req_nc)
+                req_username, realmname, req_password, req_method, req_uri, req_nonce, req_cnonce,
+                req_qop, req_nc)
 
             if required_digest != req_response:
                 _logger.warning("computeDigestResponse('%s', '%s', ...): %s != %s" % (
@@ -405,10 +407,12 @@ class HTTPAuthenticator(BaseMiddleware):
                 if HOTFIX_WINXP_AcceptRootShareLogin:
                     # Hotfix: also accept '/' digest
                     root_digest = self.computeDigestResponse(
-                        req_username, "/", req_password, req_method, req_uri, req_nonce, req_cnonce, req_qop, req_nc)
+                        req_username, "/", req_password, req_method, req_uri, req_nonce,
+                        req_cnonce, req_qop, req_nc)
                     if root_digest == req_response:
                         _logger.warning(
-                            "authDigestAuthRequest: HOTFIX: accepting '/' login for '%s'." % realmname)
+                            "authDigestAuthRequest: HOTFIX: accepting '/' login for '%s'." %
+                            realmname)
                     else:
                         isinvalidreq = True
                 else:
@@ -426,7 +430,8 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["http_authenticator.username"] = req_username
         return self._application(environ, start_response)
 
-    def computeDigestResponse(self, username, realm, password, method, uri, nonce, cnonce, qop, nc):
+    def computeDigestResponse(
+            self, username, realm, password, method, uri, nonce, cnonce, qop, nc):
         A1 = username + ":" + realm + ":" + password
         A2 = method + ":" + uri
         if qop:

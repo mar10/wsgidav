@@ -13,7 +13,7 @@ from subprocess import Popen
 
 def run():
     args = sys.argv[1:]
-    if not "--reload" in args:
+    if "--reload" not in args:
         args.append("--reload")
 
     print("run_reloading_server", args)
@@ -22,10 +22,11 @@ def run():
         serverpath = os.path.join(os.path.dirname(__file__), "run_server.py")
         while True:
             p = Popen(["python", serverpath] + args,
-#                      stdin=sys.stdin,
-#                      stdout=subprocess.PIPE,
-#                      stderr=subprocess.PIPE,
-    #                  preexec_fn, close_fds, shell, cwd, env, universal_newlines, startupinfo, creationflags
+                      # stdin=sys.stdin,
+                      # stdout=subprocess.PIPE,
+                      # stderr=subprocess.PIPE,
+                      # preexec_fn, close_fds, shell, cwd, env, universal_newlines, startupinfo,
+                      # creationflags
                       )
             sys.stdout = p.stdout
             sys.stderr = p.stderr

@@ -163,8 +163,10 @@ class LockManager(object):
             ownerDict.setdefault(lock["owner"], []).append(tok)
             urlDict.setdefault(lock["root"], []).append(tok)
 
-#            assert ("URL2TOKEN:" + v["root"]) in self._dict, "Inconsistency: missing URL2TOKEN:%s" % v["root"]
-#            assert v["token"] in self._dict["URL2TOKEN:" + v["root"]], "Inconsistency: missing token %s in URL2TOKEN:%s" % (v["token"], v["root"])
+#            assert ("URL2TOKEN:" + v["root"]) in self._dict, ("Inconsistency: missing"
+#                "URL2TOKEN:%s") % v["root"]
+#            assert v["token"] in self._dict["URL2TOKEN:" + v["root"]], ("Inconsistency: missing "
+#                "token %s in URL2TOKEN:%s" % (v["token"], v["root"])
 
         print("Locks:", file=out)
         pprint(tokenDict, indent=0, width=255)
@@ -227,7 +229,8 @@ class LockManager(object):
             # Raises DAVError on conflict:
             self._checkLockPermission(
                 url, locktype, lockscope, lockdepth, tokenList, principal)
-            return self._generateLock(principal, locktype, lockscope, lockdepth, lockowner, url, timeout)
+            return self._generateLock(
+                principal, locktype, lockscope, lockdepth, lockowner, url, timeout)
         finally:
             self._lock.release()
 
@@ -290,7 +293,8 @@ class LockManager(object):
                 if u != url and l["depth"] != "infinity":
                     continue  # We only consider parents with Depth: infinity
                 # TODO: handle shared locks in some way?
-#                if l["scope"] == "shared" and lockscope == "shared" and principal != l["principal"]:
+#                if (l["scope"] == "shared" and lockscope == "shared"
+#                   and principal != l["principal"]):
 # continue  # Only compatible with shared locks by other users
                 if principal is None or principal == l["principal"]:
                     lockList.append(l)

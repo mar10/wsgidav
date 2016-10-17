@@ -30,7 +30,7 @@ from wsgidav import util
 from wsgidav.rw_lock import ReadWriteLock
 
 # TODO: comment's from Ian Bicking (2005)
-#@@: Use of shelve means this is only really useful in a threaded environment.
+# @@: Use of shelve means this is only really useful in a threaded environment.
 #    And if you have just a single-process threaded environment, you could get
 #    nearly the same effect with a dictionary of threading.Lock() objects.  Of course,
 #    it would be better to move off shelve anyway, probably to a system with
@@ -101,7 +101,7 @@ class PropertyManager(object):
 #                print "  -> %s" % self._dict[k]
 #            self._dump()
             for k, v in self._dict.items():
-                _ = "%s, %s" % (k, v)
+                "%s, %s" % (k, v)
 #            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
             return True
         except Exception:
@@ -168,7 +168,8 @@ class PropertyManager(object):
             self._lock.release()
 
     def writeProperty(self, normurl, propname, propertyvalue, dryRun=False):
-        #        self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl, propname, dryRun, propertyvalue))
+        # self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl,
+        #   propname, dryRun, propertyvalue))
         assert normurl and normurl.startswith("/")
         assert propname  # and propname.startswith("{")
         assert propertyvalue is not None

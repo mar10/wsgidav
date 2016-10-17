@@ -22,7 +22,6 @@ import socket
 import stat
 import sys
 import time
-import urllib
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
@@ -239,7 +238,8 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
 #    _logger.debug("getModuleLogger(%s)" % moduleName)
     if not moduleName.startswith(BASE_LOGGER_NAME + "."):
         moduleName = BASE_LOGGER_NAME + "." + moduleName
-#    assert not "." in moduleName, "Only pass the module name, without leading '%s.'." % BASE_LOGGER_NAME
+#    assert not "." in moduleName, ("Only pass the module name, without "
+#        "leading '%s.'.") % BASE_LOGGER_NAME
 #    logger = logging.getLogger("%s.%s" % (BASE_LOGGER_NAME, moduleName))
     logger = logging.getLogger(moduleName)
     if logger.level == logging.NOTSET and not defaultToVerbose:
@@ -403,7 +403,7 @@ def stringRepr(s):
 
 
 def getFileExtension(path):
-    ext = os.path.splitext(url)[1]
+    ext = os.path.splitext(path)[1]
     return ext
 
 
@@ -510,8 +510,8 @@ def readAndDiscardInput(environ):
             else:
                 n = 1
             body = wsgi_input.read(n)
-            debug("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..." % (
-                n, body[:50]))
+            debug("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..."
+                % (n, body[:50]))
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
@@ -615,7 +615,8 @@ def isEqualOrChildUri(parentUri, childUri):
     Similar to <util.isChildUri>_ ,  but this method also returns True, if parent
     equals child. ('/a/b' is considered identical with '/a/b/').
     """
-    return parentUri and childUri and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/")
+    return (parentUri and childUri
+        and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/"))
 
 
 def makeCompleteUrl(environ, localUri=None):
@@ -726,7 +727,7 @@ def parseXmlBody(environ, allowEmpty=False):
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
         write("%s XML request body:\n%s" % (environ["REQUEST_METHOD"],
-                                            compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
+            compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -778,7 +779,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
-                                             compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
+            compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
         environ["wsgidav.dump_response_body"] = xml
 
     # Hotfix for Windows XP
@@ -832,7 +833,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         # Collect namespaces, so we can declare them in the <response> for
         # compacter output
         ns, _ = splitNamespace(name)
-        if ns != "DAV:" and not ns in nsDict and ns != "":
+        if ns != "DAV:" and ns not in nsDict and ns != "":
             nsDict[ns] = True
             nsMap["NS%s" % nsCount] = ns
             nsCount += 1
@@ -845,7 +846,8 @@ def addPropertyResponse(multistatusEL, href, propList):
 #    log("href value:%s" % (stringRepr(href)))
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
-#    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'()," + "$-_|.")
+#    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'(),"
+#       + "$-_|.")
 
     # One <propstat> per status code
     for status in propDict:
@@ -909,10 +911,12 @@ def getETag(filePath):
 
     if sys.platform == "win32":
         statresults = os.stat(unicodeFilePath)
-        return md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
+        return (md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-"
+            + str(statresults[stat.ST_SIZE]))
     else:
         statresults = os.stat(unicodeFilePath)
-        return str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-" + str(statresults[stat.ST_SIZE])
+        return (str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-"
+            + str(statresults[stat.ST_SIZE]))
 
 
 # ========================================================================
@@ -1043,11 +1047,11 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
         return
     # Conditions
 
-    # An HTTP/1.1 origin server, upon receiving a conditional request that includes both a Last-Modified date
-    # (e.g., in an If-Modified-Since or If-Unmodified-Since header field) and one or more entity tags (e.g.,
-    # in an If-Match, If-None-Match, or If-Range header field) as cache validators, MUST NOT return a response
-    # status of 304 (Not Modified) unless doing so is consistent with all of the conditional header fields in
-    # the request.
+    # An HTTP/1.1 origin server, upon receiving a conditional request that includes both a
+    # Last-Modified date (e.g., in an If-Modified-Since or If-Unmodified-Since header field) and
+    # one or more entity tags (e.g., in an If-Match, If-None-Match, or If-Range header field) as
+    # cache validators, MUST NOT return a response status of 304 (Not Modified) unless doing so
+    # is consistent with all of the conditional header fields in the request.
 
     if "HTTP_IF_MATCH" in environ and davres.supportEtag():
         ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
@@ -1067,9 +1071,9 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
 
     # If-None-Match
     # If none of the entity tags match, then the server MAY perform the requested method as if the
-    # If-None-Match header field did not exist, but MUST also ignore any If-Modified-Since header field
-    # (s) in the request. That is, if no entity tags match, then the server MUST NOT return a 304 (Not Modified)
-    # response.
+    # If-None-Match header field did not exist, but MUST also ignore any If-Modified-Since header
+    # field (s) in the request. That is, if no entity tags match, then the server MUST NOT return
+    # a 304 (Not Modified) response.
     ignoreIfModifiedSince = False
     if "HTTP_IF_NONE_MATCH" in environ and davres.supportEtag():
         ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
@@ -1112,7 +1116,7 @@ def parseIfHeaderDict(environ):
     if "wsgidav.conditions.if" in environ:
         return
 
-    if not "HTTP_IF" in environ:
+    if "HTTP_IF" not in environ:
         environ["wsgidav.conditions.if"] = None
         environ["wsgidav.ifLockTokenList"] = []
         return

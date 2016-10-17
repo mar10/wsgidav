@@ -40,7 +40,7 @@ DOT_ESCAPE = "^"
 
 def encodeMongoKey(s):
     """Return an encoded version of `s` that may be used as MongoDB key."""
-    assert not DOT_ESCAPE in s
+    assert DOT_ESCAPE not in s
     return s.replace(".", DOT_ESCAPE)
 
 
@@ -76,7 +76,7 @@ class MongoPropertyManager(object):
 
         self.collection = self.db["properties"]
         util.log("MongoPropertyManager connected %r" % self.collection)
-        _res = self.collection.ensure_index("_url")
+        self.collection.ensure_index("_url")
 
     def _disconnect(self):
         if self.conn:
@@ -101,7 +101,7 @@ class MongoPropertyManager(object):
         propNames = []
         if doc:
             for name in doc.keys():
-                if not name in HIDDEN_KEYS:
+                if name not in HIDDEN_KEYS:
                     propNames.append(decodeMongoKey(name))
         return propNames
 

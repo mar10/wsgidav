@@ -8,7 +8,8 @@ It supports passing all of the HTTP and WebDAV (rfc 2518) methods.
 It includes code from the following sources:
 ``wsgiServer.py`` from wsgiKit <http://www.owlfish.com/software/wsgiutils/> under PSF license,
 ``wsgiutils_server.py`` from Paste <http://pythonpaste.org> under PSF license,
-flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618> under public domain.
+flexible handler method <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/307618>
+under public domain.
 
 
 Running as standalone server
@@ -46,10 +47,10 @@ where ``publish_app`` is the WSGI application to be run, it will be called with
 ``publish_app(environ, start_response)`` for each incoming request, as described in
 WSGI <http://www.python.org/peps/pep-0333.html>
 
-Note: if you are using the paster development server (from Paste <http://pythonpaste.org>), you can
-copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use this server to run the
-application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate paste
-configuration.
+Note: if you are using the paster development server (from Paste <http://pythonpaste.org>), you
+can copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use this server to
+run the application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate
+paste configuration.
 """
 from __future__ import print_function
 
@@ -125,8 +126,8 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def getApp(self):
         # We want fragments to be returned as part of <path>
-        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse("http://dummyhost%s" % self.path,
-                                                                                allow_fragments=False)
+        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse(
+            "http://dummyhost%s" % self.path, allow_fragments=False)
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
             if (path.startswith(appPath)):
@@ -165,7 +166,8 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
     def runWSGIApp(self, application, scriptName, pathInfo, query):
-        # logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (scriptName, pathInfo))
+        # logging.info ("Running application with SCRIPT_NAME %s PATH_INFO %s" % (
+        #     scriptName, pathInfo))
 
         if self.command == "PUT":
             pass  # breakpoint
@@ -304,7 +306,7 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         self.stop_request = True
         time.sleep(.1)
         if self.stopped:
-#            print "stop_serve_forever() 'stopped'."
+            # print "stop_serve_forever() 'stopped'."
             return
 
         # Add a do_SHUTDOWN method to to the ExtHandler class

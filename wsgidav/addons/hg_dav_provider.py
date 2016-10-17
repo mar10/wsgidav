@@ -88,7 +88,7 @@ try:
     import mercurial.ui
     from mercurial.__version__ import version as hgversion
     from mercurial import commands, hg
-    #from mercurial import util as hgutil
+    # from mercurial import util as hgutil
 except ImportError:
     print("Could not import Mercurial API. Try 'easy_install -U mercurial'.", file=sys.stderr)
     raise
@@ -111,8 +111,8 @@ class HgResource(_DAVResource):
         self.rev = rev
         self.localHgPath = localHgPath
         self.absFilePath = self._getFilePath()
-        assert not "\\" in self.localHgPath
-        assert not "/" in self.absFilePath
+        assert "\\" not in self.localHgPath
+        assert "/" not in self.absFilePath
 
         if isCollection:
             self.fctx = None
@@ -123,8 +123,10 @@ class HgResource(_DAVResource):
             # rev=<int>: Revision ID
             wdctx = self.provider.repo[self.rev]
             self.fctx = wdctx[self.localHgPath]
-#        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (self.path, self.rev, self.localHgPath, self.fctx))
-#        util.status("HgResource: name=%s, dn=%s, abspath=%s" % (self.name, self.getDisplayName(), self.absFilePath))
+#        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (
+#            self.path, self.rev, self.localHgPath, self.fctx))
+#        util.status("HgResource: name=%s, dn=%s, abspath=%s" % (
+#            self.name, self.getDisplayName(), self.absFilePath))
 
     def _getFilePath(self, *addParts):
         parts = self.localHgPath.split("/")
@@ -161,9 +163,9 @@ class HgResource(_DAVResource):
         return util.guessMimeType(self.path)
 
     def getCreationDate(self):
-#        statresults = os.stat(self._filePath)
-#        return statresults[stat.ST_CTIME]
-        return None # TODO
+        # statresults = os.stat(self._filePath)
+        # return statresults[stat.ST_CTIME]
+        return None  # TODO
 
     def getDisplayName(self):
         if self.isCollection or self.fctx.filerev() is None:
@@ -171,7 +173,8 @@ class HgResource(_DAVResource):
         return "%s@%s" % (self.name, self.fctx.filerev())
 
     def getEtag(self):
-        return md5(self.path).hexdigest() + "-" + compat.to_native(self.getLastModified()) + "-" + str(self.getContentLength())
+        return (md5(self.path).hexdigest() + "-" + compat.to_native(self.getLastModified()) + "-"
+            + str(self.getContentLength()))
 
     def getLastModified(self):
         if self.isCollection:
@@ -186,7 +189,7 @@ class HgResource(_DAVResource):
         assert self.isCollection
         cache = self.environ["wsgidav.hg.cache"][compat.to_native(self.rev)]
         dirinfos = cache["dirinfos"]
-        if not dirinfos.has_key(self.localHgPath):
+        if self.localHgPath not in dirinfos:
             return []
         return dirinfos[self.localHgPath][0] + dirinfos[self.localHgPath][1]
 #        return self.provider._listMembers(self.path)
@@ -543,7 +546,7 @@ class HgResourceProvider(DAVProvider):
                  }
         caches[compat.to_native(rev)] = cache
         util.note("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time)
-#                  , var=cache
+                  # , var=cache
                   )
         return cache
 
@@ -552,7 +555,7 @@ class HgResourceProvider(DAVProvider):
 #        """Return a list of all non-collection members"""
 #        # Pattern for direct members:
 #        glob = "glob:" + os.path.join(path, "*").lstrip("/")
-##        print(glob)
+#        print(glob)
 #        self.ui.pushbuffer()
 #        commands.status(self.ui, self.repo,
 #                        glob,

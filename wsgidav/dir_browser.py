@@ -13,7 +13,6 @@ from __future__ import print_function
 
 import os
 import sys
-import urllib
 
 from wsgidav import __version__, compat, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
@@ -194,7 +193,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         trailer = dirConfig.get("response_trailer")
         if trailer:
             trailer = trailer.replace("${version}",
-                                      "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a>" % __version__)
+                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a>" % __version__)
             trailer = trailer.replace("${time}", util.getRfc1123Time())
         else:
             trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s"
@@ -202,7 +201,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         html = []
         html.append(
-            "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>")
+            "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' "
+            "'http://www.w3.org/TR/html4/strict.dtd'>")
         html.append("<html>")
         html.append("<head>")
         html.append(
@@ -221,7 +221,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         if dirConfig.get("ms_sharepoint_plugin"):
             html.append(
-                "<object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' height='0' style=''visibility: hidden;'></object>")
+                "<object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' "
+                "height='0' style=''visibility: hidden;'></object>")
 
         html.append("</head>")
         html.append("<body onload='onLoad()'>")
@@ -231,11 +232,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
         # Add DAV-Mount link and Web-Folder link
         links = []
         if dirConfig.get("davmount"):
-            links.append("<a title='Open this folder in a WebDAV client.' href='%s?davmount'>Mount</a>" %
-                         util.makeCompleteUrl(environ))
+            links.append("<a title='Open this folder in a WebDAV client.' "
+                "href='%s?davmount'>Mount</a>" % util.makeCompleteUrl(environ))
         if dirConfig.get("ms_mount"):
-            links.append("<a title='Open as Web Folder (requires Microsoft Internet Explorer)' href='' FOLDER='%s'>Open as Web Folder</a>" %
-                         util.makeCompleteUrl(environ))
+            links.append("<a title='Open as Web Folder (requires Microsoft Internet Explorer)' "
+                "href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
 #                html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
         if links:
             html.append("<p>%s</p>" % " &#8211; ".join(links))
@@ -246,7 +247,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         html.append("<thead>")
         html.append(
-            "<tr><th>Name</th> <th>Type</th> <th class='right'>Size</th> <th class='right'>Last modified</th> </tr>")
+            "<tr><th>Name</th> <th>Type</th> <th class='right'>Size</th> "
+            "<th class='right'>Last modified</th> </tr>")
         html.append("</thead>")
 
         html.append("<tbody>")

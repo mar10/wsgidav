@@ -220,7 +220,7 @@ class CategoryTypeCollection(DAVCollection):
                     names.append(data["orga"])
             elif self.name == "by_tag":
                 for tag in data["tags"]:
-                    if not tag in names:
+                    if tag not in names:
                         names.append(tag)
 
         names.sort()
@@ -266,7 +266,7 @@ class VirtualResource(DAVCollection):
     _artifactNames = (".Info.txt",
                       ".Info.html",
                       ".Description.txt",
-#                     ".Admin.html",
+                      # ".Admin.html",
                       )
     _supportedProps = ["{virtres:}key",
                        "{virtres:}title",
@@ -302,7 +302,7 @@ class VirtualResource(DAVCollection):
     def handleDelete(self):
         """Change semantic of DELETE to remove resource tags."""
         # DELETE is only supported for the '/by_tag/' collection
-        if not "/by_tag/" in self.path:
+        if "/by_tag/" not in self.path:
             raise DAVError(HTTP_FORBIDDEN)
         # path must be '/by_tag/<tag>/<resname>'
         catType, tag, _rest = util.saveSplit(self.path.strip("/"), "/", 2)
@@ -314,20 +314,20 @@ class VirtualResource(DAVCollection):
     def handleCopy(self, destPath, depthInfinity):
         """Change semantic of COPY to add resource tags."""
         # destPath must be '/by_tag/<tag>/<resname>'
-        if not "/by_tag/" in destPath:
+        if "/by_tag/" not in destPath:
             raise DAVError(HTTP_FORBIDDEN)
         catType, tag, _rest = util.saveSplit(destPath.strip("/"), "/", 2)
         assert catType == "by_tag"
-        if not tag in self.data["tags"]:
+        if tag not in self.data["tags"]:
             self.data["tags"].append(tag)
         return True  # OK
 
     def handleMove(self, destPath):
         """Change semantic of MOVE to change resource tags."""
         # path and destPath must be '/by_tag/<tag>/<resname>'
-        if not "/by_tag/" in self.path:
+        if "/by_tag/" not in self.path:
             raise DAVError(HTTP_FORBIDDEN)
-        if not "/by_tag/" in destPath:
+        if "/by_tag/" not in destPath:
             raise DAVError(HTTP_FORBIDDEN)
         catType, tag, _rest = util.saveSplit(self.path.strip("/"), "/", 2)
         assert catType == "by_tag"
@@ -335,7 +335,7 @@ class VirtualResource(DAVCollection):
         self.data["tags"].remove(tag)
         catType, tag, _rest = util.saveSplit(destPath.strip("/"), "/", 2)
         assert catType == "by_tag"
-        if not tag in self.data["tags"]:
+        if tag not in self.data["tags"]:
             self.data["tags"].append(tag)
         return True  # OK
 
@@ -564,10 +564,10 @@ class VirtualResFile(_VirtualNonCollection):
         return compat.quote(self.provider.sharePath + refPath)
 
     def getContent(self):
-#        mime = self.getContentType()
+        # mime = self.getContentType()
         # GC issue 57: always store as binary
-#        if mime.startswith("text"):
-#            return open(self.filePath, "r", BUFFER_SIZE)
+        # if mime.startswith("text"):
+        #     return open(self.filePath, "r", BUFFER_SIZE)
         return open(self.filePath, "rb", BUFFER_SIZE)
 
 
@@ -605,7 +605,7 @@ class VirtualResourceProvider(DAVProvider):
 #    def __init__(self):
 #        super(VirtualResourceProvider, self).__init__()
 #        self.resourceData = _resourceData
-##        self.rootCollection = VirtualCollection(self, "/", environ)
+#        self.rootCollection = VirtualCollection(self, "/", environ)
 #
 #
 #    def getResourceInst(self, path, environ):
@@ -622,7 +622,8 @@ class VirtualResourceProvider(DAVProvider):
 #
 #        catType, cat, resName, artifactName = util.saveSplit(path.strip("/"), "/", 3)
 #
-#        _logger.info("getResourceInst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType, cat, resName))
+#        _logger.info("getResourceInst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType,
+#             cat, resName))
 #
 #        if catType and catType not in _alllowedCategories:
 #            return None

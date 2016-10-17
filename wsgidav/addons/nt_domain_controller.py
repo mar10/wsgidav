@@ -133,13 +133,13 @@ class NTDomainController(object):
             domain = userdata[0]
             username = userdata[1]
 
-        if self._presetdomain != None:
+        if self._presetdomain is not None:
             domain = self._presetdomain
 
         return (domain, username)
 
     def _getDomainControllerName(self, domain):
-        if self._presetserver != None:
+        if self._presetserver is not None:
             return self._presetserver
 
         try:
@@ -178,7 +178,8 @@ class NTDomainController(object):
 
         try:
             htoken = win32security.LogonUser(
-                username, domain, password, win32security.LOGON32_LOGON_NETWORK, win32security.LOGON32_PROVIDER_DEFAULT)
+                username, domain, password, win32security.LOGON32_LOGON_NETWORK,
+                win32security.LOGON32_PROVIDER_DEFAULT)
         except win32security.error as err:
             _logger.warning("LogonUser failed for user '%s': %s" % (username, err))
             return False

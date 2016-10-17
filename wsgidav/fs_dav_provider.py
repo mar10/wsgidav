@@ -252,7 +252,7 @@ class FolderResource(DAVCollection):
 
         See DAVResource.createEmptyResource()
         """
-        assert not "/" in name
+        assert "/" not in name
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         path = util.joinUri(self.path, name)
@@ -266,7 +266,7 @@ class FolderResource(DAVCollection):
 
         See DAVResource.createCollection()
         """
-        assert not "/" in name
+        assert "/" not in name
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         path = util.joinUri(self.path, name)
