@@ -17,3 +17,5 @@ wsgidav.conf
 dist
 
 *.prefs
+*.project
+*.pydevproject
