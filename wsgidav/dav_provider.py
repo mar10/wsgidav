@@ -1115,7 +1115,7 @@ class _DAVResource(object):
 
 
 # ========================================================================
-# DAVCollection
+# DAVNonCollection
 # ========================================================================
 class DAVNonCollection(_DAVResource):
     """
