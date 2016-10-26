@@ -490,6 +490,7 @@ class RequestServer(object):
     def doPOST(self, environ, start_response):
         """
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_POST
+        @see http://stackoverflow.com/a/22606899/19166
         """
         self._fail(HTTP_METHOD_NOT_ALLOWED)
 
