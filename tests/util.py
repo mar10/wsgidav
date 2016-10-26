@@ -17,6 +17,7 @@ import time
 from multiprocessing import Process
 from tempfile import gettempdir
 
+from wsgidav.compat import to_bytes
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
@@ -56,7 +57,7 @@ class Timing(object):
 # Timing
 # ========================================================================
 
-def run_wsgidav_server(with_auth, with_ssl):
+def run_wsgidav_server(with_auth, with_ssl, provider=None):
     """Start blocking WsgiDAV server (called as a separate process)."""
     package_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), ".."))
@@ -65,7 +66,8 @@ def run_wsgidav_server(with_auth, with_ssl):
     if not os.path.exists(share_path):
         os.mkdir(share_path)
 
-    provider = FilesystemProvider(share_path)
+    if provider is None:
+        provider = FilesystemProvider(share_path)
 
     config = DEFAULT_CONFIG.copy()
     config.update({
@@ -121,10 +123,12 @@ def run_wsgidav_server(with_auth, with_ssl):
 class WsgiDavTestServer(object):
     """Run wsgidav in a separate process."""
 
-    def __init__(self, config=None, with_auth=False, with_ssl=False, profile=False):
+    def __init__(self, config=None, with_auth=False, with_ssl=False,
+                 provider=None, profile=False):
         self.config = config
         self.with_auth = with_auth
         self.with_ssl = with_ssl
+        self.provider = provider
         self.start_delay = 1
         self.proc = None
         assert not profile, "Not yet implemented"
@@ -133,6 +137,7 @@ class WsgiDavTestServer(object):
         kwargs = {
             "with_auth": self.with_auth,
             "with_ssl": self.with_ssl,
+            "provider": self.provider,
         }
         print("Starting WsgiDavTestServer...")
         self.proc = Process(target=run_wsgidav_server, kwargs=kwargs)
@@ -148,3 +153,10 @@ class WsgiDavTestServer(object):
         self.proc.terminate()
         self.proc.join()
         print("Stopping WsgiDavTestServer... done.")
+
+
+def write_test_file(name, size):
+    path = os.path.join(gettempdir(), name)
+    with open(path, "wb") as f:
+        f.write(to_bytes("*") * size)
+    return path

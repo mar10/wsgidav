@@ -1,4 +1,4 @@
-# (c) 2009-2015 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -28,9 +28,11 @@ except NameError:
 try:
     from cStringIO import StringIO
     BytesIO = StringIO
+    import Queue as queue
 except ImportError:
     from io import StringIO  # py3
     from io import BytesIO  # py3
+    import queue
 
 try:
     from urllib.parse import quote, unquote, urlparse  # py3
