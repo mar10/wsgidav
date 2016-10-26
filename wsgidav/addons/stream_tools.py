@@ -98,14 +98,14 @@ class FileLikeQueue(object):
 
     # TODO: we may also implement iterator functionality, but this should be 
     # optional, since the consumer may behave differently.
-    # For example requests produces chunked transfer encoding if the `data`
-    # argument is a generator instead of a file-like.
+    # For example the `requests` library produces chunked transfer encoding if 
+    # the `data` argument is a generator instead of a file-like.
 
     # def __iter__(self):
     #     return self
 
     # def __next__(self):
-    #     result = self.read()
+    #     result = self.read(self.block_size)
     #     if not result:
     #         raise StopIteration
     #     return result

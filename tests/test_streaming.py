@@ -2,7 +2,11 @@
 # (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
-"""Unit test for wsgidav.addons.filelike_queue.FileLikeQueue"""
+
+"""
+Unit tests for wsgidav.addons.stream_tools.FileLikeQueue
+"""
+
 import io
 import os
 import sys
@@ -15,7 +19,7 @@ import requests
 from tests.util import Timing, write_test_file, WsgiDavTestServer
 from wsgidav import compat
 from wsgidav.dav_provider import DAVProvider, DAVNonCollection
-from wsgidav.addons.filelike_queue import FileLikeQueue
+from wsgidav.addons.stream_tools import FileLikeQueue
 
 
 # ----------------------------------------------------------------------------
