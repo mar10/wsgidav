@@ -47,6 +47,7 @@ from __future__ import print_function
 import sys
 import threading
 import time
+import traceback
 
 from wsgidav import compat, util
 from wsgidav.dav_provider import DAVProvider
@@ -412,10 +413,18 @@ class WsgiDAVApp(object):
 
             return start_response(status, response_headers, exc_info)
 
-        # Call next middleware
-        app_iter = self._application(environ, _start_response_wrapper)
-        for v in app_iter:
-            yield v
+        try:
+            # Call next middleware
+            app_iter = self._application(environ, _start_response_wrapper)
+            for v in app_iter:
+                yield v
+        except Exception as e:
+            output_destination = environ.get("wsgi.errors") or sys.stderr
+            print('-'*40, file=output_destination)
+            traceback.print_exc(10, output_destination)
+            print('-'*40, file=output_destination)
+            raise e
+
         if hasattr(app_iter, "close"):
             app_iter.close()
 
