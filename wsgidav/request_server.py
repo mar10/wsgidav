@@ -121,7 +121,7 @@ class RequestServer(object):
                 res.close()
             return
 
-        app_iter = method(environ, start_response)
+        app_iter = self._davProvider.customRequestHandler(environ, start_response, method)
         for v in app_iter:
             yield v
         if hasattr(app_iter, "close"):
