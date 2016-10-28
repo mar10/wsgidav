@@ -8,6 +8,8 @@ CHANGES
 - #43: PEP8 fixes (Sergi Almacellas Abellana, Tom Viner)
 - #45 New method `_DAVResource.finalizeHeaders(environ, responseHeaders)` (Samuel Fekete)
 - #55 Custom response handlers for PUT, GET etc.
+- New helpers `addons.stream_tools.FileLikeQueue` and `StreamingFile` allow to
+  pipe / proxy PUT requests to external consumers.
 
 
 2.0.1 / 2016-10-07

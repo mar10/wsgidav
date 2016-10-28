@@ -14,7 +14,7 @@ from __future__ import print_function
 import os
 import sys
 import time
-from multiprocessing import Process
+import multiprocessing
 from tempfile import gettempdir
 
 from wsgidav.compat import to_bytes
@@ -57,7 +57,7 @@ class Timing(object):
 # Timing
 # ========================================================================
 
-def run_wsgidav_server(with_auth, with_ssl, provider=None):
+def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     """Start blocking WsgiDAV server (called as a separate process)."""
     package_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), ".."))
@@ -107,6 +107,10 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None):
             # "defaultdigest": True,
         })
 
+    # This event is .set() when server enters the request handler loop
+    if kwargs.get("startup_event"):
+        config["startup_event"] = kwargs["startup_event"]
+
     app = WsgiDAVApp(config)
 
     # from wsgidav.server.run_server import _runBuiltIn
@@ -129,7 +133,8 @@ class WsgiDavTestServer(object):
         self.with_auth = with_auth
         self.with_ssl = with_ssl
         self.provider = provider
-        self.start_delay = 2
+        # self.start_delay = 2
+        self.startup_event = multiprocessing.Event()
         self.proc = None
         assert not profile, "Not yet implemented"
 
@@ -138,14 +143,17 @@ class WsgiDavTestServer(object):
             "with_auth": self.with_auth,
             "with_ssl": self.with_ssl,
             "provider": self.provider,
+            "startup_event": self.startup_event,
         }
         print("Starting WsgiDavTestServer...")
-        self.proc = Process(target=run_wsgidav_server, kwargs=kwargs)
+        self.proc = multiprocessing.Process(target=run_wsgidav_server, kwargs=kwargs)
         self.proc.daemon = True
         self.proc.start()
-        # print("Starting WsgiDavTestServer... waiting...")
-        time.sleep(self.start_delay)
-        # print("Starting WsgiDavTestServer... waiting... done.")
+
+        print("Starting WsgiDavTestServer... waiting for request loop...")
+        # time.sleep(self.start_delay)
+        self.startup_event.wait()
+        print("Starting WsgiDavTestServer... running.")
         return self
 
     def __exit__(self, type, value, traceback):

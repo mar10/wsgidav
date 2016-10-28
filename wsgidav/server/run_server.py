@@ -391,6 +391,19 @@ def _runCherryPy(app, config, mode):
 
     server = wsgiserver.CherryPyWSGIServer(**server_args)
 
+    # If the caller passed a startup event, monkey patch the server to set it
+    # when the request handler loop is entered
+    startup_event = config.get("startup_event")
+    if startup_event:
+        def _patched_tick():
+            server.tick = org_tick  # undo the monkey patch
+            org_tick()
+            if config["verbose"] >= 1:
+                print("CherryPyWSGIServer is ready")
+            startup_event.set()
+        org_tick = server.tick
+        server.tick = _patched_tick
+
     try:
         server.start()
     except KeyboardInterrupt:

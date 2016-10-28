@@ -35,8 +35,11 @@ class FileLikeQueue(object):
     request should be directly streamed to a remote target:
 
     def beginWrite(self, contentType=None):
+        # Create a prcxy buffer
         queue = FileLikeQueue(maxsize=1)
+        # ... and use it as source for the consumer:
         requests.post(..., data=queue)
+        # pass it to the PUT handler as target
         return queue    
     """
     def __init__(self, maxsize=0):
@@ -48,16 +51,15 @@ class FileLikeQueue(object):
         """Read a chunk of bytes from queue.
 
         size = 0: Read next chunk (arbitrary length)
-             < 0: Read all bytes 
              > 0: Read one chunk of `size` bytes (or less if stream was closed)
+             < 0: Read all bytes as single chunk (i.e. blocks until stream is closed)
 
-        Blocks if queue is empty and close() was not yet called.
-        If close() was called and queue is empty, return ''.
+        This method blocks until the requested size become available.
+        However, if close() was called, '' is returned immediately.
         """
         res = self.unread
         self.unread = ""
-        # print("FileLikeQueue.read()")
-        # Deliver pending data without delay
+        # Get next chunk, cumulating requested size as needed
         while ( (res == "") or (size < 0) or (size > 0 and len(res) < size) ):
             try:
                 # Read pending data, blocking if neccessary
@@ -67,7 +69,7 @@ class FileLikeQueue(object):
                 # There was no pending data: wait for more, unless close() was called
                 if self.is_closed:
                     break
-        #
+        # Deliver `size` bytes from buffer
         if size > 0 and len(res) > size:
             self.unread = res[size:]
             res = res[:size]
