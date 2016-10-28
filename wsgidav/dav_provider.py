@@ -1459,3 +1459,13 @@ class DAVProvider(object):
         """
         res = self.getResourceInst(path, environ)
         return res and res.isCollection
+
+    def customRequestHandler(self, environ, start_response, defaultHandler):
+        """Optionally implement custom request handling.
+
+        requestmethod = environ["REQUEST_METHOD"]
+        Either 
+          - handle the request completely   
+          - do additional processing and call defaultHandler(environ, start_response)
+        """
+        return defaultHandler(environ, start_response)

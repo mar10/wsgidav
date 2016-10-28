@@ -42,40 +42,37 @@ class FileLikeQueue(object):
     def __init__(self, maxsize=0):
         self.is_closed = False
         self.queue = compat.queue.Queue(maxsize)
+        self.unread = ""
 
-    def read(self, size=None):
+    def read(self, size=0):
         """Read a chunk of bytes from queue.
+
+        size = 0: Read next chunk (arbitrary length)
+             < 0: Read all bytes 
+             > 0: Read one chunk of `size` bytes (or less if stream was closed)
 
         Blocks if queue is empty and close() was not yet called.
         If close() was called and queue is empty, return ''.
         """
-        if size:
-            # TODO: if a size arg was passed, we need to
-            #   - check whether the next pending chunk is too large.
-            #     If so, we return only a part and store the rest until the next 
-            #     call
-            #   - check whether the next pending chunk is too small.
-            #     If so, can we simply return a smaller chunk, or do we need to
-            #     collect more? I.e. would callers assume EOF if the returned 
-            #     size is less than the requested size?
-            # See http://stackoverflow.com/q/7383464/19166
-            raise NotImplementedError
-        print("FileLikeQueue.read()")
+        res = self.unread
+        self.unread = ""
+        # print("FileLikeQueue.read()")
         # Deliver pending data without delay
-        try:
-            return self.queue.get_nowait()
-        except compat.queue.Empty:
-            if self.is_closed:  # No need to wait for more write() calls
-                return ""
-        # There was no pending data, so wait for more.
-        # But handle the case that close() is called while blocking
-        while True:
+        while ( (res == "") or (size < 0) or (size > 0 and len(res) < size) ):
             try:
-                print("FileLikeQueue.read(), get")
-                return self.queue.get(True, 0.1)
-            except compat.queue.Empty:  # timeout
+                # Read pending data, blocking if neccessary
+                # (but handle the case that close() is called while waiting)
+                res += compat.to_native(self.queue.get(True, 0.1))
+            except compat.queue.Empty:
+                # There was no pending data: wait for more, unless close() was called
                 if self.is_closed:
-                    return ""
+                    break
+        #
+        if size > 0 and len(res) > size:
+            self.unread = res[size:]
+            res = res[:size]
+        # print("FileLikeQueue.read({}) => {} bytes".format(size, len(res)))
+        return res
 
     def write(self, chunk):
         """Put a chunk of bytes (or an iterable) to the queue.
@@ -84,7 +81,7 @@ class FileLikeQueue(object):
         """
         if self.is_closed:
             raise ValueError("Cannot write to closed object")
-        print("FileLikeQueue.write(), n={}".format(len(chunk)))
+        # print("FileLikeQueue.write(), n={}".format(len(chunk)))
         # Add chunk to queue (blocks if queue is full)
         if compat.is_basestring(chunk):
             self.queue.put(chunk)
@@ -111,3 +108,31 @@ class FileLikeQueue(object):
     #     return result
 
     # next = __next__  # Python 2.x
+
+
+# ============================================================================
+# StreamingFile
+# ============================================================================
+
+class StreamingFile(object):
+    """A file object wrapped around an iterator / data stream."""
+
+    def __init__(self, data_stream):
+        """Intialise the object with the data stream."""
+        self.data_stream = data_stream
+        self.buffer = ''
+
+    def read(self, size=None):
+        """Read bytes from an iterator."""
+        while size is None or len(self.buffer) < size:
+            try:
+                self.buffer += self.data_stream.next()
+            except StopIteration:
+                break
+
+        sized_chunk = self.buffer[:size]
+        if size is None:
+            self.buffer = ''
+        else:
+            self.buffer = self.buffer[size:]
+        return sized_chunk

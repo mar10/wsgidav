@@ -129,7 +129,7 @@ class WsgiDavTestServer(object):
         self.with_auth = with_auth
         self.with_ssl = with_ssl
         self.provider = provider
-        self.start_delay = 1
+        self.start_delay = 2
         self.proc = None
         assert not profile, "Not yet implemented"
 

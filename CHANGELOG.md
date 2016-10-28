@@ -5,8 +5,9 @@ CHANGES
 2.1.0 / Unreleased
 ==================
 - #42: Remove print usage in favor of logging (Sergi Almacellas Abellana)
-- #43: PEP8 (Sergi Almacellas Abellana, Tom Viner)
+- #43: PEP8 fixes (Sergi Almacellas Abellana, Tom Viner)
 - #45 New method `_DAVResource.finalizeHeaders(environ, responseHeaders)` (Samuel Fekete)
+- #55 Custom response handlers for PUT, GET etc.
 
 
 2.0.1 / 2016-10-07

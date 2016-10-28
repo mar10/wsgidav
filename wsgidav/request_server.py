@@ -76,6 +76,7 @@ class RequestServer(object):
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
+        provider = self._davProvider
         # TODO: allow anonymous somehow: this should run, even if http_authenticator middleware
         # is not installed
 #        assert "http_authenticator.username" in environ
@@ -112,7 +113,8 @@ class RequestServer(object):
         if environ.get("wsgidav.debug_profile"):
             from cProfile import Profile
             profile = Profile()
-            res = profile.runcall(method, environ, start_response)
+            res = profile.runcall(provider.customRequestHandler,
+                                  environ, start_response, method)
             # sort: 0:"calls",1:"time", 2: "cumulative"
             profile.print_stats(sort=2)
             for v in res:
@@ -121,7 +123,9 @@ class RequestServer(object):
                 res.close()
             return
 
-        app_iter = method(environ, start_response)
+        # Run requesthandler (provider may override, #55)
+        app_iter = provider.customRequestHandler(environ, start_response, method)
+
         for v in app_iter:
             yield v
         if hasattr(app_iter, "close"):
@@ -490,6 +494,7 @@ class RequestServer(object):
     def doPOST(self, environ, start_response):
         """
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_POST
+        @see http://stackoverflow.com/a/22606899/19166
         """
         self._fail(HTTP_METHOD_NOT_ALLOWED)
 
