@@ -65,7 +65,7 @@ class RequestServer(object):
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.isReadOnly():
             self._possible_methods.extend(
-                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH"])
+                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"])
             # if self._davProvider.propManager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lockManager is not None:
