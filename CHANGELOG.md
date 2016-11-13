@@ -2,7 +2,12 @@
 CHANGES
 =======
 
-2.1.0 / Unreleased
+2.1.1 / Unreleased
+==================
+- 
+
+
+2.1.0 / 2016-11-13
 ==================
 - #42: Remove print usage in favor of logging (Sergi Almacellas Abellana)
 - #43: PEP8 fixes (Sergi Almacellas Abellana, Tom Viner)
