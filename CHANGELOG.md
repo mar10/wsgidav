@@ -4,7 +4,7 @@ CHANGES
 
 2.1.1 / Unreleased
 ==================
-- 
+- Release as Wheel
 
 
 2.1.0 / 2016-11-13
