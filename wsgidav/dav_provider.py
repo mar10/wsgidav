@@ -613,10 +613,11 @@ class _DAVResource(object):
 
                 etree.SubElement(activelockEL, "{DAV:}depth").text = lock[
                     "depth"]
-                # lock["owner"] is an XML string
-                ownerEL = xml_tools.stringToXML(lock["owner"])
-
-                activelockEL.append(ownerEL)
+                if lock["owner"]:
+                    # lock["owner"] is an XML string
+                    # owner may be empty (#64)
+                    ownerEL = xml_tools.stringToXML(lock["owner"])
+                    activelockEL.append(ownerEL)
 
                 timeout = lock["timeout"]
                 if timeout < 0:

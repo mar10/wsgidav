@@ -1170,7 +1170,7 @@ class RequestServer(object):
 
         locktype = None
         lockscope = None
-        lockowner = ""
+        lockowner = compat.to_bytes("")
         lockdepth = environ.setdefault("HTTP_DEPTH", "infinity")
 
         for linode in lockinfoEL:

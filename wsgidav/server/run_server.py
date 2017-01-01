@@ -449,7 +449,7 @@ def _runWsgiref(app, config, mode):
     version = "WsgiDAV/%s %s" % (__version__, software_version)
     if config["verbose"] >= 1:
         print("Running %s..." % version)
-        print("WARNING: This single threaded server is not meant for production.")
+        print("WARNING: This single threaded server (wsgiref) is not meant for production.")
     httpd = make_server(config["host"], config["port"], app)
 #        print "Serving HTTP on port 8000..."
     try:
@@ -466,7 +466,7 @@ def _runExtWsgiutils(app, config, mode):
     if config["verbose"] >= 2:
         print("Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__)
     if config["verbose"] >= 1:
-        print("WARNING: This single threaded server is not meant for production.")
+        print("WARNING: This single threaded server (ext-wsgiutils) is not meant for production.")
     try:
         ext_wsgiutils_server.serve(config, app)
     except KeyboardInterrupt:

@@ -4,6 +4,7 @@ CHANGES
 
 2.1.1 / Unreleased
 ==================
+- Fix #64 LOCK without owner
 - Release as Wheel
 
 
