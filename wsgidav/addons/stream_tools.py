@@ -1,4 +1,4 @@
-# (c) 2009-2016 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implement the FileLikeQueue helper class.
@@ -35,7 +35,7 @@ class FileLikeQueue(object):
     request should be directly streamed to a remote target:
 
     def beginWrite(self, contentType=None):
-        # Create a prcxy buffer
+        # Create a proxy buffer
         queue = FileLikeQueue(maxsize=1)
         # ... and use it as source for the consumer:
         requests.post(..., data=queue)
