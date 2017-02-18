@@ -22,7 +22,7 @@ __docformat__ = "reStructuredText"
 useLxml = False
 try:
     # lxml with safe defaults
-    from defusedxml.lxml import etree
+    from defusedxml.lxml import _etree as etree
     useLxml = True
     _ElementType = etree._Element
 except ImportError:

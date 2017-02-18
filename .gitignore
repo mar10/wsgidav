@@ -19,3 +19,4 @@ dist
 *.prefs
 *.project
 *.pydevproject
+npm-debug.log
