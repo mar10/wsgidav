@@ -9,3 +9,4 @@ sphinx~=1.4
 #sphinxcontrib-napoleon~=0.3
 tox~=2.0
 WebTest~=2.0
+wheel

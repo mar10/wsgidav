@@ -41,7 +41,7 @@ class Timing(object):
         self.start = time.time()
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         elap = time.time() - self.start
         msg = ["Timing {:<20} took {:>6.3f} sec".format(repr(self.name), elap)]
         if self.count:
@@ -115,8 +115,8 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 
     # from wsgidav.server.run_server import _runBuiltIn
     # _runBuiltIn(app, config, None)
-    from wsgidav.server.run_server import _runCherryPy
-    _runCherryPy(app, config, "cherrypy-bundled")
+    from wsgidav.server.run_server import _runCheroot
+    _runCheroot(app, config, "cheroot")
     # blocking...
 
 
@@ -135,6 +135,7 @@ class WsgiDavTestServer(object):
         self.provider = provider
         # self.start_delay = 2
         self.startup_event = multiprocessing.Event()
+        self.startup_timeout = 5
         self.proc = None
         assert not profile, "Not yet implemented"
 
@@ -144,6 +145,7 @@ class WsgiDavTestServer(object):
             "with_ssl": self.with_ssl,
             "provider": self.provider,
             "startup_event": self.startup_event,
+            "startup_timeout": self.startup_timeout,
         }
         print("Starting WsgiDavTestServer...")
         self.proc = multiprocessing.Process(target=run_wsgidav_server, kwargs=kwargs)
@@ -152,11 +154,13 @@ class WsgiDavTestServer(object):
 
         print("Starting WsgiDavTestServer... waiting for request loop...")
         # time.sleep(self.start_delay)
-        self.startup_event.wait()
+        if not self.startup_event.wait(self.startup_timeout):
+            raise RuntimeError("WsgiDavTestServer start() timed out after {} seconds"
+                               .format(self.startup_timeout))
         print("Starting WsgiDavTestServer... running.")
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         # print("Stopping WsgiDAVAppavTestServer...")
         self.proc.terminate()
         self.proc.join()

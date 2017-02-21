@@ -25,32 +25,32 @@ so we will change to this directory when `workon` is called.
 
 For example Python 3.4
 ```
-$ mkvirtualenv wsgidav3_py34 -p /Library/Frameworks/Python.framework/Versions/3.4/bin/python3.4 -a .
-$ workon wsgidav3_py34
+$ mkvirtualenv wsgidav_py34 -p /Library/Frameworks/Python.framework/Versions/3.4/bin/python3.4 -a .
+$ workon wsgidav_py34
 ```
 
 or using Python's builtin `venv` instead of `virtualenvwrapper`:
 ```
-> py -3.4 -m venv c:\env\wsgidav3_py34
-> c:\env\wsgidav3_py34\Scripts\activate.bat
+> py -3.4 -m venv c:\env\wsgidav_py34
+> c:\env\wsgidav_py34\Scripts\activate.bat
 ```
 
 The new environment exists and is activated.
 Now install the development dependencies into that environemt:
 ```
-(wsgidav3_py34) $ pip install -r requirements-dev.txt
+(wsgidav_py34) $ pip install -r requirements-dev.txt
 ```
 
 Finally install wsgidav to the environment in a debuggable version
 ```
-(wsgidav3_py34) $ python setup.py develop
-(wsgidav3_py34) $ wsgidav --version
-(wsgidav3_py34) $ 1.3.0pre1
+(wsgidav_py34) $ python setup.py develop
+(wsgidav_py34) $ wsgidav --version
+(wsgidav_py34) $ 1.3.0pre1
 ```
 
 The test suite should run as well:
 ```
-(wsgidav3_py34) $ python setup.py test
+(wsgidav_py34) $ python setup.py test
 ```
 
 Happy hacking :)

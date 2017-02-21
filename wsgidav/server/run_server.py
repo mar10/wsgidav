@@ -114,11 +114,15 @@ See https://github.com/mar10/wsgidav for additional information.
                         dest="root_path",
                         help="path to a file system folder to publish as share '/'.")
     parser.add_argument("--server",
-                        choices=("cherrypy", "ext-wsgiutils", "flup-fcgi",
+                        choices=("cheroot", "cherrypy-wsgiserver", "ext-wsgiutils", "flup-fcgi",
                                  "flup-fcgi-fork", "paste", "wsgiref"),
-                        default="cherrypy",
-                        # dest="server",
-                        help="type of pre-installed WSGI server to use. (Default: cherrypy)")
+                        default="cheroot",
+                        help="type of pre-installed WSGI server to use (default: %(default)s).")
+    parser.add_argument("--ssl-adapter",
+                        choices=("builtin", "pyopenssl"),
+                        default="builtin",
+                        help="used by 'cheroot' server if SSL certificates are configured "
+                            "(default: %(default)s).")
 
     parser.add_argument("-v", "--verbose", action="count", default=1,
                         help="increment verbosity by one (default: %(default)s, range: 0..5)")
@@ -254,6 +258,8 @@ def _initConfig():
         config["profile"] = True
     if cmdLineOpts.get("server") is not None:
         config["server"] = cmdLineOpts.get("server")
+    if cmdLineOpts.get("ssl_adapter") is not None:
+        config["ssl_adapter"] = cmdLineOpts.get("ssl_adapter")
 
     if cmdLineOpts.get("root_path"):
         root_path = os.path.abspath(cmdLineOpts.get("root_path"))
@@ -346,16 +352,23 @@ def _runPaste(app, config, mode):
 
 def _runCherryPy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver if CherryPy is installed."""
-    assert mode in ("cherrypy", "cherrypy-bundled")
+    assert mode == "cherrypy-wsgiserver"
 
     try:
         from cherrypy import wsgiserver
         from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
+        print("WARNING: cherrypy.wsgiserver is deprecated.")
+        print("         Starting with CherryPy 9.0 the functionality from cherrypy.wsgiserver")
+        print("         was moved to the cheroot project.")
+        print("         Consider using --server=cheroot.")
     except ImportError:
         # if config["verbose"] >= 1:
         print("*" * 78)
-        print("ERROR: Could not import CherryPy.")
+        print("ERROR: Could not import cherrypy.wsgiserver.")
         print("Try `pip install cherrypy` or specify another server using the --server option.")
+        print("Note that starting with CherryPy 9.0, the server was moved to")
+        print("the cheroot project, so it is recommended to use `-server=cheroot`")
+        print("and run `pip install cheroot` instead.")
         print("*" * 78)
         raise
 
@@ -411,6 +424,84 @@ def _runCherryPy(app, config, mode):
             print("Caught Ctrl-C, shutting down...")
     finally:
         server.stop()
+    return
+
+
+def _runCheroot(app, config, mode):
+    """Run WsgiDAV using cheroot.server if Cheroot is installed."""
+    assert mode == "cheroot"
+
+    try:
+        from cheroot import server, wsgi
+#         from cheroot.ssl.builtin import BuiltinSSLAdapter
+#         import cheroot.ssl.pyopenssl
+    except ImportError:
+        # if config["verbose"] >= 1:
+        print("*" * 78)
+        print("ERROR: Could not import Cheroot.")
+        print("Try `pip install cheroot` or specify another server using the --server option.")
+        print("*" * 78)
+        raise
+
+    server_name = "WsgiDAV/%s %s Python/%s" % (
+        __version__,
+        wsgi.Server.version,
+        PYTHON_VERSION)
+    wsgi.Server.version = server_name
+
+    # Support SSL
+    ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
+    ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
+    ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
+    ssl_adapter = config.get("ssl_adapter", "builtin")
+    protocol = "http"
+    if ssl_certificate and ssl_private_key:
+        ssl_adapter = server.get_ssl_adapter_class(ssl_adapter)
+        wsgi.Server.ssl_adapter = ssl_adapter(
+            ssl_certificate, ssl_private_key, ssl_certificate_chain)
+        protocol = "https"
+        if config["verbose"] >= 1:
+            print("SSL / HTTPS enabled. Adapter: {}".format(ssl_adapter))
+    elif ssl_certificate or ssl_private_key:
+        raise RuntimeError("Option 'ssl_certificate' requires 'ssl_private_key'.")
+    elif ssl_adapter:
+        print("WARNING: Ignored option 'ssl_adapter' (requires 'ssl_certificate').")
+        
+
+    if config["verbose"] >= 1:
+        print("Running %s" % server_name)
+        print("Serving on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
+
+    server_args = {"bind_addr": (config["host"], config["port"]),
+                   "wsgi_app": app,
+                   "server_name": server_name,
+                   }
+    # Override or add custom args
+    server_args.update(config.get("server_args", {}))
+
+    server = wsgi.Server(**server_args)
+
+    # If the caller passed a startup event, monkey patch the server to set it
+    # when the request handler loop is entered
+    startup_event = config.get("startup_event")
+    if startup_event:
+        def _patched_tick():
+            server.tick = org_tick  # undo the monkey patch
+            if config["verbose"] >= 1:
+                print("wsgi.Server is ready")
+            startup_event.set()
+            org_tick()
+        org_tick = server.tick
+        server.tick = _patched_tick
+
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        if config["verbose"] >= 1:
+            print("Caught Ctrl-C, shutting down...")
+    finally:
+        server.stop()
+
     return
 
 
@@ -477,6 +568,7 @@ def _runExtWsgiutils(app, config, mode):
 
 def run():
     SUPPORTED_SERVERS = {"paste": _runPaste,
+                         "cheroot": _runCheroot,
                          "cherrypy": _runCherryPy,
                          "ext-wsgiutils": _runExtWsgiutils,
                          "flup-fcgi": _runFlup,

@@ -34,7 +34,7 @@ def addUser(realmName, user, password, description, roles=[]):
 # SERVER OPTIONS
 #===============================================================================
 
-# server = "cherrypy"
+# server = "cheroot"
 # server_args = {}
 
 # host  = "localhost"
@@ -52,17 +52,21 @@ port = 8080
 # ssl_private_key = "wsgidav/server/sample_bogo_server.key"
 # ssl_certificate_chain = None
 
+# Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
+# ssl_adapter = "pyopenssl"
 
-# Add the MS-Author-Via Response Header to OPTIONS command to allow editing
-# with Microsoft Office (default: True)
-add_header_MS_Author_Via = True	
 
 #================================================================================
 # Misc. setings
 #
 
+# Add the MS-Author-Via Response Header to OPTIONS command to allow editing
+# with Microsoft Office (default: True)
+add_header_MS_Author_Via = True	
+
 # Block size in bytes
 #block_size = 8192
+
 
 #===============================================================================
 # Middlewares

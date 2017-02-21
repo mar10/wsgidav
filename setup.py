@@ -55,9 +55,9 @@ class SphinxCommand(Command):
 
 
 try:
-  readme = open("readme_pypi.rst", "rt").read()
+    readme = open("readme_pypi.rst", "rt").read()
 except IOError:
-  readme = "(readme_pypi.rst not found. Running from tox/setup.py test?)"
+    readme = "(readme_pypi.rst not found. Running from tox/setup.py test?)"
 
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
 if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
@@ -72,10 +72,10 @@ if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
 #   3. there may already cherrypy versions installed
 
 install_requires = ["defusedxml",
-                    #"cherrypy",
+                    #"cheroot",
                     #"lxml",
                     ]
-tests_require = ["cherrypy",
+tests_require = ["cheroot",
                  "pytest",
                  "pytest-cov",
                  "tox",
@@ -93,7 +93,7 @@ try:
                    targetName="wsgidav.exe",
                    icon="doc/logo.ico",
                    shortcutName="WsgiDAV",
-                   # copyright="(c) 2010-2016 Martin Wendt",  # requires cx_Freeze PR#94
+                   # copyright="(c) 2010-2017 Martin Wendt",  # requires cx_Freeze PR#94
                    # trademarks="...",
                    )
         ]
@@ -105,11 +105,10 @@ except ImportError:
     executables = []
 
 build_exe_options = {
-    # "init_script": "Console",
     "includes": install_requires,
     "packages": [],
-    "constants": "BUILD_COPYRIGHT='(c) 2010-2016 Martin Wendt'",
-    "init_script": "Console",
+    "constants": "BUILD_COPYRIGHT='(c) 2010-2017 Martin Wendt'",
+#     "init_script": "Console",
     }
 
 bdist_msi_options = {

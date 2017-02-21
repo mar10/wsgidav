@@ -2,9 +2,17 @@
 CHANGES
 =======
 
-2.1.1 / Unreleased
+2.2.0 / Unreleased
 ==================
-- Fix #64 LOCK without owner
+- #65: Support for Cheroot server, which is the standalone WSGI server of CherryPy
+  since version 9.0.
+  `--server=cheroot` is the default now.
+  Deprecating cherrypy.wsgiserver: `--server=cherrypy` was renamed to 
+  `--cherrypy-wsgiserver`
+- New option `--ssl-adapter`, used by 'cheroot' server if SSL certificates are 
+  configured. Defaults to 'builtin'. Set to 'pyopenssl' to use an installed 
+  OpenSSL. (Currently broken as of Cheroot 5.1, see https://github.com/cherrypy/cheroot/issues/6)
+- #64: Fix LOCK without owner
 - Release as Wheel
 
 
