@@ -122,7 +122,7 @@ See https://github.com/mar10/wsgidav for additional information.
                         choices=("builtin", "pyopenssl"),
                         default="builtin",
                         help="used by 'cheroot' server if SSL certificates are configured "
-                            "(default: %(default)s).")
+                            "(default: %(default)s.")
 
     parser.add_argument("-v", "--verbose", action="count", default=1,
                         help="increment verbosity by one (default: %(default)s, range: 0..5)")
@@ -463,9 +463,9 @@ def _runCheroot(app, config, mode):
         if config["verbose"] >= 1:
             print("SSL / HTTPS enabled. Adapter: {}".format(ssl_adapter))
     elif ssl_certificate or ssl_private_key:
-        raise RuntimeError("Option 'ssl_certificate' requires 'ssl_private_key'.")
-    elif ssl_adapter:
-        print("WARNING: Ignored option 'ssl_adapter' (requires 'ssl_certificate').")
+        raise RuntimeError("Option 'ssl_certificate' and 'ssl_private_key' must be used together.")
+#     elif ssl_adapter:
+#         print("WARNING: Ignored option 'ssl_adapter' (requires 'ssl_certificate').")
         
 
     if config["verbose"] >= 1:
