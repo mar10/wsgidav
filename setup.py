@@ -75,6 +75,13 @@ install_requires = ["defusedxml",
                     #"cheroot",
                     #"lxml",
                     ]
+
+# The Windows MSI Setup should include lxml
+if "bdist_msi" in sys.argv:
+    install_requires.extend([
+        "lxml",
+        ])
+
 tests_require = ["cheroot",
                  "pytest",
                  "pytest-cov",

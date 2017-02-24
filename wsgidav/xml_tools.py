@@ -21,6 +21,8 @@ __docformat__ = "reStructuredText"
 # Import XML support
 useLxml = False
 try:
+    # This import helps setup.py to include lxml completely:
+    from lxml import _elementpath as _dummy_elementpath
     # lxml with safe defaults
     from defusedxml.lxml import _etree as etree
     useLxml = True
@@ -33,8 +35,6 @@ except ImportError:
     etree.Element = _ElementType = Element
     etree.SubElement = SubElement
     etree.tostring = tostring
-    # print("WARNING: Could not import lxml: using xml instead (slower).")
-    # print("         Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
 
 # ========================================================================
