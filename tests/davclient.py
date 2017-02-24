@@ -103,19 +103,26 @@ def object_to_etree(parent, obj, namespace=''):
 
 class DAVClient(object):
 
-    def __init__(self, url='http://localhost:8080'):
+    def __init__(self, url='http://localhost:8080', logger=None):
         """Initialization"""
 
         self._url = urlparse(url)
+        self.logger = logger
+        self.logger_prefix = "DAVClient" if logger is True else str(logger)
 
         self.headers = {'Host': self._url[1],
                         'User-Agent': 'python.davclient.DAVClient/0.1'}
 
+    def log(self, msg):
+        if self.logger:
+            print("{}: {}".format(self.logger_prefix, msg))
+        
     def _request(self, method, path='', body=None, headers=None):
         """Internal request method"""
         self.response = None
 
         assert body is None or is_bytes(body)
+        self.log("{} - {}".format(method, path))
 
         if headers is None:
             headers = copy.copy(self.headers)

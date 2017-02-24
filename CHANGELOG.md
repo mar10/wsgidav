@@ -13,6 +13,7 @@ CHANGES
   configured. Defaults to 'builtin'. Set to 'pyopenssl' to use an installed 
   OpenSSL. (Currently broken as of Cheroot 5.1, see https://github.com/cherrypy/cheroot/issues/6)
 - #64: Fix LOCK without owner
+- #65: Add lxml to MSI installer
 - Release as Wheel
 
 

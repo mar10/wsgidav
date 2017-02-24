@@ -19,46 +19,67 @@ from tempfile import gettempdir
 from threading import Thread
 
 from tests import davclient
+from tests.util import WsgiDavTestServer
 from wsgidav import compat
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 
-# ========================================================================
-# EXTERNAL_SERVER_ADDRESS
-# <None> means 'start WsgiDAV as parallel thread'
-#
-# When the PyDev Debugger is running, then davclient requests will block
+
+# SERVER_ADDRESS
+# (using localhost or mixing hostnames with IPs may be very slow!)
+SERVER_ADDRESS = "http://127.0.0.1:8080"
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 8080
+
+# RUN_OWN_SERVER
+# When the PyDev Debugger is running, davclient requests will block
 # (i.e. will not be handled by WsgiDAVServerThread)
 # In this case, run WsgiDAV as external process and specify the URL here.
-# This is also recommended when doing benchmarks
-# ========================================================================
-EXTERNAL_SERVER_ADDRESS = None  # Start temporary server in own thread
-# EXTERNAL_SERVER_ADDRESS = "http://127.0.0.1:8080"
-# EXTERNAL_SERVER_ADDRESS = "http://localhost:8080"
+# This is also recommended when doing benchmarks:
+RUN_OWN_SERVER = True
 
-_test_server_thread = None
+# RUN_SEPARATE_PROCESS
+# False:
+#    - Run ExtServer in a separate thread
+#    - Cannot be debugged (requests and server locking each other)
+#    - Logs to current console
+# True:
+#    - Run WsgiDavTestServer in a separate process
+#    - Server log messages not visible 
+RUN_SEPARATE_PROCESS = True
+
+_test_server = None
 
 
 def setUpModule():
-    global _test_server_thread
-    assert not _test_server_thread
-    if EXTERNAL_SERVER_ADDRESS is None:
-        _test_server_thread = WsgiDAVServerThread()
-        _test_server_thread.start()
-        # let server start the loop, otherwise shutdown might lock
-        time.sleep(.1)
+    global _test_server
+    if RUN_OWN_SERVER:
+        if RUN_SEPARATE_PROCESS:
+            _test_server = WsgiDavTestServer(with_auth=True, with_ssl=False)
+            _test_server.start()            
+        else:
+            _test_server = WsgiDAVServerThread()
+            _test_server.start()
+            # let server start the loop, otherwise shutdown might lock
+            time.sleep(.1)
+    return
 
 
 def tearDownModule():
-    global _test_server_thread
-    if _test_server_thread:
-        print("tearDownModule shutdown...")
-        _test_server_thread.shutdown()
-        print("tearDownModule join...")
-        _test_server_thread.join()
-        _test_server_thread = None
-        print("tearDownModule joined")
+    global _test_server
+    
+    if _test_server:
+        if RUN_SEPARATE_PROCESS:
+            _test_server.stop()            
+        else:
+            print("tearDownModule shutdown...")
+            _test_server.shutdown()
+            print("tearDownModule join...")
+            _test_server.join()
+            print("tearDownModule joined")
+        _test_server = None
+    return
 
 
 # ========================================================================
@@ -86,8 +107,8 @@ class WsgiDAVServerThread(Thread):
         config.update({
             "provider_mapping": {"/": provider},
             "user_mapping": {},
-            "host": "localhost",
-            "port": 8080,
+            "host": SERVER_HOST,
+            "port": SERVER_PORT,
             "enable_loggers": [
                 #                               "http_authenticator",
                 #                               "lock_manager",
@@ -145,31 +166,12 @@ class ServerTest(unittest.TestCase):
     """Test wsgidav_app using davclient."""
 
     def setUp(self):
-        #        print "setUp"
-        if EXTERNAL_SERVER_ADDRESS:
-            # self.server_thread = None
-            self.client = davclient.DAVClient(EXTERNAL_SERVER_ADDRESS)
-        else:
-            # self.server_thread = WsgiDAVServerThread()
-            # self.server_thread.start()
-            # # let server start the loop, otherwise shutdown might lock
-            # time.sleep(.1)
-            self.client = davclient.DAVClient("http://localhost:8080/")
-
+        self.client = davclient.DAVClient(SERVER_ADDRESS, logger=True)
         self.client.set_basic_auth("tester", "secret")
 #        self.client.headers['new_header_for_session'] = "useful_example"
 
     def tearDown(self):
-        #        print "tearDown"
         del self.client
-        # if self.server_thread:
-        #     print("tearDown shutdown...")
-        #     self.server_thread.shutdown()
-        #     print("tearDown join...")
-        #     self.server_thread.join()
-        #     self.server_thread = None
-        #     print("tearDown joined")
-#        os.rmdir(self.rootpath)
 
     def testPreconditions(self):
         """Environment must be set."""
@@ -378,7 +380,7 @@ class ServerTest(unittest.TestCase):
         """Locking."""
         client1 = self.client
 
-        client2 = davclient.DAVClient("http://localhost:8080/")
+        client2 = davclient.DAVClient(SERVER_ADDRESS, logger="DAVClient2")
         client2.set_basic_auth("tester2", "secret2")
 
         self._prepareTree0()

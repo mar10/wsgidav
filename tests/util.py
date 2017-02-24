@@ -53,9 +53,20 @@ class Timing(object):
         print(", ".join(msg))
 
 
-# ========================================================================
-# Timing
-# ========================================================================
+#===============================================================================
+# write_test_file
+#===============================================================================
+
+def write_test_file(name, size):
+    path = os.path.join(gettempdir(), name)
+    with open(path, "wb") as f:
+        f.write(to_bytes("*") * size)
+    return path
+
+
+#===============================================================================
+# run_wsgidav_server
+#===============================================================================
 
 def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     """Start blocking WsgiDAV server (called as a separate process)."""
@@ -91,6 +102,10 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
                                               "description": "",
                                               "roles": [],
                                               },
+                                   "tester2": {"password": "secret2",
+                                               "description": "",
+                                               "roles": [],
+                                               },
                                    },
                              },
             "acceptbasic": True,
@@ -140,6 +155,19 @@ class WsgiDavTestServer(object):
         assert not profile, "Not yet implemented"
 
     def __enter__(self):
+        self.start()
+        return self 
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.stop()
+        
+    def __del__(self):
+        try:
+            self.stop()
+        except Exception:
+            pass
+        
+    def start(self):
         kwargs = {
             "with_auth": self.with_auth,
             "with_ssl": self.with_ssl,
@@ -160,15 +188,10 @@ class WsgiDavTestServer(object):
         print("Starting WsgiDavTestServer... running.")
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        # print("Stopping WsgiDAVAppavTestServer...")
-        self.proc.terminate()
-        self.proc.join()
-        print("Stopping WsgiDavTestServer... done.")
-
-
-def write_test_file(name, size):
-    path = os.path.join(gettempdir(), name)
-    with open(path, "wb") as f:
-        f.write(to_bytes("*") * size)
-    return path
+    def stop(self):
+        print("Stopping WsgiDAVAppavTestServer...")
+        if self.proc:
+            self.proc.terminate()
+            self.proc.join()
+            self.proc = None
+            print("Stopping WsgiDavTestServer... done.")

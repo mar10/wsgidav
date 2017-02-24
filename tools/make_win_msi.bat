@@ -7,9 +7,10 @@ rem @echo on
 call \prj\env\wsgidav34\Scripts\activate.bat
 
 python setup.py test
-if %ERRORLEVEL% != 0 (
+if %ERRORLEVEL% neq 0 (
+	echo Error %ERRORLEVEL%. Exiting...
 	pause
-    exit
+    exit /b 1
 )
 
 python setup.py bdist_msi
