@@ -20,26 +20,29 @@
 #
 # Modified 2015-10-20, Martin Wendt:
 # - Fix for Py3: StringIO, string-exceptions, bytestring bodies
+#
+# Modified 2017-02-25, Martin Wendt:
+# - Use requests instead of http.client / httplib
 
 import copy
 import sys
+
+import requests
 
 PY2 = sys.version_info < (3, 0)
 
 if PY2:
     from base64 import encodestring as base64_encodebytes
-    import httplib as http_client
     from cStringIO import StringIO
     BytesIO = StringIO
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
     is_bytes = lambda s: isinstance(s, str)
     is_unicode = lambda s: isinstance(s, unicode)
     to_native = lambda s: s if is_bytes(s) else s.encode("utf8")
 else:
     from base64 import encodebytes as base64_encodebytes
-    from http import client as http_client
     from io import StringIO, BytesIO
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
     xrange = range
     is_bytes = lambda s: isinstance(s, bytes)
     is_unicode = lambda s: isinstance(s, str)
@@ -126,32 +129,20 @@ class DAVClient(object):
                         "path": path,
                         "headers": headers,
                         }
-
-        if self._url.scheme == 'http':
-            self._connection = http_client.HTTPConnection(self._url[1])
-        elif self._url.scheme == 'https':
-            self._connection = http_client.HTTPSConnection(self._url[1])
-        else:
-            raise Exception('Unsupported scheme')
-
-        self._connection.request(method, path, body, headers)
-
-        self.response = self._connection.getresponse()
-
-        self.response.body = self.response.read()
-
-        self._connection.close()  # prevent ResourceWarning: unclosed <socket.socket on Py3
-        self._connection = None
-        assert is_bytes(self.response.body)
+        url = self._url.geturl()
+        url = urljoin(url, path)
+        res = requests.request(method, url, data=body, headers=headers)
+        self.response = res
+        assert is_bytes(self.response.content)
         # Try to parse and get an etree
         try:
             self._get_response_tree()
-        except:
+        except Exception:
             pass
 
     def _get_response_tree(self):
         """Parse the response body into an elementree object"""
-        self.response.tree = ElementTree.fromstring(self.response.body)
+        self.response.tree = ElementTree.fromstring(self.response.content)
         return self.response.tree
 
     def _tree_to_binary_body(self, tree):
@@ -181,7 +172,7 @@ class DAVClient(object):
     def get(self, path, headers=None):
         """Simple get request"""
         self._request('GET', path, headers=headers)
-        return self.response.body
+        return self.response.content
 
     def head(self, path, headers=None):
         """Basic HEAD request"""
@@ -395,33 +386,33 @@ class DAVClient(object):
         """
         __tracebackhide__ = True
         res = self.response
-        full_status = "%s %s" % (res.status, res.reason)
+        full_status = "%s %s" % (res.status_code, res.reason)
 
         # Check response Content_Length
-        content_length = int(res.getheader("content-length", 0))
-        if content_length and len(res.body) != content_length:
-            raise AppError("Mismatch: Content_Length(%s) != len(body)(%s)" % (
-                content_length, len(res.body)))
+        content_length = int(res.headers.get("content-length", 0))
+        if content_length and len(res.content) != content_length:
+            raise AppError("Mismatch: Content_Length(%s) != len(content)(%s)" % (
+                content_length, len(res.content)))
 
         # From paste.fixture:
         if status == '*':
             return
         if isinstance(status, (list, tuple)):
-            if res.status not in status:
+            if res.status_code not in status:
                 # TODO: Py3: check usage of str:
                 raise AppError(
                     "Bad response: %s (not one of %s for %s %s)\n%s"
                     % (full_status, ', '.join(map(str, status)),
-                       self.request["method"], self.request["path"], res.body))
+                       self.request["method"], self.request["path"], res.content))
             return
         if status is None:
-            if res.status >= 200 and res.status < 400:
+            if res.status_code >= 200 and res.status_code < 400:
                 return
             raise AssertionError(
                 "Bad response: %s (not 200 OK or 3xx redirect for %s %s)\n%s"
                 % (full_status, self.request["method"], self.request["path"],
-                   res.body))
-        if status != res.status:
+                   res.content))
+        if status != res.status_code:
             raise AppError("Bad response: %s (not %s)" % (full_status, status))
 
     def checkMultiStatusResponse(self, expect_status=200):
