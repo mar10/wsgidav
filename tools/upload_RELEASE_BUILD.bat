@@ -19,7 +19,7 @@ if %ERRORLEVEL% neq 0 (
 @echo Hit Ctrl-C to abort. 
 @echo. 
 pause
-python setup.py egg_info --tag-build="" -RD sdist register upload --sign --identity="Martin Wendt"
+python setup.py pypi_release
 
 start http://pypi.python.org/pypi/WsgiDAV/
 pause
