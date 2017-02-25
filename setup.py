@@ -115,7 +115,7 @@ build_exe_options = {
     "includes": install_requires,
     "packages": [],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2017 Martin Wendt'",
-    "init_script": "Console",
+#    "init_script": "Console",
     }
 
 bdist_msi_options = {
