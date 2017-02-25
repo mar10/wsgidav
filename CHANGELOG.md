@@ -2,7 +2,12 @@
 CHANGES
 =======
 
-2.2.0 / Unreleased
+2.2.2 / Unreleased
+==================
+-
+
+
+2.2.1 / 2017-02-25
 ==================
 - #65: Support for Cheroot server, which is the standalone WSGI server of CherryPy
   since version 9.0.
