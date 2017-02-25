@@ -100,7 +100,7 @@ try:
                    targetName="wsgidav.exe",
                    icon="doc/logo.ico",
                    shortcutName="WsgiDAV",
-                   # copyright="(c) 2010-2017 Martin Wendt",  # requires cx_Freeze PR#94
+                   # copyright="(c) 2009-2017 Martin Wendt",  # requires cx_Freeze PR#94
                    # trademarks="...",
                    )
         ]
@@ -114,8 +114,8 @@ except ImportError:
 build_exe_options = {
     "includes": install_requires,
     "packages": [],
-    "constants": "BUILD_COPYRIGHT='(c) 2010-2017 Martin Wendt'",
-#     "init_script": "Console",
+    "constants": "BUILD_COPYRIGHT='(c) 2009-2017 Martin Wendt'",
+    "init_script": "Console",
     }
 
 bdist_msi_options = {
@@ -166,7 +166,7 @@ setup(name="WsgiDAV",
                      ],
       keywords = "web wsgi webdav application server",
       license = "The MIT License",
-      packages = find_packages(exclude=['tests']),
+      packages = find_packages(exclude=["tests"]),
       install_requires = install_requires,
       setup_requires = setup_requires,
       tests_require = tests_require,
