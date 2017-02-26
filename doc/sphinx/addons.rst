@@ -17,6 +17,8 @@
    addons-couch-propman
 
 
+**NOTE:** not all samples have yet been ported to WsgiDAV 2.x.
+
 :doc:`addons-mercurial`
     WebDAV provider that publishes a Mercurial repository.
 :doc:`addons-mongo`
