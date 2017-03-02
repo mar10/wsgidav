@@ -4,7 +4,7 @@ CHANGES
 
 2.2.2 / Unreleased
 ==================
--
+- Fix #67: lock manager returns timeout negative seconds
 
 
 2.2.1 / 2017-02-25

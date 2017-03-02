@@ -623,12 +623,13 @@ class _DAVResource(object):
                 if timeout < 0:
                     timeout = "Infinite"
                 else:
-                    timeout = "Second-" + str(int(timeout - time.time()))
+                    # The time remaining on the lock
+                    expire = lock["expire"]
+                    timeout = "Second-" + str(int(expire - time.time()))
                 etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
 
                 locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
-                etree.SubElement(locktokenEL, "{DAV:}href").text = lock[
-                    "token"]
+                etree.SubElement(locktokenEL, "{DAV:}href").text = lock["token"]
 
                 # TODO: this is ugly:
                 #       res.getPropertyValue("{DAV:}lockdiscovery")
