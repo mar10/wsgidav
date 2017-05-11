@@ -5,6 +5,7 @@ CHANGES
 2.2.2 / Unreleased
 ==================
 - #69: Rectifying naming disparity for CherryPy server
+- Fix #67: lock manager returns timeout negative seconds
 
 
 2.2.1 / 2017-02-25
