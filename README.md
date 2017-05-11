@@ -8,7 +8,7 @@ Main features:
   - WsgiDAV is a stand-alone WebDAV server with SSL support, that can be 
     installed and run as Python command line script on Linux, OSX, and Windows:<br>
     ```
-    $ pip install wsgidav
+    $ pip install wsgidav cheroot
     $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp
     WARNING: share '/' will allow anonymous access.
     Running WsgiDAV/2.2.1 CherryPy/unknown Python/3.5.2
@@ -16,16 +16,18 @@ Main features:
     ```
 
     Run `wsgidav --help` for a list of available options.
+  - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
+    web server with SSL support.
   - A binary MSI installer is available for Microsoft Windows.
   - WsgiDAV is also a Python library that implements the WSGI protocol and can
-	be run behind any WSGI compliant web server.<br>
+	  be run behind any WSGI compliant web server.<br>
   - WsgiDAV is implemented as a configurable stack of WSGI middleware
     applications.<br>
-    The open architecture allows to extend the functionality and integrate
+    Its open architecture allows to extend the functionality and integrate
     WebDAV services into your project.<br>
-	Typical use cases are:
-	- Expose data structures as virtual file systems.
-	- Allow online editing of MS Office documents.
+  	Typical use cases are:
+  	- Expose data structures as virtual, editable file systems.
+  	- Allow online editing of MS Office documents.
 
 
 ## Status

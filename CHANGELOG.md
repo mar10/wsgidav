@@ -4,7 +4,7 @@ CHANGES
 
 2.2.2 / Unreleased
 ==================
--
+- #69: Rectifying naming disparity for CherryPy server
 
 
 2.2.1 / 2017-02-25
@@ -12,11 +12,12 @@ CHANGES
 - #65: Support for Cheroot server, which is the standalone WSGI server of CherryPy
   since version 9.0.
   `--server=cheroot` is the default now.
-  Deprecating cherrypy.wsgiserver: `--server=cherrypy` was renamed to 
-  `--cherrypy-wsgiserver`
 - New option `--ssl-adapter`, used by 'cheroot' server if SSL certificates are 
-  configured. Defaults to 'builtin'. Set to 'pyopenssl' to use an installed 
-  OpenSSL. (Currently broken as of Cheroot 5.1, see https://github.com/cherrypy/cheroot/issues/6)
+  configured. Defaults to 'builtin'.<br>
+  Set to 'pyopenssl' to use an existing OpenSSL nstallation.
+  (Note: Currently broken as of Cheroot 5.1, see cherrypy/cheroot#6)
+- Deprecate cherrypy.wsgiserver.<br>
+  `--server=cherrypy` was renamed to `--cherrypy-wsgiserver`
 - #64: Fix LOCK without owner
 - #65: Add lxml to MSI installer
 - Release as Wheel

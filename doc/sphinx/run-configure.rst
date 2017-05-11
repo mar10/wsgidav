@@ -12,6 +12,7 @@ The WsgiDAV server was tested with these platforms
 
 and these WSGI servers
 
+  * Cheroot
   * cherrypy.wsgiserver
   * paste.httpserver
   * Pylons

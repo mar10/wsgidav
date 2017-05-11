@@ -143,7 +143,7 @@ setup(name="WsgiDAV",
       #Development Status :: 4 - Beta
       #Development Status :: 5 - Production/Stable
       
-      classifiers = ["Development Status :: 4 - Beta",
+      classifiers = ["Development Status :: 5 - Production/Stable",
                      "Intended Audience :: Information Technology",
                      "Intended Audience :: Developers",
                      "Intended Audience :: System Administrators",
