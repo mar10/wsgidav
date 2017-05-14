@@ -569,7 +569,7 @@ def _runExtWsgiutils(app, config, mode):
 def run():
     SUPPORTED_SERVERS = {"paste": _runPaste,
                          "cheroot": _runCheroot,
-                         "cherrypy": _runCherryPy,
+                         "cherrypy-wsgiserver": _runCherryPy,
                          "ext-wsgiutils": _runExtWsgiutils,
                          "flup-fcgi": _runFlup,
                          "flup-fcgi_fork": _runFlup,
