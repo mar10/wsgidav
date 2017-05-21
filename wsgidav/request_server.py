@@ -1294,6 +1294,8 @@ class RequestServer(object):
         elif util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                        "The server does not handle any body content.")
+        elif res is None:
+            self._fail(HTTP_NOT_FOUND)
         elif "HTTP_LOCK_TOKEN" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing lock token.")
 

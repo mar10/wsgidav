@@ -217,6 +217,8 @@ class ServerTest(unittest.TestCase):
         client.mkcol("/test/folder")
         client.checkResponse(201)
 
+        # if a LOCK request is sent to an unmapped URL, we must create a 
+        # lock-null resource and return '201 Created', instead of '404 Not found' 
         locks = client.set_lock("/test/lock-0",
                                 owner="test-bench",
                                 locktype="write",
@@ -224,15 +226,22 @@ class ServerTest(unittest.TestCase):
                                 depth="infinity")
         client.checkResponse(201)  # created
         assert len(locks) == 1, "LOCK failed"
+
         token = locks[0]
         client.refresh_lock("/test/lock-0", token)
         client.checkResponse(200)  # ok
+        
         client.unlock("/test/lock-0", token)
         client.checkResponse(204)  # no content
+
         client.unlock("/test/lock-0", token)
         # 409 Conflict, because resource was not locked
         # (http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK)
         client.checkResponse(409)
+
+        # issue #71: unlock non existing resource 
+        client.unlock("/test/lock-not-existing", token)
+        client.checkResponse(404)
 
         client.proppatch("/test/file1.txt",
                          set_props=[("{testns:}testname", "testval"),

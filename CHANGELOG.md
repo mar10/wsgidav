@@ -6,6 +6,7 @@ CHANGES
 ==================
 - #69: Rectifying naming disparity for CherryPy server
 - Fix #67: lock manager returns timeout negative seconds
+- Fix #71: Attempts to unlock a nonexistent resource cause an internal server error
 
 
 2.2.1 / 2017-02-25
