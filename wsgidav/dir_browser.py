@@ -17,6 +17,7 @@ import sys
 from wsgidav import __version__, compat, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.middleware import BaseMiddleware
+from wsgidav.util import safeReEncode
 
 __docformat__ = "reStructuredText"
 
@@ -177,7 +178,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self._verbose >= 2:
-            print("Raising DAVError %s" % e.getUserInfo(), file=sys.stdout)
+            print("Raising DAVError %s" % safeReEncode(e.getUserInfo(), sys.stdout.encoding),
+                  file=sys.stdout)
         raise e
 
     def _listDirectory(self, davres, environ, start_response):

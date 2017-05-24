@@ -59,6 +59,7 @@ from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
 from wsgidav.property_manager import PropertyManager
 from wsgidav.request_resolver import RequestResolver
+from wsgidav.util import safeReEncode
 
 __docformat__ = "reStructuredText"
 
@@ -73,6 +74,7 @@ DEFAULT_CONFIG = {
     "server": "cheroot",
     "add_header_MS_Author_Via": True,
     "unquote_path_info": False,  # See #8
+    "re_encode_path_info": None,  # (See #73) None: activate on Python 3
     #    "use_text_files": False,
 
     "propsmanager": None,  # True: use property_manager.PropertyManager
@@ -242,9 +244,25 @@ class WsgiDAVApp(object):
         # util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (
         #    environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
-        # We optionall unquote PATH_INFO here, although this should already be
-        # done by the server (#8).
         path = environ["PATH_INFO"]
+
+        # (#73) Failed on processing non-iso-8859-1 characters on Python 3
+        #
+        # Note: we encode using UTF-8 here (falling back to ISO-8859-1)!
+        # This seems to be wrong, since per PEP 3333 PATH_INFO is always ISO-8859-1 encoded
+        # (see https://www.python.org/dev/peps/pep-3333/#unicode-issues).
+        # But also seems to resolve errors when accessing resources with Chinese characters, for
+        # example. 
+        # This is done by default for Python 3, but can be turned off in settings.
+        re_encode_path_info = self.config.get("re_encode_path_info")
+        if re_encode_path_info is None:
+            re_encode_path_info = compat.PY3
+        if re_encode_path_info:
+            b = compat.wsgi_to_bytes(path).decode()
+            path = environ["PATH_INFO"] = b
+        
+        # We optionally unquote PATH_INFO here, although this should already be
+        # done by the server (#8).
         if self.config.get("unquote_path_info", False):
             path = compat.unquote(environ["PATH_INFO"])
         # GC issue 22: Pylons sends root as u'/'
@@ -403,7 +421,7 @@ class WsgiDAVApp(object):
                     userInfo,
                     util.getLogTime(),
                     environ.get("REQUEST_METHOD") + " " +
-                    environ.get("PATH_INFO", ""),
+                    safeReEncode(environ.get("PATH_INFO", ""), sys.stdout.encoding),
                     extra,
                     status,
                     # response_headers.get(""), # response Content-Length

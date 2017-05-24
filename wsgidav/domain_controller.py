@@ -39,6 +39,8 @@ from __future__ import print_function
 
 import sys
 
+from wsgidav.util import safeReEncode
+
 __docformat__ = "reStructuredText"
 
 
@@ -58,8 +60,8 @@ class WsgiDAVDomainController(object):
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                print("getDomainRealm(%s): '%s'" %
-                      (inputURL, None), file=sys.stdout)
+                print("getDomainRealm(%s): '%s'"
+                      % (safeReEncode(inputURL, sys.stdout.encoding), None), file=sys.stdout)
             return None
         realm = davProvider.sharePath
         if realm == "":

@@ -374,21 +374,23 @@ def splitNamespace(clarkName):
 
 
 def toUnicode(s):
-    """Convert a binary string to Unicode using UTF-8 (fallback to latin-1)."""
+    """Convert a binary string to Unicode using UTF-8 (fallback to ISO-8859-1)."""
     try:
         u = compat.to_unicode(s, "utf8")
     except ValueError:
-        log("toUnicode(%r) *** UTF-8 failed. Trying latin-1" % s)
-        u = compat.to_unicode(s, "latin-1")
-#     if not isinstance(s, str):
-#         return s
-#     try:
-#         u = s.decode("utf8")
-# #        log("toUnicode(%r) = '%r'" % (s, u))
-#     except:
-#         log("toUnicode(%r) *** UTF-8 failed. Trying latin-1 " % s)
-#         u = s.decode("latin-1")
+        log("toUnicode(%r) *** UTF-8 failed. Trying ISO-8859-1" % s)
+        u = compat.to_unicode(s, "ISO-8859-1")
     return u
+
+
+def safeReEncode(s, encoding_to, errors="backslashreplace"):
+    """Re-encode str or binary so that is compatible wit a given encoding (replacing 
+    unsupported chars)."""
+    if compat.is_bytes(s):
+        s = s.decode(encoding_to, errors=errors).encode(encoding_to)
+    else:
+        s = s.encode(encoding_to, errors=errors).decode(encoding_to)
+    return s
 
 
 def stringRepr(s):

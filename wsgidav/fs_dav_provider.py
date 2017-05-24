@@ -368,17 +368,19 @@ class FilesystemProvider(DAVProvider):
         Optional environ argument may be useful e.g. in relation to per-user
         sub-folder chrooting inside rootFolderPath.
         """
-        assert self.rootFolderPath is not None
+        root_path = self.rootFolderPath
+        assert root_path is not None
+        assert compat.is_native(root_path)
         assert compat.is_native(path)
-        pathInfoParts = path.strip("/").split("/")
 
-        r = os.path.abspath(os.path.join(self.rootFolderPath, *pathInfoParts))
-        if not r.startswith(self.rootFolderPath):
-            raise RuntimeError(
-                "Security exception: tried to access file outside root.")
-        r = util.toUnicode(r)
-#        print "_locToFilePath(%s, %s): %s" % (path, environ, r)
-        return r
+        path_parts = path.strip("/").split("/")
+        file_path = os.path.abspath(os.path.join(root_path, *path_parts))
+        if not file_path.startswith(root_path):
+            raise RuntimeError("Security exception: tried to access file outside root.")
+
+        # Convert to unicode
+        file_path = util.toUnicode(file_path)
+        return file_path
 
     def isReadOnly(self):
         return self.readonly
