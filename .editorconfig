@@ -1,0 +1,21 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*]
+
+; See https://github.com/editorconfig/editorconfig/issues/226
+;end_of_line = lf
+
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# 4 space indentation
+[*.py]
+indent_style = space
+indent_size = 4
+
+; Tab indentation (no size specified)
+[*.js]
+indent_style = tab 
