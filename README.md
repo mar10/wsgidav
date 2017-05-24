@@ -11,7 +11,7 @@ Main features:
     $ pip install wsgidav cheroot
     $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp
     WARNING: share '/' will allow anonymous access.
-    Running WsgiDAV/2.2.1 CherryPy/unknown Python/3.5.2
+    Running WsgiDAV/2.2.2 Cheroot/5.5.0 Python/3.4.2
     Serving on http://0.0.0.0:8080 ...
     ```
 
