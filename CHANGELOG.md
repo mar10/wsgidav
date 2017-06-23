@@ -2,7 +2,12 @@
 CHANGES
 =======
 
-2.2.2 / Unreleased
+2.2.3 / Unreleased
+==================
+-
+
+
+2.2.2 / 2017-06-23
 ==================
 - #69: Rectifying naming disparity for CherryPy server
 - Fix #67: lock manager returns timeout negative seconds
@@ -15,7 +20,7 @@ CHANGES
 - #65: Support for Cheroot server, which is the standalone WSGI server of CherryPy
   since version 9.0.
   `--server=cheroot` is the default now.
-- New option `--ssl-adapter`, used by 'cheroot' server if SSL certificates are 
+- New option `--ssl-adapter`, used by 'cheroot' server if SSL certificates are
   configured. Defaults to 'builtin'.<br>
   Set to 'pyopenssl' to use an existing OpenSSL nstallation.
   (Note: Currently broken as of Cheroot 5.1, see cherrypy/cheroot#6)
