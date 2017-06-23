@@ -46,7 +46,7 @@ RUN_OWN_SERVER = True
 #    - Logs to current console
 # True:
 #    - Run WsgiDavTestServer in a separate process
-#    - Server log messages not visible 
+#    - Server log messages not visible
 RUN_SEPARATE_PROCESS = True
 
 _test_server = None
@@ -57,7 +57,7 @@ def setUpModule():
     if RUN_OWN_SERVER:
         if RUN_SEPARATE_PROCESS:
             _test_server = WsgiDavTestServer(with_auth=True, with_ssl=False)
-            _test_server.start()            
+            _test_server.start()
         else:
             _test_server = WsgiDAVServerThread()
             _test_server.start()
@@ -68,10 +68,10 @@ def setUpModule():
 
 def tearDownModule():
     global _test_server
-    
+
     if _test_server:
         if RUN_SEPARATE_PROCESS:
-            _test_server.stop()            
+            _test_server.stop()
         else:
             print("tearDownModule shutdown...")
             _test_server.shutdown()
@@ -217,8 +217,8 @@ class ServerTest(unittest.TestCase):
         client.mkcol("/test/folder")
         client.checkResponse(201)
 
-        # if a LOCK request is sent to an unmapped URL, we must create a 
-        # lock-null resource and return '201 Created', instead of '404 Not found' 
+        # if a LOCK request is sent to an unmapped URL, we must create a
+        # lock-null resource and return '201 Created', instead of '404 Not found'
         locks = client.set_lock("/test/lock-0",
                                 owner="test-bench",
                                 locktype="write",
@@ -230,7 +230,7 @@ class ServerTest(unittest.TestCase):
         token = locks[0]
         client.refresh_lock("/test/lock-0", token)
         client.checkResponse(200)  # ok
-        
+
         client.unlock("/test/lock-0", token)
         client.checkResponse(204)  # no content
 
@@ -239,7 +239,7 @@ class ServerTest(unittest.TestCase):
         # (http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK)
         client.checkResponse(409)
 
-        # issue #71: unlock non existing resource 
+        # issue #71: unlock non existing resource
         client.unlock("/test/lock-not-existing", token)
         client.checkResponse(404)
 

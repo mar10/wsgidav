@@ -66,7 +66,7 @@ if not "HOME" in os.environ and  "HOMEPATH" in os.environ:
 
 # CherryPy is required for the tests and benchmarks. It is also the preferrred
 # server for the stand-alone mode (`wsgidav.server.run_server.py`).
-# We currently do not add it as an installation requirement, because 
+# We currently do not add it as an installation requirement, because
 #   1. users may not need the command line server at all
 #   2. users may prefer another server
 #   3. there may already cherrypy versions installed
@@ -91,25 +91,38 @@ tests_require = ["cheroot",
 
 setup_requires = install_requires
 
-try:
-    from cx_Freeze import setup, Executable
-    executables = [
-        Executable(script="wsgidav/server/run_server.py",
-                   base=None,
-                   # base="Win32GUI",
-                   targetName="wsgidav.exe",
-                   icon="doc/logo.ico",
-                   shortcutName="WsgiDAV",
-                   # copyright="(c) 2009-2017 Martin Wendt",  # requires cx_Freeze PR#94
-                   # trademarks="...",
-                   )
-        ]
-except ImportError:
-    # tox has problems to install cx_Freeze to it's venvs, but it is not needed
-    # for the tests anyway
-    print("Could not import cx_Freeze; 'build' and 'bdist' commands will not be available.")
-    print("See https://pypi.python.org/pypi/cx_Freeze")
+use_cx_freeze = False
+for cmd in ["bdist_msi"]:
+    if cmd in sys.argv:
+        use_cx_freeze = True
+        break
+
+if use_cx_freeze:
+    try:
+        from cx_Freeze import setup, Executable
+        executables = [
+            Executable(script="wsgidav/server/run_server.py",
+                       base=None,
+                       # base="Win32GUI",
+                       targetName="wsgidav.exe",
+                       icon="doc/logo.ico",
+                       shortcutName="WsgiDAV",
+                       # copyright="(c) 2009-2017 Martin Wendt",  # requires cx_Freeze PR#94
+                       # trademarks="...",
+                       )
+            ]
+    except ImportError:
+        # tox has problems to install cx_Freeze to it's venvs, but it is not needed
+        # for the tests anyway
+        print("Could not import cx_Freeze; 'build' and 'bdist' commands will not be available.")
+        print("See https://pypi.python.org/pypi/cx_Freeze")
+        executables = []
+else:
+    print("Did not import cx_Freeze, because 'bdist_msi' commands are not used ({})."
+        .format(sys.argv))
+    print("NOTE: this is a hack, because cx_Freeze seemed to sabotage wheel creation")
     executables = []
+
 
 build_exe_options = {
     "includes": install_requires,
@@ -142,7 +155,7 @@ setup(name="WsgiDAV",
       #Development Status :: 3 - Alpha
       #Development Status :: 4 - Beta
       #Development Status :: 5 - Production/Stable
-      
+
       classifiers = ["Development Status :: 5 - Production/Stable",
                      "Intended Audience :: Information Technology",
                      "Intended Audience :: Developers",
