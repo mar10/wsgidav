@@ -1,0 +1,81 @@
+# Release WsgiDAV
+
+
+$ProjectRoot = "C:\Prj\git\wsgidav";
+
+#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.4";
+$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.5";
+#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
+
+
+# ----------------------------------------------------------------------------
+# Pre-checks
+
+# Working directory must be clean
+cd $ProjectRoot
+git status
+git diff --exit-code --quiet
+if($LastExitCode -ne 0) {
+   Write-Error "Unstaged changes: exiting."
+   Exit 1
+}
+
+
+# ----------------------------------------------------------------------------
+# Create and activate a fresh build environment
+
+cd $ProjectRoot
+
+"Removing venv folder $BuildEnvRoot..."
+Remove-Item $BuildEnvRoot -Force -Recurse -ErrorAction SilentlyContinue
+
+
+"Creating venv folder $BuildEnvRoot..."
+#py -3.4 -m venv "$BuildEnvRoot"
+py -3.5 -m venv "$BuildEnvRoot"
+#py -3.6 -m venv "$BuildEnvRoot"
+
+Invoke-Expression "& ""$BuildEnvRoot\Scripts\Activate.ps1"""
+
+# TODO: Check for 3.5
+python --version
+
+python -m pip install --upgrade pip
+
+python -m pip install -r requirements-dev.txt
+python -m pip install lxml
+python -m pip install cx_freeze cheroot defusedxml wheel
+
+# Run tests
+python setup.py test
+
+if($LastExitCode -ne 0) {
+   Write-Error "Tests failed with exit code $LastExitCode"
+   Exit 1
+}
+
+# (optional) Do a test release
+#python setup.py pypi_daily
+
+
+#--- Create MSI installer
+#    This call causes setup.py to import and use cx_Freeze:
+python setup.py bdist_msi
+if($LastExitCode -ne 0) {
+   Write-Error "Create MSI failed with exit code $LastExitCode"
+   Exit 1
+}
+
+#--- Create source distribution and Wheel
+#    This call causes setup.py to NOT import and use cx_Freeze:
+
+#python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
+python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal register upload --sign --identity="Martin Wendt"
+
+if($LastExitCode -ne 0) {
+   Write-Error "Create Wheel and/or upload failed with exit code $LastExitCode"
+   Exit 1
+}
+
+#--- Done.
+"We should upload the MSI and update the release on GitHub"
