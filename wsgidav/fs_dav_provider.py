@@ -376,7 +376,8 @@ class FilesystemProvider(DAVProvider):
         path_parts = path.strip("/").split("/")
         file_path = os.path.abspath(os.path.join(root_path, *path_parts))
         if not file_path.startswith(root_path):
-            raise RuntimeError("Security exception: tried to access file outside root.")
+            raise RuntimeError("Security exception: tried to access file outside root: {}"
+                .format(file_path))
 
         # Convert to unicode
         file_path = util.toUnicode(file_path)
