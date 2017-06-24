@@ -1,22 +1,20 @@
-=======
-CHANGES
-=======
+# CHANGES
 
-2.2.3 / Unreleased
-==================
+## 2.2.3 / Unreleased
+
 -
 
 
-2.2.2 / 2017-06-23
-==================
+## 2.2.2 / 2017-06-23
+
 - #69: Rectifying naming disparity for CherryPy server
 - Fix #67: lock manager returns timeout negative seconds
 - Fix #71: Attempts to unlock a nonexistent resource cause an internal server error
 - Fix #73: Failed on processing non-iso-8859-1 characters on Python 3
 
 
-2.2.1 / 2017-02-25
-==================
+## 2.2.1 / 2017-02-25
+
 - #65: Support for Cheroot server, which is the standalone WSGI server of CherryPy
   since version 9.0.
   `--server=cheroot` is the default now.
@@ -31,8 +29,8 @@ CHANGES
 - Release as Wheel
 
 
-2.1.0 / 2016-11-13
-==================
+## 2.1.0 / 2016-11-13
+
 - #42: Remove print usage in favor of logging (Sergi Almacellas Abellana)
 - #43: PEP8 fixes (Sergi Almacellas Abellana, Tom Viner)
 - #45 New method `_DAVResource.finalizeHeaders(environ, responseHeaders)` (Samuel Fekete)
@@ -41,13 +39,13 @@ CHANGES
   pipe / proxy PUT requests to external consumers.
 
 
-2.0.1 / 2016-10-07
-==================
+## 2.0.1 / 2016-10-07
+
 - #46 Wrap xml libraries with the equivalent defusedxml packages (Tom Viner)
 
 
-2.0.0 / 2016-10-02
-==================
+## 2.0.0 / 2016-10-02
+
 - #4: Support Python 3
 - Windows MSI Installer
 - Drop support for Python 2.6
@@ -66,8 +64,8 @@ CHANGES
 - Use py.test & tox
 
 
-1.3.0 / 2016-08-24
-==================
+## 1.3.0 / 2016-08-24
+
 - #19: Add option `mutable_live_props` to support setting last modified file/directory timestamps
   (Jonas Bardino)
 - #23: Fix Windows file manager and OSX Finder fails on file names with comma (Jonas Bardino)
@@ -77,8 +75,8 @@ CHANGES
 - #32: Fix digest authentication rejected due to invalid header (Adrian Crețu)
 
 
-1.2.0 / 2015-05-14
-==================
+## 1.2.0 / 2015-05-14
+
 - #8: Unquote PATH_INFO is now optional 'unquote_path_info'; defaults to false.
   (Brian Sipos)
 - #9: Fixed status codes for apache mod_wsgi (Brian Sipos)
@@ -87,15 +85,15 @@ CHANGES
 - #15: Fix Finder access (Jonas Bardino)
 
 
-1.1.0 / 2014-01-01
-==================
+## 1.1.0 / 2014-01-01
+
 - New dir_browser option 'ms_sharepoint_plugin' to start MS Office documents in edit-mode
 - Moved project from Google Code to GitHub
 - Moved documentation to ReadTheDocs
 
 
-1.0.0 / 2013-12-27
-==================
+## 1.0.0 / 2013-12-27
+
 - **NOTE**: no longer tested with Python 2.4.
 - SSL sample with bogo-cert
 - Renamed 'msmount' option to 'ms_mount'.
@@ -113,8 +111,8 @@ CHANGES
 - Support 'setup.py test' which uses nosetests and includes litmus
 
 
-0.5.0 / 2011-01-16
-==================
+## 0.5.0 / 2011-01-16
+
 - Bundled with CherryPy standalone WSGI server
 - Added copyright notes for original PyFileServer
 - Changed signature of DAVProvider (and derived classes): provider argument was
@@ -134,25 +132,26 @@ CHANGES
 - Fixed RANGE response
 
 
-0.4.0.b3
-========
+## 0.4.0.b3
+
 - Refactored LockManager. using separate LockStorage
 - Bugfixes
 
 
-0.4.0.b2 / 2010-02-15
-=====================
+## 0.4.0.b2 / 2010-02-15
+
 - Bugfixes
 
 
-0.4.0.b1
-========
+## 0.4.0.b1
+
 - Using HTTP/1.1 with keep-alive (St�phane KLEIN)
 - Correctly return pre- and postconditions on lock conflicts.
 - Added Sphinx docs
 - Added Mercurial provider
 - Changed configuration: no property manager used by default
 
-Until 0.4.0 alpha
-=================
+
+## Until 0.4.0 alpha
+
 See https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md

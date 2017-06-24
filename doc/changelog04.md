@@ -1,17 +1,18 @@
 #summary Main changes from PyFileServer to WsgiDAV.
 
-= Introduction =
+# Introduction
 
-WsgiDAV is a refactored version of [http://pyfilesync.berlios.de/pyfileserver.html PyFileServer 0.2], Copyright (c) 2005 Ho Chun Wei.<br>
+WsgiDAV is a refactored version of [PyFileServer 0.2](http://pyfilesync.berlios.de/pyfileserver.html),
+Copyright (c) 2005 Ho Chun Wei.<br>
 Chun gave his approval to change the license from LGPL to MIT-License for this project.
 
 Below a list of main changes, I made during my initial refactoring.
 
-The [http://code.google.com/p/wsgidav-dev/source/list commits of the alpha phase] are still available.
+The [commits of the alpha phase](http://code.google.com/p/wsgidav-dev/source/list) are still available.
 
-Starting with 0.4 beta, changes are logged in the packages [http://code.google.com/p/wsgidav/source/browse/CHANGES CHANGE] file.
+Starting with 0.4 beta, changes are logged in the packages [CHANGE](http://code.google.com/p/wsgidav/source/browse/CHANGES) file.
 
-= Main changes until 0.4.alpha =
+## Main changes until 0.4.alpha
 
 <ul>
 <li>
@@ -23,35 +24,35 @@ Fixed indentation.
 <li>
 Restructured package and renamend modules and classes.
 
-<li> 
-Changed WSGI stack (see [http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html DEVELOPERS.txt])<br>
+<li>
+Changed WSGI stack (see <a href="http://wiki.wsgidav-dev.googlecode.com/hg/DEVELOPERS.html">DEVELOPERS.txt).</a><br>
 For example dir_browser is a separate middleware now.
 
 <li>
 Based on RFC 4918, June 2007 (which obsoletes RFC 2518)
 
-<li> 
+<li>
 Using SCRIPT_NAME and PATH_INFO instead of custom WSGI environment variables Environ["pyfileserver.mappedpath"], ...
 
 <li>
 !RequestResolver no longer serves OPTIONS and TRACE (now in !RequestServer).
 Except for `OPTIONS (*)`.
 
-<li> 
+<li>
 !RequestServer is no longer a static part of the WSGI stack, but instantiated
 dynamically by !RequestResolver.
 
-<li> 
+<li>
 Dropped PyXML. Instead using lxml (or xml) to parse requests.<br>
 Using lxml.etree to build the responses.
 
 <li>
 Using Clark Notation throughout; no need to pass around namespace and name separately.
 
-<li> 
+<li>
 Refactored some DAV method handlers to be less deeply nested.
 
-<li> 
+<li>
 Server:<br>
 New entry point 'run_server', using cherrypy, paste, wsgiref, if they are installed.<br>
 Otherwise ext_wsgiutils_server is used (comes with the WsgiDAV package).
@@ -61,11 +62,11 @@ Added mount_path option and tested running WsgiDAV as a Pylons controller. (Sté
 
 <li>
 Converted interface to an abstract base class DAVProvider:
-{{{
+<pre>
    DAVProvider
      + ReadOnlyFilesystemProvider
        + FilesystemProvider
-}}}
+</pre>
 Replaced separate query function with davprovider.getInfoDict()
 This allows to request bundled information, which providers can implement more efficiently. Also an `DAVResource` object was introduced.
 
@@ -84,7 +85,7 @@ Also, the config file is optional, i.e. the server runs also with command line o
 Property manager<br>
 Removed propertylibrary helper fuctions (only !PropManager class left).<br>
 Add property functions to davProvider
-getProperties() returns (name, value) tuples, where value is etree.Element 
+getProperties() returns (name, value) tuples, where value is etree.Element
 or HTTPRequestException().<br>
 setPropertyValue() accepts str or etree.Element or None (for 'remove')<br>
 Added 'dryRun' mode.<br>
@@ -95,17 +96,17 @@ Lock manager<br>
 Only storing lock root (not maintaining a list of locked resources).<br>
 'getCheckLock' is atomic now.
 
-<li> 
+<li>
 !LockManager and !PropManager are now members of the DAV provider.<br>
 Also, the displaypath is no longer passed around, since it always can be constructed by provider.getNormUri()
 
 <li>
-Added in-memory versions of !LockManager and !PropManager. 
+Added in-memory versions of !LockManager and !PropManager.
 Renamed the original shelve-based variants to !ShelveLockManager and !ShelvePropManager.
 
 <li>
-Support for {{{<error>}}} Tag and Pre-/Postcondition codes.
-Also  {{{<resultdescription>}}}
+Support for `&lt;error&gt;` Tag and Pre-/Postcondition codes.
+Also  `&lt;resultdescription&gt;`
 
 <li>
 easy_install'able
