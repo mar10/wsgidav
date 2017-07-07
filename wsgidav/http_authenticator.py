@@ -217,6 +217,12 @@ class HTTPAuthenticator(BaseMiddleware):
             elif authmethod == "basic" and self._acceptbasic:
                 return self.authBasicAuthRequest(environ, start_response)
 
+            # The requested auth method is not supported.
+            elif self._defaultdigest and self._acceptdigest:
+                return self.sendDigestAuthResponse(environ, start_response)
+            elif self._acceptbasic:
+                return self.sendBasicAuthResponse(environ, start_response)
+
             util.log(
                 "HTTPAuthenticator: respond with 400 Bad request; Auth-Method: %s" % authmethod)
 
