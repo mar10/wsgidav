@@ -758,7 +758,7 @@ class _DAVResource(object):
         if pm and not propname.startswith("{DAV:}"):
             refUrl = self.getRefUrl()
             if value is None:
-                return pm.removeProperty(refUrl, propname)
+                return pm.removeProperty(refUrl, propname, dryRun)
             else:
                 value = etree.tostring(value)
                 return pm.writeProperty(refUrl, propname, value, dryRun)
