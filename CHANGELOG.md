@@ -1,8 +1,13 @@
-# CHANGES
+# Changelog
 
-## 2.2.3 / Unreleased
+## 2.2.5 / Unreleased
 
--
+## 2.2.4 / 2017-08-11
+
+- Fix #75: Return 401 when auth method is not supported
+- Fix #77: removeProperty call to not lose dryRun, otherwise removeProperty is
+  called twice for real
+- Fix #79: Prevent error when missing environment variable
 
 
 ## 2.2.2 / 2017-06-23
@@ -11,6 +16,7 @@
 - Fix #67: lock manager returns timeout negative seconds
 - Fix #71: Attempts to unlock a nonexistent resource cause an internal server error
 - Fix #73: Failed on processing non-iso-8859-1 characters on Python 3
+- MSI setup uses Python 3.5
 
 
 ## 2.2.1 / 2017-02-25

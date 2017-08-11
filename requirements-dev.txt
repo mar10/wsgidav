@@ -6,7 +6,7 @@ pytest-cov~=1.8
 recommonmark
 requests
 sphinx~=1.4
-#sphinxcontrib-napoleon~=0.3
 tox~=2.0
+twine
 WebTest~=2.0
 wheel

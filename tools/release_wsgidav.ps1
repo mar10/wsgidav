@@ -70,7 +70,8 @@ if($LastExitCode -ne 0) {
 #    This call causes setup.py to NOT import and use cx_Freeze:
 
 #python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
-python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal register upload --sign --identity="Martin Wendt"
+#python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal register upload --sign --identity="Martin Wendt"
+python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
 
 if($LastExitCode -ne 0) {
    Write-Error "Create Wheel and/or upload failed with exit code $LastExitCode"
@@ -78,4 +79,11 @@ if($LastExitCode -ne 0) {
 }
 
 #--- Done.
-"We should upload the MSI and update the release on GitHub"
+
+"SUCCESS."
+"We should now:"
+"  1. twine upload dist\WsgiDAV-x.y.z.tar.gz"
+"  2. twine upload dist\WsgiDAV-x.y.z-py2.py3-none-any.whl"
+"  3. twine upload dist\WsgiDAV-x.y.z-win32.msi"
+"  4. Release on GitHub"
+"  5. Bump version and update "
