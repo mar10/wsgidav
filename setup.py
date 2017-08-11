@@ -76,9 +76,10 @@ install_requires = ["defusedxml",
                     #"lxml",
                     ]
 
-# The Windows MSI Setup should include lxml
+# The Windows MSI Setup should include lxml and CherryPy
 if "bdist_msi" in sys.argv:
     install_requires.extend([
+        "cheroot",
         "lxml",
         ])
 
