@@ -2,19 +2,25 @@ Copyright (c) 2009-2017 Martin Wendt,
 
 Status
 ------
-**Release 2.0 supports Python 3, but has beta status: use at your own risk!**
-Use 1.x for a stable release.
+* Production / stable
+
 
 Summary
 -------
 WsgiDAV is a WebDAV server for sharing files and other resources over the web.
 
-  * It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
-  * It comes bundled with a simple WSGI web server.
+- It is based on the WSGI interface <http://www.python.org/peps/pep-0333.html>.
+- It comes bundled with a simple WSGI web server.
 
 *This package is based on PyFileServer (c) 2005 by Ho Chun Wei*
 
 Project home: https://github.com/mar10/wsgidav/
+
+.. note::
+
+	Windows users may also use the MSI installer that is
+	`released on GitHub <https://github.com/mar10/wsgidav/releases/>`_.
+
 
 Changes
 -------

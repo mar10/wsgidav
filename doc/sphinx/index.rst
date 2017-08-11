@@ -13,15 +13,14 @@ WsgiDAV Documentation
 ..
 	WsgiDAV Documentation |logo|
 
-WsgiDAV is a generic `WebDAV <http://www.ietf.org/rfc/rfc4918.txt>`_ server 
+WsgiDAV is a generic `WebDAV <http://www.ietf.org/rfc/rfc4918.txt>`_ server
 written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-0333/>`_.
 
 (WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md>`_ written by Ho Chun Wei.)
 
 Status
 ======
-The 1.3 is stable and released. 
-Version 2.x introduces Python 3 compatibility and is currently beta.
+Version 2.x introduces Python 3 compatibility and is considered stable.
 
 .. seealso::
 	The `Change Log <https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md>`_.
@@ -46,7 +45,7 @@ Quickstart
 ===========
 **Install**
 
-Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_. 
+Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_.
 Install like::
 
 	$ pip install -U wsgidav
@@ -77,8 +76,8 @@ file name can be specified::
 
 Supported Clients
 =================
-WsgiDAV comes with a web interface and was tested with different clients 
-(Windows File Explorer and drive mapping, MS Office, Ubuntu, Mac OS X, ...). 
+WsgiDAV comes with a web interface and was tested with different clients
+(Windows File Explorer and drive mapping, MS Office, Ubuntu, Mac OS X, ...).
 
 .. image :: https://raw.github.com/mar10/wsgidav/master/doc/teaser.png
 
@@ -88,14 +87,14 @@ WsgiDAV comes with a web interface and was tested with different clients
 
 More info
 =========
- 
+
 .. toctree::
    :maxdepth: 1
    :numbered:
 
-   run-install.rst   
-   run-configure.rst   
-   run-access.rst   
+   run-install.rst
+   run-configure.rst
+   run-access.rst
    addons.rst
    develop.rst
    faq.rst
@@ -105,7 +104,7 @@ contents
 .. contents::
 	:local:
 	:depth: 1
- 
+
 Indices and tables
 ==================
 
