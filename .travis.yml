@@ -8,7 +8,9 @@ python:
     - "3.6"
 sudo: required
 before_install:
-    - sudo apt-get install libneon27-dev
-    - ./install_litmus.sh
+    # See issue #80: litmus fails to build on travis
+    # The branch 'travis-litmus' still has this enabled to investigate...
+#    - sudo apt-get install libneon27-dev
+#    - ./install_litmus.sh
 install: pip install tox-travis
 script: tox
