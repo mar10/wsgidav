@@ -198,7 +198,13 @@ Mac
 ===
 OS/X Finder
 -----------
-TODO
+In the Finder menu, choose `Go` and `Connect to Server...`.
+
+ 1. Enter the URI of the WsgiDAV server: `http://192.168.0.2/dav`
+ 1. Click the `[+]` button behind it to keep the server URI.
+ 1. Click the `[Connect]` button at the bottom.
+ 1. Enter credentials and click `[Connect]`
+ 1. Browse, search, and so on.  The volume is on the desktop.
 
 
 Browser clients
