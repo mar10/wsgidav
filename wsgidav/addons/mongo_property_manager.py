@@ -95,7 +95,7 @@ class MongoPropertyManager(object):
     def _dump(self, msg="", out=None):
         pass
 
-    def getProperties(self, normurl):
+    def getProperties(self, normurl, environ=None):
         _logger.debug("getProperties(%s)" % normurl)
         doc = self.collection.find_one({"_url": normurl})
         propNames = []
@@ -105,7 +105,7 @@ class MongoPropertyManager(object):
                     propNames.append(decodeMongoKey(name))
         return propNames
 
-    def getProperty(self, normurl, propname):
+    def getProperty(self, normurl, propname, environ=None):
         _logger.debug("getProperty(%s, %s)" % (normurl, propname))
         doc = self.collection.find_one({"_url": normurl})
         if not doc:
@@ -113,7 +113,7 @@ class MongoPropertyManager(object):
         prop = doc.get(encodeMongoKey(propname))
         return prop
 
-    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False):
+    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
@@ -132,7 +132,7 @@ class MongoPropertyManager(object):
         doc[encodeMongoKey(propname)] = propertyvalue
         self.collection.save(doc)
 
-    def removeProperty(self, normurl, propname, dryRun=False):
+    def removeProperty(self, normurl, propname, dryRun=False, environ=None):
         """
         """
         _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
@@ -146,14 +146,14 @@ class MongoPropertyManager(object):
         del doc[encodeMongoKey(propname)]
         self.collection.save(doc)
 
-    def removeProperties(self, normurl):
+    def removeProperties(self, normurl, environ=None):
         _logger.debug("removeProperties(%s)" % normurl)
         doc = self.collection.find_one({"_url": normurl})
         if doc:
             self.collection.remove(doc)
         return
 
-    def copyProperties(self, srcUrl, destUrl):
+    def copyProperties(self, srcUrl, destUrl, environ=None):
         doc = self.collection.find_one({"_url": srcUrl})
         if not doc:
             _logger.debug("copyProperties(%s, %s): src has no properties" % (srcUrl, destUrl))
@@ -162,7 +162,7 @@ class MongoPropertyManager(object):
         doc2 = doc.copy()
         self.collection.insert(doc2)
 
-    def moveProperties(self, srcUrl, destUrl, withChildren):
+    def moveProperties(self, srcUrl, destUrl, withChildren, environ=None):
         _logger.debug("moveProperties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
         if withChildren:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
