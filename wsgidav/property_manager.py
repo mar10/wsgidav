@@ -133,7 +133,7 @@ class PropertyManager(object):
         except Exception as e:
             util.warn("PropertyManager._dump()  ERROR: %s" % e)
 
-    def getProperties(self, normurl):
+    def getProperties(self, normurl, environ=None):
         _logger.debug("getProperties(%s)" % normurl)
         self._lock.acquireRead()
         try:
@@ -147,7 +147,7 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def getProperty(self, normurl, propname):
+    def getProperty(self, normurl, propname, environ=None):
         _logger.debug("getProperty(%s, %s)" % (normurl, propname))
         self._lock.acquireRead()
         try:
@@ -167,7 +167,7 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False):
+    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
         # self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl,
         #   propname, dryRun, propertyvalue))
         assert normurl and normurl.startswith("/")
@@ -196,7 +196,7 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def removeProperty(self, normurl, propname, dryRun=False):
+    def removeProperty(self, normurl, propname, dryRun=False, environ=None):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
@@ -222,7 +222,7 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def removeProperties(self, normurl):
+    def removeProperties(self, normurl, environ=None):
         _logger.debug("removeProperties(%s)" % normurl)
         self._lock.acquireWrite()
         try:
@@ -234,7 +234,7 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def copyProperties(self, srcurl, desturl):
+    def copyProperties(self, srcurl, desturl, environ=None):
         _logger.debug("copyProperties(%s, %s)" % (srcurl, desturl))
         self._lock.acquireWrite()
         try:
@@ -250,7 +250,7 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def moveProperties(self, srcurl, desturl, withChildren):
+    def moveProperties(self, srcurl, desturl, withChildren, environ=None):
         _logger.debug("moveProperties(%s, %s, %s)" %
                       (srcurl, desturl, withChildren))
         self._lock.acquireWrite()

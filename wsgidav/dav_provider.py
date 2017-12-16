@@ -518,7 +518,7 @@ class _DAVResource(object):
         if self.provider.propManager:
             refUrl = self.getRefUrl()
             propNameList.extend(
-                self.provider.propManager.getProperties(refUrl))
+                self.provider.propManager.getProperties(refUrl, self.environ))
 
         return propNameList
 
@@ -695,7 +695,7 @@ class _DAVResource(object):
         # Dead property
         pm = self.provider.propManager
         if pm:
-            value = pm.getProperty(refUrl, propname)
+            value = pm.getProperty(refUrl, propname, self.environ)
             if value is not None:
                 return xml_tools.stringToXML(value)
 
@@ -758,17 +758,17 @@ class _DAVResource(object):
         if pm and not propname.startswith("{DAV:}"):
             refUrl = self.getRefUrl()
             if value is None:
-                return pm.removeProperty(refUrl, propname, dryRun)
+                return pm.removeProperty(refUrl, propname, dryRun, self.environ)
             else:
                 value = etree.tostring(value)
-                return pm.writeProperty(refUrl, propname, value, dryRun)
+                return pm.writeProperty(refUrl, propname, value, dryRun, self.environ)
 
         raise DAVError(HTTP_FORBIDDEN)
 
     def removeAllProperties(self, recursive):
         """Remove all associated dead properties."""
         if self.provider.propManager:
-            self.provider.propManager.removeProperties(self.getRefUrl())
+            self.provider.propManager.removeProperties(self.getRefUrl(), self.environ)
 
     # --- Locking ------------------------------------------------------------
 
@@ -1466,8 +1466,8 @@ class DAVProvider(object):
         """Optionally implement custom request handling.
 
         requestmethod = environ["REQUEST_METHOD"]
-        Either 
-          - handle the request completely   
+        Either
+          - handle the request completely
           - do additional processing and call defaultHandler(environ, start_response)
         """
         return defaultHandler(environ, start_response)
