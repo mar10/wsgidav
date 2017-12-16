@@ -1,7 +1,7 @@
 # Contribution Guideline
 ## Setup for Contributors
 
-We need [Python 2.7](https://www.python.org/downloads/), [Python 3.3+](https://www.python.org/downloads/), and [pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) on our system:
+We need [Python 2.7](https://www.python.org/downloads/), [Python 3.4+](https://www.python.org/downloads/), and [pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) on our system:
 
 Also virtualenv, virtualenvwrapper (may require sudo):
 
@@ -17,7 +17,7 @@ $ cd wsgidav
 $ git checkout my_branch
 ```
 
-Setup a virtual environment with a specific Python version for development and 
+Setup a virtual environment with a specific Python version for development and
 testing.
 `-p` chooses the desired python version.
 The `-a .` option associates the `wsgidav` source folder with the environment,
@@ -54,4 +54,3 @@ The test suite should run as well:
 ```
 
 Happy hacking :)
-

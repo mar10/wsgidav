@@ -1,6 +1,9 @@
 # Changelog
 
-## 2.2.5 / Unreleased
+## 2.3.0 / Unreleased
+
+- Drop support for Python 3.3 (end-of-life september 2017)
+
 
 ## 2.2.4 / 2017-08-11
 
