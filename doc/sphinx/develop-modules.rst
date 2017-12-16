@@ -2,10 +2,10 @@
  WsgiDAV Modules
 *****************
 
-This document gives a brief introduction to the WsgiDAV application package 
+This document gives a brief introduction to the WsgiDAV application package
 (targeted to developers).
 
-.. seealso:: 
+.. seealso::
    :doc:`api-doc`
 
 .. toctree::
@@ -17,16 +17,16 @@ DAV providers
 DAV providers are abstractions layers that are used by the ``RequestServer`` to
 access and manipulate DAV resources.
 
-All DAV providers must implement a common interface. This is usually done by 
+All DAV providers must implement a common interface. This is usually done by
 deriving from the abstract base class ``dav_provider.DAVProvider``.
 
-WsgiDAV comes with a DAV provider for file systems, called 
+WsgiDAV comes with a DAV provider for file systems, called
 ``fs_dav_provider.FilesystemProvider``. That is why WsgiDAV is a WebDAV file
-server out-of-the-box. 
+server out-of-the-box.
 
 There are also a few other modules that may serve as examples on how to plug-in
 your own custom DAV providers: :doc:`addons`.
-See also :doc:`develop-custom-providers`. 
+See also :doc:`develop-custom-providers`.
 
 
 FilesystemProvider
@@ -36,36 +36,36 @@ FilesystemProvider
 
 Property Managers
 =================
-DAV providers may use a property manager to support persistence for *dead 
-properties*.  
+DAV providers may use a property manager to support persistence for *dead
+properties*.
 
-WsgiDAV comes with two default implementations, one based on a in-memory 
-dictionary, and a persistent one based in shelve::
+WsgiDAV comes with two default implementations, one based on a in-memory
+dictionary, and a persistent one based on shelve::
 
     property_manager.PropertyManager
     property_manager.ShelvePropertyManager
 
-``PropertyManager`` is used by default, but ``ShelvePropertyManager`` can be 
+``PropertyManager`` is used by default, but ``ShelvePropertyManager`` can be
 enabled by uncommenting two lines in the configuration file.
 
 In addition, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
 .. automodule:: wsgidav.property_manager
-  
+
 
 Lock Managers
 =============
-DAV providers may use a lock manager to support exclusive and shared write 
-locking.  
+DAV providers may use a lock manager to support exclusive and shared write
+locking.
 
-WsgiDAV comes with two default implementations, one based on a in-memory 
-dictionary, and a persistent one based in shelve::
+WsgiDAV comes with two default implementations, one based on a in-memory
+dictionary, and a persistent one based on shelve::
 
     lock_manager.LockManager
     lock_manager.ShelveLockManager
 
-``LockManager`` is used by default, but ``ShelveLockManager`` can be 
+``LockManager`` is used by default, but ``ShelveLockManager`` can be
 enabled by uncommenting two lines in the configuration file.
 
 In addition, this may be replaced by a custom version, as long as the required
@@ -76,7 +76,7 @@ interface is implemented.
 
 Domain controllers
 ==================
-A domain controller provides user/password checking for a realm to the 
+A domain controller provides user/password checking for a realm to the
 HTTPAuthenticator.
 
 WsgiDAV comes with a default implementation that reads a user/password list from
@@ -85,7 +85,7 @@ the config file.
 However, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
-``wsgidav.addons.nt_domain_controller`` is an example for such an extension.   
+``wsgidav.addons.nt_domain_controller`` is an example for such an extension.
 
 
 Other objects
