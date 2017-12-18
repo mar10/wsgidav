@@ -66,7 +66,9 @@ The configuration file uses Python syntax to specify these options:
 For a start, you should copy 
 :download:`Sample Configuration<../../wsgidav.conf.sample>` or 
 :download:`Annotated Sample Configuration<../annotated_wsgidav.conf>`
-and edit it to your needs.
+and edit it to your needs. You can also use a JSON file for configuration.
+Take a look at the
+:download:`JSON Sample Configuration<../../wsgidav.json.sample>`.
 
 .. seealso:: :doc:`configuration-file`.
 
