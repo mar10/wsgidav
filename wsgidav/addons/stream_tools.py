@@ -12,7 +12,7 @@ consumer at the same time::
     def beginWrite(self, contentType=None):
         queue = FileLikeQueue(maxsize=1)
         requests.post(..., data=queue)
-        return queue    
+        return queue
 
 """
 from wsgidav import compat
@@ -28,7 +28,7 @@ _logger = util.getModuleLogger(__name__)
 
 class FileLikeQueue(object):
     """A queue for chunks that behaves like a file-like.
-    
+
     read() and write() are typically called from different threads.
 
     This helper class is intended to handle use cases where an incoming PUT
@@ -40,7 +40,7 @@ class FileLikeQueue(object):
         # ... and use it as source for the consumer:
         requests.post(..., data=queue)
         # pass it to the PUT handler as target
-        return queue    
+        return queue
     """
     def __init__(self, maxsize=0):
         self.is_closed = False
@@ -95,9 +95,9 @@ class FileLikeQueue(object):
         print("FileLikeQueue.close()")
         self.is_closed = True
 
-    # TODO: we may also implement iterator functionality, but this should be 
+    # TODO: we may also implement iterator functionality, but this should be
     # optional, since the consumer may behave differently.
-    # For example the `requests` library produces chunked transfer encoding if 
+    # For example the `requests` library produces chunked transfer encoding if
     # the `data` argument is a generator instead of a file-like.
 
     # def __iter__(self):
@@ -128,7 +128,7 @@ class StreamingFile(object):
         """Read bytes from an iterator."""
         while size is None or len(self.buffer) < size:
             try:
-                self.buffer += self.data_stream.next()
+                self.buffer += next(self.data_stream)
             except StopIteration:
                 break
 
