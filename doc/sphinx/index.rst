@@ -1,8 +1,8 @@
 .. _main-index:
 
-#############################
+#####################
 WsgiDAV Documentation
-#############################
+#####################
 
 :Project: WsgiDAV, https://github.com/mar10/wsgidav/
 :Copyright: Licensed under `The MIT License <https://raw.github.com/mar10/wsgidav/master/LICENSE>`_
