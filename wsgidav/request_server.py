@@ -1490,6 +1490,11 @@ class RequestServer(object):
         if res.supportEtag():
             responseHeaders.append(("ETag", '"%s"' % entitytag))
 
+        if "response_headers" in environ["wsgidav.config"]:
+            customHeaders = environ["wsgidav.config"]["response_headers"]
+            for header, value in customHeaders :
+                responseHeaders.append((header, value))
+
         res.finalizeHeaders(environ, responseHeaders)
 
         if ispartialranges:
