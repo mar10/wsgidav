@@ -1,6 +1,6 @@
 ################################################################################
 # Sample WsgiDAV configuration file
-# 
+#
 # 1. Rename this file to `wsgidav.conf`
 # 2. Adjust settings as appropriate
 # 3. Run `wsgidav` fro, the same directory.
@@ -21,7 +21,7 @@ user_mapping = {}
 def addShare(shareName, davProvider):
     provider_mapping[shareName] = davProvider
 
-    
+
 def addUser(realmName, user, password, description, roles=[]):
     realmName = "/" + realmName.strip(r"\/")
     userDict = user_mapping.setdefault(realmName, {}).setdefault(user, {})
@@ -29,7 +29,7 @@ def addUser(realmName, user, password, description, roles=[]):
     userDict["description"] = description
     userDict["roles"] = roles
 
-        
+
 ################################################################################
 # SERVER OPTIONS
 #===============================================================================
@@ -62,10 +62,11 @@ port = 8080
 
 # Add the MS-Author-Via Response Header to OPTIONS command to allow editing
 # with Microsoft Office (default: True)
-add_header_MS_Author_Via = True	
+add_header_MS_Author_Via = True
 
 # Add custom headers
-response_headers = [('Access-Control-Allow-Origin', 'http://example.org')]
+# Response headers must be a list of header-name / header-value
+# response_headers = [("Access-Control-Allow-Origin", "http://example.org")]
 
 # Block size in bytes
 #block_size = 8192
@@ -73,7 +74,7 @@ response_headers = [('Access-Control-Allow-Origin', 'http://example.org')]
 
 #===============================================================================
 # Middlewares
-# 
+#
 # Use this section to modify the default middleware stack
 
 #from wsgidav.dir_browser import WsgiDavDirBrowser
@@ -161,14 +162,14 @@ defaultdigest = True  # True (default digest) or False (default basic)
 trusted_auth_header = None
 
 #domaincontroller =   # Uncomment this line to specify your own domain controller
-                      # Default: wsgidav.domain_controller, which uses the USERS 
+                      # Default: wsgidav.domain_controller, which uses the USERS
                       #          section below
 
 
-# Example: use a domain controller that allows users to authenticate against 
+# Example: use a domain controller that allows users to authenticate against
 #          a Windows NT domain or a local computer.
 #          Note: NTDomainController requires basic authentication:
-#                Set acceptbasic=True, acceptdigest=False, defaultdigest=False 
+#                Set acceptbasic=True, acceptdigest=False, defaultdigest=False
 
 # from wsgidav.addons.nt_domain_controller import NTDomainController
 # domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
@@ -182,16 +183,16 @@ trusted_auth_header = None
 #
 # This section is ONLY used by the DEFAULT Domain Controller.
 #
-# Users are defined per realm: 
-#     addUser(<realm>, <user>, <password>, <description>)  
+# Users are defined per realm:
+#     addUser(<realm>, <user>, <password>, <description>)
 #
-# Note that the default Domain Controller uses the share name as realm name.   
-# 
+# Note that the default Domain Controller uses the share name as realm name.
+#
 # If no users are specified for a realm, no authentication is required.
-# Thus granting read-write access to anonymous! 
+# Thus granting read-write access to anonymous!
 #
-# Note: If you wish to use Windows WebDAV support (such as Windows XP's My 
-# Network Places), you need to include the domain of the user as part of the 
+# Note: If you wish to use Windows WebDAV support (such as Windows XP's My
+# Network Places), you need to include the domain of the user as part of the
 # username (note the DOUBLE slash), such as:
 # addUser("v_root", "domain\\user", "password", "description")
 

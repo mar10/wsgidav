@@ -780,7 +780,7 @@ class RequestServer(object):
             else:
                 for data in data_stream:
                     fileobj.write(data)
-            
+
             fileobj.close()
 
         except Exception as e:
@@ -1492,7 +1492,7 @@ class RequestServer(object):
 
         if "response_headers" in environ["wsgidav.config"]:
             customHeaders = environ["wsgidav.config"]["response_headers"]
-            for header, value in customHeaders :
+            for header, value in customHeaders:
                 responseHeaders.append((header, value))
 
         res.finalizeHeaders(environ, responseHeaders)
