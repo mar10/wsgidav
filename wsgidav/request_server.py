@@ -613,7 +613,7 @@ class RequestServer(object):
         return self._sendResponse(environ, start_response,
                                   res, HTTP_NO_CONTENT, errorList)
 
-    def _streamDataChunked(self, environ):
+    def _streamDataChunked(self, environ, block_size):
         """Get the data from a chunked transfer."""
         # Chunked Transfer Coding
         # http://www.servlets.com/rfcs/rfc2616-sec3.html#sec3.6.1
@@ -636,7 +636,7 @@ class RequestServer(object):
                 l = int(buf, 16)
 
         while l > 0:
-            buf = environ["wsgi.input"].read(l)
+            buf = environ["wsgi.input"].read(block_size)
             yield buf
             if WORKAROUND_CHUNK_LENGTH:
                 environ["wsgidav.some_input_read"] = 1
@@ -763,7 +763,7 @@ class RequestServer(object):
         hasErrors = False
         try:
             if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
-                data_stream = self._streamDataChunked(environ)
+                data_stream = self._streamDataChunked(environ, self.block_size)
             else:
                 data_stream = self._streamData(environ, contentlength, self.block_size)
 
