@@ -421,7 +421,7 @@ class WsgiDAVApp(object):
                     userInfo,
                     util.getLogTime(),
                     environ.get("REQUEST_METHOD") + " " +
-                    safeReEncode(environ.get("PATH_INFO", ""), sys.stdout.encoding),
+                    safeReEncode(environ.get("PATH_INFO", ""), sys.stdout.encoding or "ASCII"),
                     extra,
                     status,
                     # response_headers.get(""), # response Content-Length

@@ -3,6 +3,7 @@
 .eggs
 .idea
 .tox
+.vscode
 build/
 doc/sphinx/_build/
 doc/sphinx/_generated/

@@ -131,7 +131,7 @@ class CouchPropertyManager(object):
             yield row.doc
         return
 
-    def getProperties(self, normurl):
+    def getProperties(self, normurl, environ=None):
         _logger.debug("getProperties(%s)" % normurl)
         doc = self._find(normurl)
         propNames = []
@@ -140,7 +140,7 @@ class CouchPropertyManager(object):
                 propNames.append(name)
         return propNames
 
-    def getProperty(self, normurl, propname):
+    def getProperty(self, normurl, propname, environ=None):
         _logger.debug("getProperty(%s, %s)" % (normurl, propname))
         doc = self._find(normurl)
         if not doc:
@@ -148,7 +148,7 @@ class CouchPropertyManager(object):
         prop = doc["properties"].get(propname)
         return prop
 
-    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False):
+    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
@@ -170,7 +170,7 @@ class CouchPropertyManager(object):
                    }
         self.db.save(doc)
 
-    def removeProperty(self, normurl, propname, dryRun=False):
+    def removeProperty(self, normurl, propname, dryRun=False, environ=None):
         _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
@@ -182,14 +182,14 @@ class CouchPropertyManager(object):
         del doc["properties"][propname]
         self.db.save(doc)
 
-    def removeProperties(self, normurl):
+    def removeProperties(self, normurl, environ=None):
         _logger.debug("removeProperties(%s)" % normurl)
         doc = self._find(normurl)
         if doc:
             self.db.delete(doc)
         return
 
-    def copyProperties(self, srcUrl, destUrl):
+    def copyProperties(self, srcUrl, destUrl, environ=None):
         doc = self._find(srcUrl)
         if not doc:
             _logger.debug("copyProperties(%s, %s): src has no properties" % (srcUrl, destUrl))
@@ -204,7 +204,7 @@ class CouchPropertyManager(object):
                 }
         self.db.save(doc2)
 
-    def moveProperties(self, srcUrl, destUrl, withChildren):
+    def moveProperties(self, srcUrl, destUrl, withChildren, environ=None):
         _logger.debug("moveProperties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
         if withChildren:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'

@@ -1,5 +1,5 @@
 ********************
- Installing WsgiDAV 
+ Installing WsgiDAV
 ********************
 
 This document describes, how a WsgiDAV server is installed.
@@ -17,7 +17,7 @@ Preconditions
 =============
 
 WsgiDAV requires
-  * Python version 2.7, 3.3 or later
+  * Python version 2.7, 3.4 or later
   * Optionally `lxml <http://codespeak.net/lxml/>`_ (will fall back to xml)
 
 
@@ -27,7 +27,7 @@ Unix / Linux
 ------------
 The following examples were tested on Ubuntu 13.04.
 
-Install lxml (optional):: 
+Install lxml (optional)::
 
     ~$ sudo apt-get install python-lxml
 

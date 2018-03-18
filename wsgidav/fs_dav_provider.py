@@ -131,9 +131,9 @@ class FileResource(DAVNonCollection):
             destRes = self.provider.getResourceInst(destPath, self.environ)
             if isMove:
                 propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                       withChildren=False)
+                                       withChildren=False, environ=self.environ)
             else:
-                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl(), self.environ)
 
     def supportRecursiveMove(self, destPath):
         """Return True, if moveRecursive() is available (see comments there)."""
@@ -153,7 +153,7 @@ class FileResource(DAVNonCollection):
         if self.provider.propManager:
             destRes = self.provider.getResourceInst(destPath, self.environ)
             self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                                     withChildren=True)
+                                                     withChildren=True, environ=self.environ)
 
     def setLastModified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
@@ -306,9 +306,9 @@ class FolderResource(DAVCollection):
             destRes = self.provider.getResourceInst(destPath, self.environ)
             if isMove:
                 propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                       withChildren=False)
+                                       withChildren=False, environ=self.environ)
             else:
-                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl())
+                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl(), self.environ)
 
     def supportRecursiveMove(self, destPath):
         """Return True, if moveRecursive() is available (see comments there)."""
@@ -328,7 +328,7 @@ class FolderResource(DAVCollection):
         if self.provider.propManager:
             destRes = self.provider.getResourceInst(destPath, self.environ)
             self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                                     withChildren=True)
+                                                     withChildren=True, environ=self.environ)
 
     def setLastModified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
