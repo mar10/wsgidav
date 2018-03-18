@@ -1,6 +1,7 @@
 .cache
 .coverage
 .eggs
+.idea
 .tox
 build/
 doc/sphinx/_build/
