@@ -1,4 +1,4 @@
-# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -252,7 +252,7 @@ class WsgiDAVApp(object):
         # This seems to be wrong, since per PEP 3333 PATH_INFO is always ISO-8859-1 encoded
         # (see https://www.python.org/dev/peps/pep-3333/#unicode-issues).
         # But also seems to resolve errors when accessing resources with Chinese characters, for
-        # example. 
+        # example.
         # This is done by default for Python 3, but can be turned off in settings.
         re_encode_path_info = self.config.get("re_encode_path_info")
         if re_encode_path_info is None:
@@ -260,7 +260,7 @@ class WsgiDAVApp(object):
         if re_encode_path_info:
             b = compat.wsgi_to_bytes(path).decode()
             path = environ["PATH_INFO"] = b
-        
+
         # We optionally unquote PATH_INFO here, although this should already be
         # done by the server (#8).
         if self.config.get("unquote_path_info", False):

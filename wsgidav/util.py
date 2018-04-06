@@ -1,4 +1,4 @@
-# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -384,7 +384,7 @@ def toUnicode(s):
 
 
 def safeReEncode(s, encoding_to, errors="backslashreplace"):
-    """Re-encode str or binary so that is compatible wit a given encoding (replacing 
+    """Re-encode str or binary so that is compatible wit a given encoding (replacing
     unsupported chars)."""
     if compat.is_bytes(s):
         s = s.decode(encoding_to, errors=errors).encode(encoding_to)

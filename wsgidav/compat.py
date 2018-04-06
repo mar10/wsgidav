@@ -1,4 +1,4 @@
-# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -8,7 +8,7 @@ Inspired by six https://pythonhosted.org/six/
 """
 from __future__ import print_function
 
-# flake8: noqa    
+# flake8: noqa
 
 import sys
 

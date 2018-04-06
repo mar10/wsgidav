@@ -1,5 +1,5 @@
 # -*- coding: iso-8859-1 -*-
-# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -156,17 +156,17 @@ class WsgiDavTestServer(object):
 
     def __enter__(self):
         self.start()
-        return self 
-    
+        return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
-        
+
     def __del__(self):
         try:
             self.stop()
         except Exception:
             pass
-        
+
     def start(self):
         kwargs = {
             "with_auth": self.with_auth,

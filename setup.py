@@ -108,7 +108,7 @@ if use_cx_freeze:
                        targetName="wsgidav.exe",
                        icon="doc/logo.ico",
                        shortcutName="WsgiDAV",
-                       # copyright="(c) 2009-2017 Martin Wendt",  # requires cx_Freeze PR#94
+                       # copyright="(c) 2009-2018 Martin Wendt",  # requires cx_Freeze PR#94
                        # trademarks="...",
                        )
             ]
@@ -128,7 +128,7 @@ else:
 build_exe_options = {
     "includes": install_requires,
     "packages": [],
-    "constants": "BUILD_COPYRIGHT='(c) 2009-2017 Martin Wendt'",
+    "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
 #    "init_script": "Console",
     }
 

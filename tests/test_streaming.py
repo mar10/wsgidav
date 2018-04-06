@@ -1,5 +1,5 @@
 # -*- coding: iso-8859-1 -*-
-# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 
@@ -42,7 +42,7 @@ class MockProxyResource(DAVNonCollection):
         # print("beginWrite: {}".format(self.target_path))
         queue = FileLikeQueue(maxsize=1)
 
-        # Simulate an asynchrounous consumer. We use a file, so we can check 
+        # Simulate an asynchrounous consumer. We use a file, so we can check
         # the result from the parent unittest process. In real live this could be
         # requests.post(..., data=queue), ...
         def _consumer():
@@ -60,7 +60,7 @@ class MockProxyResource(DAVNonCollection):
 
         self.worker = threading.Thread(target=_consumer)
         self.worker.setDaemon(True)
-        self.worker.start()        
+        self.worker.start()
         return queue
 
     def endWrite(self, withErrors):

@@ -1,21 +1,21 @@
 # -*- coding: iso-8859-1 -*-
-# (c) 2009-2017 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
-    Benchmark suite for WsgiDAV. 
-    
+    Benchmark suite for WsgiDAV.
+
 Questions
 =========
 - is lxml really faster?
 - is WsgiDAV 1.x faster than WsgiDAV 2.x?
 - is WsgiDAV 2.x faster or slower on Py2.7 and Py3.x?
-- compare this to mod_dav's performance 
+- compare this to mod_dav's performance
 
 Test cases
 ==========
-- 100 x PROPFIND depth 0 
-- 1 x PROPFIND depth infinity 
+- 100 x PROPFIND depth 0
+- 1 x PROPFIND depth infinity
 - COPY: big file, many small files, big tree
 - MOVE: big file, many small files, big tree
 - DELETE: big file, many small files, big tree
@@ -32,7 +32,7 @@ Test cases
   - file editing
 
 - http://groups.google.com/group/paste-users/t/b2afc88a86caade1?hl=en
-  use httperf 
+  use httperf
   http://www.hpl.hp.com/research/linux/httperf/httperf-man-0.9.txt
   and openwebload
   http://openwebload.sourceforge.net/index.html
