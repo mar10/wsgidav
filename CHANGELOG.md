@@ -1,6 +1,10 @@
 # Changelog
 
-## 2.3.0 / Unreleased
+## 2.3.1 / Unreleased
+-
+
+
+## 2.3.0 / 2018-04-06
 
 - #80: Drop support for Python 3.3 (end-of-life september 2017)
 - #86: Give custom PropertyManager implementations access to the environ

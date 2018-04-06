@@ -4,6 +4,7 @@
 .idea
 .tox
 .vscode
+.pytest_cache/
 build/
 doc/sphinx/_build/
 doc/sphinx/_generated/
