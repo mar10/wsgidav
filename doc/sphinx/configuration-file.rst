@@ -19,3 +19,10 @@ and edit it to your needs.
 .. literalinclude:: ../annotated_wsgidav.conf
     :linenos:
     :language: python
+
+You can also use a JSON file for configuration if you don't require the
+full power of python code to set everything up.
+
+.. literalinclude:: ../../wsgidav.json.sample
+    :linenos:
+    :language: json

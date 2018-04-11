@@ -35,6 +35,7 @@ Configuration is defined like this:
 from __future__ import print_function
 
 import argparse
+import json
 import os
 import sys
 import traceback
@@ -195,6 +196,10 @@ def _readConfigFile(config_file, verbose):
 
     if not os.path.exists(config_file):
         raise RuntimeError("Couldn't open configuration file '%s'." % config_file)
+
+    if config_file.endswith(".json"):
+        with open(config_file, mode="r", encoding="utf-8") as json_file:
+            return json.load(json_file)
 
     try:
         import imp
