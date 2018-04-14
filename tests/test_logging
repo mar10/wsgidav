@@ -1,0 +1,31 @@
+import logging
+
+# _logger = logging.getLogger("wsgidav")
+_logger = logging.getLogger(__name__)
+
+# logging.basicConfig(level=logging.DEBUG,
+#                     format='%(asctime)s %(name)-15s %(levelname)-8s %(message)s',
+#                     # datefmt='%Y-%m-%d %H:%M:%S',
+#                     )
+
+_logger.addHandler(logging.NullHandler())
+_logger2 = logging.getLogger("wsgidav.server")
+
+
+def test_logger(logger, msg=""):
+    logger.debug("Debug {}".format(msg))
+    logger.info("Info {}".format(msg))
+    logger.warn("Warn {}".format(msg))
+    logger.error("Error {}".format(msg))
+
+
+def setLogger():
+    pass
+
+test_logger(_logger, "1")
+test_logger(_logger2, "2")
+
+_logger.setLevel(logging.WARN)
+test_logger(_logger, "1w")
+test_logger(_logger2, "2w")
+

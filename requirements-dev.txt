@@ -5,8 +5,9 @@ pytest~=2.7
 pytest-cov~=1.8
 recommonmark
 requests
+setuptools~=38.6
 sphinx~=1.4
 tox~=2.0
-twine
+twine~=1.11
 WebTest~=2.0
 wheel

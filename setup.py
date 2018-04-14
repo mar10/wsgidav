@@ -57,9 +57,10 @@ class SphinxCommand(Command):
 
 
 try:
-    readme = open("readme_pypi.rst", "rt").read()
+    # readme = open("readme_pypi.rst", "rt").read()
+    readme = open("README.md", "rt").read()
 except IOError:
-    readme = "(readme_pypi.rst not found. Running from tox/setup.py test?)"
+    readme = "(Readme file not found. Running from tox/setup.py test?)"
 
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
 if "HOME" not in os.environ and "HOMEPATH" in os.environ:
@@ -157,6 +158,7 @@ setup(
     url="https://github.com/mar10/wsgidav/",
     description="Generic WebDAV server based on WSGI",
     long_description=readme,
+    long_description_content_type="text/markdown",
     classifiers=[
         # Development Status :: 2 - Pre-Alpha
         # Development Status :: 3 - Alpha
