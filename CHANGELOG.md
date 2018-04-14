@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2.3.1 / Unreleased
--
+- #89 Add support for JSON config files to built-in server runner
 
 
 ## 'logging' branch
