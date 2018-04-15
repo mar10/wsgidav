@@ -1,18 +1,11 @@
-**************************
- WsgiDAV API Doc
-**************************
-
-This section gives a brief introduction to the WsgiDAV application package 
-(targeted to developers).
+=======
+API Doc
+=======
 
 .. toctree::
    :maxdepth: 1
-   
 
-Overview
-========
-wsgidav package:
-
+   pkg_wsgidav
 
 Classes
 =======
@@ -20,14 +13,18 @@ Classes
    :parts: 1
    :private-bases:
 
-   
+
 Packages
 ========
 wsgidav
 -------
-.. autosummary::
+.. autosummary:: wsgidav
    :toctree: _generated
-   
+   :members:
+
+..
+   wsgidav._version
+   wsgidav.compat
    wsgidav.dav_error
    wsgidav.dav_provider
    wsgidav.debug_filter
@@ -44,7 +41,6 @@ wsgidav
    wsgidav.request_server
    wsgidav.rw_lock
    wsgidav.util
-   wsgidav.version
    wsgidav.wsgidav_app
    wsgidav.xml_tools
 
@@ -53,7 +49,7 @@ wsgidav.samples
 ---------------
 .. autosummary::
    :toctree: _generated
-   
+
    wsgidav.samples.dav_provider_tools
    wsgidav.samples.mongo_dav_provider
    wsgidav.samples.virtual_dav_provider
@@ -63,7 +59,7 @@ wsgidav.addons
 --------------
 .. autosummary::
    :toctree: _generated
-   
+
    wsgidav.addons.couch_property_manager
    wsgidav.addons.hg_dav_provider
    wsgidav.addons.mongo_property_manager
@@ -74,7 +70,7 @@ wsgidav.server
 --------------
 .. autosummary::
    :toctree: _generated
-   
+
    wsgidav.server.ext_wsgiutils_server
    wsgidav.server.run_reloading_server
    wsgidav.server.run_server

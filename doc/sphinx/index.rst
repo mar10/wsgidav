@@ -1,29 +1,26 @@
 .. _main-index:
 
-#####################
-WsgiDAV Documentation
-#####################
+############################
+|logo| WsgiDAV Documentation
+############################
 
-:Project: WsgiDAV, https://github.com/mar10/wsgidav/
-:Copyright: Licensed under `The MIT License <https://raw.github.com/mar10/wsgidav/master/LICENSE>`_
-:Author: Martin Wendt
-:Release: |version|
-:Date: |today|
-
-..
-	WsgiDAV Documentation |logo|
-
-WsgiDAV is a generic `WebDAV <http://www.ietf.org/rfc/rfc4918.txt>`_ server
+A generic and extendable `WebDAV <http://www.ietf.org/rfc/rfc4918.txt>`_ server
 written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-0333/>`_.
 
-(WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md>`_ written by Ho Chun Wei.)
+:Project:   https://github.com/mar10/wsgidav/
+:Version:   |version|, Date: |today|
 
-Status
-======
-Version 2.x introduces Python 3 compatibility and is considered stable.
+|travis_badge| |nbsp| |pypi_badge| |nbsp| |lic_badge| |nbsp| |rtd_badge|
 
-.. seealso::
-	The `Change Log <https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md>`_.
+.. toctree::
+   :hidden:
+
+   Overview<self>
+   installation
+   user_guide.md
+   reference_guide
+   development
+   changes
 
 
 Main Features
@@ -31,86 +28,63 @@ Main Features
 - Comes bundled with a server and a file system provider, so we can share a
   directory right away from the command line.
 - Designed to run behind any WSGI compliant server.
-- Tested with different clients on different platforms (Windows, Unix, Mac).
+- Tested with different clients on different platforms (Windows, Linux, Mac).
 - Supports online editing of MS Office documents.
 - Contains a simple web browser interface.
 - SSL support
 - Support for authentication using Basic or Digest scheme.
-- Passes `litmus test suite <http://www.webdav.org/neon/litmus/>`_.
-- Open architecture allows to write custom providers (i.e. storage, locking,
-  authentication, ...).
+- Passes the `litmus test suite <http://www.webdav.org/neon/litmus/>`_.
+- Open architecture allows to `write custom providers <user_guide_custom_providers>`_
+  (i.e. storage, locking, authentication, virtual file systems, ...).
+- WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md>`_
+  written by Ho Chun Wei.
 
 
 Quickstart
-===========
-**Install**
+==========
 
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_.
-Install like::
+Install WsgiDAV (and a server) like::
 
-	$ pip install -U wsgidav
-
-Or install the latest (potentially unstable) development version::
-
-	$ pip install git+https://github.com/mar10/wsgidav.git
-
-.. seealso ::
-	:doc:`run-install` for details and how to install with developer access.
-
-
-**Run Server**
+	$ pip install cheroot wsgidav
 
 To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
 
 	$ wsgidav --host=0.0.0.0 --port=80 --root=/tmp
 
-Much more options are available when a configuration file is specified.
-By default ``wsgidav.conf`` is searched in the local directory. Otherwise a
-file name can be specified::
-
-	$ wsgidav --config=my_config.conf
-
-.. seealso ::
-	:doc:`run-configure`
+.. note::
+   MS Windows users that only need the command line interface may prefer the
+   `MSI installer <https://github.com/mar10/wsgidav/releases>`_.
 
 
 Supported Clients
 =================
+
 WsgiDAV comes with a web interface and was tested with different clients
 (Windows File Explorer and drive mapping, MS Office, Ubuntu, Mac OS X, ...).
 
-.. image :: https://raw.github.com/mar10/wsgidav/master/doc/teaser.png
+.. image:: ../teaser.png
+  :name: WsgiDAV clients
 
-.. seealso ::
-	:doc:`run-access`
-
-
-More info
-=========
-
-.. toctree::
-   :maxdepth: 1
-   :numbered:
-
-   run-install.rst
-   run-configure.rst
-   run-access.rst
-   addons.rst
-   develop.rst
-   faq.rst
-
-contents
-
-.. contents::
-	:local:
-	:depth: 1
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+..
+  .. seealso::
+  	:doc:`run-access`
 
 
-.. |logo| image:: https://raw.github.com/mar10/wsgidav/master/logo.png
+.. |logo| image:: ../logo.png
+
+.. |travis_badge| image:: https://travis-ci.org/mar10/wsgidav.svg?branch=master
+   :alt: Build Status
+   :target: https://travis-ci.org/mar10/wsgidav
+
+.. |pypi_badge| image:: https://img.shields.io/pypi/v/wsgidav.svg
+   :alt: PyPI Version
+   :target: https://pypi.python.org/pypi/wsgidav/
+
+.. |lic_badge| image:: https://img.shields.io/pypi/l/wsgidav.svg
+   :alt: License
+   :target: https://github.com/mar10/wsgidav/blob/master/LICENSE
+
+.. |rtd_badge| image:: https://readthedocs.org/projects/wsgidav/badge/?version=latest
+   :target: http://wsgidav.readthedocs.io/
+   :alt: Documentation Status

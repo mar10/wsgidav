@@ -19,11 +19,18 @@
 import sys
 import os
 
+from recommonmark.parser import CommonMarkParser
+
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../..'))
+package_root = os.path.abspath('../..')
+sys.path.insert(0, package_root)
+print "Add package root to sys.path: %r" % package_root
+# for fn in os.listdir(package_root):
+#   print "-", fn
 
 # -- General configuration ------------------------------------------------
 
@@ -43,15 +50,25 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.napoleon',
+    'sphinx_automodapi.automodapi',
 ]
 
+# A string of reStructuredText that will be included at the end of every source file that is read.
+# This is the right place to add substitutions that should be available in every file. An example:
+rst_epilog = """
+.. |br| raw:: html
+
+   <br />
+
+.. |nbsp| unicode:: 0xA0
+   :trim:
+
+"""
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix of source filenames.
 #source_suffix = '.rst'
-
-from recommonmark.parser import CommonMarkParser
 
 source_parsers = {
     '.md': CommonMarkParser,
@@ -128,12 +145,22 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = True
+
 
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+# html_theme = 'alabaster'
+# html_theme = 'default'
+if not on_rtd:
+    # only import and set the theme if we're building docs locally
+    # otherwise, readthedocs.org uses their theme by default, so no need to specify it
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -371,6 +398,15 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 
 autosummary_generate = True
 
+autodoc_mock_imports = [
+    'bson',
+    'couchdb',
+    'MySQLdb',
+    'pymongo',
+    'win32net',
+    'win32netcon',
+    'win32security',
+    ]
 # graphviz must be available locally and on ReadTheDocs
 #graphviz_dot = r"C:\Program Files\Graphviz2.34\bin\dot.exe"
 

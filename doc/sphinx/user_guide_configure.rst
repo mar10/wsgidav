@@ -1,14 +1,14 @@
-**********************************
- Configure and Run WsgiDAV Server
-**********************************
+=============
+Configuration
+=============
 
 *This document describes, how to configure and run a WsgiDAV server.*
 
 The WsgiDAV server was tested with these platforms
 
-  * Mac OS X 10.9
-  * Ubuntu 13
-  * Windows (Win7, Vista, XP)
+  * Mac OS X 10.9 - 10.13
+  * Ubuntu 13 - 16
+  * Windows (Win 7 - 10, Vista, XP)
 
 and these WSGI servers
 
@@ -22,26 +22,25 @@ and these WSGI servers
 
 .. toctree::
    :maxdepth: 1
-   
+
    configuration-file
-   run-configure-pylons.rst
 
 
-Run as stand-alone server
+Run as Stand-Alone Server
 =========================
 WsgiDAV is a WSGI application, that can be run by any WSGI compliant server.
 
-This package comes with a built-in WSGI server called `wsgidav` 
+This package comes with a built-in WSGI server called `wsgidav`
 (See `wsgidav.wsgidav_server.run_server.py` for details).
 
-In the most simple case, no configuration file is required. The following line 
+In the most simple case, no configuration file is required. The following line
 starts publishing the local folder `/tmp` for anonymous WebDAV access::
 
     ~/wsgidav$ wsgidav --host=0.0.0.0 --port=80 --root=/tmp
 
 To test it, you may start a browser on ``http://127.0.0.1/``.
 
-However, most of the time we want to specify a configuration file with advanced 
+However, most of the time we want to specify a configuration file with advanced
 settings::
 
     ~/wsgidav$ wsgidav --host=0.0.0.0 --port=80 --config=./wsgidav.conf
@@ -52,7 +51,7 @@ working directory. Use the `-h` option for a list of additional commands::
     ~/wsgidav$ wsgidav -h
 
 
-Configuration file
+Configuration File
 ==================
 The configuration file uses Python syntax to specify these options:
   * Server options (hostname, port, SSL cert, ...)
@@ -63,8 +62,8 @@ The configuration file uses Python syntax to specify these options:
   * Advanced debugging options
   * (and more)
 
-For a start, you should copy 
-:download:`Sample Configuration<../../wsgidav.conf.sample>` or 
+For a start, you should copy
+:download:`Sample Configuration<../../wsgidav.conf.sample>` or
 :download:`Annotated Sample Configuration<../annotated_wsgidav.conf>`
 and edit it to your needs. You can also use a JSON file for configuration.
 Take a look at the
@@ -73,9 +72,9 @@ Take a look at the
 .. seealso:: :doc:`configuration-file`.
 
 
-Run inside a 3rd-party WSGI server
+Run Inside a 3rd-party WSGI server
 ==================================
-Setup up the configuration dictionary, create a ``WsgiDAVApp`` object and 
+Setup up the configuration dictionary, create a ``WsgiDAVApp`` object and
 pass it to your favorite WSGI server:
 
 .. literalinclude:: ../../wsgidav/wsgidav/server/server_sample.py
@@ -83,8 +82,8 @@ pass it to your favorite WSGI server:
    :language: python
 
 
-Run inside Pylons
+Run Inside Pylons
 =================
 
-See :doc:`run-configure-pylons` for an example how WsgiDAV can be 
+See :doc:`user_guide_configure_pylons` for an example how WsgiDAV can be
 configured as Pylons controller.

@@ -62,7 +62,8 @@ See `Developers info`_ for more information about the WsgiDAV architecture.
 from __future__ import print_function
 
 import csv
-import md5
+import hashlib
+# import md5
 import time
 
 import MySQLdb  # @UnresolvedImport
@@ -124,7 +125,8 @@ class MySQLBrowserResource(_DAVResource):
                        "contentType": contentType,
                        "created": time.time(),
                        "displayName": self.name,
-                       "etag": md5.new(self.path).hexdigest(),
+                       "etag": hashlib.md5().update(self.path).hexdigest(),
+                       # "etag": md5.new(self.path).hexdigest(),
                        "modified": None,
                        "supportRanges": False,
                        "displayInfo": {"type": displayType,
