@@ -71,6 +71,19 @@ Take a look at the
 
 .. seealso:: :doc:`configuration-file`.
 
+Verbosity Level
+---------------
+
+The verbosity level can have a value from 0 to 6::
+
+    0: quiet
+    1: show errors only
+    2: show conflicts and 1 line summary only
+    3: show write operations
+    4: show equal files
+    5: diff-info and benchmark summary
+    6: show FTP commands
+
 
 Run Inside a 3rd-party WSGI server
 ==================================

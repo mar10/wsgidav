@@ -5,12 +5,14 @@
 """
 Implementation of a DAV provider that serves resource from a file system.
 
-ReadOnlyFilesystemProvider implements a DAV resource provider that publishes
-a file system for read-only access.
-Write attempts will raise HTTP_FORBIDDEN.
+:class:`~wsgidav.fs_dav_provider.FilesystemProvider` implements a DAV resource
+provider that publishes a file system.
 
-FilesystemProvider inherits from ReadOnlyFilesystemProvider and implements the
-missing write access functionality.
+If ``readonly=True`` is passed, write attempts will raise HTTP_FORBIDDEN.
+
+This provider creates instances of :class:`~wsgidav.fs_dav_provider.FileResource`
+and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
+directories respectively.
 """
 from __future__ import print_function
 

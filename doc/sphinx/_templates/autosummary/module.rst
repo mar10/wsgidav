@@ -12,6 +12,7 @@
 
 .. autosummary::
     :toctree: .
+
     {% for class in classes %}
     {{ class }}
     {% endfor %}

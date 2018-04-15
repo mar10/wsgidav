@@ -5,7 +5,7 @@ Using the Library
 This section describes how to use the ``wsgidav`` package to implement custom
 WebDAV servers.
 
-and the ``wsgidav`` package can be used in Python code::
+The ``wsgidav`` package can be used in Python code::
 
   $ python
   >>> from wsgidav import __version__
@@ -13,94 +13,103 @@ and the ``wsgidav`` package can be used in Python code::
   '2.3.1'
 
 
-Passing Options
----------------
+Run a WebDAV Server
+-------------------
 
-Options are passed as Python dict. See the :doc:`user_guide_configure`.
+In order to run WsgiDAV, we need to create an instance of :class:`~wsgidav.wsgidav_app.WsgiDAVApp`,
+pass options, and mount it on a WSGI compliant web server. |br|
+Here we keep most of the default options and use the
+`cheroot WSGI server <https://cheroot.cherrypy.org/>`_ ::
 
-.. todo:: TODO.
+  from cheroot import wsgi
+  from wsgidav.wsgidav_app import WsgiDAVApp
+
+  config = {
+      "host": "0.0.0.0",
+      "port": 8080,
+      "mount_path": "/dav",
+      "root": "/User/joe/pub",
+      "verbose": 1,
+      }
+
+  app = WsgiDAVApp(config)
+
+  server_args = {
+      "bind_addr": (config["host"], config["port"]),
+      "wsgi_app": app,
+      }
+  server = wsgi.Server(**server_args)
+  server.start()
+
+Options are passed as Python dict, see the :doc:`user_guide_configure` for details.
+
+By default, the :class:`~wsgidav.fs_dav_provider.FilesystemProvider` is used.
+This provider creates instances of :class:`~wsgidav.fs_dav_provider.FileResource`
+and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
+directories respectively.
+
+This is why the example above will publish the directory ``/User/joe/pub`` as
+``http://HOST:8080/dav``.
 
 
-Verbosity Level
----------------
+Custom Providers
+----------------
 
-The verbosity level can have a value from 0 to 6::
+If we want to implement custom behavior, we can define our own variant of a
+(derived from :class:`~wsgidav.dav_provider.DAVProvider`), which typically also
+uses custom instances of :class:`~wsgidav.dav_provider.DAVNonCollection` and
+:class:`~wsgidav.dav_provider.DAVCollection`.
 
-    0: quiet
-    1: show errors only
-    2: show conflicts and 1 line summary only
-    3: show write operations
-    4: show equal files
-    5: diff-info and benchmark summary
-    6: show FTP commands
+::
 
+    from cheroot import wsgi
+    from wsgidav.wsgidav_app import WsgiDAVApp
+    from bar_package import FooProvider
 
-Script Examples
----------------
+    config = {
+        "host": "0.0.0.0",
+        "port": 8080,
+        "provider_mapping": {
+            "/dav": FooProvider(),
+            },
+        "verbose": 1,
+        }
 
-All options that are available for command line, can also be passed to
-the synchronizers. For example ``--delete-unmatched`` becomes ``"delete_unmatched": True``.
+    app = WsgiDAVApp(config)
 
-Upload modified files from local folder to FTP server::
-
-  from ftpsync.targets import FsTarget
-  from ftpsync.ftp_target import FtpTarget
-  from ftpsync.synchronizers import UploadSynchronizer
-
-  local = FsTarget("~/temp")
-  user ="joe"
-  passwd = "secret"
-  remote = FtpTarget("/temp", "example.com", username=user, password=passwd)
-  opts = {"force": False, "delete_unmatched": True, "verbose": 3}
-  s = UploadSynchronizer(local, remote, opts)
-  s.run()
-
-Synchronize a local folder with an FTP server using TLS::
-
-  from ftpsync.targets import FsTarget
-  from ftpsync.ftp_target import FtpTarget
-  from ftpsync.synchronizers import BiDirSynchronizer
-
-  local = FsTarget("~/temp")
-  user ="joe"
-  passwd = "secret"
-  remote = FtpTarget("/temp", "example.com", username=user, password=passwd, tls=True)
-  opts = {"resolve": "skip", "verbose": 1}
-  s = BiDirSynchronizer(local, remote, opts)
-  s.run()
 
 
 Logging
 -------
 
 By default, the library initializes and uses a
-`python logger <https://docs.python.org/library/logging.html>`_ named 'pyftpsync'.
+`python logger <https://docs.python.org/library/logging.html>`_ named 'wsgidav'.
 This logger can be customized like so::
 
     import logging
 
-    logger = logging.getLogger("pyftpsync")
+    logger = logging.getLogger("wsgidav")
     logger.setLevel(logging.DEBUG)
 
 and replaced like so::
 
     import logging
     import logging.handlers
-    from ftpsync.util import set_pyftpsync_logger
+    from wsgidav.util import set_wsgidav_logger
 
     custom_logger = logging.getLogger("my.logger")
-    log_path = "/my/path/pyftpsync.log"
+    log_path = "/my/path/wsgidav.log"
     handler = logging.handlers.WatchedFileHandler(log_path)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     custom_logger.addHandler(handler)
 
-    set_pyftpsync_logger(custom_logger)
+    set_wsgidav_logger(custom_logger)
 
 
 .. note::
 
-    The CLI calls ``set_pyftpsync_logger(None)`` on startup, so it logs to stdout
+    The CLI calls ``set_wsgidav_logger(None)`` on startup, so it logs to stdout
     (and stderr).
 
 ..

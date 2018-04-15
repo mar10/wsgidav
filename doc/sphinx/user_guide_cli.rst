@@ -12,7 +12,7 @@ To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
 
 .. warning::
 	By default, WsgiDAV will publish the folder for anonymous access.
-	Read below how to set up authentication to prevent this.
+	Read :doc:`user_guide_configure` how to set up authentication to prevent this.
 
 
 CLI Options
@@ -75,13 +75,6 @@ Otherwise a file name can be specified::
 
 .. seealso::
 	:doc:`user_guide_configure`
-
-
-Authentication
---------------
-
-.. todo::
-	TODO: Explain how to set up authentication
 
 
 Exit Codes

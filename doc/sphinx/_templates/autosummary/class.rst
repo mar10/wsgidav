@@ -4,6 +4,8 @@
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
+    :undoc-members:
+    :show-inheritance:
 
    {% block methods %}
    {% block attributes %}
