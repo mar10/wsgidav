@@ -73,9 +73,7 @@ lockManager
    See lock_manager.LockManager for a sample implementation
    using shelve.
 
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
+See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """
 from __future__ import print_function
 
@@ -1467,7 +1465,8 @@ class DAVProvider(object):
 
         requestmethod = environ["REQUEST_METHOD"]
         Either
-          - handle the request completely
-          - do additional processing and call defaultHandler(environ, start_response)
+
+        - handle the request completely
+        - do additional processing and call defaultHandler(environ, start_response)
         """
         return defaultHandler(environ, start_response)

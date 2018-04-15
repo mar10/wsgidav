@@ -73,10 +73,6 @@ Domain Controllers must provide the methods as described in
 The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
-
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 

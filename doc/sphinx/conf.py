@@ -50,7 +50,7 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.napoleon',
-    'sphinx_automodapi.automodapi',
+    # 'sphinx_automodapi.automodapi',
 ]
 
 # A string of reStructuredText that will be included at the end of every source file that is read.

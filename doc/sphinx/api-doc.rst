@@ -5,24 +5,25 @@ API Doc
 .. toctree::
    :maxdepth: 1
 
+..
    pkg_wsgidav
 
-Classes
-=======
-.. inheritance-diagram:: wsgidav.dav_provider wsgidav.fs_dav_provider
-   :parts: 1
-   :private-bases:
-
-
-Packages
-========
-wsgidav
--------
-.. autosummary:: wsgidav
-   :toctree: _generated
-   :members:
-
 ..
+  Classes
+  =======
+  .. inheritance-diagram:: wsgidav.dav_provider wsgidav.fs_dav_provider
+     :parts: 1
+     :private-bases:
+
+
+  Packages
+  ========
+
+Package ``wsgidav``
+-------------------
+.. autosummary::
+   :toctree: _autosummary
+
    wsgidav._version
    wsgidav.compat
    wsgidav.dav_error
@@ -45,20 +46,10 @@ wsgidav
    wsgidav.xml_tools
 
 
-wsgidav.samples
----------------
+Package ``wsgidav.addons``
+--------------------------
 .. autosummary::
-   :toctree: _generated
-
-   wsgidav.samples.dav_provider_tools
-   wsgidav.samples.mongo_dav_provider
-   wsgidav.samples.virtual_dav_provider
-
-
-wsgidav.addons
---------------
-.. autosummary::
-   :toctree: _generated
+   :toctree: _autosummary
 
    wsgidav.addons.couch_property_manager
    wsgidav.addons.hg_dav_provider
@@ -66,10 +57,21 @@ wsgidav.addons
    wsgidav.addons.mysql_dav_provider
    wsgidav.addons.nt_domain_controller
 
-wsgidav.server
---------------
+
+Package ``wsgidav.samples``
+---------------------------
 .. autosummary::
-   :toctree: _generated
+   :toctree: _autosummary
+
+   wsgidav.samples.dav_provider_tools
+   wsgidav.samples.mongo_dav_provider
+   wsgidav.samples.virtual_dav_provider
+
+
+Package ``wsgidav.server``
+--------------------------
+.. autosummary::
+   :toctree: _autosummary
 
    wsgidav.server.ext_wsgiutils_server
    wsgidav.server.run_reloading_server

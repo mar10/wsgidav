@@ -11,10 +11,6 @@ Write attempts will raise HTTP_FORBIDDEN.
 
 FilesystemProvider inherits from ReadOnlyFilesystemProvider and implements the
 missing write access functionality.
-
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 

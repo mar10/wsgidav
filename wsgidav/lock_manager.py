@@ -34,9 +34,6 @@ The lock data model is a dictionary with these fields:
     token:
         Automatically generated unique token.
 
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 

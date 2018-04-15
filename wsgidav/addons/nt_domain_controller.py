@@ -69,9 +69,7 @@ Testability and caveats
 **Using for a network domain**
    This class is being tested for a network domain (I'm setting one up to test).
 
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
+ml
 """
 from __future__ import print_function
 

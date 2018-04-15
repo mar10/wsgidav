@@ -55,9 +55,6 @@ its limitations:
       Ideally there should be some sort of caching for metadata at least, to avoid
       unnecessary queries to the database.
 
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 

@@ -104,57 +104,62 @@ Build Sphinx documentation::
 Run Tests
 =========
 
-The unit tests create fixtures in a special folder. By default, a temporary folder
-is created on every test run, but it is recommended to define a location using the
-``PYFTPSYNC_TEST_FOLDER`` environment variable, for example::
+.. todo::
 
-    export PYFTPSYNC_TEST_FOLDER=/Users/USER/pyftpsync_test
+    	TODO
 
-Run all tests with coverage report. Results are written to <pyftpsync>/htmlcov/index.html::
+..
+  The unit tests create fixtures in a special folder. By default, a temporary folder
+  is created on every test run, but it is recommended to define a location using the
+  ``PYFTPSYNC_TEST_FOLDER`` environment variable, for example::
 
-    $ pytest -v -rsx --cov=ftpsync --cov-report=html
+      export PYFTPSYNC_TEST_FOLDER=/Users/USER/pyftpsync_test
 
-Run selective tests::
+  Run all tests with coverage report. Results are written to <pyftpsync>/htmlcov/index.html::
 
-    $ pytest -v -rsx -k FtpBidirSyncTest
-    $ pytest -v -rsx -k "FtpBidirSyncTest and test_default"
-    $ pytest -v -rsx -m benchmark
+      $ pytest -v -rsx --cov=ftpsync --cov-report=html
 
-Run tests on multiple Python versions using `tox <https://tox.readthedocs.io/en/latest/#>`_
-(need to install those Python versions first)::
+  Run selective tests::
 
-    $ tox
-    $ tox -e py36
+      $ pytest -v -rsx -k FtpBidirSyncTest
+      $ pytest -v -rsx -k "FtpBidirSyncTest and test_default"
+      $ pytest -v -rsx -m benchmark
 
-In order to run realistic tests through an FTP server, we need a setup that publishes
-a folder that is also accessible using file-system methods.
+  Run tests on multiple Python versions using `tox <https://tox.readthedocs.io/en/latest/#>`_
+  (need to install those Python versions first)::
 
-This can be achieved by configuring an FTP server to allow access to the `remote`
-folder::
+      $ tox
+      $ tox -e py36
 
-  <PYFTPSYNC_TEST_FOLDER>/
-    local/
-      folder1/
-        file1_1.txt
+  In order to run realistic tests through an FTP server, we need a setup that publishes
+  a folder that is also accessible using file-system methods.
+
+  This can be achieved by configuring an FTP server to allow access to the `remote`
+  folder::
+
+    <PYFTPSYNC_TEST_FOLDER>/
+      local/
+        folder1/
+          file1_1.txt
+          ...
+        file1.txt
         ...
-      file1.txt
-      ...
-    remote/  # <- FTP server should publish this folder as <PYFTPSYNC_TEST_FTP_URL>
-      ...
+      remote/  # <- FTP server should publish this folder as <PYFTPSYNC_TEST_FTP_URL>
+        ...
 
-The test suite checks if ``PYFTPSYNC_TEST_FTP_URL`` is defined and accessible.
-Otherwise FTP tests will be skipped.
+  The test suite checks if ``PYFTPSYNC_TEST_FTP_URL`` is defined and accessible.
+  Otherwise FTP tests will be skipped.
 
-For example, environment variables may look like this, assuming the FTP server is rooted
-at the user's home directory::
+  For example, environment variables may look like this, assuming the FTP server is rooted
+  at the user's home directory::
 
-    export PYFTPSYNC_TEST_FOLDER=/Users/USER/pyftpsync_test
-    export PYFTPSYNC_TEST_FTP_URL=ftp://USER:PASSWORD@localhost/pyftpsync_test/remote
+      export PYFTPSYNC_TEST_FOLDER=/Users/USER/pyftpsync_test
+      export PYFTPSYNC_TEST_FTP_URL=ftp://USER:PASSWORD@localhost/pyftpsync_test/remote
 
-This environment variable may be set to generate ``.pyftpsync-meta`` files in a
-larger, but more readable format::
+  This environment variable may be set to generate ``.pyftpsync-meta`` files in a
+  larger, but more readable format::
 
-    export PYFTPSYNC_VERBOSE_META=True
+      export PYFTPSYNC_VERBOSE_META=True
 
 
 Code

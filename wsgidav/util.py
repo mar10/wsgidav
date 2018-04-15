@@ -4,10 +4,6 @@
 # http://www.opensource.org/licenses/mit-license.php
 """
 Miscellaneous support functions for WsgiDAV.
-
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 
@@ -154,24 +150,22 @@ def initLogging(verbose=2, enable_loggers=[]):
     If enabled, module loggers will print DEBUG messages, even if verbose == 2.
 
     Example initialize and use a module logger, that will generate output,
-    if enabled (and verbose >= 2):
+    if enabled (and verbose >= 2)::
 
-    .. python::
         _logger = util.getModuleLogger(__name__)
         [..]
         _logger.debug("foo: '%s'" % s)
 
-    This logger would be enabled by passing its name to initLoggiong():
+    This logger would be enabled by passing its name to initLoggiong()::
 
-    .. python::
         enable_loggers = ["lock_manager",
                           "property_manager",
                          ]
         util.initLogging(2, enable_loggers)
 
-
     Log level matrix
     ~~~~~~~~~~~~~~~~
+
     =======  ======  ===========  ======================  =======================
     verbose  util                        Log level
     -------  ------  ------------------------------------------------------------

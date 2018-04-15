@@ -6,11 +6,8 @@
 WSGI middleware that finds the registered mapped DAV-Provider, creates a new
 RequestServer instance, and dispatches the request.
 
-
-+-------------------------------------------------------------------------------+
-| The following documentation was taken over from PyFileServer and is outdated! |
-+-------------------------------------------------------------------------------+
-
+.. warning::
+   The following documentation was taken over from PyFileServer and is outdated.
 
 WsgiDAV file sharing
 --------------------
@@ -88,9 +85,6 @@ header, if present, to::
    environ['wsgidav.destURI'] = /pubshare/WsgiDAV/LICENSE
    environ['wsgidav.destresourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
 
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
 """
 from __future__ import print_function
 

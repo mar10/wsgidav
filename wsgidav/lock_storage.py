@@ -8,11 +8,7 @@ Implements two storage providers for `LockManager`.
 Two alternative lock storage classes are defined here: one in-memory
 (dict-based), and one persistent low performance variant using shelve.
 
-See wsgidav.lock_manager.LockManager
-
-See `Developers info`_ for more information about the WsgiDAV architecture.
-
-.. _`Developers info`: http://wsgidav.readthedocs.org/en/latest/develop.html
+See :class:`~wsgidav.lock_manager.LockManager`
 """
 from __future__ import print_function
 
