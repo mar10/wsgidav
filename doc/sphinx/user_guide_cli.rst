@@ -1,7 +1,13 @@
 Command Line Interface
 ======================
 
-This section describes how to use WsgiDAV from the command line.
+*This section describes how to use WsgiDAV from the command line.*
+
+The WsgiDAV server was tested with these platforms
+
+  * Mac OS X 10.9 - 10.13
+  * Ubuntu 13 - 16
+  * Windows (Win 7 - 10, Vista, XP)
 
 To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
 
@@ -12,7 +18,7 @@ To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
 
 .. warning::
 	By default, WsgiDAV will publish the folder for anonymous access.
-	Read :doc:`user_guide_configure` how to set up authentication to prevent this.
+	Read :doc:`user_guide_configure` how to set up authentication.
 
 
 CLI Options
@@ -69,22 +75,31 @@ Use a Configuration File
 ------------------------
 Much more options are available when a configuration file is specified.
 By default ``wsgidav.conf`` and ``wsgidav.json`` is searched in the local directory. |br|
-Otherwise a file name can be specified::
+An alternative file name can be specified like so::
 
 	$ wsgidav --config=my_config.conf
+
+To *prevent* the use of of a local default configuration file, use this option::
+
+  $ wsgidav --no-config
+
+For a start, you should copy
+:download:`Sample Configuration<../../wsgidav.conf.sample>` or
+:download:`Annotated Sample Configuration<../annotated_wsgidav.conf>`
+and edit it to your needs. You can also use a JSON file for configuration.
+Take a look at the
+:download:`JSON Sample Configuration<../../wsgidav.json.sample>`.
 
 .. seealso::
 	:doc:`user_guide_configure`
 
 
-Exit Codes
-----------
+..
+  Exit Codes
+  ----------
 
-The CLI returns those exit codes::
+  The CLI returns those exit codes::
 
-    0: OK
-    1: Error (network, internal, ...)
-    2: CLI syntax error
-    3: Aborted by user
-
-..    10: Unresolved conflicts remaining (with option --conflicts-as-error)
+      0: OK
+      2: CLI syntax error
+      3: Aborted by user

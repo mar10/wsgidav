@@ -2,6 +2,14 @@
 Using the Library
 -----------------
 
+.. toctree::
+   :hidden:
+
+..
+   sample_wsgi_server
+   sample_run_pylons
+
+
 This section describes how to use the ``wsgidav`` package to implement custom
 WebDAV servers.
 
@@ -13,8 +21,18 @@ The ``wsgidav`` package can be used in Python code::
   '2.3.1'
 
 
-Run a WebDAV Server
--------------------
+Run Inside a WSGI Server
+------------------------
+
+The WsgiDAV server was tested with these WSGI servers:
+
+  * Cheroot
+  * cherrypy.wsgiserver
+  * paste.httpserver
+  * Pylons
+  * wsgidav.ext_wsgiutils_server (bundled with WsgiDAV)
+  * wsgiref.simple_server
+
 
 In order to run WsgiDAV, we need to create an instance of :class:`~wsgidav.wsgidav_app.WsgiDAVApp`,
 pass options, and mount it on a WSGI compliant web server. |br|
@@ -50,6 +68,15 @@ directories respectively.
 
 This is why the example above will publish the directory ``/User/joe/pub`` as
 ``http://HOST:8080/dav``.
+
+See the :doc:`sample_wsgi_server` for another example.
+
+
+Run Inside Pylons
+=================
+
+See :doc:`sample_run_pylons` for an example how WsgiDAV can be
+configured as Pylons controller.
 
 
 Custom Providers
@@ -111,9 +138,3 @@ and replaced like so::
 
     The CLI calls ``set_wsgidav_logger(None)`` on startup, so it logs to stdout
     (and stderr).
-
-..
-  .. toctree::
-     :hidden:
-
-     addons
