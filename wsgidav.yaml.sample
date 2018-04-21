@@ -1,0 +1,46 @@
+# Sample WsgiDAV configuration file
+#
+# 1. Rename this file to `wsgidav.yaml`
+# 2. Adjust settings as appropriate
+# 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
+#
+# See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+
+host: 0.0.0.0
+port: 8080
+
+# Set verbosity to standard
+verbose: 1
+
+# Remove this block to prevent directory browsing
+dir_browser:
+    enable: true
+    response_trailer:
+    davmount: false
+    ms_mount: false
+    ms_sharepoint_plugin: true
+    ms_sharepoint_urls: false
+
+provider_mapping:
+    "/share1": "/path/to/share1"
+    "/share2": "/path/to/share2"
+
+user_mapping:
+    "/share1":
+        "user1":
+            password: "abc123"
+            description: "User 1 for Share 1"
+            roles: []
+    "/share2":
+        "user1":
+            password: "def456"
+            description: "User 1 for Share 2"
+            roles: []
+        "user2":
+            password: "qwerty"
+            description: "User 2 for Share 2"
+            roles: []
+
+acceptbasic: false
+acceptdigest: true
+defaultdigest: true

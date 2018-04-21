@@ -5,10 +5,11 @@
 
 
 ## 'logging' branch
-- Reworked documentation on Read The Docs
-- Bump Cheroot version to 6.2+ (used by MSI installer)
+- Support YAML and use wsgidav.yaml by default if exists in local folder
 - Use wsgidav.json by default if exists in local folder
 - wsgidav.json can contain comments now (JavaScript syntax)
+- Reworked documentation on Read The Docs
+- Bump Cheroot version to 6.2+ (used by MSI installer)
 - **Refactor logging**
   - Library:
     - Remove configurable python logger

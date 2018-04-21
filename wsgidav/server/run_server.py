@@ -43,6 +43,7 @@ from inspect import isfunction
 from pprint import pprint
 
 from jsmin import jsmin
+import yaml
 
 from wsgidav import __version__, util
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -52,7 +53,7 @@ from wsgidav.xml_tools import useLxml
 __docformat__ = "reStructuredText"
 
 # Use this config file, if no --config_file option is specified
-DEFAULT_CONFIG_FILES = ("wsgidav.json", "wsgidav.conf")
+DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
 PYTHON_VERSION = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
 
 
@@ -196,6 +197,14 @@ def _readConfigFile(config_file, verbose):
             # Minify the JSON file to strip embedded comments
             minified = jsmin(json_file.read())
         return json.loads(minified)
+    elif config_file.endswith(".yaml"):
+        with open(config_file, mode="r", encoding="utf-8") as yaml_file:
+            # Minify the JSON file to strip embedded comments
+            res = yaml.safe_load(yaml_file)
+            from pprint import pprint
+            pprint(res)
+            return res
+            return yaml_file.safe_load(yaml_file)
 
     try:
         import imp

@@ -1,8 +1,11 @@
-/* WsgiDAV sample configuration
+/* Sample WsgiDAV configuration file
  *
- * Rename to 'wsgidav.json' and store in the local directory or pass the file
- * name with the `--config` option.
+ * 1. Rename this file to `wsgidav.json`
+ * 2. Adjust settings as appropriate
+ * 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
+ *
  * Note that JavaScript-style comments are allowed.
+ *
  * See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
  */
 {
@@ -10,6 +13,7 @@
     "port": 8080,
     // Verbosity 0..3
     "verbose": 1,
+    // Remove this block to prevent directory browsing
     "dir_browser": {
         "enable": true,
         "response_trailer": "",

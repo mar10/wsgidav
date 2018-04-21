@@ -83,13 +83,6 @@ To *prevent* the use of of a local default configuration file, use this option::
 
   $ wsgidav --no-config
 
-For a start, you should copy
-:download:`Sample Configuration<../../wsgidav.conf.sample>` or
-:download:`Annotated Sample Configuration<../annotated_wsgidav.conf>`
-and edit it to your needs. You can also use a JSON file for configuration.
-Take a look at the
-:download:`JSON Sample Configuration<../../wsgidav.json.sample>`.
-
 .. seealso::
 	:doc:`user_guide_configure`
 

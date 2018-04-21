@@ -3,13 +3,9 @@
 #
 # 1. Rename this file to `wsgidav.conf`
 # 2. Adjust settings as appropriate
-# 3. Run `wsgidav` fro, the same directory.
+# 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
 #
-# See
-#     http://wsgidav.readthedocs.io/en/latest/run-configure.html
-# and
-#     doc/annotated_wsgidav.conf
-# for a complete, annotated configuration example.
+# See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 #
 ################################################################################
 

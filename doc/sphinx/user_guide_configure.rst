@@ -21,12 +21,24 @@ The configuration file uses Python syntax to specify these options:
 
 The options described below can be defined for the CLI either
 
-  * in Python syntax inside a wsgidav.conf file, or
-  * in JSON syntax inside a wsgidav.json file
+  * in `YAML <http://yaml.org/spec/1.2/spec.html>`_ syntax inside a wsgidav.yaml file,
+  * in `JSON <http://www.json.org>`_ syntax inside a wsgidav.json file, or
+  * in Python syntax inside a wsgidav.conf file.
 
 .. note::
-   The same options can be passed as native Python dict to the
-   :class:`~wsgidav.wsgidav_app.WsgiDAVApp` contructor, when using the library.
+   The three supported file formats are just different ways for the CLI to
+   generate a Python dict that is then passed to the
+   :class:`~wsgidav.wsgidav_app.WsgiDAVApp` constructor.
+
+   See the :ref:`annotated_wsgidav.conf`
+
+   For a start, you should copy
+   :download:`Sample Configuration<../../wsgidav.conf.sample>` or
+   :download:`Annotated Sample Configuration<../annotated_wsgidav.conf>`
+   and edit it to your needs.
+   You can also start with a
+   (:download:`YAML Sample Configuration<../../wsgidav.yaml.sample>`) or a
+   (:download:`JSON Sample Configuration<../../wsgidav.json.sample>`).
 
 
 Verbosity Level
@@ -41,20 +53,35 @@ The verbosity level can have a value from 0 to 3::
           request body and GET response bodies not shown
 
 
-Sample ``wsgidav.conf``
+Sample ``wsgidav.yaml``
 -----------------------
 
-.. literalinclude:: ../annotated_wsgidav.conf
+The `YAML <http://yaml.org/spec/1.2/spec.html>`_ syntax is probably the most
+concise format to define configuration:
+
+.. literalinclude:: ../../wsgidav.yaml.sample
     :linenos:
-    :language: python
 
 
 Sample ``wsgidav.json``
 -----------------------
 
-You can also use a JSON file for configuration if you don't require the
-full power of python code to set everything up.
+We can also use a `JSON <http://www.json.org>`_ file for configuration
+if we don't require the full power of Python code to set everything up.
+
+Note that the parser ignores JavaScript-style comments:
 
 .. literalinclude:: ../../wsgidav.json.sample
     :linenos:
     :language: json
+
+
+Sample ``wsgidav.conf``
+-----------------------
+
+This format uses plain Python syntax, which allows us to use Python data structures,
+and even write helpers function, etc.
+
+.. literalinclude:: ../annotated_wsgidav.conf
+    :linenos:
+    :language: python
