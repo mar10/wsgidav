@@ -98,7 +98,7 @@ class LoggerTest(unittest.TestCase):
         rootLogger.addHandler(self.logHandler)
 
     def tearDown(self):
-        rootLogger = logging.getLoggxer()
+        rootLogger = logging.getLogger()
         rootLogger.setLevel(self.prevLogLevel)
         rootLogger.removeHandler(self.logHandler)
 
@@ -120,7 +120,9 @@ class LoggerTest(unittest.TestCase):
         print(output)
 
         assert "# Log output buffer start" in output
-        assert False
+
+        # assert False
+
         # Create and use a custom logger
         # custom_logger = wsgidav.getLogger("wsgidav_test")
         # log_path = os.path.join(PYFTPSYNC_TEST_FOLDER, "pyftpsync.log")

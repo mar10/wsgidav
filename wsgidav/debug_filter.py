@@ -38,7 +38,7 @@ These configuration settings are evaluated:
 
     Configured like::
 
-        debug_methods = ["PROPPATCH", "PROPFIND", "GET", "HEAD", "DELETE",
+        debug_methods = ["PROPPATCH", "PROPFIND", "GET", "HEAD", "DELET E",
                          "PUT", "COPY", "MOVE", "LOCK", "UNLOCK",
                          ]
 
@@ -61,6 +61,8 @@ from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import safeReEncode
 
 __docformat__ = "reStructuredText"
+
+logger = util.getModuleLogger(__name__)
 
 
 class WsgiDavDebugFilter(BaseMiddleware):

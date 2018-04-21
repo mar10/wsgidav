@@ -32,17 +32,13 @@ The options described below can be defined for the CLI either
 Verbosity Level
 ---------------
 
-.. todo:: TODO
+The verbosity level can have a value from 0 to 3::
 
-..
-  The verbosity level can have a value from 0 to 6::
-
-      0: quiet
-      1: show errors only
-      2: show conflicts and 1 line summary only
-      3: show write operations
-      4: show equal files
-      5: diff-info and benchmark summary
+      0 - no output (excepting application exceptions)
+      1 - show single line request summaries (for HTTP logging)
+      2 - show additional events
+      3 - show full request/response header info (HTTP Logging)
+          request body and GET response bodies not shown
 
 
 Sample ``wsgidav.conf``

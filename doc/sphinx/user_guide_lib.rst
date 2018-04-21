@@ -134,6 +134,7 @@ and replaced like so::
     set_wsgidav_logger(custom_logger)
 
 
+
 .. note::
 
     The CLI calls ``set_wsgidav_logger(None)`` on startup, so it logs to stdout

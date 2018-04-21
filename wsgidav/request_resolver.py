@@ -91,6 +91,7 @@ from __future__ import print_function
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
 from wsgidav.request_server import RequestServer
+from wsgidav.middleware import BaseMiddleware
 
 __docformat__ = "reStructuredText"
 
@@ -146,7 +147,7 @@ __docformat__ = "reStructuredText"
 # ========================================================================
 
 
-class RequestResolver(object):
+class RequestResolver(BaseMiddleware):
 
     def __init__(self):
         pass

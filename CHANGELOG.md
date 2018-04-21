@@ -5,7 +5,11 @@
 
 
 ## 'logging' branch
-- Use configurable python logger
+- **Refactor logging**
+  - Library:
+    - Remove configurable python logger
+    - Remove enable_loggers option
+    - Remove util.note(), .status(), ...
 
 ## 2.3.0 / 2018-04-06
 

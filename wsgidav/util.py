@@ -1,4 +1,4 @@
-# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -32,8 +32,8 @@ from wsgidav.dav_error import (
     HTTP_PRECONDITION_FAILED,
     DAVError,
     asDAVError,
-    getHttpStatusString
-)
+    getHttpStatusString,
+    )
 from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
 
 # Trick PyDev to do intellisense and don't produce warnings:
@@ -44,9 +44,10 @@ __docformat__ = "reStructuredText"
 
 BASE_LOGGER_NAME = "wsgidav"
 _logger = logging.getLogger(BASE_LOGGER_NAME)
+
 # Pre-initialize, so we get some output before initLogging() was called
 # (for example during parsing of wsgidav.conf)
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
 
 # ========================================================================
@@ -156,7 +157,7 @@ def initLogging(verbose=2, enable_loggers=[]):
         [..]
         _logger.debug("foo: '%s'" % s)
 
-    This logger would be enabled by passing its name to initLoggiong()::
+    This logger would be enabled by passing its name to initLogging()::
 
         enable_loggers = ["lock_manager",
                           "property_manager",
@@ -209,7 +210,7 @@ def initLogging(verbose=2, enable_loggers=[]):
         try:
             hdlr.flush()
             hdlr.close()
-        except:
+        except Exception:
             pass
         logger.removeHandler(hdlr)
 
@@ -240,17 +241,6 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
     if logger.level == logging.NOTSET and not defaultToVerbose:
         logger.setLevel(logging.INFO)  # Disable debug messages by default
     return logger
-
-
-def log(msg, var=None):
-    """Shortcut for logging.getLogger('wsgidav').info(msg)
-
-    This message will only display, if verbose >= 2.
-    """
-#    _logger.info(msg)
-#    if var and logging.INFO >= _logger.getEffectiveLevel():
-#        pprint(var, sys.stderr, indent=4)
-    note(msg, var=var)
 
 
 def _write(msg, var, module, level, flush):
@@ -286,8 +276,15 @@ def status(msg, var=None, module=None, flush=True):
 
 
 def note(msg, var=None, module=None, flush=True):
-    """Log if --verbose."""
+    """Log if --verbose.
+
+    Shortcut for logging.getLogger('wsgidav').info(msg).
+    This message will only display if verbose >= 2.
+    """
     _write(msg, var, module, logging.INFO, flush)
+
+
+log = note
 
 
 def debug(msg, var=None, module=None, flush=True):

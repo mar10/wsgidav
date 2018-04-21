@@ -92,7 +92,7 @@ class FileLikeQueue(object):
                 self.queue.put(o)
 
     def close(self):
-        print("FileLikeQueue.close()")
+        # print("FileLikeQueue.close()")
         self.is_closed = True
 
     # TODO: we may also implement iterator functionality, but this should be

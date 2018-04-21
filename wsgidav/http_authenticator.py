@@ -219,7 +219,7 @@ class HTTPAuthenticator(BaseMiddleware):
             elif self._acceptbasic:
                 return self.sendBasicAuthResponse(environ, start_response)
 
-            util.log(
+            _logger.warn(
                 "HTTPAuthenticator: respond with 400 Bad request; Auth-Method: %s" % authmethod)
 
             start_response("400 Bad Request", [("Content-Length", "0"),

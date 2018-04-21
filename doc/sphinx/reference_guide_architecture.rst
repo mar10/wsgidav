@@ -160,7 +160,7 @@ interface is implemented.
 Applications
 ============
 
-.. inheritance-diagram:: wsgidav.middleware wsgidav.dir_browser wsgidav.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
+.. inheritance-diagram:: wsgidav.middleware wsgidav.dir_browser wsgidav.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
    :parts: 2
    :private-bases:
 

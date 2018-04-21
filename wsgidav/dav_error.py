@@ -14,8 +14,6 @@ import traceback
 from wsgidav import __version__, compat, xml_tools
 from wsgidav.xml_tools import etree  # @UnusedImport
 
-if False:
-    from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
 
 __docformat__ = "reStructuredText"
 
@@ -130,7 +128,11 @@ PRECONDITION_CODE_PropfindFiniteDepth = "{DAV:}propfind-finite-depth"
 
 
 class DAVErrorCondition(object):
+    """May be embedded in :class:`DAVError` instances to store additional data.
 
+    Args:
+        conditionCode (str): Should be PRECONDITION_CODE_...
+    """
     def __init__(self, conditionCode):
         self.conditionCode = conditionCode
         self.hrefs = []
@@ -167,6 +169,7 @@ class DAVErrorCondition(object):
 #     you want (or you can catch an abstract superclass to get any of them)
 
 class DAVError(Exception):
+    """General error class that is used to signal HTTP and WEBDAV errors."""
     # TODO: Ian Bicking proposed to add an additional 'comment' arg, but
     #       couldn't we use the existing 'contextinfo'?
     # @@: This should also take some message value, for a detailed error message.
@@ -276,16 +279,7 @@ def asDAVError(e):
     if isinstance(e, DAVError):
         return e
     elif isinstance(e, Exception):
-        #        print >>sys.stderr, "asDAVError: %s" % e
-        #        traceback.print_exception(type(e), e)
-        traceback.print_exc()
+        # traceback.print_exc()
         return DAVError(HTTP_INTERNAL_ERROR, srcexception=e)
     else:
         return DAVError(HTTP_INTERNAL_ERROR, "%s" % e)
-
-
-if __name__ == "__main__":
-    dec = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
-    print(dec.as_string())
-    dec.add_href("/dav/a")
-    print(dec.as_string())

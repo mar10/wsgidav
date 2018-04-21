@@ -14,9 +14,12 @@ import sys
 
 __docformat__ = "reStructuredText"
 
-
+#: True if we are running on Python 2.x
 PY2 = sys.version_info < (3, 0)
+
+#: True if we are running on Python 3
 PY3 = not PY2
+
 _filesystemencoding = sys.getfilesystemencoding()
 
 
@@ -55,23 +58,23 @@ if PY2:
     from cgi import escape as html_escape
 
     def is_basestring(s):
-        """Return True for any string type, i.e. for str/unicode on Py2 and bytes/str on Py3."""
+        """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
         return isinstance(s, basestring)
 
     def is_bytes(s):
-        """Return True for bytestrings, i.e. for str on Py2 and bytes on Py3."""
+        """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
         return isinstance(s, str)
 
     def is_native(s):
-        """Return True for native strings, i.e. for str on Py2 and Py3."""
+        """Return True for native strings (for str on Py2 and Py3)."""
         return isinstance(s, str)
 
     def is_unicode(s):
-        """Return True for unicode strings, i.e. for unicode on Py2 and str on Py3."""
+        """Return True for unicode strings (for unicode on Py2 and str on Py3)."""
         return isinstance(s, unicode)
 
     def to_bytes(s, encoding="utf8"):
-        """Convert unicode (text strings) to binary data, i.e. str on Py2 and bytes on Py3."""
+        """Convert unicode (text strings) to binary data (str on Py2 and bytes on Py3)."""
         if type(s) is unicode:
             s = s.encode(encoding)
         elif type(s) is not str:
@@ -79,10 +82,10 @@ if PY2:
         return s
 
     to_native = to_bytes
-    """Convert data to native str type, i.e. bytestring on Py2 and unicode on Py3."""
+    """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
 
     def to_unicode(s, encoding="utf8"):
-        """Convert data to unicode text, i.e. unicode on Py2 and str on Py3."""
+        """Convert data to unicode text (unicode on Py2 and str on Py3)."""
         if type(s) is not unicode:
             s = unicode(s, encoding)
         return s
@@ -94,29 +97,29 @@ else:   # Python 3
     from html import escape as html_escape
 
     def is_basestring(s):
-        """Return True for any string type, i.e. for str/unicode on Py2 and bytes/str on Py3."""
+        """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
         return isinstance(s, (str, bytes))
 
     def is_bytes(s):
-        """Return True for bytestrings, i.e. for str on Py2 and bytes on Py3."""
+        """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
         return isinstance(s, bytes)
 
     def is_native(s):
-        """Return True for native strings, i.e. for str on Py2 and Py3."""
+        """Return True for native strings (for str on Py2 and Py3)."""
         return isinstance(s, str)
 
     def is_unicode(s):
-        """Return True for unicode strings, i.e. for unicode on Py2 and str on Py3."""
+        """Return True for unicode strings (for unicode on Py2 and str on Py3)."""
         return isinstance(s, str)
 
     def to_bytes(s, encoding="utf8"):
-        """Convert a text string (unicode) to bytestring, i.e. str on Py2 and bytes on Py3."""
+        """Convert a text string (unicode) to bytestring (str on Py2 and bytes on Py3)."""
         if type(s) is not bytes:
             s = bytes(s, encoding)
         return s
 
     def to_native(s, encoding="utf8"):
-        """Convert data to native str type, i.e. bytestring on Py2 and unicode on Py3."""
+        """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
         # print("to_native", s)
         if type(s) is bytes:
             s = str(s, encoding)
