@@ -42,6 +42,8 @@ import traceback
 from inspect import isfunction
 from pprint import pprint
 
+from jsmin import jsmin
+
 from wsgidav import __version__, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
@@ -50,7 +52,7 @@ from wsgidav.xml_tools import useLxml
 __docformat__ = "reStructuredText"
 
 # Use this config file, if no --config_file option is specified
-DEFAULT_CONFIG_FILE = "wsgidav.conf"
+DEFAULT_CONFIG_FILES = ("wsgidav.json", "wsgidav.conf")
 PYTHON_VERSION = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
 
 
@@ -92,6 +94,7 @@ Examples:
     epilog = """\
 Licensed under the MIT license.
 See https://github.com/mar10/wsgidav for additional information.
+
 """
 
     parser = argparse.ArgumentParser(prog="wsgidav",
@@ -109,8 +112,8 @@ See https://github.com/mar10/wsgidav for additional information.
                         dest="host",
                         # default="localhost",
                         help=("host to serve from (default: localhost). 'localhost' is only "
-                            "accessible from the local computer. Use 0.0.0.0 to make your "
-                            "application public")),
+                              "accessible from the local computer. Use 0.0.0.0 to make your "
+                              "application public")),
     parser.add_argument("-r", "--root",
                         dest="root_path",
                         help="path to a file system folder to publish as share '/'.")
@@ -123,7 +126,7 @@ See https://github.com/mar10/wsgidav for additional information.
                         choices=("builtin", "pyopenssl"),
                         default="builtin",
                         help="used by 'cheroot' server if SSL certificates are configured "
-                            "(default: %(default)s.")
+                             "(default: %(default)s.")
 
     parser.add_argument("-v", "--verbose", action="count", default=1,
                         help="increment verbosity by one (default: %(default)s, range: 0..5)")
@@ -133,28 +136,15 @@ See https://github.com/mar10/wsgidav for additional information.
 
     parser.add_argument("-c", "--config",
                         dest="config_file",
-                        help=("configuration file (default: %s in current directory)" %
-                            DEFAULT_CONFIG_FILE))
+                        help=("configuration file (default: {} in current directory)"
+                              .format(DEFAULT_CONFIG_FILES)))
     parser.add_argument("--no-config",
                         action="store_true", dest="no_config",
-                        help="do not try to load default %s" % DEFAULT_CONFIG_FILE)
+                        help="do not try to load default {}".format(DEFAULT_CONFIG_FILES))
 
     parser.add_argument('-V', '--version', action='version', version=__version__)
 
-#    parser.add_argument("--reload",
-#                        action="store_true", dest="reload",
-#                        help=("restart server when source files are changed. Used by "
-#                            "run_reloading_server (requires paste.reloader)"))
-
-#    parser.add_argument("", "--profile",
-#                      action="store_true", dest="profile",
-#                      help="Profile ")
-
     args = parser.parse_args()
-
-    # print("ARGS", args)
-    # if len(args) > 0:
-    #     parser.error("Too many arguments")
 
     if args.quiet:
         if args.verbose > 1:
@@ -169,18 +159,22 @@ See https://github.com/mar10/wsgidav for additional information.
     if args.no_config:
         if args.config_file:
             parser.error("--config and --no-config are mutually exclusive")
+        # ... else ignore default config files
     elif args.config_file is None:
         # If --config was omitted, use default (if it exists)
-        defPath = os.path.abspath(DEFAULT_CONFIG_FILE)
-        if os.path.exists(defPath):
-            if args.verbose >= 1:
-                print("Using default configuration file: %s" % defPath)
-            args.config_file = defPath
+        for filename in DEFAULT_CONFIG_FILES:
+            defPath = os.path.abspath(filename)
+            if os.path.exists(defPath):
+                if args.verbose >= 1:
+                    print("Using default configuration file: {}".format(defPath))
+                args.config_file = defPath
+                break
     else:
         # If --config was specified convert to absolute path and assert it exists
         args.config_file = os.path.abspath(args.config_file)
         if not os.path.isfile(args.config_file):
-            parser.error("Could not find specified configuration file: %s" % args.config_file)
+            parser.error("Could not find specified configuration file: {}"
+                         .format(args.config_file))
 
     # Convert args object to dictionary
     cmdLineOpts = args.__dict__.copy()
@@ -199,7 +193,9 @@ def _readConfigFile(config_file, verbose):
 
     if config_file.endswith(".json"):
         with open(config_file, mode="r", encoding="utf-8") as json_file:
-            return json.load(json_file)
+            # Minify the JSON file to strip embedded comments
+            minified = jsmin(json_file.read())
+        return json.loads(minified)
 
     try:
         import imp
@@ -448,7 +444,7 @@ def _runCheroot(app, config, mode):
         print("*" * 78)
         raise
 
-    server_name = "WsgiDAV/%s %s Python/%s" % (
+    server_name = "WsgiDAV/{} {} Python/{}".format(
         __version__,
         wsgi.Server.version,
         PYTHON_VERSION)
@@ -471,7 +467,6 @@ def _runCheroot(app, config, mode):
         raise RuntimeError("Option 'ssl_certificate' and 'ssl_private_key' must be used together.")
 #     elif ssl_adapter:
 #         print("WARNING: Ignored option 'ssl_adapter' (requires 'ssl_certificate').")
-        
 
     if config["verbose"] >= 1:
         print("Running %s" % server_name)

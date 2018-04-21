@@ -2,3 +2,4 @@ cheroot>=5.1
 # distribute==0.7.3
 # PyInstaller==3.2
 defusedxml
+jsmin~=2.2

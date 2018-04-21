@@ -5,6 +5,9 @@
 
 
 ## 'logging' branch
+- Reworked documentation on Read The Docs
+- Use wsgidav.json by default if exists in local folder
+- wsgidav.json can contain comments now (JavaScript syntax)
 - **Refactor logging**
   - Library:
     - Remove configurable python logger

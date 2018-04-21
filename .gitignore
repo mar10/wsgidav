@@ -18,6 +18,7 @@ htmlcov/
 child.log
 debug.log
 wsgidav.conf
+wsgidav.json
 dist
 
 *.prefs

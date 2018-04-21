@@ -1,6 +1,14 @@
+/* WsgiDAV sample configuration
+ *
+ * Rename to 'wsgidav.json' and store in the local directory or pass the file
+ * name with the `--config` option.
+ * Note that JavaScript-style comments are allowed.
+ * See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+ */
 {
     "host": "0.0.0.0",
     "port": 8080,
+    // Verbosity 0..3
     "verbose": 1,
     "dir_browser": {
         "enable": true,
