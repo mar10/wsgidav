@@ -6,6 +6,7 @@
 
 ## 'logging' branch
 - Reworked documentation on Read The Docs
+- Bump Cheroot version to 6.2+ (used by MSI installer)
 - Use wsgidav.json by default if exists in local folder
 - wsgidav.json can contain comments now (JavaScript syntax)
 - **Refactor logging**
