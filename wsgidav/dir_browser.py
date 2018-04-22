@@ -138,7 +138,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
             dirConfig = environ["wsgidav.config"].get("dir_browser", {})
-            if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING"):
+            if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING", ""):
                 #                collectionUrl = davres.getHref()
                 collectionUrl = util.makeCompleteUrl(environ)
                 collectionUrl = collectionUrl.split("?")[0]
