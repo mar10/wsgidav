@@ -36,20 +36,20 @@ if PY2:
     from cStringIO import StringIO
     BytesIO = StringIO
     from urlparse import urlparse, urljoin
-    is_bytes = lambda s: isinstance(s, str)
-    is_unicode = lambda s: isinstance(s, unicode)
-    to_native = lambda s: s if is_bytes(s) else s.encode("utf8")
+    is_bytes = lambda s: isinstance(s, str)  # noqa: E731
+    is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731
+    to_native = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
 else:
     from base64 import encodebytes as base64_encodebytes
     from io import StringIO, BytesIO
     from urllib.parse import urlparse, urljoin
     xrange = range
-    is_bytes = lambda s: isinstance(s, bytes)
-    is_unicode = lambda s: isinstance(s, str)
-    to_native = lambda s: s if is_unicode(s) else s.decode("utf8")
+    is_bytes = lambda s: isinstance(s, bytes)  # noqa: E731
+    is_unicode = lambda s: isinstance(s, str)  # noqa: E731
+    to_native = lambda s: s if is_unicode(s) else s.decode("utf8")  # noqa: E731
 
-is_native = lambda s: isinstance(s, str)
-to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")
+is_native = lambda s: isinstance(s, str)  # noqa: E731
+to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
 
 try:
     from xml.etree import ElementTree
@@ -64,7 +64,7 @@ class AppError(Exception):
 
 
 def object_to_etree(parent, obj, namespace=''):
-    """This function takes in a python object, traverses it, and adds it to an existing etree object"""
+    """Takes in a python object, traverses it, and adds it to an existing etree object."""
     # TODO: Py3: this will probably brea, since str is used wrong:
     if type(obj) is int or type(obj) is float or type(obj) is str:
         # If object is a string, int, or float just add it
@@ -116,7 +116,7 @@ class DAVClient(object):
     def log(self, msg):
         if self.logger:
             print("{}: {}".format(self.logger_prefix, msg))
-        
+
     def _request(self, method, path='', body=None, headers=None):
         """Internal request method"""
         self.response = None
@@ -174,7 +174,7 @@ class DAVClient(object):
         self._password = password
         self.headers['Authorization'] = auth
 
-    ## HTTP DAV methods ##
+    # HTTP DAV methods
 
     def get(self, path, headers=None):
         """Simple get request"""
@@ -225,10 +225,12 @@ class DAVClient(object):
     def copy_collection(self, source, destination, depth='infinity', overwrite=True, headers=None):
         """Copy DAV collection.
 
-        Note: support for the 'propertybehavior' request body for COPY and MOVE 
+        Note: support for the 'propertybehavior' request body for COPY and MOVE
               has been removed with RFC4918
         """
-        body = b'<?xml version="1.0" encoding="utf-8" ?><d:propertybehavior xmlns:d="DAV:"><d:keepalive>*</d:keepalive></d:propertybehavior>'
+        body = (b'<?xml version="1.0" encoding="utf-8" ?>'
+                '<d:propertybehavior xmlns:d="DAV:">'
+                '<d:keepalive>*</d:keepalive></d:propertybehavior>')
 
         # Add proper headers
         if headers is None:
@@ -255,10 +257,12 @@ class DAVClient(object):
     def move_collection(self, source, destination, depth='infinity', overwrite=True, headers=None):
         """Move DAV collection and copy all properties.
 
-        Note: support for the 'propertybehavior' request body for COPY and MOVE 
+        Note: support for the 'propertybehavior' request body for COPY and MOVE
               has been removed with RFC4918
         """
-        body = b'<?xml version="1.0" encoding="utf-8" ?><d:propertybehavior xmlns:d="DAV:"><d:keepalive>*</d:keepalive></d:propertybehavior>'
+        body = (b'<?xml version="1.0" encoding="utf-8" ?>'
+                '<d:propertybehavior xmlns:d="DAV:">'
+                '<d:keepalive>*</d:keepalive></d:propertybehavior>')
 
         # Add proper headers
         if headers is None:
@@ -317,7 +321,10 @@ class DAVClient(object):
             return property_responses
 
     def proppatch(self, path, set_props=None, remove_props=None, namespace='DAV:', headers=None):
-        """Patch properties on a DAV resource. If namespace is not specified the DAV namespace is used for all properties"""
+        """Patch properties on a DAV resource.
+
+        If namespace is not specified, the DAV namespace is used for all properties.
+        """
         root = ElementTree.Element('{DAV:}propertyupdate')
 
         if set_props is not None:
@@ -342,7 +349,8 @@ class DAVClient(object):
 
         self._request('PROPPATCH', path, body=body, headers=headers)
 
-    def set_lock(self, path, owner, locktype='write', lockscope='exclusive', depth=None, headers=None):
+    def set_lock(self, path, owner, locktype='write', lockscope='exclusive',
+                 depth=None, headers=None):
         """Set a lock on a dav resource"""
         root = ElementTree.Element('{DAV:}lockinfo')
         object_to_etree(root, {'locktype': locktype, 'lockscope': lockscope, 'owner': {
@@ -445,6 +453,6 @@ class DAVClient(object):
             statuscode = int(stat.text.split(" ", 2)[1])
             responses.setdefault(statuscode, []).append(href.text)
         for statuscode, hrefs in responses.items():
-            if not statuscode in expect_status:
+            if statuscode not in expect_status:
                 raise AppError("Invalid multistatus %s for %s (expected %s)\n%s" % (
                     statuscode, hrefs, expect_status, responses))

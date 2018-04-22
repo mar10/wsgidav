@@ -1,6 +1,6 @@
 # make version accessible as 'wsgidav.__version__'
-# noqa: F401
-from wsgidav._version import __version__
+
+from wsgidav._version import __version__  # noqa: F401
 
 # Initialize a silent 'wsgidav' logger
 # http://docs.python-guide.org/en/latest/writing/logging/#logging-in-a-library

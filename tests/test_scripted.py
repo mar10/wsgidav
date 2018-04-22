@@ -368,17 +368,11 @@ class ServerTest(unittest.TestCase):
         client2.mkcol("/test/a/e")
         client2.checkResponse(423)
         # LOCK must fail
-        _locks = client2.set_lock("/test/a",
-                                  owner="test-bench",
-                                  depth="0")
+        client2.set_lock("/test/a", owner="test-bench", depth="0")
         client2.checkResponse(423)
-        _locks = client2.set_lock("/test/a",
-                                  owner="test-bench",
-                                  depth="infinity")
+        client2.set_lock("/test/a", owner="test-bench", depth="infinity")
         client2.checkResponse(423)
-        _locks = client2.set_lock("/test",
-                                  owner="test-bench",
-                                  depth="infinity")
+        client2.set_lock("/test", owner="test-bench", depth="infinity")
         client2.checkResponse(423)
         # Modifying properties of the locked resource must fail
         client2.proppatch("/test/a",

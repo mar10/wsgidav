@@ -79,7 +79,7 @@ class CouchPropertyManager(object):
                 "views": {
                     "titles": {
                         "map": ("function(doc) { emit(null, { 'id': doc._id, "
-                            "'title': doc.title }); }")
+                                "'title': doc.title }); }")
                     },
                     # http://127.0.0.1:5984/wsgidav_props/_design/properties/_view/by_url
                     "by_url": {

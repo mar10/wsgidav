@@ -106,7 +106,7 @@ for cmd in ["bdist_msi"]:
 
 if use_cx_freeze:
     try:
-        from cx_Freeze import setup, Executable
+        from cx_Freeze import setup, Executable  # noqa F811
         executables = [
             Executable(script="wsgidav/server/run_server.py",
                        base=None,

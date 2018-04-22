@@ -56,7 +56,7 @@ class BasicTest(unittest.TestCase):
 
     def _isLockDict(self, o):
         try:
-            _ = o["root"]
+            _ = o["root"]  # noqa F841
         except:
             return False
         return True
@@ -79,7 +79,9 @@ class BasicTest(unittest.TestCase):
             if len(conflictList) < 1:
                 return False
             resultTuple = conflictList[0]
-            if len(resultTuple) != 2 or not self._isLockDict(resultTuple[0]) or not isinstance(resultTuple[1], DAVError):
+            if (len(resultTuple) != 2
+                    or not self._isLockDict(resultTuple[0])
+                    or not isinstance(resultTuple[1], DAVError)):
                 return False
             elif status and status != DAVError.value:
                 return False
@@ -96,7 +98,7 @@ class BasicTest(unittest.TestCase):
 #    def testOpen(self):
 #        """Lock manager should be lazy opening on first access."""
 #        lm = self.lm
-##        assert not lm._loaded, "LM must only be opened after first access"
+# #        assert not lm._loaded, "LM must only be opened after first access"
 #        lm._generateLock(self.principal, "write", "exclusive", "infinity",
 #                        self.owner,
 #                        "/dav",

@@ -227,7 +227,8 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
     def wsgiStartResponse(self, response_status, response_headers, exc_info=None):
-        _logger.debug("wsgiStartResponse({}, {}, {})".format(response_status, response_headers, exc_info))
+        _logger.debug("wsgiStartResponse({}, {}, {})"
+                      .format(response_status, response_headers, exc_info))
         if (self.wsgiSentHeaders):
             raise Exception("Headers already sent and start_response called again!")
         # Should really take a copy to avoid changes in the application....
@@ -248,7 +249,8 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wsgiSentHeaders = 1
         # Send the data
         # assert type(data) is str # If not, Content-Length is propably wrong!
-        _logger.debug("wsgiWriteData: write {} bytes: '{!r}'...".format(len(data), compat.to_native(data[:50])))
+        _logger.debug("wsgiWriteData: write {} bytes: '{!r}'..."
+                      .format(len(data), compat.to_native(data[:50])))
         if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
             _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
             # data = compat.wsgi_to_bytes(data)
@@ -285,7 +287,8 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
         _logger.error('-' * 40, file=sys.stderr)
-        _logger.error('<{}> Exception happened during processing of request from {}'.format(threading.currentThread().ident, client_address))
+        _logger.error('<{}> Exception happened during processing of request from {}'
+                      .format(threading.currentThread().ident, client_address))
         _logger.error(client_address, file=sys.stderr)
         traceback.print_exc()
         _logger.error('-' * 40, file=sys.stderr)
@@ -360,7 +363,8 @@ def serve(conf, app):
         _logger.info("Running {}".format(server_version))
         if host in ("", "0.0.0.0"):
             (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
-            _logger.info("Serving at {}, port {} (host='{}' {})...".format(host, port, hostname, ipaddrlist))
+            _logger.info("Serving at {}, port {} (host='{}' {})..."
+                         .format(host, port, hostname, ipaddrlist))
         else:
             _logger.info("Serving at {}, port {}...".format(host, port))
     server.serve_forever()

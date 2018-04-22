@@ -96,7 +96,8 @@ class LoggerTest(unittest.TestCase):
         self.prevLogLevel = rootLogger.getEffectiveLevel()
         # rootLogger.setLevel(logging.DEBUG)
         self.logHandler = logging.StreamHandler(self.buffer)
-        # self.formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        # self.formatter = logging.Formatter(
+        #     "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         # self.logHandler.setFormatter(formatter)
         rootLogger.addHandler(self.logHandler)
 

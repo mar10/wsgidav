@@ -158,7 +158,7 @@ def _bench_script(opts):
 
     with Timing("10 x GET 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(10):
-            body = client.get("/test/bigfile.txt")
+            body = client.get("/test/bigfile.txt")  # noqa F841
         client.checkResponse()
 
     with Timing("10 x COPY 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
@@ -206,9 +206,9 @@ def _bench_script(opts):
         client.checkResponse()
 
 
-#-------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 #
-#-------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 
 def run_benchmarks(opts):
 
@@ -236,7 +236,8 @@ def run_benchmarks(opts):
     if opts.get("external_server"):
         _runner(opts)
     else:
-        with WsgiDavTestServer(with_auth=False, with_ssl=False, profile=opts.get("profile_server")):
+        with WsgiDavTestServer(with_auth=False, with_ssl=False,
+                               profile=opts.get("profile_server")):
             if opts.get("profile_client"):
                 import cProfile
                 import pstats

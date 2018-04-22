@@ -28,7 +28,8 @@ try:
 except ImportError:
     print("*" * 70, file=sys.stderr)
     print("Could not import webtest.TestApp: some tests will fail.", file=sys.stderr)
-    print("Try 'pip install WebTest' or use 'python setup.py test' to run these tests.", file=sys.stderr)
+    print("Try 'pip install WebTest' or use 'python setup.py test' to run these tests.",
+          file=sys.stderr)
     print("*" * 70, file=sys.stderr)
     raise
 

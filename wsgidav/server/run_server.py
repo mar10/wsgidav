@@ -520,9 +520,8 @@ def _runFlup(app, config, mode):
         raise ValueError
 
     if config["verbose"] >= 2:
-        print("Running WsgiDAV/{} {}/{}...".format(__version__,
-                                               WSGIServer.__module__,
-                                               flupver))
+        print("Running WsgiDAV/{} {}/{}..."
+              .format(__version__, WSGIServer.__module__, flupver))
     server = WSGIServer(app,
                         bindAddress=(config["host"], config["port"]),
                         # debug=True,

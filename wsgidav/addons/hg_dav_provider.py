@@ -174,7 +174,7 @@ class HgResource(_DAVResource):
 
     def getEtag(self):
         return (md5(self.path).hexdigest() + "-" + compat.to_native(self.getLastModified()) + "-"
-            + str(self.getContentLength()))
+                + str(self.getContentLength()))
 
     def getLastModified(self):
         if self.isCollection:
@@ -530,7 +530,7 @@ class HgResourceProvider(DAVProvider):
                 for i in range(0, len(parents) - 1):
                     p2 = parents[i]
                     dir = dirinfos.setdefault(p1, ([], []))
-                    if not p2 in dir[0]:
+                    if p2 not in dir[0]:
                         dir[0].append(p2)
                     if p1 == "":
                         p1 = p2

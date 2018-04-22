@@ -293,7 +293,8 @@ def traceCall(msg=None):
             msg = ""
         else:
             msg = ": {}".format(msg)
-        _logger.info("{}.{} #{}{}".format(f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
+        _logger.info("{}.{} #{}{}"
+                     .format(f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
 
 
 # ========================================================================

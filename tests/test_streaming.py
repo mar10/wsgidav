@@ -7,9 +7,7 @@
 Unit tests for wsgidav.addons.stream_tools.FileLikeQueue
 """
 
-import io
 import os
-import sys
 from tempfile import gettempdir
 import threading
 import unittest

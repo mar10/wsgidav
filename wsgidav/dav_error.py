@@ -235,7 +235,8 @@ class DAVError(Exception):
         html.append("  <p>{}</p>".format(compat.html_escape(self.getUserInfo())))
         html.append("<hr/>")
         html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
-                    .format(__version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")))
+                    .format(__version__,
+                            compat.html_escape(str(datetime.datetime.now()), "utf-8")))
         html.append("</body></html>")
         html = "\n".join(html)
         return ("text/html", compat.to_bytes(html))
