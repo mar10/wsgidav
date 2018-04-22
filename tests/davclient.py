@@ -229,8 +229,8 @@ class DAVClient(object):
               has been removed with RFC4918
         """
         body = (b'<?xml version="1.0" encoding="utf-8" ?>'
-                '<d:propertybehavior xmlns:d="DAV:">'
-                '<d:keepalive>*</d:keepalive></d:propertybehavior>')
+                b'<d:propertybehavior xmlns:d="DAV:">'
+                b'<d:keepalive>*</d:keepalive></d:propertybehavior>')
 
         # Add proper headers
         if headers is None:
@@ -261,8 +261,8 @@ class DAVClient(object):
               has been removed with RFC4918
         """
         body = (b'<?xml version="1.0" encoding="utf-8" ?>'
-                '<d:propertybehavior xmlns:d="DAV:">'
-                '<d:keepalive>*</d:keepalive></d:propertybehavior>')
+                b'<d:propertybehavior xmlns:d="DAV:">'
+                b'<d:keepalive>*</d:keepalive></d:propertybehavior>')
 
         # Add proper headers
         if headers is None:
