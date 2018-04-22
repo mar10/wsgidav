@@ -23,8 +23,6 @@ Valid options are (sample shows defaults)::
             }
 
 """
-from __future__ import print_function
-
 from pprint import pformat
 
 import pymongo
@@ -156,13 +154,3 @@ class MongoResourceProvider(DAVProvider):
         self._count_getResourceInst += 1
         root = ConnectionCollection("/", environ)
         return root.resolve("/", path)
-
-
-# ============================================================================
-# Main
-# ============================================================================
-def test():
-    pass
-
-if __name__ == "__main__":
-    test()

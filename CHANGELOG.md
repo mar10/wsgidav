@@ -5,14 +5,16 @@
 
 
 ## 'logging' branch
-- Support YAML and use wsgidav.yaml by default if exists in local folder
+- Support YAML and use wsgidav.yaml by default if it exists in local folder
 - Use wsgidav.json by default if exists in local folder
 - wsgidav.json can contain comments now (JavaScript syntax)
 - Reworked documentation on Read The Docs
+- Use `.format()` syntax instead of `%s` for string templating
+- Fix some more PEP8 issues
 - Bump Cheroot version to 6.2+ (used by MSI installer)
 - **Refactor logging**
   - Library:
-    - Remove configurable python logger
+    - Removed usage of `print` in favor of `logging.getLogger().debug`
     - Remove enable_loggers option
     - Remove util.note(), .status(), ...
 

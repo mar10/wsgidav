@@ -4,6 +4,8 @@
 """
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 """
+from __future__ import print_function
+
 from tempfile import gettempdir
 
 from wsgidav import __version__
@@ -35,7 +37,7 @@ def main():
     server = CherryPyWSGIServer(
         bind_addr=(config["host"], config["port"]),
         wsgi_app=app,
-        server_name="WsgiDAV/%s %s" % (__version__, CherryPyWSGIServer.version),
+        server_name="WsgiDAV/{} {}".format(__version__, CherryPyWSGIServer.version),
         )
 
     try:
@@ -51,7 +53,7 @@ def main():
 #    httpserver.serve(app,
 #                     host="localhost",
 #                     port=8080,
-#                     server_version="WsgiDAV/%s" % __version__,
+#                     server_version="WsgiDAV/{}".format(__version__),
 #                     )
 
 

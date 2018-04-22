@@ -86,8 +86,6 @@ header, if present, to::
    environ['wsgidav.destresourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
 
 """
-from __future__ import print_function
-
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
 from wsgidav.request_server import RequestServer
@@ -192,7 +190,7 @@ class RequestResolver(BaseMiddleware):
 
         if provider is None:
             raise DAVError(HTTP_NOT_FOUND,
-                           "Could not find resource provider for '%s'" % path)
+                           "Could not find resource provider for '{}'".format(path))
 
         # Let the appropriate resource provider for the realm handle the
         # request

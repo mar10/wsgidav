@@ -5,8 +5,6 @@
 """
 WSGI middleware that handles GET requests on collections to display directories.
 """
-from __future__ import print_function
-
 import os
 import sys
 
@@ -17,13 +15,15 @@ from wsgidav.util import safeReEncode
 
 __docformat__ = "reStructuredText"
 
+_logger = util.getModuleLogger(__name__)
+
 
 msOfficeTypeToExtMap = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
     "word": ("doc", "dot", "docm", "docx", "dotm", "dotx"),
     "visio": ("vsd", "vsdm", "vsdx", "vstm", "vstx"),
-}
+    }
 msOfficeExtToTypeMap = {}
 for t, el in msOfficeTypeToExtMap.items():
     for e in el:
@@ -41,7 +41,6 @@ PAGE_CSS = """\
     a.symlink { font-style: italic; }
     p.trailer { font-size: smaller; }
 """
-
 
 PAGE_SCRIPT = """\
 function onLoad() {
@@ -103,7 +102,7 @@ function openWithSharePointPlugin(url) {
     }
     return res;
 }
-"""
+"""  # noqa
 
 
 class WsgiDavDirBrowser(BaseMiddleware):
@@ -122,12 +121,13 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection:
 
-            #            if "mozilla" not in environ.get("HTTP_USER_AGENT").lower():
-            #                # issue 14: Nautilus sends GET on collections
-            #                # http://code.google.com/p/wsgidav/issues/detail?id=14
-            #                util.status("Directory browsing disabled for agent '%s'" % environ.get("HTTP_USER_AGENT"))
-            #                self._fail(HTTP_NOT_IMPLEMENTED)
-            #                return self._application(environ, start_response)
+            # if "mozilla" not in environ.get("HTTP_USER_AGENT").lower():
+            #     # issue 14: Nautilus sends GET on collections
+            #     # http://code.google.com/p/wsgidav/issues/detail?id=14
+            #     util.status("Directory browsing disabled for agent '{}'"
+            #                 .format(environ.get("HTTP_USER_AGENT")))
+            #     self._fail(HTTP_NOT_IMPLEMENTED)
+            #     return self._application(environ, start_response)
 
             if util.getContentLength(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -144,8 +144,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 collectionUrl = collectionUrl.split("?")[0]
                 res = """
                     <dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
-                        <dm:url>%s</dm:url>
-                    </dm:mount>""" % (collectionUrl)
+                        <dm:url>{}</dm:url>
+                    </dm:mount>""".format(collectionUrl)
                 # TODO: support <dm:open>%s</dm:open>
 
                 start_response("200 OK", [("Content-Type", "application/davmount+xml"),
@@ -174,8 +174,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self._verbose >= 2:
-            print("Raising DAVError %s" % safeReEncode(e.getUserInfo(), sys.stdout.encoding or "ASCII"),
-                  file=sys.stdout)
+            _logger.error("Raising DAVError {}".format(
+                          safeReEncode(e.getUserInfo(), sys.stdout.encoding or "ASCII")))
         raise e
 
     def _listDirectory(self, davres, environ, start_response):
@@ -190,12 +190,13 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         trailer = dirConfig.get("response_trailer")
         if trailer:
-            trailer = trailer.replace("${version}",
-                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a>" % __version__)
+            trailer = trailer.replace(
+                "${version}",
+                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a>".format(__version__))
             trailer = trailer.replace("${time}", util.getRfc1123Time())
         else:
-            trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s"
-                       % (__version__, util.getRfc1123Time()))
+            trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
+                       .format(__version__, util.getRfc1123Time()))
 
         html = []
         html.append(
@@ -205,12 +206,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
         html.append("<head>")
         html.append(
             "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
-        html.append("<meta name='generator' content='WsgiDAV %s'>" %
-                    __version__)
-        html.append("<title>WsgiDAV - Index of %s </title>" % displaypath)
+        html.append("<meta name='generator' content='WsgiDAV {}'>".format(__version__))
+        html.append("<title>WsgiDAV - Index of {} </title>".format(displaypath))
 
-        html.append("<script type='text/javascript'>%s</script>" % PAGE_SCRIPT)
-        html.append("<style type='text/css'>%s</style>" % PAGE_CSS)
+        html.append("<script type='text/javascript'>{}</script>".format(PAGE_SCRIPT))
+        html.append("<style type='text/css'>{}</style>".format(PAGE_CSS))
 
         # Special CSS to enable MS Internet Explorer behaviour
         if dirConfig.get("ms_mount"):
@@ -226,18 +226,20 @@ class WsgiDavDirBrowser(BaseMiddleware):
         html.append("<body onload='onLoad()'>")
 
         # Title
-        html.append("<h1>Index of %s</h1>" % displaypath)
+        html.append("<h1>Index of {}</h1>".format(displaypath))
         # Add DAV-Mount link and Web-Folder link
         links = []
         if dirConfig.get("davmount"):
             links.append("<a title='Open this folder in a WebDAV client.' "
-                "href='%s?davmount'>Mount</a>" % util.makeCompleteUrl(environ))
+                         "href='{}?davmount'>Mount</a>".format(util.makeCompleteUrl(environ)))
         if dirConfig.get("ms_mount"):
             links.append("<a title='Open as Web Folder (requires Microsoft Internet Explorer)' "
-                "href='' FOLDER='%s'>Open as Web Folder</a>" % util.makeCompleteUrl(environ))
-#                html.append("<a href='' FOLDER='%ssetup.py'>Open setup.py as WebDAV</a>" % util.makeCompleteUrl(environ))
+                         "href='' FOLDER='{}'>Open as Web Folder</a>"
+                         .format(util.makeCompleteUrl(environ)))
+#                html.append("<a href='' FOLDER='{}setup.py'>Open setup.py as WebDAV</a>"
+#                            .format(util.makeCompleteUrl(environ)))
         if links:
-            html.append("<p>%s</p>" % " &#8211; ".join(links))
+            html.append("<p>{}</p>".format(" &#8211; ".join(links)))
 
         html.append("<hr>")
         # Listing
@@ -282,13 +284,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
-                        # print "OT", officeType
-                        # print "OT", dirConfig
                         if dirConfig.get("ms_sharepoint_plugin"):
                             infoDict["class"] = "msoffice"
                         elif dirConfig.get("ms_sharepoint_urls"):
                             infoDict[
-                                "href"] = "ms-%s:ofe|u|%s" % (officeType, href)
+                                "href"] = "ms-{}:ofe|u|{}".format(officeType, href)
 
                 dirInfoList.append(infoDict)
         #
@@ -306,10 +306,16 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     infoDict["strSize"] = util.byteNumberString(contentLength)
 
             html.append("""\
-            <tr><td><a href="%(href)s" class="%(class)s">%(displayName)s</a></td>
-            <td>%(displayType)s</td>
-            <td class='right'>%(strSize)s</td>
-            <td class='right'>%(strModified)s</td></tr>""" % infoDict)
+            <tr><td><a href="{href}" class="{class}">{displayName}</a></td>
+            <td>{displayType}</td>
+            <td class='right'>{strSize}</td>
+            <td class='right'>{strModified}</td></tr>""".format(**infoDict))
+
+            # html.append("""\
+            # <tr><td><a href="%(href)s" class="%(class)s">%(displayName)s</a></td>
+            # <td>%(displayType)s</td>
+            # <td class='right'>%(strSize)s</td>
+            # <td class='right'>%(strModified)s</td></tr>""" % infoDict)
 
         html.append("</tbody>")
         html.append("</table>")
@@ -318,14 +324,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         if "http_authenticator.username" in environ:
             if environ.get("http_authenticator.username"):
-                html.append("<p>Authenticated user: '%s', realm: '%s'.</p>"
-                            % (environ.get("http_authenticator.username"),
-                               environ.get("http_authenticator.realm")))
+                html.append("<p>Authenticated user: '{}', realm: '{}'.</p>"
+                            .format(environ.get("http_authenticator.username"),
+                                    environ.get("http_authenticator.realm")))
 #            else:
 #                html.append("<p>Anonymous</p>")
 
         if trailer:
-            html.append("<p class='trailer'>%s</p>" % trailer)
+            html.append("<p class='trailer'>{}</p>".format(trailer))
 
         html.append("</body></html>")
 

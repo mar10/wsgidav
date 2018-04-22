@@ -5,20 +5,22 @@
 """
 Small wrapper for different etree packages.
 """
-from __future__ import print_function
+# from __future__ import print_function
 
-import sys
+import logging
 
 from wsgidav import compat
 
 __docformat__ = "reStructuredText"
 
+# _logger = util.getModuleLogger(__name__)
+_logger = logging.getLogger("wsgidav")
 
 # Import XML support
 useLxml = False
 try:
     # This import helps setup.py to include lxml completely:
-    from lxml import _elementpath as _dummy_elementpath
+    from lxml import _elementpath as _dummy_elementpath  # noqa
     # lxml with safe defaults
     from defusedxml.lxml import _etree as etree
     useLxml = True
@@ -55,9 +57,10 @@ def stringToXML(text):
         #   </ns0:high-unicode>
         #        t2 = text.encode("utf8")
         #        return etree.XML(t2)
-        print("Error parsing XML string. If lxml is not available, and unicode is involved, then "
-            "installing lxml _may_ solve this issue.", file=sys.stderr)
-        print("XML source:", text, file=sys.stderr)
+        _logger.error("Error parsing XML string. "
+                      "If lxml is not available, and unicode is involved, then "
+                      "installing lxml _may_ solve this issue.")
+        _logger.error("XML source: {}".format(text))
         raise
 
 
@@ -110,7 +113,8 @@ def elementContentAsString(element):
         return element.text or ""  # Make sure, None is returned as ''
     stream = compat.StringIO()
     for childnode in element:
-        print(xmlToBytes(childnode, pretty_print=False), file=stream)
+        stream.write(xmlToBytes(childnode, pretty_print=False) + "\n")
+        # print(xmlToBytes(childnode, pretty_print=False), file=stream)
     s = stream.getvalue()
     stream.close()
     return s

@@ -1,7 +1,6 @@
 """
 Abstract base middleware class
 """
-from __future__ import print_function
 
 __docformat__ = "reStructuredText"
 
@@ -21,7 +20,7 @@ class BaseMiddleware(object):
         pass
 
     def __call__(self, environ, start_response):
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def isSuitable(config):

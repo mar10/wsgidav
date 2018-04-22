@@ -39,8 +39,6 @@ For every request:
     Note: The OPTIONS method for the '*' path is handled directly.
 
 """
-from __future__ import print_function
-
 import sys
 import threading
 import time
@@ -60,6 +58,7 @@ from wsgidav.util import safeReEncode
 
 __docformat__ = "reStructuredText"
 
+_logger = util.getModuleLogger(__name__, True)
 
 # Use these settings, if config file does not define them (or is totally
 # missing)
@@ -125,7 +124,7 @@ def _checkConfig(config):
     for field in mandatoryFields:
         if field not in config:
             raise ValueError(
-                "Invalid configuration: missing required field '%s'" % field)
+                "Invalid configuration: missing required field '{}'".format(field))
 
 
 # ========================================================================
@@ -138,8 +137,8 @@ class WsgiDAVApp(object):
 
         util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
-        util.log("Default encoding: %s (file system: %s)" %
-                 (sys.getdefaultencoding(), sys.getfilesystemencoding()))
+        util.log("Default encoding: {} (file system: {})"
+                 .format(sys.getdefaultencoding(), sys.getfilesystemencoding()))
 
         # Evaluate configuration and set defaults
         _checkConfig(config)
@@ -206,7 +205,7 @@ class WsgiDAVApp(object):
         for mw in middleware_stack:
             if mw.isSuitable(config):
                 if self._verbose >= 2:
-                    print("Middleware %s is suitable" % mw)
+                    _logger.info("Middleware {} is suitable".format(mw))
                 application = mw(application, config)
 
                 if issubclass(mw, HTTPAuthenticator):
@@ -217,28 +216,28 @@ class WsgiDAVApp(object):
                             data['allow_anonymous'] = True
             else:
                 if self._verbose >= 2:
-                    print("Middleware %s is not suitable" % mw)
+                    _logger.info("Middleware {} is not suitable".format(mw))
 
         # Print info
         if self._verbose >= 2:
-            print("Using lock manager: %r" % locksManager)
-            print("Using property manager: %r" % propsManager)
-            print("Using domain controller: %s" % domain_controller)
-            print("Registered DAV providers:")
+            _logger.info("Using lock manager: {!r}".format(locksManager))
+            _logger.info("Using property manager: {!r}".format(propsManager))
+            _logger.info("Using domain controller: {}".format(domain_controller))
+            _logger.info("Registered DAV providers:")
             for share, data in self.providerMap.items():
                 hint = " (anonymous)" if data['allow_anonymous'] else ""
-                print("  Share '%s': %s%s" % (share, provider, hint))
+                _logger.info("  Share '{}': {}{}".format(share, provider, hint))
         if self._verbose >= 1:
             for share, data in self.providerMap.items():
                 if data['allow_anonymous']:
                     # TODO: we should only warn here, if --no-auth is not given
-                    print("WARNING: share '%s' will allow anonymous access." % share)
+                    _logger.info("WARNING: share '{}' will allow anonymous access.".format(share))
 
         self._application = application
 
     def __call__(self, environ, start_response):
 
-        # util.log("SCRIPT_NAME='%s', PATH_INFO='%s'" % (
+        # util.log("SCRIPT_NAME='{}', PATH_INFO='{}'".format(
         #    environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         path = environ["PATH_INFO"]
@@ -265,7 +264,7 @@ class WsgiDAVApp(object):
         # GC issue 22: Pylons sends root as u'/'
         # if isinstance(path, unicode):
         if not compat.is_native(path):
-            util.log("Got non-native PATH_INFO: %r" % path)
+            util.log("Got non-native PATH_INFO: {!r}".format(path))
             # path = path.encode("utf8")
             path = compat.to_native(path)
 
@@ -308,7 +307,8 @@ class WsgiDAVApp(object):
         else:
             environ["SCRIPT_NAME"] += share
             environ["PATH_INFO"] = path[len(share):]
-#        util.log("--> SCRIPT_NAME='%s', PATH_INFO='%s'" % (environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
+        # util.log("--> SCRIPT_NAME='{}', PATH_INFO='{}'"
+        #          .format(environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         # assert isinstance(path, str)
         assert compat.is_native(path)
@@ -331,7 +331,7 @@ class WsgiDAVApp(object):
             headerDict = {}
             for header, value in response_headers:
                 if header.lower() in headerDict:
-                    util.warn("Duplicate header in response: %s" % header)
+                    util.warn("Duplicate header in response: {}".format(header))
                 headerDict[header.lower()] = value
 
             # Check if we should close the connection after this request.
@@ -341,18 +341,18 @@ class WsgiDAVApp(object):
             statusCode = int(status.split(" ", 1)[0])
             contentLengthRequired = (environ["REQUEST_METHOD"] != "HEAD"
                                      and statusCode >= 200
-                                     and not statusCode in (204, 304))
-#            print(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
+                                     and statusCode not in (204, 304))
+#            _logger.info(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
                 util.warn(
-                    "Missing required Content-Length header in %s-response: closing connection" %
-                    statusCode)
+                    "Missing required Content-Length header in {}-response: closing connection"
+                    .format(statusCode))
                 forceCloseConnection = True
             elif not type(currentContentLength) is str:
-                util.warn("Invalid Content-Length header in response (%r): closing connection" %
-                          headerDict.get("content-length"))
+                util.warn("Invalid Content-Length header in response ({!r}): closing connection"
+                          .format(headerDict.get("content-length")))
                 forceCloseConnection = True
 
             # HOTFIX for Vista and Windows 7 (GC issue 13, issue 23)
@@ -383,37 +383,34 @@ class WsgiDAVApp(object):
                     userInfo = "(anonymous)"
                 threadInfo = ""
                 if self._verbose >= 1:
-                    threadInfo = "<%s> " % threading.currentThread().ident
+                    threadInfo = "<{}> ".format(threading.currentThread().ident)
                 extra = []
                 if "HTTP_DESTINATION" in environ:
-                    extra.append('dest="%s"' % environ.get("HTTP_DESTINATION"))
+                    extra.append('dest="{}"'.format(environ.get("HTTP_DESTINATION")))
                 if environ.get("CONTENT_LENGTH", "") != "":
-                    extra.append("length=%s" % environ.get("CONTENT_LENGTH"))
+                    extra.append("length={}".format(environ.get("CONTENT_LENGTH")))
                 if "HTTP_DEPTH" in environ:
-                    extra.append("depth=%s" % environ.get("HTTP_DEPTH"))
+                    extra.append("depth={}".format(environ.get("HTTP_DEPTH")))
                 if "HTTP_RANGE" in environ:
-                    extra.append("range=%s" % environ.get("HTTP_RANGE"))
+                    extra.append("range={}".format(environ.get("HTTP_RANGE")))
                 if "HTTP_OVERWRITE" in environ:
-                    extra.append("overwrite=%s" %
-                                 environ.get("HTTP_OVERWRITE"))
+                    extra.append("overwrite={}".format(environ.get("HTTP_OVERWRITE")))
                 if self._verbose >= 1 and "HTTP_EXPECT" in environ:
-                    extra.append('expect="%s"' % environ.get("HTTP_EXPECT"))
+                    extra.append('expect="{}"'.format(environ.get("HTTP_EXPECT")))
                 if self._verbose >= 2 and "HTTP_CONNECTION" in environ:
-                    extra.append('connection="%s"' %
-                                 environ.get("HTTP_CONNECTION"))
+                    extra.append('connection="{}"'.format(environ.get("HTTP_CONNECTION")))
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
-                    extra.append('agent="%s"' % environ.get("HTTP_USER_AGENT"))
+                    extra.append('agent="{}"'.format(environ.get("HTTP_USER_AGENT")))
                 if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
-                    extra.append('transfer-enc=%s' %
-                                 environ.get("HTTP_TRANSFER_ENCODING"))
+                    extra.append('transfer-enc={}'.format(environ.get("HTTP_TRANSFER_ENCODING")))
                 if self._verbose >= 1:
-                    extra.append('elap=%.3fsec' % (time.time() - start_time))
+                    extra.append('elap=%.3fsec'.format(time.time() - start_time))
                 extra = ", ".join(extra)
 
 #               This is the CherryPy format:
-#                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"
-#                print >>sys.stderr, '%s - %s - [%s] "%s" %s -> %s' % (
-                print('%s - %s - [%s] "%s" %s -> %s' % (
+#                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
+
+                _logger.info('{} - {} - [{}] "{}" {} -> {}'.format(
                     threadInfo + environ.get("REMOTE_ADDR", ""),
                     userInfo,
                     util.getLogTime(),
@@ -423,7 +420,7 @@ class WsgiDAVApp(object):
                     status,
                     # response_headers.get(""), # response Content-Length
                     # referer
-                ), file=sys.stdout)
+                ))
 
             return start_response(status, response_headers, exc_info)
 

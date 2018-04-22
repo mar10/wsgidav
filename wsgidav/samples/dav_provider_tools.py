@@ -2,10 +2,8 @@
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-
+Tools that make it easier to implement custom WsgiDAV providers.
 """
-from __future__ import print_function
-
 import os
 import stat
 
@@ -48,7 +46,7 @@ class VirtualCollection(DAVCollection):
         return True
 
     def getMember(self, name):
-        # raise NotImplementedError()
+        # raise NotImplementedError
         return self.provider.getResourceInst(util.joinUri(self.path, name),
                                              self.environ)
 
@@ -75,7 +73,7 @@ class _VirtualNonCollection(DAVNonCollection):
         return self.name
 
     def getDisplayInfo(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getEtag(self):
         return None
@@ -139,7 +137,7 @@ class FileResource(_VirtualNonCollection):
 
     def __init__(self, path, environ, filePath):
         if not os.path.exists(filePath):
-            util.warn("FileResource(%r) does not exist." % filePath)
+            util.warn("FileResource({!r}) does not exist.".format(filePath))
         _VirtualNonCollection.__init__(self, path, environ)
         self.filePath = filePath
 

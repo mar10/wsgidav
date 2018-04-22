@@ -54,7 +54,7 @@ __docformat__ = "reStructuredText"
 
 # Use this config file, if no --config_file option is specified
 DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
-PYTHON_VERSION = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+PYTHON_VERSION = "{}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2])
 
 
 def _get_checked_path(path, mustExist=True, allowNone=True):
@@ -63,10 +63,10 @@ def _get_checked_path(path, mustExist=True, allowNone=True):
         if allowNone:
             return None
         else:
-            raise ValueError("Invalid path %r" % path)
+            raise ValueError("Invalid path {!r}".format(path))
     path = os.path.abspath(path)
     if mustExist and not os.path.exists(path):
-        raise ValueError("Invalid path %r" % path)
+        raise ValueError("Invalid path {!r}".format(path))
     return path
 
 
@@ -182,7 +182,7 @@ See https://github.com/mar10/wsgidav for additional information.
     if args.verbose >= 3:
         print("Command line args:")
         for k, v in cmdLineOpts.items():
-            print("    %-12s: %s" % (k, v))
+            print("    {:>12}: {}".format(k, v))
     return cmdLineOpts
 
 
@@ -190,7 +190,7 @@ def _readConfigFile(config_file, verbose):
     """Read configuration file options into a dictionary."""
 
     if not os.path.exists(config_file):
-        raise RuntimeError("Couldn't open configuration file '%s'." % config_file)
+        raise RuntimeError("Couldn't open configuration file '{}'.".format(config_file))
 
     if config_file.endswith(".json"):
         with open(config_file, mode="r", encoding="utf-8") as json_file:
@@ -199,12 +199,7 @@ def _readConfigFile(config_file, verbose):
         return json.loads(minified)
     elif config_file.endswith(".yaml"):
         with open(config_file, mode="r", encoding="utf-8") as yaml_file:
-            # Minify the JSON file to strip embedded comments
-            res = yaml.safe_load(yaml_file)
-            from pprint import pprint
-            pprint(res)
-            return res
-            return yaml_file.safe_load(yaml_file)
+            return yaml.safe_load(yaml_file)
 
     try:
         import imp
@@ -217,7 +212,7 @@ def _readConfigFile(config_file, verbose):
             elif isfunction(v):
                 continue
             conf[k] = v
-    except Exception as e:
+    except Exception:
         # if verbose >= 1:
         #    traceback.print_exc()
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value)
@@ -276,7 +271,7 @@ def _initConfig():
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
 
     if config["verbose"] >= 3:
-        print("Configuration(%s):" % cmdLineOpts["config_file"])
+        print("Configuration({}):".format(cmdLineOpts["config_file"]))
         pprint(config)
 
     # if not useLxml and config["verbose"] >= 1:
@@ -309,12 +304,12 @@ def _runPaste(app, config, mode):
 
     See http://pythonpaste.org/modules/httpserver.html for more options
     """
-    _logger = util.getModuleLogger(__name__, True)
+    _logger = util.getModuleLogger(__name__)
     from paste import httpserver
-    version = "WsgiDAV/%s %s Python %s" % (
+    version = "WsgiDAV/{} {} Python {}".format(
         __version__, httpserver.WSGIHandler.server_version, PYTHON_VERSION)
     if config["verbose"] >= 1:
-        print("Running %s..." % version)
+        print("Running {}...".format(version))
 
     # See http://pythonpaste.org/modules/httpserver.html for more options
     server = httpserver.serve(app,
@@ -349,9 +344,9 @@ def _runPaste(app, config, mode):
 
     host, port = server.server_address
     if host == "0.0.0.0":
-        print("Serving on 0.0.0.0:%s view at %s://127.0.0.1:%s" % (port, "http", port))
+        print("Serving on 0.0.0.0:{} view at {}://127.0.0.1:{}".format(port, "http", port))
     else:
-        print("Serving on %s://%s:%s" % ("http", host, port))
+        print("Serving on {}://{}:{}".format("http", host, port))
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -382,7 +377,7 @@ def _runCherryPy(app, config, mode):
         print("*" * 78)
         raise
 
-    server_name = "WsgiDAV/%s %s Python/%s" % (
+    server_name = "WsgiDAV/{} {} Python/{}".format(
         __version__,
         wsgiserver.CherryPyWSGIServer.version,
         PYTHON_VERSION)
@@ -402,8 +397,8 @@ def _runCherryPy(app, config, mode):
             print("SSL / HTTPS enabled.")
 
     if config["verbose"] >= 1:
-        print("Running %s" % server_name)
-        print("Serving on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
+        print("Running {}".format(server_name))
+        print("Serving on {}://{}:{} ...".format(protocol, config["host"], config["port"]))
 
     server_args = {"bind_addr": (config["host"], config["port"]),
                    "wsgi_app": app,
@@ -478,8 +473,8 @@ def _runCheroot(app, config, mode):
 #         print("WARNING: Ignored option 'ssl_adapter' (requires 'ssl_certificate').")
 
     if config["verbose"] >= 1:
-        print("Running %s" % server_name)
-        print("Serving on %s://%s:%s ..." % (protocol, config["host"], config["port"]))
+        print("Running {}".format(server_name))
+        print("Serving on {}://{}:{} ...".format(protocol, config["host"], config["port"]))
 
     server_args = {"bind_addr": (config["host"], config["port"]),
                    "wsgi_app": app,
@@ -525,12 +520,12 @@ def _runFlup(app, config, mode):
         raise ValueError
 
     if config["verbose"] >= 2:
-        print("Running WsgiDAV/%s %s/%s..." % (__version__,
+        print("Running WsgiDAV/{} {}/{}...".format(__version__,
                                                WSGIServer.__module__,
                                                flupver))
     server = WSGIServer(app,
                         bindAddress=(config["host"], config["port"]),
-#                            debug=True,
+                        # debug=True,
                         )
     try:
         server.run()
@@ -544,14 +539,11 @@ def _runWsgiref(app, config, mode):
     """Run WsgiDAV using wsgiref.simple_server, on Python 2.5+."""
     # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
     from wsgiref.simple_server import make_server, software_version
-#        if config["verbose"] >= 1:
-#            print "Running WsgiDAV %s on wsgiref.simple_server (single threaded)..." % __version__
-    version = "WsgiDAV/%s %s" % (__version__, software_version)
+    version = "WsgiDAV/{} {}".format(__version__, software_version)
     if config["verbose"] >= 1:
-        print("Running %s..." % version)
+        print("Running {}...".format(version))
         print("WARNING: This single threaded server (wsgiref) is not meant for production.")
     httpd = make_server(config["host"], config["port"], app)
-#        print "Serving HTTP on port 8000..."
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -564,7 +556,7 @@ def _runExtWsgiutils(app, config, mode):
     """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     from wsgidav.server import ext_wsgiutils_server
     if config["verbose"] >= 2:
-        print("Running WsgiDAV %s on wsgidav.ext_wsgiutils_server..." % __version__)
+        print("Running WsgiDAV {} on wsgidav.ext_wsgiutils_server...".format(__version__))
     if config["verbose"] >= 1:
         print("WARNING: This single threaded server (ext-wsgiutils) is not meant for production.")
     try:

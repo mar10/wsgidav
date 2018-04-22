@@ -15,12 +15,15 @@ consumer at the same time::
         return queue
 
 """
+from __future__ import print_function
+
 from wsgidav import compat
 from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
+
 
 # ============================================================================
 # FileLikeQueue
@@ -60,7 +63,7 @@ class FileLikeQueue(object):
         res = self.unread
         self.unread = ""
         # Get next chunk, cumulating requested size as needed
-        while ( (res == "") or (size < 0) or (size > 0 and len(res) < size) ):
+        while res == "" or size < 0 or (size > 0 and len(res) < size):
             try:
                 # Read pending data, blocking if neccessary
                 # (but handle the case that close() is called while waiting)

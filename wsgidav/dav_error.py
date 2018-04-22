@@ -5,14 +5,11 @@
 """
 Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
-from __future__ import print_function
-
 import datetime
-import traceback
+# import traceback
 
-# Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav import __version__, compat, xml_tools
-from wsgidav.xml_tools import etree  # @UnusedImport
+from wsgidav.xml_tools import etree
 
 
 __docformat__ = "reStructuredText"
@@ -98,7 +95,7 @@ ERROR_DESCRIPTIONS = {
     HTTP_INTERNAL_ERROR: "500 Internal Server Error",
     HTTP_NOT_IMPLEMENTED: "501 Not Implemented",
     HTTP_BAD_GATEWAY: "502 Bad Gateway",
-}
+    }
 
 # ========================================================================
 # if ERROR_RESPONSES exists for an error code, a html output will be sent as response
@@ -112,7 +109,7 @@ ERROR_RESPONSES = {
     HTTP_FORBIDDEN: "Access denied to the specified resource",
     HTTP_INTERNAL_ERROR: "An internal server error occurred",
     HTTP_NOT_IMPLEMENTED: "Not Implemented",
-}
+    }
 
 
 # ========================================================================
@@ -138,7 +135,7 @@ class DAVErrorCondition(object):
         self.hrefs = []
 
     def __str__(self):
-        return "%s(%s)" % (self.conditionCode, self.hrefs)
+        return "{}({})".format(self.conditionCode, self.hrefs)
 
     def add_href(self, href):
         assert href.startswith("/")
@@ -192,7 +189,7 @@ class DAVError(Exception):
             self.errcondition) is DAVErrorCondition
 
     def __repr__(self):
-        return "DAVError(%s)" % self.getUserInfo()
+        return "DAVError({})".format(self.getUserInfo())
 
     def __str__(self):  # Required for 2.4
         return self.__repr__()
@@ -200,20 +197,20 @@ class DAVError(Exception):
     def getUserInfo(self):
         """Return readable string."""
         if self.value in ERROR_DESCRIPTIONS:
-            s = "%s" % ERROR_DESCRIPTIONS[self.value]
+            s = "{}".format(ERROR_DESCRIPTIONS[self.value])
         else:
-            s = "%s" % self.value
+            s = "{}".format(self.value)
 
         if self.contextinfo:
-            s += ": %s" % self.contextinfo
+            s += ": {}".format(self.contextinfo)
         elif self.value in ERROR_RESPONSES:
-            s += ": %s" % ERROR_RESPONSES[self.value]
+            s += ": {}".format(ERROR_RESPONSES[self.value])
 
         if self.srcexception:
-            s += "\n    Source exception: '%s'" % self.srcexception
+            s += "\n    Source exception: '{}'".format(self.srcexception)
 
         if self.errcondition:
-            s += "\n    Error condition: '%s'" % self.errcondition
+            s += "\n    Error condition: '{}'".format(self.errcondition)
         return s
 
     def getResponsePage(self):
@@ -232,17 +229,13 @@ class DAVError(Exception):
         html.append("<html><head>")
         html.append(
             "  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
-        html.append("  <title>%s</title>" % status)
+        html.append("  <title>{}</title>".format(status))
         html.append("</head><body>")
-        html.append("  <h1>%s</h1>" % status)
-        html.append("  <p>%s</p>" % compat.html_escape(self.getUserInfo()))
-#        html.append("  <hr>")
-#        html.append("  <p>%s</p>" % cgi.escape(str(datetime.datetime.now())))
-#        if self._server_descriptor:
-#            respbody.append(self._server_descriptor + "<hr>")
+        html.append("  <h1>{}</h1>".format(status))
+        html.append("  <p>{}</p>".format(compat.html_escape(self.getUserInfo())))
         html.append("<hr/>")
-        html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/%s</a> - %s"
-                    % (__version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")))
+        html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
+                    .format(__version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")))
         html.append("</body></html>")
         html = "\n".join(html)
         return ("text/html", compat.to_bytes(html))
@@ -266,7 +259,7 @@ def getHttpStatusString(v):
     try:
         return ERROR_DESCRIPTIONS[code]
     except KeyError:
-        return "%s Status" % code
+        return "{} Status".format(code)
 
 
 def getResponsePage(v):
@@ -282,4 +275,4 @@ def asDAVError(e):
         # traceback.print_exc()
         return DAVError(HTTP_INTERNAL_ERROR, srcexception=e)
     else:
-        return DAVError(HTTP_INTERNAL_ERROR, "%s" % e)
+        return DAVError(HTTP_INTERNAL_ERROR, "{}".format(e))

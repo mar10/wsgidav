@@ -14,8 +14,6 @@ This provider creates instances of :class:`~wsgidav.fs_dav_provider.FileResource
 and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
 directories respectively.
 """
-from __future__ import print_function
-
 import os
 import shutil
 import stat
@@ -54,12 +52,6 @@ class FileResource(DAVNonCollection):
         return self.filestat[stat.ST_SIZE]
 
     def getContentType(self):
-        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
-        #        print "mimetype(%s): %r, %r" % (self.path, mimetype, _mimeencoding)
-        #        if not mimetype:
-        #            mimetype = "application/octet-stream"
-        #        print "mimetype(%s): return %r" % (self.path, mimetype)
-        #        return mimetype
         return util.guessMimeType(self.path)
 
     def getCreationDate(self):
@@ -99,7 +91,7 @@ class FileResource(DAVNonCollection):
         assert not self.isCollection
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        _logger.debug("beginWrite: %s, %s" % (self._filePath, "wb"))
+        # _logger.debug("beginWrite: {}, {}".format(self._filePath, "wb"))
         # GC issue 57: always store as binary
         return open(self._filePath, "wb", BUFFER_SIZE)
 
@@ -144,7 +136,7 @@ class FileResource(DAVNonCollection):
         fpDest = self.provider._locToFilePath(destPath, self.environ)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
-        _logger.debug("moveRecursive(%s, %s)" % (self._filePath, fpDest))
+        _logger.debug("moveRecursive({}, {})".format(self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
@@ -218,7 +210,7 @@ class FolderResource(DAVCollection):
             # Skip non files (links and mount points)
             fp = os.path.join(self._filePath, name)
             if not os.path.isdir(fp) and not os.path.isfile(fp):
-                _logger.debug("Skipping non-file %r" % fp)
+                _logger.debug("Skipping non-file {!r}".format(fp))
                 continue
             # name = name.encode("utf8")
             name = compat.to_native(name)
@@ -230,7 +222,7 @@ class FolderResource(DAVCollection):
 
         See DAVCollection.getMember()
         """
-        assert compat.is_native(name), "%r" % name
+        assert compat.is_native(name), "{!r}".format(name)
         fp = os.path.join(self._filePath, compat.to_unicode(name))
 #        name = name.encode("utf8")
         path = util.joinUri(self.path, name)
@@ -239,7 +231,7 @@ class FolderResource(DAVCollection):
         elif os.path.isfile(fp):
             res = FileResource(path, self.environ, fp)
         else:
-            _logger.debug("Skipping non-file %s" % fp)
+            _logger.debug("Skipping non-file {}".format(path))
             res = None
         return res
 
@@ -296,7 +288,7 @@ class FolderResource(DAVCollection):
             # u'C:\\temp\\litmus\\ccdest'
             shutil.copystat(self._filePath, fpDest)
         except Exception as e:
-            _logger.debug("Could not copy folder stats: %s" % e)
+            _logger.debug("Could not copy folder stats: {}".format(e))
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
         propMan = self.provider.propManager
@@ -319,7 +311,7 @@ class FolderResource(DAVCollection):
         fpDest = self.provider._locToFilePath(destPath, self.environ)
         assert not util.isEqualOrChildUri(self.path, destPath)
         assert not os.path.exists(fpDest)
-        _logger.debug("moveRecursive(%s, %s)" % (self._filePath, fpDest))
+        _logger.debug("moveRecursive({}, {})".format(self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
@@ -347,7 +339,7 @@ class FilesystemProvider(DAVProvider):
         rootFolderPath = os.path.expandvars(os.path.expanduser(rootFolderPath))
         rootFolderPath = os.path.abspath(rootFolderPath)
         if not rootFolderPath or not os.path.exists(rootFolderPath):
-            raise ValueError("Invalid root path: %s" % rootFolderPath)
+            raise ValueError("Invalid root path: {}".format(rootFolderPath))
 
         super(FilesystemProvider, self).__init__()
 
@@ -358,8 +350,7 @@ class FilesystemProvider(DAVProvider):
         rw = "Read-Write"
         if self.readonly:
             rw = "Read-Only"
-        return "%s for path '%s' (%s)" % (self.__class__.__name__,
-                                          self.rootFolderPath, rw)
+        return "{} for path '{}' ({})".format(self.__class__.__name__, self.rootFolderPath, rw)
 
     def _locToFilePath(self, path, environ=None):
         """Convert resource path to a unicode absolute file path.
@@ -374,8 +365,8 @@ class FilesystemProvider(DAVProvider):
         path_parts = path.strip("/").split("/")
         file_path = os.path.abspath(os.path.join(root_path, *path_parts))
         if not file_path.startswith(root_path):
-            raise RuntimeError("Security exception: tried to access file outside root: {}"
-                .format(file_path))
+            raise RuntimeError(
+                "Security exception: tried to access file outside root: {}".format(file_path))
 
         # Convert to unicode
         file_path = util.toUnicode(file_path)

@@ -35,20 +35,17 @@ The lock data model is a dictionary with these fields:
         Automatically generated unique token.
 
 """
-from __future__ import print_function
-
 import random
-import sys
 import time
-from pprint import pprint
+from pprint import pformat
 
 from wsgidav import compat, util
 from wsgidav.dav_error import (
     HTTP_LOCKED,
     DAVError,
     DAVErrorCondition,
-    PRECONDITION_CODE_LockConflict
-)
+    PRECONDITION_CODE_LockConflict,
+    )
 from wsgidav.rw_lock import ReadWriteLock
 
 __docformat__ = "reStructuredText"
@@ -83,12 +80,12 @@ def lockString(lockDict):
         return "Lock: None"
 
     if lockDict["expire"] < 0:
-        expire = "Infinite (%s)" % (lockDict["expire"])
+        expire = "Infinite ({})".format(lockDict["expire"])
     else:
-        expire = "%s (in %s seconds)" % (util.getLogTime(lockDict["expire"]),
-                                         lockDict["expire"] - time.time())
+        expire = "{} (in {} seconds)".format(
+            util.getLogTime(lockDict["expire"]), lockDict["expire"] - time.time())
 
-    return "Lock(<%s..>, '%s', %s, %s, depth-%s, until %s" % (
+    return "Lock(<{}..>, '{}', {}, {}, depth-{}, until {}".format(
         # first 4 significant token characters
         lockDict.get("token", "?" * 30)[18:22],
         lockDict.get("root"),
@@ -138,18 +135,15 @@ class LockManager(object):
         self.storage.close()
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self.storage)
+        return "{}({!r})".format(self.__class__.__name__, self.storage)
 
-    def _dump(self, msg="", out=None):
-        if out is None:
-            out = sys.stdout
-
+    def _dump(self, msg=""):
         urlDict = {}  # { <url>: [<tokenlist>] }
         ownerDict = {}  # { <LOCKOWNER>: [<tokenlist>] }
         userDict = {}  # { <LOCKUSER>: [<tokenlist>] }
         tokenDict = {}  # { <token>: <LOCKURLS> }
 
-        print("%s: %s" % (self, msg), file=out)
+        _logger.info("{}: {}".format(self, msg))
 
         for lock in self.storage.getLockList("/", includeRoot=True,
                                              includeChildren=True,
@@ -165,18 +159,13 @@ class LockManager(object):
 #            assert v["token"] in self._dict["URL2TOKEN:" + v["root"]], ("Inconsistency: missing "
 #                "token %s in URL2TOKEN:%s" % (v["token"], v["root"])
 
-        print("Locks:", file=out)
-        pprint(tokenDict, indent=0, width=255)
+        _logger.info("Locks:\n{}".format(pformat(tokenDict, indent=0, width=255)))
         if tokenDict:
-            print("Locks by URL:", file=out)
-            pprint(urlDict, indent=4, width=255, stream=out)
-            print("Locks by principal:", file=out)
-            pprint(userDict, indent=4, width=255, stream=out)
-            print("Locks by owner:", file=out)
-            pprint(ownerDict, indent=4, width=255, stream=out)
+            _logger.info("Locks by URL:\n{}".format(pformat(urlDict, indent=4, width=255)))
+            _logger.info("Locks by principal:\n{}".format(pformat(userDict, indent=4, width=255)))
+            _logger.info("Locks by owner:\n{}".format(pformat(ownerDict, indent=4, width=255)))
 
-    def _generateLock(self, principal,
-                      locktype, lockscope, lockdepth, lockowner, path, timeout):
+    def _generateLock(self, principal, locktype, lockscope, lockdepth, lockowner, path, timeout):
         """Acquire lock and return lockDict.
 
         principal
@@ -224,8 +213,7 @@ class LockManager(object):
         self._lock.acquireWrite()
         try:
             # Raises DAVError on conflict:
-            self._checkLockPermission(
-                url, locktype, lockscope, lockdepth, tokenList, principal)
+            self._checkLockPermission(url, locktype, lockscope, lockdepth, tokenList, principal)
             return self._generateLock(
                 principal, locktype, lockscope, lockdepth, lockowner, url, timeout)
         finally:
@@ -260,8 +248,6 @@ class LockManager(object):
         """Return True, if <token> exists, is valid, and bound to <principal>."""
         return self.getLock(token, "principal") == principal
 
-
-#    def getUrlLockList(self, url, principal=None):
     def getUrlLockList(self, url):
         """Return list of lockDict, if <url> is protected by at least one direct, valid lock.
 
@@ -355,8 +341,8 @@ class LockManager(object):
         assert lockscope in ("shared", "exclusive")
         assert lockdepth in ("0", "infinity")
 
-        _logger.debug("checkLockPermission(%s, %s, %s, %s)" %
-                      (url, lockscope, lockdepth, principal))
+        _logger.debug("checkLockPermission({}, {}, {}, {})"
+                      .format(url, lockscope, lockdepth, principal))
 
         # Error precondition to collect conflicting URLs
         errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
@@ -368,8 +354,7 @@ class LockManager(object):
             while u:
                 ll = self.getUrlLockList(u)
                 for l in ll:
-                    _logger.debug("    check parent %s, %s" %
-                                  (u, lockString(l)))
+                    _logger.debug("    check parent {}, {}".format(u, lockString(l)))
                     if u != url and l["depth"] != "infinity":
                         # We only consider parents with Depth: infinity
                         continue
@@ -378,8 +363,7 @@ class LockManager(object):
                         # principal)
                         continue
                     # Lock conflict
-                    _logger.debug(
-                        " -> DENIED due to locked parent %s" % lockString(l))
+                    _logger.debug(" -> DENIED due to locked parent {}".format(lockString(l)))
                     errcond.add_href(l["root"])
                 u = util.getUriParent(u)
 
@@ -393,8 +377,7 @@ class LockManager(object):
                 for l in childLocks:
                     assert util.isChildUri(url, l["root"])
 #                    if util.isChildUri(url, l["root"]):
-                    _logger.debug(
-                        " -> DENIED due to locked child %s" % lockString(l))
+                    _logger.debug(" -> DENIED due to locked child {}".format(lockString(l)))
                     errcond.add_href(l["root"])
         finally:
             self._lock.release()
@@ -435,8 +418,8 @@ class LockManager(object):
         """
         assert compat.is_native(url)
         assert depth in ("0", "infinity")
-        _logger.debug("checkWritePermission(%s, %s, %s, %s)" %
-                      (url, depth, tokenList, principal))
+        _logger.debug("checkWritePermission({}, {}, {}, {})"
+                      .format(url, depth, tokenList, principal))
 
         # Error precondition to collect conflicting URLs
         errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
@@ -447,9 +430,9 @@ class LockManager(object):
             u = url
             while u:
                 ll = self.getUrlLockList(u)
-                _logger.debug("  checking %s" % u)
+                _logger.debug("  checking {}".format(u))
                 for l in ll:
-                    _logger.debug("     l=%s" % lockString(l))
+                    _logger.debug("     l={}".format(lockString(l)))
                     if u != url and l["depth"] != "infinity":
                         # We only consider parents with Depth: inifinity
                         continue
@@ -457,10 +440,8 @@ class LockManager(object):
                         # User owns this lock
                         continue
                     else:
-                        # Token is owned by principal, but not passed with lock
-                        # list
-                        _logger.debug(
-                            " -> DENIED due to locked parent %s" % lockString(l))
+                        # Token is owned by principal, but not passed with lock list
+                        _logger.debug(" -> DENIED due to locked parent {}".format(lockString(l)))
                         errcond.add_href(l["root"])
                 u = util.getUriParent(u)
 
@@ -474,8 +455,7 @@ class LockManager(object):
                 for l in childLocks:
                     assert util.isChildUri(url, l["root"])
 #                    if util.isChildUri(url, l["root"]):
-                    _logger.debug(
-                        " -> DENIED due to locked child %s" % lockString(l))
+                    _logger.debug(" -> DENIED due to locked child {}".format(lockString(l)))
                     errcond.add_href(l["root"])
         finally:
             self._lock.release()
@@ -485,17 +465,3 @@ class LockManager(object):
         if len(errcond.hrefs) > 0:
             raise DAVError(HTTP_LOCKED, errcondition=errcond)
         return
-
-
-# ========================================================================
-# test
-# ========================================================================
-def test():
-    #    l = ShelveLockManager("wsgidav-locks.shelve")
-    #    l._lazyOpen()
-    #    l._dump()
-    #    l.generateLock("martin", "", lockscope, lockdepth, lockowner, lockroot, timeout)
-    pass
-
-if __name__ == "__main__":
-    test()

@@ -37,7 +37,7 @@ def run():
             if p.returncode == 3:
                 print("run_server returned 3: restarting...")
             else:
-                print("run_server returned %s: terminating." % p.returncode)
+                print("run_server returned {}: terminating.".format(p.returncode))
                 break
     except Exception as e:
         raise e

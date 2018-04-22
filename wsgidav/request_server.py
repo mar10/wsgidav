@@ -5,8 +5,6 @@
 """
 WSGI application that handles one single WebDAV request.
 """
-from __future__ import print_function
-
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (
     HTTP_BAD_GATEWAY,
@@ -31,11 +29,8 @@ from wsgidav.dav_error import (
     asDAVError,
     getHttpStatusString
 )
-# Trick PyDev to do intellisense and don't produce warnings:
-from wsgidav.util import etree  # @UnusedImport
 
-if False:
-    from xml.etree import ElementTree as etree  # @Reimport
+from wsgidav.util import etree
 
 __docformat__ = "reStructuredText"
 
@@ -99,8 +94,10 @@ class RequestServer(object):
         # Dispatch HTTP request methods to 'doMETHOD()' handlers
         method = None
         if requestmethod in self._possible_methods:
-            method = getattr(self, "do%s" % requestmethod, None)
+            method_name = "do{}".format(requestmethod)
+            method = getattr(self, method_name, None)
         if not method:
+            _logger.error("Invalid HTTP method {!r}".format(requestmethod))
             self._fail(HTTP_METHOD_NOT_ALLOWED)
 
         if environ.get("wsgidav.debug_break"):
@@ -159,7 +156,7 @@ class RequestServer(object):
             responseEL = etree.SubElement(multistatusEL, "{DAV:}response")
             etree.SubElement(responseEL, "{DAV:}href").text = refurl
             etree.SubElement(
-                responseEL, "{DAV:}status").text = "HTTP/1.1 %s" % getHttpStatusString(e)
+                responseEL, "{DAV:}status").text = "HTTP/1.1 {}".format(getHttpStatusString(e))
 
         return util.sendMultiStatusResponse(environ, start_response, multistatusEL)
 
@@ -258,7 +255,7 @@ class RequestServer(object):
         environ.setdefault("HTTP_DEPTH", "infinity")
         if not environ["HTTP_DEPTH"] in ("0", "1", "infinity"):
             self._fail(HTTP_BAD_REQUEST,
-                       "Invalid Depth header: '%s'." % environ["HTTP_DEPTH"])
+                       "Invalid Depth header: '{}'.".format(environ["HTTP_DEPTH"]))
 
         if environ["HTTP_DEPTH"] == "infinity" and not self.allowPropfindInfinite:
             self._fail(HTTP_FORBIDDEN,
@@ -576,8 +573,7 @@ class RequestServer(object):
                     errorList = res.delete()
                 except Exception as e:
                     errorList = [(res.getHref(), asDAVError(e))]
-                return self._sendResponse(environ, start_response,
-                                          res, HTTP_NO_CONTENT, errorList)
+                return self._sendResponse(environ, start_response, res, HTTP_NO_CONTENT, errorList)
 
         # --- Implement file-by-file processing -------------------------------
 
@@ -585,8 +581,7 @@ class RequestServer(object):
         ignoreDict = {}
         for childRes in reverseChildList:
             if childRes.path in ignoreDict:
-                _logger.debug("Skipping %s (contains error child)" %
-                              childRes.path)
+                _logger.debug("Skipping {} (contains error child)".format(childRes.path))
                 ignoreDict[util.getUriParent(childRes.path)] = ""
                 continue
 
@@ -598,8 +593,7 @@ class RequestServer(object):
                 childRes.delete()
                 # Double-check, if deletion succeeded
                 if provider.exists(childRes.path, environ):
-                    raise DAVError(HTTP_INTERNAL_ERROR,
-                                   "Resource could not be deleted.")
+                    raise DAVError(HTTP_INTERNAL_ERROR, "Resource could not be deleted.")
             except Exception as e:
                 errorList.append((childRes.getHref(), asDAVError(e)))
                 ignoreDict[util.getUriParent(childRes.path)] = True
@@ -666,7 +660,9 @@ class RequestServer(object):
 #            # by reading until the end of the stream. This may block however!
 #            # The iterator produced small chunks of varying size, but not
 #            # sure, if we always get everything before it times out.
-#            _logger.warning("PUT with invalid Content-Length (%s). Trying to read all (this may timeout)..." % environ.get("CONTENT_LENGTH"))
+#            _logger.warning("PUT with invalid Content-Length (%s). "
+#                            "Trying to read all (this may timeout)..."
+#                            .format(environ.get("CONTENT_LENGTH")))
 #            nb = 0
 #            try:
 #                for s in environ["wsgi.input"]:
@@ -684,9 +680,8 @@ class RequestServer(object):
                 n = min(contentremain, block_size)
                 readbuffer = environ["wsgi.input"].read(n)
                 # This happens with litmus expect-100 test:
-#                    assert len(readbuffer) > 0, "input.read(%s) returned %s bytes" % (n, len(readbuffer))
                 if not len(readbuffer) > 0:
-                    util.warn("input.read(%s) returned 0 bytes" % n)
+                    util.warn("input.read({}) returned 0 bytes".format(n))
                     break
                 environ["wsgidav.some_input_read"] = 1
                 yield readbuffer
@@ -708,16 +703,14 @@ class RequestServer(object):
 
         # Test for unsupported stuff
         if "HTTP_CONTENT_ENCODING" in environ:
-            util.fail(HTTP_NOT_IMPLEMENTED,
-                       "Content-encoding header is not supported.")
+            util.fail(HTTP_NOT_IMPLEMENTED, "Content-encoding header is not supported.")
 
         # An origin server that allows PUT on a given target resource MUST send
         # a 400 (Bad Request) response to a PUT request that contains a
         # Content-Range header field
         # (http://tools.ietf.org/html/rfc7231#section-4.3.4)
         if "HTTP_CONTENT_RANGE" in environ:
-            util.fail(HTTP_BAD_REQUEST,
-                       "Content-range header is not allowed on PUT requests.")
+            util.fail(HTTP_BAD_REQUEST, "Content-range header is not allowed on PUT requests.")
 
         if res and res.isCollection:
             self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
@@ -754,7 +747,8 @@ class RequestServer(object):
                 contentlength = 0
             else:
                 util.fail(HTTP_LENGTH_REQUIRED,
-                          "PUT request with invalid Content-Length: (%s)" % environ.get("CONTENT_LENGTH"))
+                          "PUT request with invalid Content-Length: ({})"
+                          .format(environ.get("CONTENT_LENGTH")))
 
         hasErrors = False
         try:
@@ -824,7 +818,7 @@ class RequestServer(object):
             # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
             body = environ["wsgi.input"].read(util.getContentLength(environ))
             environ["wsgidav.all_input_read"] = 1
-            _logger.info("Ignored copy/move  body: '%s'..." % body[:50])
+            _logger.info("Ignored copy/move  body: '{}'...".format(body[:50]))
 
         if srcRes.isCollection:
             # The COPY method on a collection without a Depth header MUST act as
@@ -957,7 +951,7 @@ class RequestServer(object):
                 # header is "T", then prior to performing the move, the server
                 # MUST perform a DELETE with "Depth: infinity" on the
                 # destination resource.
-                _logger.debug("Remove dest before move: '%s'" % destRes)
+                _logger.debug("Remove dest before move: '{}'".format(destRes))
                 destRes.delete()
                 destRes = None
             else:
@@ -967,18 +961,15 @@ class RequestServer(object):
                 # This is not the same as deleting the complete dest collection
                 # before copying, because that would also discard the history of
                 # existing resources.
-                reverseDestList = destRes.getDescendants(
-                    depthFirst=True, addSelf=False)
+                reverseDestList = destRes.getDescendants(depthFirst=True, addSelf=False)
                 srcPathList = [s.path for s in srcList]
-                _logger.debug("check srcPathList: %s" % srcPathList)
+                _logger.debug("check srcPathList: {}".format(srcPathList))
                 for dRes in reverseDestList:
-                    _logger.debug(
-                        "check unmatched dest before copy: %s" % dRes)
+                    _logger.debug("check unmatched dest before copy: {}".format(dRes))
                     relUrl = dRes.path[destRootLen:]
                     sp = srcPath + relUrl
                     if sp not in srcPathList:
-                        _logger.debug(
-                            "Remove unmatched dest before copy: %s" % dRes)
+                        _logger.debug("Remove unmatched dest before copy: {}".format(dRes))
                         dRes.delete()
 
         # --- Let provider implement recursive move ---------------------------
@@ -997,13 +988,11 @@ class RequestServer(object):
 
             if not hasConflicts:
                 try:
-                    _logger.debug("Recursive move: %s -> '%s'" %
-                                  (srcRes, destPath))
+                    _logger.debug("Recursive move: {} -> '{}'".format(srcRes, destPath))
                     errorList = srcRes.moveRecursive(destPath)
                 except Exception as e:
                     errorList = [(srcRes.getHref(), asDAVError(e))]
-                return self._sendResponse(environ, start_response,
-                                          srcRes, successCode, errorList)
+                return self._sendResponse(environ, start_response, srcRes, successCode, errorList)
 
         # --- Copy/move file-by-file using copy/delete ------------------------
 
@@ -1026,8 +1015,7 @@ class RequestServer(object):
                     parentError = True
                     break
             if parentError:
-                _logger.debug(
-                    "Copy: skipping '%s', because of parent error" % sRes.path)
+                _logger.debug("Copy: skipping '{}', because of parent error".format(sRes.path))
                 continue
 
             try:
@@ -1073,13 +1061,12 @@ class RequestServer(object):
                         childError = True
                         break
                 if childError:
-                    util.status(
-                        "Delete after move: skipping '%s', because of child error" % sRes.path)
+                    util.status("Delete after move: skipping '{}', because of child error"
+                                .format(sRes.path))
                     continue
 
                 try:
-                    #                    _logger.debug("Remove source after move: %s" % sRes)
-                    util.status("Remove collection after move: %s" % sRes)
+                    util.status("Remove collection after move: {}".format(sRes))
                     sRes.delete()
                 except Exception as e:
                     errorList.append((srcRes.getHref(), asDAVError(e)))
@@ -1188,7 +1175,7 @@ class RequestServer(object):
                 lockowner = xml_tools.xmlToBytes(linode, pretty_print=False)
 
             else:
-                self._fail(HTTP_BAD_REQUEST, "Invalid node '%s'." % linode.tag)
+                self._fail(HTTP_BAD_REQUEST, "Invalid node '{}'.".format(linode.tag))
 
         if not lockscope:
             self._fail(HTTP_BAD_REQUEST, "Missing or invalid lockscope.")
@@ -1419,8 +1406,9 @@ class RequestServer(object):
             self._fail(HTTP_NOT_FOUND)
         elif res.isCollection:
             self._fail(HTTP_FORBIDDEN,
-               ("Directory browsing not enabled (WsgiDavDirBrowser middleware may be enabled using"
-                " the dir_browser option)."))
+                       "Directory browsing is not enabled."
+                       "(WsgiDavDirBrowser middleware may be enabled using "
+                       "the dir_browser option.)")
 
         self._evaluateIfHeaders(res, environ)
 
@@ -1484,7 +1472,7 @@ class RequestServer(object):
         responseHeaders.append(("Content-Type", mimetype))
         responseHeaders.append(("Date", util.getRfc1123Time()))
         if res.supportEtag():
-            responseHeaders.append(("ETag", '"%s"' % entitytag))
+            responseHeaders.append(("ETag", '"{}"'.format(entitytag)))
 
         if "response_headers" in environ["wsgidav.config"]:
             customHeaders = environ["wsgidav.config"]["response_headers"]
@@ -1497,7 +1485,7 @@ class RequestServer(object):
             # responseHeaders.append(("Content-Ranges", "bytes " + str(rangestart) + "-" +
             #    str(rangeend) + "/" + str(rangelength)))
             responseHeaders.append(
-                ("Content-Range", "bytes %s-%s/%s" % (rangestart, rangeend, filesize)))
+                ("Content-Range", "bytes {}-{}/{}".format(rangestart, rangeend, filesize)))
             start_response("206 Partial Content", responseHeaders)
         else:
             start_response("200 OK", responseHeaders)

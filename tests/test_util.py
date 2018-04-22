@@ -12,13 +12,16 @@ import unittest
 from wsgidav.compat import StringIO
 
 from wsgidav.util import (
+    initLogging,
     isChildUri,
     isEqualOrChildUri,
     joinUri,
     lstripstr,
     popPath,
-    shiftPath
-)
+    shiftPath,
+    write, warn, note, status, debug,
+    getModuleLogger, BASE_LOGGER_NAME,
+    )
 
 
 class BasicTest(unittest.TestCase):
@@ -109,6 +112,40 @@ class LoggerTest(unittest.TestCase):
         return value
 
     def testLogging(self):
+
+        enable_loggers = ["test",
+                          ]
+        initLogging(3, enable_loggers)
+
+        _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+        _enabledLogger = getModuleLogger("test")
+        _disabledLogger = getModuleLogger("test2")
+
+        _baseLogger.debug("_baseLogger.debug")
+        _baseLogger.info("_baseLogger.info")
+        _baseLogger.warning("_baseLogger.warning")
+        _baseLogger.error("_baseLogger.error")
+        print()
+
+        _enabledLogger.debug("_enabledLogger.debug")
+        _enabledLogger.info("_enabledLogger.info")
+        _enabledLogger.warning("_enabledLogger.warning")
+        _enabledLogger.error("_enabledLogger.error")
+        print()
+
+        _disabledLogger.debug("_disabledLogger.debug")
+        _disabledLogger.info("_disabledLogger.info")
+        _disabledLogger.warning("_disabledLogger.warning")
+        _disabledLogger.error("_disabledLogger.error")
+        print()
+
+        write("util.write()")
+        warn("util.warn()")
+        status("util.status()")
+        note("util.note()")
+        debug("util.debug()")
+
+    def testLogging2(self):
         """Test custom loggers."""
         logger = logging.getLogger("wsgidav")
         logger2 = logging.getLogger("wsgidav.test")

@@ -31,13 +31,14 @@ domaincontrollerinterface_
 .. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
 
 """
-from __future__ import print_function
-
 import sys
 
-from wsgidav.util import safeReEncode
+from wsgidav import util
+
 
 __docformat__ = "reStructuredText"
+
+_logger = util.getModuleLogger(__name__)
 
 
 class WsgiDAVDomainController(object):
@@ -56,14 +57,13 @@ class WsgiDAVDomainController(object):
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                print("getDomainRealm(%s): '%s'"
-                      % (safeReEncode(inputURL, sys.stdout.encoding or "ASCII"), None), file=sys.stdout)
+                _logger.debug(
+                    "getDomainRealm({}): '{}'".format(
+                        util.safeReEncode(inputURL, sys.stdout.encoding or "ASCII"), None))
             return None
         realm = davProvider.sharePath
         if realm == "":
             realm = "/"
-#        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stdout, "getDomainRealm(%s): '%s'" %(inputURL, realm)
         return realm
 
     def requireAuthentication(self, realmname, environ):
@@ -76,9 +76,6 @@ class WsgiDAVDomainController(object):
 
     def isRealmUser(self, realmname, username, environ):
         """Returns True if this username is valid for the realm, False otherwise."""
-#        if environ["wsgidav.verbose"] >= 2:
-#            print >>sys.stdout, "isRealmUser('%s', '%s'): %s" %(realmname, username,
-#                realmname in self.userMap and username in self.userMap[realmname])
         return realmname in self.userMap and username in self.userMap[realmname]
 
     def getRealmUserPassword(self, realmname, username, environ):

@@ -10,8 +10,6 @@ Two alternative lock storage classes are defined here: one in-memory
 
 See :class:`~wsgidav.lock_manager.LockManager`
 """
-from __future__ import print_function
-
 import os
 import shelve
 import time
@@ -84,7 +82,7 @@ class LockStorageDict(object):
                                            'type': 'write'
                                            },
          }
-    """
+    """  # noqa
     LOCK_TIME_OUT_DEFAULT = 604800  # 1 week, in seconds
     LOCK_TIME_OUT_MAX = 4 * 604800  # 1 month, in seconds
 
@@ -140,13 +138,12 @@ class LockStorageDict(object):
             lock = self._dict.get(token)
             if lock is None:
                 # Lock not found: purge dangling URL2TOKEN entries
-                _logger.debug("Lock purged dangling: %s" % token)
+                _logger.debug("Lock purged dangling: {}".format(token))
                 self.delete(token)
                 return None
             expire = float(lock["expire"])
             if expire >= 0 and expire < time.time():
-                _logger.debug("Lock timed-out(%s): %s" %
-                              (expire, lockString(lock)))
+                _logger.debug("Lock timed-out({}): {}".format(expire, lockString(lock)))
                 self.delete(token)
                 return None
             return lock
@@ -200,7 +197,7 @@ class LockStorageDict(object):
             self._dict[token] = lock
 
             # Store locked path reference
-            key = "URL2TOKEN:%s" % path
+            key = "URL2TOKEN:{}".format(path)
             if key not in self._dict:
                 self._dict[key] = [token]
             else:
@@ -210,9 +207,7 @@ class LockStorageDict(object):
                 tokList.append(token)
                 self._dict[key] = tokList
             self._flush()
-            _logger.debug("LockStorageDict.set(%r): %s" %
-                          (org_path, lockString(lock)))
-#            print("LockStorageDict.set(%r): %s" % (org_path, lockString(lock)))
+            _logger.debug("LockStorageDict.set({!r}): {}".format(org_path, lockString(lock)))
             return lock
         finally:
             self._lock.release()
@@ -255,13 +250,13 @@ class LockStorageDict(object):
         self._lock.acquireWrite()
         try:
             lock = self._dict.get(token)
-            _logger.debug("delete %s" % lockString(lock))
+            _logger.debug("delete {}".format(lockString(lock)))
             if lock is None:
                 return False
             # Remove url to lock mapping
-            key = "URL2TOKEN:%s" % lock.get("root")
+            key = "URL2TOKEN:{}".format(lock.get("root"))
             if key in self._dict:
-                # _logger.debug("    delete token %s from url %s" % (token, lock.get("root")))
+                # _logger.debug("    delete token {} from url {}".format(token, lock.get("root")))
                 tokList = self._dict[key]
                 if len(tokList) > 1:
                     # Note: shelve dictionary returns copies, so we must
@@ -314,7 +309,7 @@ class LockStorageDict(object):
         path = normalizeLockRoot(path)
         self._lock.acquireRead()
         try:
-            key = "URL2TOKEN:%s" % path
+            key = "URL2TOKEN:{}".format(path)
             tokList = self._dict.get(key, [])
             lockList = []
             if includeRoot:
@@ -344,7 +339,7 @@ class LockStorageShelve(LockStorageDict):
         self._storagePath = os.path.abspath(storagePath)
 
     def __repr__(self):
-        return "LockStorageShelve(%r)" % self._storagePath
+        return "LockStorageShelve({!r})".format(self._storagePath)
 
     def _flush(self):
         """Write persistent dictionary to disc."""
@@ -371,7 +366,7 @@ class LockStorageShelve(LockStorageDict):
             self._lock.release()
 
     def open(self):
-        _logger.debug("open(%r)" % self._storagePath)
+        _logger.debug("open({!r})".format(self._storagePath))
         # Open with writeback=False, which is faster, but we have to be
         # careful to re-assign values to _dict after modifying them
         self._dict = shelve.open(self._storagePath, writeback=False)
@@ -388,17 +383,3 @@ class LockStorageShelve(LockStorageDict):
                 self._dict = None
         finally:
             self._lock.release()
-
-
-# ========================================================================
-# test
-# ========================================================================
-def test():
-    #    l = ShelveLockManager("wsgidav-locks.shelve")
-    #    l._lazyOpen()
-    #    l._dump()
-    #    l.generateLock("martin", "", lockscope, lockdepth, lockowner, lockroot, timeout)
-    pass
-
-if __name__ == "__main__":
-    test()

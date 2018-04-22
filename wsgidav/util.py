@@ -5,8 +5,6 @@
 """
 Miscellaneous support functions for WsgiDAV.
 """
-from __future__ import print_function
-
 import base64
 import calendar
 import locale
@@ -36,10 +34,6 @@ from wsgidav.dav_error import (
     )
 from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
 
-# Trick PyDev to do intellisense and don't produce warnings:
-if False:
-    from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
-
 __docformat__ = "reStructuredText"
 
 BASE_LOGGER_NAME = "wsgidav"
@@ -47,7 +41,7 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 
 # Pre-initialize, so we get some output before initLogging() was called
 # (for example during parsing of wsgidav.conf)
-#logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 
 # ========================================================================
@@ -155,7 +149,7 @@ def initLogging(verbose=2, enable_loggers=[]):
 
         _logger = util.getModuleLogger(__name__)
         [..]
-        _logger.debug("foo: '%s'" % s)
+        _logger.debug("foo: '{}'".format(s))
 
     This logger would be enabled by passing its name to initLogging()::
 
@@ -221,8 +215,8 @@ def initLogging(verbose=2, enable_loggers=[]):
             if not e.startswith(BASE_LOGGER_NAME + "."):
                 e = BASE_LOGGER_NAME + "." + e
             l = logging.getLogger(e.strip())
-#            if verbose >= 2:
-#                log("Logger(%s).setLevel(DEBUG)" % e.strip())
+            # if verbose >= 2:
+            #     log("Logger({}).setLevel(DEBUG)".format(e.strip()))
             l.setLevel(logging.DEBUG)
 
 
@@ -231,12 +225,12 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
 
     @see: unit.initLogging
     """
-#    _logger.debug("getModuleLogger(%s)" % moduleName)
+    # _logger.debug("getModuleLogger({})".format(moduleName))
     if not moduleName.startswith(BASE_LOGGER_NAME + "."):
         moduleName = BASE_LOGGER_NAME + "." + moduleName
 #    assert not "." in moduleName, ("Only pass the module name, without "
 #        "leading '%s.'.") % BASE_LOGGER_NAME
-#    logger = logging.getLogger("%s.%s" % (BASE_LOGGER_NAME, moduleName))
+#    logger = logging.getLogger("{}.{}".format(BASE_LOGGER_NAME, moduleName))
     logger = logging.getLogger(moduleName)
     if logger.level == logging.NOTSET and not defaultToVerbose:
         logger.setLevel(logging.INFO)  # Disable debug messages by default
@@ -252,7 +246,6 @@ def _write(msg, var, module, level, flush):
     else:
         logger = _logger
     logger.log(level, msg)
-#    if level >= logger.getEffectiveLevel():
     if var is not None and level >= logger.getEffectiveLevel():
         logger.log(level, pformat(var, indent=4))
     if flush:
@@ -297,11 +290,10 @@ def traceCall(msg=None):
     if __debug__:
         f_code = sys._getframe(2).f_code
         if msg is None:
-            msg = ": %s"
-        else:
             msg = ""
-        print("%s.%s #%s%s" % (f_code.co_filename,
-                               f_code.co_name, f_code.co_lineno, msg))
+        else:
+            msg = ": {}".format(msg)
+        _logger.info("{}.{} #{}{}".format(f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
 
 
 # ========================================================================
@@ -369,7 +361,7 @@ def toUnicode(s):
     try:
         u = compat.to_unicode(s, "utf8")
     except ValueError:
-        log("toUnicode(%r) *** UTF-8 failed. Trying ISO-8859-1" % s)
+        log("toUnicode({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s))
         u = compat.to_unicode(s, "ISO-8859-1")
     return u
 
@@ -387,13 +379,13 @@ def safeReEncode(s, encoding_to, errors="backslashreplace"):
 def stringRepr(s):
     """Return a string as hex dump."""
     if compat.is_bytes(s):
-        res = "%r: " % s
+        res = "{!r}: ".format(s)
         for b in s:
             if type(b) is str:  # Py2
                 b = ord(b)
             res += "%02x " % b
         return res
-    return "%s" % s
+    return "{}".format(s)
 
 
 def getFileExtension(path):
@@ -434,7 +426,7 @@ def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, 
     else:
         snum = str(number)
 
-    return "%s%s%s" % (snum, magsuffix, bytesuffix)
+    return "{}{}{}".format(snum, magsuffix, bytesuffix)
 
 
 # ========================================================================
@@ -494,7 +486,7 @@ def readAndDiscardInput(environ):
     # TODO: check if still required after GC issue 24 is fixed
     if hasattr(wsgi_input, "_consumed") and hasattr(wsgi_input, "length"):
         # Seems to be Paste's httpserver.LimitedLengthFile
-        # see http://groups.google.com/group/paste-users/browse_thread/thread/fc0c9476047e9a47/aa4a3aa416016729?hl=en&lnk=gst&q=.input#aa4a3aa416016729
+        # see http://groups.google.com/group/paste-users/browse_thread/thread/fc0c9476047e9a47/aa4a3aa416016729?hl=en&lnk=gst&q=.input#aa4a3aa416016729  # noqa
         # Consume something if nothing was consumed *and* work
         # around a bug where paste.httpserver allows negative lengths
         if wsgi_input._consumed == 0 and wsgi_input.length > 0:
@@ -504,8 +496,8 @@ def readAndDiscardInput(environ):
             else:
                 n = 1
             body = wsgi_input.read(n)
-            debug("Reading %s bytes from potentially unread httpserver.LimitedLengthFile: '%s'..."
-                % (n, body[:50]))
+            debug("Reading {} bytes from potentially unread httpserver.LimitedLengthFile: '{}'..."
+                  .format(n, body[:50]))
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
@@ -521,15 +513,15 @@ def readAndDiscardInput(environ):
                 else:
                     n = 1
                 body = wsgi_input.read(n)
-                debug("Reading %s bytes from potentially unread POST body: '%s'..." % (
-                    n, body[:50]))
+                debug("Reading {} bytes from potentially unread POST body: '{}'..."
+                      .format(n, body[:50]))
             except socket.error as se:
                 # se(10035, 'The socket operation could not complete without blocking')
-                warn("-> read %s bytes failed: %s" % (n, se))
+                warn("-> read {} bytes failed: {}".format(n, se))
             # Restore socket settings
             sock.settimeout(timeout)
         except:
-            warn("--> wsgi_input.read(): %s" % sys.exc_info())
+            warn("--> wsgi_input.read(): {}".format(sys.exc_info()))
 
 
 def fail(value, contextinfo=None, srcexception=None, errcondition=None):
@@ -538,7 +530,7 @@ def fail(value, contextinfo=None, srcexception=None, errcondition=None):
         e = asDAVError(value)
     else:
         e = DAVError(value, contextinfo, srcexception, errcondition)
-    log("Raising DAVError %s" % e.getUserInfo())
+    log("Raising DAVError {}".format(e.getUserInfo()))
     raise e
 
 
@@ -620,7 +612,7 @@ def isEqualOrChildUri(parentUri, childUri):
     equals child. ('/a/b' is considered identical with '/a/b/').
     """
     return (parentUri and childUri
-        and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/"))
+            and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/"))
 
 
 def makeCompleteUrl(environ, localUri=None):
@@ -730,8 +722,8 @@ def parseXmlBody(environ, allowEmpty=False):
 
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
-        write("%s XML request body:\n%s" % (environ["REQUEST_METHOD"],
-            compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
+        write("{} XML request body:\n{}".format(
+            environ["REQUEST_METHOD"], compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -782,7 +774,8 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     # If logging of the body is desired, then this is the place to do it
     # pretty:
     if environ.get("wsgidav.dump_response_body"):
-        xml = "%s XML response body:\n%s" % (environ["REQUEST_METHOD"],
+        xml = "{} XML response body:\n{}".format(
+            environ["REQUEST_METHOD"],
             compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
         environ["wsgidav.dump_response_body"] = xml
 
@@ -797,7 +790,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
         ("Content-Type", "application/xml"),
         ("Date", getRfc1123Time()),
         ("Content-Length", str(len(xml_data))),
-    ]
+        ]
 
 #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
 #        headers += [
@@ -839,7 +832,7 @@ def addPropertyResponse(multistatusEL, href, propList):
         ns, _ = splitNamespace(name)
         if ns != "DAV:" and ns not in nsDict and ns != "":
             nsDict[ns] = True
-            nsMap["NS%s" % nsCount] = ns
+            nsMap["NS{}".format(nsCount)] = ns
             nsCount += 1
 
         propDict.setdefault(status, []).append((name, value))
@@ -847,7 +840,7 @@ def addPropertyResponse(multistatusEL, href, propList):
     # <response>
     responseEL = makeSubElement(multistatusEL, "{DAV:}response", nsmap=nsMap)
 
-#    log("href value:%s" % (stringRepr(href)))
+#    log("href value:{}".format(stringRepr(href)))
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
 #    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'(),"
@@ -865,12 +858,12 @@ def addPropertyResponse(multistatusEL, href, propList):
                 propEL.append(value)
             else:
                 # value must be string or unicode
-                #                log("%s value:%s" % (name, stringRepr(value)))
+                #                log("{} value:{}".format(name, stringRepr(value)))
                 #                etree.SubElement(propEL, name).text = value
                 etree.SubElement(propEL, name).text = toUnicode(value)
         # <status>
         etree.SubElement(
-            propstatEL, "{DAV:}status").text = "HTTP/1.1 %s" % status
+            propstatEL, "{DAV:}status").text = "HTTP/1.1 {}".format(status)
 
 
 # ========================================================================
@@ -916,11 +909,11 @@ def getETag(filePath):
     if sys.platform == "win32":
         statresults = os.stat(unicodeFilePath)
         return (md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-"
-            + str(statresults[stat.ST_SIZE]))
+                + str(statresults[stat.ST_SIZE]))
     else:
         statresults = os.stat(unicodeFilePath)
         return (str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-"
-            + str(statresults[stat.ST_SIZE]))
+                + str(statresults[stat.ST_SIZE]))
 
 
 # ========================================================================
@@ -949,7 +942,6 @@ def obtainContentRanges(rangetext, filesize):
         if not matched:
             mObj = reByteRangeSpecifier.search(subrange)
             if mObj:
-                #                print(mObj.group(0), mObj.group(1), mObj.group(2), mObj.group(3))
                 firstpos = int(mObj.group(2))
                 if mObj.group(3) == "":
                     lastpos = filesize - 1
@@ -992,10 +984,12 @@ def obtainContentRanges(rangetext, filesize):
 
     return (listReturn2, totallength)
 
+
 # ========================================================================
 #
 # ========================================================================
-# any numofsecs above the following limit is regarded as infinite
+
+#: any numofsecs above the following limit is regarded as infinite
 MAX_FINITE_TIMEOUT_LIMIT = 10 * 365 * 24 * 60 * 60  # approx 10 years
 reSecondsReader = re.compile(r'second\-([0-9]+)', re.I)
 
@@ -1164,7 +1158,7 @@ def parseIfHeaderDict(environ):
 
 
 def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
-    debug("testIfHeaderDict(%s, %s, %s)" % (fullurl, locktokenlist, entitytag),
+    debug("testIfHeaderDict({}, {}, {})".format(fullurl, locktokenlist, entitytag),
           var=dictIf, module="if")
 
     if fullurl in dictIf:
@@ -1197,6 +1191,7 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
     debug("  -> FAILED", module="if")
     return False
 
+
 testIfHeaderDict.__test__ = False  # Tell nose to ignore this function
 
 
@@ -1216,56 +1211,10 @@ def guessMimeType(url):
     This function also adds some extensions required for HTML5
     """
     (mimetype, _mimeencoding) = mimetypes.guess_type(url)
-#    print "mimetype(%s): %r, %r" % (url, mimetype, _mimeencoding)
     if not mimetype:
         ext = os.path.splitext(url)[1]
-#        mimetype = _MIME_TYPES[ext]
         mimetype = _MIME_TYPES.get(ext)
-        debug("mimetype(%s): %r" % (url, mimetype))
+        debug("mimetype({}): {}".format(url, mimetype))
     if not mimetype:
         mimetype = "application/octet-stream"
-#    print "mimetype(%s): return %r" % (url, mimetype)
     return mimetype
-
-# ========================================================================
-# TEST
-# ========================================================================
-
-
-def testLogging():
-    enable_loggers = ["test",
-                      ]
-    initLogging(3, enable_loggers)
-
-    _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
-    _enabledLogger = getModuleLogger("test")
-    _disabledLogger = getModuleLogger("test2")
-
-    _baseLogger.debug("_baseLogger.debug")
-    _baseLogger.info("_baseLogger.info")
-    _baseLogger.warning("_baseLogger.warning")
-    _baseLogger.error("_baseLogger.error")
-    print()
-
-    _enabledLogger.debug("_enabledLogger.debug")
-    _enabledLogger.info("_enabledLogger.info")
-    _enabledLogger.warning("_enabledLogger.warning")
-    _enabledLogger.error("_enabledLogger.error")
-    print()
-
-    _disabledLogger.debug("_disabledLogger.debug")
-    _disabledLogger.info("_disabledLogger.info")
-    _disabledLogger.warning("_disabledLogger.warning")
-    _disabledLogger.error("_disabledLogger.error")
-    print()
-
-    write("util.write()")
-    warn("util.warn()")
-    status("util.status()")
-    note("util.note()")
-    debug("util.debug()")
-
-
-if __name__ == "__main__":
-    testLogging()
-    pass

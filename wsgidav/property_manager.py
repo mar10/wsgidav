@@ -17,11 +17,8 @@ The properties dictionaray is built like::
       }
 
 """
-from __future__ import print_function
-
 import os
 import shelve
-import sys
 
 from wsgidav import util
 from wsgidav.rw_lock import ReadWriteLock
@@ -93,45 +90,34 @@ class PropertyManager(object):
         try:
             if not self._loaded:
                 return True
-#            for k in self._dict.keys():
-#                print "%s" % k
-#                print "  -> %s" % self._dict[k]
-#            self._dump()
             for k, v in self._dict.items():
-                "%s, %s" % (k, v)
-#            _logger.debug("%s checks ok %s" % (self.__class__.__name__, msg))
+                _dummy = "{}, {}".format(k, v)  # noqa
+#            _logger.debug("{} checks ok {}".format(self.__class__.__name__, msg))
             return True
         except Exception:
-            _logger.exception("%s _check: ERROR %s" %
-                              (self.__class__.__name__, msg))
-#            traceback.print_exc()
-#            raise
-#            sys.exit(-1)
+            _logger.exception("{} _check: ERROR {}".format(self.__class__.__name__, msg))
             return False
 
-    def _dump(self, msg="", out=None):
-        if out is None:
-            out = sys.stdout
-        print("%s(%s): %s" %
-              (self.__class__.__name__, self.__repr__(), msg), file=out)
+    def _dump(self, msg=""):
+        _logger.info("{}({}): {}".format(self.__class__.__name__, self.__repr__(), msg))
         if not self._loaded:
             self._lazyOpen()
             if self._verbose >= 2:
                 return  # Already dumped in _lazyOpen
         try:
             for k, v in self._dict.items():
-                print("    ", k, file=out)
+                _logger.info("    {}".format(k))
                 for k2, v2 in v.items():
                     try:
-                        print("        %s: '%s'" % (k2, v2), file=out)
+                        _logger.info("        {}: '{}'".format(k2, v2))
                     except Exception as e:
-                        print("        %s: ERROR %s" % (k2, e), file=out)
-            out.flush()
+                        _logger.info("        {}: ERROR {}".format(k2, e))
+            # _logger.flush()
         except Exception as e:
-            util.warn("PropertyManager._dump()  ERROR: %s" % e)
+            util.warn("PropertyManager._dump()  ERROR: {}".format(e))
 
     def getProperties(self, normurl, environ=None):
-        _logger.debug("getProperties(%s)" % normurl)
+        _logger.debug("getProperties({})".format(normurl))
         self._lock.acquireRead()
         try:
             if not self._loaded:
@@ -145,7 +131,7 @@ class PropertyManager(object):
             self._lock.release()
 
     def getProperty(self, normurl, propname, environ=None):
-        _logger.debug("getProperty(%s, %s)" % (normurl, propname))
+        _logger.debug("getProperty({}, {})".format(normurl, propname))
         self._lock.acquireRead()
         try:
             if not self._loaded:
@@ -157,22 +143,19 @@ class PropertyManager(object):
             try:
                 resourceprops = self._dict[normurl]
             except Exception as e:
-                _logger.exception("getProperty(%s, %s) failed : %s" %
-                                  (normurl, propname, e))
+                _logger.exception("getProperty({}, {}) failed : {}".format(normurl, propname, e))
                 raise
             return resourceprops.get(propname)
         finally:
             self._lock.release()
 
     def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
-        # self._log("writeProperty(%s, %s, dryRun=%s):\n\t%s" % (normurl,
-        #   propname, dryRun, propertyvalue))
         assert normurl and normurl.startswith("/")
         assert propname  # and propname.startswith("{")
         assert propertyvalue is not None
 
-        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" %
-                      (normurl, propname, dryRun, propertyvalue))
+        _logger.debug("writeProperty({}, {}, dryRun={}):\n\t{}"
+                      .format(normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
 
@@ -197,8 +180,7 @@ class PropertyManager(object):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
-        _logger.debug("removeProperty(%s, %s, dryRun=%s)" %
-                      (normurl, propname, dryRun))
+        _logger.debug("removeProperty({}, {}, dryRun={})".format(normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
@@ -220,7 +202,7 @@ class PropertyManager(object):
             self._lock.release()
 
     def removeProperties(self, normurl, environ=None):
-        _logger.debug("removeProperties(%s)" % normurl)
+        _logger.debug("removeProperties({})".format(normurl))
         self._lock.acquireWrite()
         try:
             if not self._loaded:
@@ -232,7 +214,7 @@ class PropertyManager(object):
             self._lock.release()
 
     def copyProperties(self, srcurl, desturl, environ=None):
-        _logger.debug("copyProperties(%s, %s)" % (srcurl, desturl))
+        _logger.debug("copyProperties({}, {})".format(srcurl, desturl))
         self._lock.acquireWrite()
         try:
             if __debug__ and self._verbose >= 2:
@@ -248,8 +230,7 @@ class PropertyManager(object):
             self._lock.release()
 
     def moveProperties(self, srcurl, desturl, withChildren, environ=None):
-        _logger.debug("moveProperties(%s, %s, %s)" %
-                      (srcurl, desturl, withChildren))
+        _logger.debug("moveProperties({}, {}, {})".format(srcurl, desturl, withChildren))
         self._lock.acquireWrite()
         try:
             if __debug__ and self._verbose >= 2:
@@ -263,7 +244,6 @@ class PropertyManager(object):
                         d = url.replace(srcurl, desturl)
                         self._dict[d] = self._dict[url]
                         del self._dict[url]
-#                        print "moveProperties:", url, d
             elif srcurl in self._dict:
                 # Move srcurl only
                 self._dict[desturl] = self._dict[srcurl]
@@ -289,10 +269,10 @@ class ShelvePropertyManager(PropertyManager):
         super(ShelvePropertyManager, self).__init__()
 
     def __repr__(self):
-        return "ShelvePropertyManager(%s)" % self._storagePath
+        return "ShelvePropertyManager({})".format(self._storagePath)
 
     def _lazyOpen(self):
-        _logger.debug("_lazyOpen(%s)" % self._storagePath)
+        _logger.debug("_lazyOpen({})".format(self._storagePath))
         self._lock.acquireWrite()
         try:
             # Test again within the critical section

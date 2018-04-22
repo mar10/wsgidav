@@ -75,8 +75,6 @@ lockManager
 
 See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """
-from __future__ import print_function
-
 import os
 import sys
 import time
@@ -91,10 +89,10 @@ from wsgidav.dav_error import (
     asDAVError
 )
 # Trick PyDev to do intellisense and don't produce warnings:
-from wsgidav.util import etree  # @UnusedImport
+from wsgidav.util import etree  # noqa
 
 if False:
-    from xml.etree import ElementTree as etree  # @Reimport @UnresolvedImport
+    from xml.etree import ElementTree as etree  # noqa
 
 
 __docformat__ = "reStructuredText"
@@ -180,7 +178,7 @@ class _DAVResource(object):
         self.name = util.getUriName(self.path)
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self.path)
+        return "{}({!r})".format(self.__class__.__name__, self.path)
 
 #    def getContentLanguage(self):
 #        """Contains the Content-Language header returned by a GET without accept
@@ -189,7 +187,7 @@ class _DAVResource(object):
 #        The getcontentlanguage property MUST be defined on any DAV compliant
 #        resource that returns the Content-Language header on a GET.
 #        """
-#        raise NotImplementedError()
+#        raise NotImplementedError
 
     def getContentLength(self):
         """Contains the Content-Length header returned by a GET without accept
@@ -202,7 +200,7 @@ class _DAVResource(object):
         """
         if self.isCollection:
             return None
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getContentType(self):
         """Contains the Content-Type header returned by a GET without accept
@@ -216,7 +214,7 @@ class _DAVResource(object):
         """
         if self.isCollection:
             return None
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getCreationDate(self):
         """Records the time and date the resource was created.
@@ -267,7 +265,7 @@ class _DAVResource(object):
         elif os.extsep in self.name:
             ext = self.name.split(os.extsep)[-1].upper()
             if len(ext) < 5:
-                return {"type": "%s-File" % ext}
+                return {"type": "{}-File".format(ext)}
         return {"type": "File"}
 
     def getEtag(self):
@@ -300,7 +298,7 @@ class _DAVResource(object):
 
         This method MUST be implemented by non-collections only.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def supportContentLength(self):
         """Return True, if this resource supports Content-Length.
@@ -414,7 +412,7 @@ class _DAVResource(object):
         A provider COULD overwrite this for performance reasons.
         """
         if not self.isCollection:
-            raise NotImplementedError()
+            raise NotImplementedError
         memberList = []
         for name in self.getMemberNames():
             member = self.getMember(name)
@@ -427,7 +425,7 @@ class _DAVResource(object):
 
         Every provider MUST provide this method for collection resources.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getDescendants(self, collections=True, resources=True,
                        depthFirst=False, depth="infinity", addSelf=False):
@@ -604,10 +602,12 @@ class _DAVResource(object):
                     lockdiscoveryEL, "{DAV:}activelock")
 
                 locktypeEL = etree.SubElement(activelockEL, "{DAV:}locktype")
-                etree.SubElement(locktypeEL, "{DAV:}%s" % lock["type"])
+                # Note: make sure `{DAV:}` is not handled as format tag:
+                etree.SubElement(locktypeEL, "{}{}" .format("{DAV:}", lock["type"]))
 
                 lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lockscope")
-                etree.SubElement(lockscopeEL, "{DAV:}%s" % lock["scope"])
+                # Note: make sure `{DAV:}` is not handled as format tag:
+                etree.SubElement(lockscopeEL, "{}{}".format("{DAV:}", lock["scope"]))
 
                 etree.SubElement(activelockEL, "{DAV:}depth").text = lock[
                     "depth"]
@@ -637,7 +637,6 @@ class _DAVResource(object):
                 lockRes = self.provider.getResourceInst(lockPath, self.environ)
                 # FIXME: test for None
                 lockHref = lockRes.getHref()
-#                print "lockedRoot: %s -> href=%s" % (lockPath, lockHref)
 
                 lockrootEL = etree.SubElement(activelockEL, "{DAV:}lockroot")
                 etree.SubElement(lockrootEL, "{DAV:}href").text = lockHref
@@ -837,7 +836,7 @@ class _DAVResource(object):
         This method MUST be implemented by all providers.
         """
         assert not self.isCollection
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def beginWrite(self, contentType=None):
         """Open content as a stream for writing.
@@ -900,7 +899,7 @@ class _DAVResource(object):
         non-collections).
         """
         assert self.isCollection
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def delete(self):
         """Remove this resource (recursive).
@@ -931,7 +930,7 @@ class _DAVResource(object):
         This method MUST be implemented by all providers that support write
         access.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def handleCopy(self, destPath, depthInfinity):
         """Handle a COPY request natively.
@@ -1006,7 +1005,7 @@ class _DAVResource(object):
         This method MUST be implemented by all providers that support write
         access.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def handleMove(self, destPath):
         """Handle a MOVE request natively.
@@ -1049,7 +1048,7 @@ class _DAVResource(object):
     def supportRecursiveMove(self, destPath):
         """Return True, if moveRecursive() is available (see comments there)."""
         assert self.isCollection
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def moveRecursive(self, destPath):
         """Move this resource and members to destPath.
@@ -1103,7 +1102,7 @@ class _DAVResource(object):
 
         DAVCollection.resolve() provides an implementation.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def finalizeHeaders(self, environ, responseHeaders):
         """Perform custom operations on the response headers.
@@ -1137,7 +1136,7 @@ class DAVNonCollection(_DAVResource):
 
         See also _DAVResource.getContentLength()
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getContentType(self):
         """Contains the Content-Type header returned by a GET without accept
@@ -1147,7 +1146,7 @@ class DAVNonCollection(_DAVResource):
         resource that returns the Content-Type header in response to a GET.
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getcontenttype
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getContent(self):
         """Open content as a stream for reading.
@@ -1158,7 +1157,7 @@ class DAVNonCollection(_DAVResource):
 
         This method MUST be implemented by all providers.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def supportRanges(self):
         """Return True, if this non-resource supports Range on GET requests.
@@ -1304,7 +1303,7 @@ class DAVCollection(_DAVResource):
         This method MUST be implemented.
         """
         assert self.isCollection
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def supportRecursiveDelete(self):
         """Return True, if delete() may be called on non-empty collections
@@ -1407,13 +1406,13 @@ class DAVProvider(object):
         self.sharePath = sharePath
 
     def setLockManager(self, lockManager):
-        assert not lockManager or hasattr(lockManager, "checkWritePermission"), ("Must be "
-            "compatible with wsgidav.lock_manager.LockManager")
+        assert not lockManager or hasattr(lockManager, "checkWritePermission"), \
+               "Must be compatible with wsgidav.lock_manager.LockManager"
         self.lockManager = lockManager
 
     def setPropManager(self, propManager):
-        assert not propManager or hasattr(propManager, "copyProperties"), ("Must be compatible "
-            "with wsgidav.property_manager.PropertyManager")
+        assert not propManager or hasattr(propManager, "copyProperties"), \
+            "Must be compatible with wsgidav.property_manager.PropertyManager"
         self.propManager = propManager
 
     def refUrlToPath(self, refUrl):
@@ -1439,7 +1438,7 @@ class DAVProvider(object):
 
         This method MUST be implemented.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def exists(self, path, environ):
         """Return True, if path maps to an existing resource.
