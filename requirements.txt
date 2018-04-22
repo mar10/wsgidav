@@ -1,4 +1,1 @@
 cheroot~=6.2
-defusedxml
-jsmin~=2.2
-PyYAML~=3.2

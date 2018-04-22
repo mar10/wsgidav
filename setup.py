@@ -76,9 +76,9 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 #   3. there may already cherrypy versions installed
 
 install_requires = [
-    "defusedxml",
-    # "cheroot",
-    # "lxml",
+    "defusedxml~=0.5",
+    "jsmin~=2.2",
+    "PyYAML~=3.2",
     ]
 
 # The Windows MSI Setup should include lxml and CherryPy
