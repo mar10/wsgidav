@@ -1522,7 +1522,8 @@ class RequestServer(object):
                 readbuffer = fileobj.read(self.block_size)
             else:
                 readbuffer = fileobj.read(contentlengthremaining)
-            assert compat.is_bytes(readbuffer)
+            if not compat.is_bytes(readbuffer):
+                readbuffer = compat.to_bytes(readbuffer)
             yield readbuffer
             contentlengthremaining -= len(readbuffer)
             if len(readbuffer) == 0 or contentlengthremaining == 0:
