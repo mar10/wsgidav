@@ -2,7 +2,7 @@
 
 ## 2.3.1 / Unreleased
 - #89 Add support for JSON config files to built-in server runner
-
+- #97: Fixing assumption that QUERY_STRING in environment (dir_browser)
 
 ## 'logging' branch
 - Support YAML and use wsgidav.yaml by default if it exists in local folder
