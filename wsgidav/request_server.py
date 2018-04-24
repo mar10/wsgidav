@@ -564,7 +564,7 @@ class RequestServer(object):
                 try:
                     self._evaluateIfHeaders(childRes, environ)
                     self._checkWritePermission(childRes, "0", environ)
-                except:
+                except Exception:
                     hasConflicts = True
                     break
 
@@ -615,17 +615,17 @@ class RequestServer(object):
             # size as integer in a HTTP header instead.
             WORKAROUND_CHUNK_LENGTH = True
             buf = environ.get("HTTP_X_EXPECTED_ENTITY_LENGTH", "0")
-            l = int(buf)
+            length = int(buf)
         else:
             WORKAROUND_CHUNK_LENGTH = False
             buf = environ["wsgi.input"].readline()
             environ["wsgidav.some_input_read"] = 1
             if buf == '':
-                l = 0
+                length = 0
             else:
-                l = int(buf, 16)
+                length = int(buf, 16)
 
-        while l > 0:
+        while length > 0:
             buf = environ["wsgi.input"].read(block_size)
             yield buf
             if WORKAROUND_CHUNK_LENGTH:
@@ -633,16 +633,16 @@ class RequestServer(object):
                 # Keep receiving until we read expected size or reach
                 # EOF
                 if buf == '':
-                    l = 0
+                    length = 0
                 else:
-                    l -= len(buf)
+                    length -= len(buf)
             else:
                 environ["wsgi.input"].readline()
                 buf = environ["wsgi.input"].readline()
                 if buf == '':
-                    l = 0
+                    length = 0
                 else:
-                    l = int(buf, 16)
+                    length = int(buf, 16)
         environ["wsgidav.all_input_read"] = 1
 
     def _streamData(self, environ, contentlength, block_size):
@@ -982,7 +982,7 @@ class RequestServer(object):
             for s in srcList:
                 try:
                     self._evaluateIfHeaders(s, environ)
-                except:
+                except Exception:
                     hasConflicts = True
                     break
 

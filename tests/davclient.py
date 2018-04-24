@@ -37,7 +37,7 @@ if PY2:
     BytesIO = StringIO
     from urlparse import urlparse, urljoin
     is_bytes = lambda s: isinstance(s, str)  # noqa: E731
-    is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731
+    is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731, F821
     to_native = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
 else:
     from base64 import encodebytes as base64_encodebytes
@@ -53,7 +53,7 @@ to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
 
 try:
     from xml.etree import ElementTree
-except:
+except Exception:
     from elementtree import ElementTree
 
 __all__ = ['DAVClient']

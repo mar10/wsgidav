@@ -595,7 +595,7 @@ class HgResourceProvider(DAVProvider):
             revid, rest = util.popPath(rest)
             try:
                 int(revid)
-            except:
+            except Exception:
                 # Tried to access /archive/anyname
                 return None
             # Access /archive/19

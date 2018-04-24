@@ -28,7 +28,7 @@ class VirtualCollection(DAVCollection):
 
     def __init__(self, path, environ, displayInfo, memberNameList):
         DAVCollection.__init__(self, path, environ)
-        if isinstance(displayInfo, basestring):
+        if compat.is_basestring(displayInfo):
             displayInfo = {"type": displayInfo}
         assert type(displayInfo) is dict
         assert type(memberNameList) is list

@@ -57,7 +57,7 @@ class BasicTest(unittest.TestCase):
     def _isLockDict(self, o):
         try:
             _ = o["root"]  # noqa F841
-        except:
+        except Exception:
             return False
         return True
 
@@ -68,7 +68,7 @@ class BasicTest(unittest.TestCase):
                     and len(resultTupleList) == 2
                     and self._isLockDict(resultTupleList[0][0])
                     and resultTupleList[0][1] is None)
-        except:
+        except Exception:
             return False
 
     def _isLockResultFault(self, lock, conflictList, status=None):
@@ -86,7 +86,7 @@ class BasicTest(unittest.TestCase):
             elif status and status != DAVError.value:
                 return False
             return True
-        except:
+        except Exception:
             return False
 
     def testPreconditions(self):
@@ -204,36 +204,36 @@ class BasicTest(unittest.TestCase):
         tokenList = []
 
         # Create a lock for '/dav/res/'
-        l = self._acquire("/dav/res/", "write", "exclusive", "infinity",
-                          self.owner, self.timeout,
-                          self.principal, tokenList)
-        assert l, "Could not acquire lock"
+        lock = self._acquire("/dav/res/", "write", "exclusive", "infinity",
+                             self.owner, self.timeout,
+                             self.principal, tokenList)
+        assert lock, "Could not acquire lock"
 
         # Try to lock with a slightly different URL (without trailing '/')
-        l = self._acquire("/dav/res", "write", "exclusive", "infinity",
-                          self.owner, self.timeout,
-                          "another principal", tokenList)
-        assert l is None, "Could acquire a conflicting lock"
+        lock = self._acquire("/dav/res", "write", "exclusive", "infinity",
+                             self.owner, self.timeout,
+                             "another principal", tokenList)
+        assert lock is None, "Could acquire a conflicting lock"
 
         # Try to lock with another principal
-        l = self._acquire("/dav/res/", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, "another principal", tokenList)
-        assert l is None, "Could acquire a conflicting lock"
+        lock = self._acquire("/dav/res/", "write", "exclusive", "infinity",
+                             self.owner, self.timeout, "another principal", tokenList)
+        assert lock is None, "Could acquire a conflicting lock"
 
         # Try to lock child with another principal
-        l = self._acquire("/dav/res/sub", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, "another principal", tokenList)
-        assert l is None, "Could acquire a conflicting child lock"
+        lock = self._acquire("/dav/res/sub", "write", "exclusive", "infinity",
+                             self.owner, self.timeout, "another principal", tokenList)
+        assert lock is None, "Could acquire a conflicting child lock"
 
         # Try to lock parent with same principal
-        l = self._acquire("/dav/", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, self.principal, tokenList)
-        assert l is None, "Could acquire a conflicting parent lock"
+        lock = self._acquire("/dav/", "write", "exclusive", "infinity",
+                             self.owner, self.timeout, self.principal, tokenList)
+        assert lock is None, "Could acquire a conflicting parent lock"
 
         # Try to lock child with same principal
-        l = self._acquire("/dav/res/sub", "write", "exclusive", "infinity",
-                          self.owner, self.timeout, self.principal, tokenList)
-        assert l is None, "Could acquire a conflicting child lock (same principal)"
+        lock = self._acquire("/dav/res/sub", "write", "exclusive", "infinity",
+                             self.owner, self.timeout, self.principal, tokenList)
+        assert lock is None, "Could acquire a conflicting child lock (same principal)"
 
 
 # ========================================================================

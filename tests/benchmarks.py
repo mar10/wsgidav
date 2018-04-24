@@ -66,14 +66,16 @@ try:
     from wsgidav import compat
 except ImportError:
     # WsgiDAV 1.x: mock the compat module, so benchmark.py runs in both
-    # versions:
+    # versions.
+    # Note that we only need to support Py2 for WsgiDAV 1.x
     class compat(object):
-        xrange = xrange
+        xrange = xrange  # noqa: F821
+        is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731, F821
 
         @staticmethod
         def to_bytes(s, encoding="utf8"):
             """Convert unicode (text strings) to binary data, i.e. str on Py2 and bytes on Py3."""
-            if type(s) is unicode:
+            if type(s) is unicode:  # noqa: F821
                 s = s.encode(encoding)
             elif type(s) is not str:
                 s = str(s)

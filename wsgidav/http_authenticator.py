@@ -247,7 +247,7 @@ class HTTPAuthenticator(BaseMiddleware):
         authvalue = ""
         try:
             authvalue = authheader[len("Basic "):].strip()
-        except:
+        except Exception:
             authvalue = ""
         # authvalue = authvalue.strip().decode("base64")
         authvalue = compat.base64_decodebytes(compat.to_bytes(authvalue))

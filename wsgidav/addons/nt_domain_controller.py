@@ -76,7 +76,8 @@ from __future__ import print_function
 import win32net  # @UnresolvedImport
 import win32netcon  # @UnresolvedImport
 import win32security  # @UnresolvedImport
-from wsgidav import util
+
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 _logger = util.getModuleLogger(__name__)
@@ -108,7 +109,7 @@ class NTDomainController(object):
 
         try:
             userdata = win32net.NetUserGetInfo(dcname, user, 1)
-        except:
+        except Exception:
             _logger.exception("NetUserGetInfo")
             userdata = {}
 #        if "password" in userdata:
@@ -143,7 +144,7 @@ class NTDomainController(object):
         try:
             # execute this on the localhost
             pdc = win32net.NetGetAnyDCName(None, domain)
-        except:
+        except Exception:
             pdc = None
 
         return pdc
@@ -161,7 +162,7 @@ class NTDomainController(object):
                 for userinfo in users:
                     uiname = userinfo.get("name")
                     assert uiname
-                    assert isinstance(uiname, unicode)
+                    assert compat.is_unicode(uiname)
                     if un == userinfo["name"].lower():
                         return True
             except win32net.error as e:
