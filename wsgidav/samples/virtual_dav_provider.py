@@ -517,7 +517,7 @@ class VirtualArtifact(_VirtualNonCollection):
             html = self.data["description"]
         else:
             raise DAVError(HTTP_INTERNAL_ERROR, "Invalid artifact '%s'" % self.name)
-        return compat.StringIO(html)
+        return compat.BytesIO(compat.to_bytes(html))
 
 
 # ============================================================================
