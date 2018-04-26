@@ -12,16 +12,15 @@
 .. currentmodule:: {{ fullname }}
 
 
+
 {% if classes %}
 .. rubric:: Classes
 
 .. autosummary::
     :toctree: .
-
     {% for item in classes %}
     {{ item }}
     {% endfor %}
-
 {% endif %}
 
 
@@ -32,8 +31,7 @@
     :toctree: .
     {% for item in functions %}
     {{ item }}
-    {% endfor %}
-
+    {%- endfor %}
 {% endif %}
 
 
@@ -44,6 +42,18 @@
     :toctree: .
     {% for item in exceptions %}
     {{ item }}
-    {% endfor %}
+    {%- endfor %}
+{% endif %}
 
+
+{% if members %}
+.. rubric:: Other Members
+
+.. autosummary::
+
+ {% for item in members %}
+    {%- if not item.startswith('_') and item not in all_classes and item not in all_functions and item not in all_exceptions %}
+    {{ item }}
+    {%- endif -%}
+ {%- endfor %}
 {% endif %}

@@ -7,7 +7,6 @@
     :undoc-members:
     :show-inheritance:
 
-   {% block methods %}
    {% block attributes %}
    {% if attributes %}
       .. autosummary::
@@ -20,6 +19,7 @@
    {% endif %}
    {% endblock %}
 
+   {% block methods %}
    {% if methods %}
       .. autosummary::
          :toctree:

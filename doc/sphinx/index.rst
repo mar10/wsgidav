@@ -25,6 +25,7 @@ written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-0333/>`
 
 Main Features
 =============
+
 - Comes bundled with a server and a file system provider, so we can share a
   directory right away from the command line.
 - Designed to run behind any WSGI compliant server.

@@ -4,7 +4,7 @@
  * 2. Adjust settings as appropriate
  * 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
  *
- * Note that JavaScript-style comments are allowed.
+ * JSON formatted, but JavaScript-style comments are allowed.
  *
  * See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
  */

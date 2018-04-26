@@ -156,7 +156,7 @@ setup(
     maintainer="Martin Wendt",
     maintainer_email="wsgidav@wwwendt.de",
     url="https://github.com/mar10/wsgidav/",
-    description="Generic WebDAV server based on WSGI",
+    description="Generic and extendable WebDAV server based on WSGI",
     long_description=readme,
     long_description_content_type="text/markdown",
     classifiers=[

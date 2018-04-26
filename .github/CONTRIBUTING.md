@@ -1,4 +1,11 @@
 # Contribution Guideline
+
+Thanks for contributing :-)
+
+Please have a look at the
+[Development Guide](http://wsgidav.readthedocs.io/en/latest/development.html).
+
+<!--
 ## Setup for Contributors
 
 We need [Python 2.7](https://www.python.org/downloads/), [Python 3.4+](https://www.python.org/downloads/), and [pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) on our system:
@@ -54,3 +61,4 @@ The test suite should run as well:
 ```
 
 Happy hacking :)
+-->
