@@ -55,8 +55,15 @@ class RequestServer(object):
         # if self._davProvider.propManager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.isReadOnly():
-            self._possible_methods.extend(
-                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"])
+            self._possible_methods.extend([
+                "PUT",
+                "DELETE",
+                "COPY",
+                "MOVE",
+                "MKCOL",
+                "PROPPATCH",
+                "POST",
+                ])
             # if self._davProvider.propManager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lockManager is not None:
@@ -75,8 +82,7 @@ class RequestServer(object):
             _logger.info(
                 "*** missing 'http_authenticator.username' in environ")
 
-        environ["wsgidav.username"] = environ.get(
-            "http_authenticator.username", "anonymous")
+        environ["wsgidav.username"] = environ.get("http_authenticator.username", "anonymous")
         requestmethod = environ["REQUEST_METHOD"]
 
         self.block_size = environ["wsgidav.config"].get(
@@ -106,8 +112,7 @@ class RequestServer(object):
         if environ.get("wsgidav.debug_profile"):
             from cProfile import Profile
             profile = Profile()
-            res = profile.runcall(provider.customRequestHandler,
-                                  environ, start_response, method)
+            res = profile.runcall(provider.customRequestHandler, environ, start_response, method)
             # sort: 0:"calls",1:"time", 2: "cumulative"
             profile.print_stats(sort=2)
             for v in res:
@@ -213,8 +218,8 @@ class RequestServer(object):
             entitytag = res.getEtag()
 
         if ("HTTP_IF_MODIFIED_SINCE" in environ
-            or "HTTP_IF_UNMODIFIED_SINCE" in environ
-            or "HTTP_IF_MATCH" in environ
+                or "HTTP_IF_UNMODIFIED_SINCE" in environ
+                or "HTTP_IF_MATCH" in environ
                 or "HTTP_IF_NONE_MATCH" in environ):
             util.evaluateHTTPConditionals(
                 res, lastmodified, entitytag, environ)
@@ -237,8 +242,7 @@ class RequestServer(object):
                 locktokenlist.append(lock["token"])
 
         if not util.testIfHeaderDict(res, ifDict, refUrl, locktokenlist, entitytag):
-            self._fail(HTTP_PRECONDITION_FAILED,
-                       "'If' header condition failed.")
+            self._fail(HTTP_PRECONDITION_FAILED, "'If' header condition failed.")
 
         return
 
@@ -370,13 +374,11 @@ class RequestServer(object):
             elif ppnode.tag == "{DAV:}set":
                 propupdatemethod = "set"
             else:
-                self._fail(HTTP_BAD_REQUEST,
-                           "Unknown tag (expected 'set' or 'remove').")
+                self._fail(HTTP_BAD_REQUEST, "Unknown tag (expected 'set' or 'remove').")
 
             for propnode in ppnode:
                 if propnode.tag != "{DAV:}prop":
-                    self._fail(HTTP_BAD_REQUEST,
-                               "Unknown tag (expected 'prop').")
+                    self._fail(HTTP_BAD_REQUEST, "Unknown tag (expected 'prop').")
 
                 for propertynode in propnode:
                     propvalue = None
@@ -468,8 +470,7 @@ class RequestServer(object):
             self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
 
         if provider.exists(path, environ):
-            self._fail(HTTP_METHOD_NOT_ALLOWED,
-                       "MKCOL can only be executed on an unmapped URL.")
+            self._fail(HTTP_METHOD_NOT_ALLOWED, "MKCOL can only be executed on an unmapped URL.")
 
         parentRes = provider.getResourceInst(util.getUriParent(path), environ)
         if not parentRes or not parentRes.isCollection:
@@ -514,8 +515,7 @@ class RequestServer(object):
             # a Depth header with a DELETE on a collection with any value but
             # infinity."
             if environ.setdefault("HTTP_DEPTH", "infinity") != "infinity":
-                self._fail(HTTP_BAD_REQUEST,
-                           "Only Depth: infinity is supported for collections.")
+                self._fail(HTTP_BAD_REQUEST, "Only Depth: infinity is supported for collections.")
         else:
             if not environ.setdefault("HTTP_DEPTH", "0") in ("0", "infinity"):
                 self._fail(HTTP_BAD_REQUEST,
@@ -547,8 +547,7 @@ class RequestServer(object):
             errorList = [(res.getHref(), asDAVError(e))]
             handled = True
         if handled:
-            return self._sendResponse(environ, start_response,
-                                      res, HTTP_NO_CONTENT, errorList)
+            return self._sendResponse(environ, start_response, res, HTTP_NO_CONTENT, errorList)
 
         # --- Let provider implement own recursion ----------------------------
 
@@ -651,8 +650,7 @@ class RequestServer(object):
             # TODO: review this
             # XP and Vista MiniRedir submit PUT with Content-Length 0,
             # before LOCK and the real PUT. So we have to accept this.
-            _logger.info(
-                "PUT: Content-Length == 0. Creating empty file...")
+            _logger.info("PUT: Content-Length == 0. Creating empty file...")
 
 #        elif contentlength < 0:
 #            # TODO: review this
@@ -742,8 +740,7 @@ class RequestServer(object):
             # when creating new files
             agent = environ.get("HTTP_USER_AGENT", "")
             if "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent:  # issue #10
-                _logger.warning(
-                    "Setting misssing Content-Length to 0 for MS / gvfs client")
+                _logger.warning("Setting misssing Content-Length to 0 for MS / gvfs client")
                 contentlength = 0
             else:
                 util.fail(HTTP_LENGTH_REQUIRED,
@@ -798,16 +795,14 @@ class RequestServer(object):
         srcPath = environ["PATH_INFO"]
         provider = self._davProvider
         srcRes = provider.getResourceInst(srcPath, environ)
-        srcParentRes = provider.getResourceInst(
-            util.getUriParent(srcPath), environ)
+        srcParentRes = provider.getResourceInst(util.getUriParent(srcPath), environ)
 
         # --- Check source ----------------------------------------------------
 
         if srcRes is None:
             self._fail(HTTP_NOT_FOUND)
         if "HTTP_DESTINATION" not in environ:
-            self._fail(HTTP_BAD_REQUEST,
-                       "Missing required Destination header.")
+            self._fail(HTTP_BAD_REQUEST, "Missing required Destination header.")
         if not environ.setdefault("HTTP_OVERWRITE", "T") in ("T", "F"):
             # Overwrite defaults to 'T'
             self._fail(HTTP_BAD_REQUEST, "Invalid Overwrite header.")
@@ -858,17 +853,14 @@ class RequestServer(object):
             destPath = destPath.rstrip("/") + "/"
 
         if destScheme and destScheme.lower() != environ["wsgi.url_scheme"].lower():
-            self._fail(HTTP_BAD_GATEWAY,
-                       "Source and destination must have the same scheme.")
+            self._fail(HTTP_BAD_GATEWAY, "Source and destination must have the same scheme.")
         elif destNetloc and destNetloc.lower() != environ["HTTP_HOST"].lower():
             # TODO: this should consider environ["SERVER_PORT"] also
-            self._fail(HTTP_BAD_GATEWAY,
-                       "Source and destination must have the same host name.")
+            self._fail(HTTP_BAD_GATEWAY, "Source and destination must have the same host name.")
         elif not destPath.startswith(provider.mountPath + provider.sharePath):
             # Inter-realm copying not supported, since its not possible to
             # authentication-wise
-            self._fail(HTTP_BAD_GATEWAY,
-                       "Inter-realm copy/move is not supported.")
+            self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
 
         destPath = destPath[len(provider.mountPath + provider.sharePath):]
         assert destPath.startswith("/")
@@ -882,8 +874,7 @@ class RequestServer(object):
             util.getUriParent(destPath), environ)
 
         if not destParentRes or not destParentRes.isCollection:
-            self._fail(HTTP_CONFLICT,
-                       "Destination parent must be a collection.")
+            self._fail(HTTP_CONFLICT, "Destination parent must be a collection.")
 
         self._evaluateIfHeaders(srcRes, environ)
         self._evaluateIfHeaders(destRes, environ)
@@ -932,8 +923,7 @@ class RequestServer(object):
             errorList = [(srcRes.getHref(), asDAVError(e))]
             handled = True
         if handled:
-            return self._sendResponse(environ, start_response,
-                                      srcRes, HTTP_NO_CONTENT, errorList)
+            return self._sendResponse(environ, start_response, srcRes, HTTP_NO_CONTENT, errorList)
 
         # --- Cleanup destination before copy/move ----------------------------
 
@@ -1091,8 +1081,7 @@ class RequestServer(object):
             self._fail(HTTP_NOT_IMPLEMENTED,
                        "This realm does not support locking.")
         if res and res.preventLocking():
-            self._fail(HTTP_FORBIDDEN,
-                       "This resource does not support locking.")
+            self._fail(HTTP_FORBIDDEN, "This resource does not support locking.")
 
         if environ.setdefault("HTTP_DEPTH", "infinity") not in ("0", "infinity"):
             self._fail(HTTP_BAD_REQUEST, "Expected Depth: 'infinity' or '0'.")
@@ -1272,8 +1261,7 @@ class RequestServer(object):
 
         lockMan = provider.lockManager
         if lockMan is None:
-            self._fail(HTTP_NOT_IMPLEMENTED,
-                       "This share does not support locking.")
+            self._fail(HTTP_NOT_IMPLEMENTED, "This share does not support locking.")
         elif util.getContentLength(environ) != 0:
             self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                        "The server does not handle any body content.")
@@ -1463,12 +1451,10 @@ class RequestServer(object):
 
         responseHeaders = []
         if res.supportContentLength():
-            # Content-length must be of type string (otherwise CherryPy server
-            # chokes)
+            # Content-length must be of type string
             responseHeaders.append(("Content-Length", str(rangelength)))
         if res.supportModified():
-            responseHeaders.append(
-                ("Last-Modified", util.getRfc1123Time(lastmodified)))
+            responseHeaders.append(("Last-Modified", util.getRfc1123Time(lastmodified)))
         responseHeaders.append(("Content-Type", mimetype))
         responseHeaders.append(("Date", util.getRfc1123Time()))
         if res.supportEtag():
