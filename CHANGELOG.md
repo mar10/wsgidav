@@ -8,6 +8,7 @@
 - wsgidav.json can contain comments now (JavaScript syntax)
 - #97: Fixing assumption that QUERY_STRING in environment (dir_browser)
 - #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
+- #101: Fail cleanly if trying to put to unknown collection
 - Reworked documentation on Read The Docs
 - Use `.format()` syntax instead of `%s` for string templating
 - Mandatory PEP8 compliance (checked by flake8)
