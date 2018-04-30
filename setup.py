@@ -45,15 +45,12 @@ class SphinxCommand(Command):
 
     def run(self):
         import subprocess
-        # sourcedir = os.path.join("doc", "sphinx")
+        res = subprocess.call("sphinx-build -b html doc/sphinx doc/sphinx-build", shell=True)
         outdir = os.path.join("doc", "sphinx-build")
-        res = subprocess.call(
-            "sphinx-build -b html doc/sphinx doc/sphinx-build", shell=True)
         if res:
             print("ERROR: sphinx-build exited with code {}".format(res))
         else:
-            print("Documentation created at {}."
-                  .format(os.path.abspath(outdir)))
+            print("Documentation created at {}.".format(os.path.abspath(outdir)))
 
 
 try:
@@ -65,8 +62,7 @@ except IOError:
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
 if "HOME" not in os.environ and "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
-    print("Initializing HOME environment variable to '{}'"
-          .format(os.environ["HOME"]))
+    print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
 
 # CherryPy is required for the tests and benchmarks. It is also the preferrred
 # server for the stand-alone mode (`wsgidav.server.run_server.py`).
