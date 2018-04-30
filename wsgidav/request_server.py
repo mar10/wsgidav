@@ -714,7 +714,7 @@ class RequestServer(object):
 
         if res and res.isCollection:
             self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
-        elif not parentRes.isCollection:  # TODO: allow parentRes==None?
+        elif parentRes is None or not parentRes.isCollection:  # TODO: allow parentRes==None?
             self._fail(HTTP_CONFLICT, "PUT parent must be a collection")
 
         self._evaluateIfHeaders(res, environ)
