@@ -134,7 +134,8 @@ class WsgiDAVApp(object):
     def __init__(self, config):
         self.config = config
 
-        util.initLogging(config["verbose"], config.get("enable_loggers", []))
+        # Do not initialize logging here, because we want to keep silence in library-mode
+        # util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
         _logger.info("Default encoding: {} (file system: {})"
                      .format(sys.getdefaultencoding(), sys.getfilesystemencoding()))
@@ -404,7 +405,7 @@ class WsgiDAVApp(object):
 
 #               This is the CherryPy format:
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
-                _logger.info('{} - {} - [{}] "{}" {} -> {}'.format(
+                _logger.warn('{} - {} - [{}] "{}" {} -> {}'.format(
                     environ.get("REMOTE_ADDR", ""),
                     userInfo,
                     util.getLogTime(),

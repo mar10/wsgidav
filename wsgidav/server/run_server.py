@@ -597,7 +597,10 @@ def run():
                          }
     config = _initConfig()
 
+    util.initLogging(config["verbose"], config.get("enable_loggers", []))
+
     app = WsgiDAVApp(config)
+
     server = config["server"]
     handler = SUPPORTED_SERVERS.get(server)
     if not handler:

@@ -17,8 +17,7 @@
 - **Refactor logging**
   - Library:
     - Removed usage of `print` in favor of `logging.getLogger().debug`
-    - Remove enable_loggers option
-    - Remove util.note(), .status(), ...
+    - Remove util.note(), .status(), ... helpers
 
 ## 2.3.0 / 2018-04-06
 

@@ -86,33 +86,86 @@ class BasicTest(unittest.TestCase):
 
 
 class LoggerTest(unittest.TestCase):
-    """Test ."""
+    """Test configurable logging."""
 
     def setUp(self):
-        self.buffer = StringIO()
-        print("# Log output buffer start", file=self.buffer)
+        # We add handlers that store root- and base-logger output
+        self.rootBuffer = StringIO()
         rootLogger = logging.getLogger()
-        self.prevLogLevel = rootLogger.getEffectiveLevel()
-        # rootLogger.setLevel(logging.DEBUG)
-        self.logHandler = logging.StreamHandler(self.buffer)
-        # self.formatter = logging.Formatter(
-        #     "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        # self.logHandler.setFormatter(formatter)
-        rootLogger.addHandler(self.logHandler)
+        self.prevRootLogLevel = rootLogger.getEffectiveLevel()
+        self.rootLogHandler = logging.StreamHandler(self.rootBuffer)
+        rootLogger.addHandler(self.rootLogHandler)
+
+        self.baseBuffer = StringIO()
+        baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+        self.prevBaseLogLevel = baseLogger.getEffectiveLevel()
+        self.baseLogHandler = logging.StreamHandler(self.baseBuffer)
+        baseLogger.addHandler(self.baseLogHandler)
 
     def tearDown(self):
         rootLogger = logging.getLogger()
-        rootLogger.setLevel(self.prevLogLevel)
-        rootLogger.removeHandler(self.logHandler)
+        self.rootLogHandler.close()
+        rootLogger.setLevel(self.prevRootLogLevel)
+        rootLogger.removeHandler(self.rootLogHandler)
+
+        baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+        self.baseLogHandler.close()
+        baseLogger.setLevel(self.prevBaseLogLevel)
+        baseLogger.removeHandler(self.baseLogHandler)
 
     def getLogOutput(self):
-        self.logHandler.flush()
-        self.buffer.flush()
-        value = self.buffer.getvalue()
-        return value
+        self.rootLogHandler.flush()
+        self.baseLogHandler.flush()
+        return (self.rootBuffer.getvalue(), self.baseBuffer.getvalue())
 
-    def testLogging(self):
+    def testDefault(self):
+        """By default, there should be no logging."""
+        _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
 
+        _baseLogger.debug("_baseLogger.debug")
+        _baseLogger.info("_baseLogger.info")
+        _baseLogger.warning("_baseLogger.warning")
+        _baseLogger.error("_baseLogger.error")
+
+        rootOutput, baseOutput = self.getLogOutput()
+        # Printed for debugging, when test fails:
+        print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
+
+        # No output should be generated in the root logger
+        assert rootOutput == ""
+        # The library logger should default to INFO level
+        # (this output will not be visble, because the base logger only has a NullHandler)
+        assert ".debug" not in baseOutput
+        assert ".info" in baseOutput
+        assert ".warning" in baseOutput
+        assert ".error" in baseOutput
+
+    def testEnablePropagation(self):
+        """Users can enable logging by propagating to root logger."""
+        _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+
+        _baseLogger.propagate = True
+
+        _baseLogger.debug("_baseLogger.debug")
+        _baseLogger.info("_baseLogger.info")
+        _baseLogger.warning("_baseLogger.warning")
+        _baseLogger.error("_baseLogger.error")
+
+        rootOutput, baseOutput = self.getLogOutput()
+        # Printed for debugging, when test fails:
+        print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
+
+        # Now output we should see output in the root logger
+        assert rootOutput == baseOutput
+        # The library logger should default to INFO level
+        # (this output will not be visble, because the base logger only has a NullHandler)
+        assert ".debug" not in baseOutput
+        assert ".info" in baseOutput
+        assert ".warning" in baseOutput
+        assert ".error" in baseOutput
+
+    def testCliLogging(self):
+        """CLI initializes logging """
         enable_loggers = ["test",
                           ]
         initLogging(3, enable_loggers)
@@ -125,70 +178,24 @@ class LoggerTest(unittest.TestCase):
         _baseLogger.info("_baseLogger.info")
         _baseLogger.warning("_baseLogger.warning")
         _baseLogger.error("_baseLogger.error")
-        print()
 
         _enabledLogger.debug("_enabledLogger.debug")
         _enabledLogger.info("_enabledLogger.info")
         _enabledLogger.warning("_enabledLogger.warning")
         _enabledLogger.error("_enabledLogger.error")
-        print()
 
         _disabledLogger.debug("_disabledLogger.debug")
         _disabledLogger.info("_disabledLogger.info")
         _disabledLogger.warning("_disabledLogger.warning")
         _disabledLogger.error("_disabledLogger.error")
-        print()
 
-        # write("util.write()")
-        # warn("util.warn()")
-        # status("util.status()")
-        # note("util.note()")
-        # debug("util.debug()")
+        rootOutput, baseOutput = self.getLogOutput()
+        # Printed for debugging, when test fails:
+        print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
 
-    def testLogging2(self):
-        """Test custom loggers."""
-        logger = logging.getLogger("wsgidav")
-        logger2 = logging.getLogger("wsgidav.test")
-        logger.setLevel(logging.DEBUG)
-        logger.debug("Debug")
-        logger2.debug("Debug2")
-
-        output = self.getLogOutput()
-        print(output)
-
-        assert "# Log output buffer start" in output
-
-        # assert False
-
-        # Create and use a custom logger
-        # custom_logger = wsgidav.getLogger("wsgidav_test")
-        # log_path = os.path.join(PYFTPSYNC_TEST_FOLDER, "pyftpsync.log")
-        # handler = logging.handlers.WatchedFileHandler(log_path)
-        # # formatter = logging.Formatter(logging.BASIC_FORMAT)
-        # formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        # handler.setFormatter(formatter)
-        # custom_logger.addHandler(handler)
-        # set_wsgidav_logger(custom_logger)
-        #
-        # custom_logger.setLevel(logging.DEBUG)
-        # print("print 1")
-        # write("write info 1")
-        # write_error("write error 1")
-        #
-        # custom_logger.setLevel(logging.WARNING)
-        # write("write info 2")
-        # write_error("write error 2")
-        #
-        # handler.flush()
-        # log_data = read_test_file("pyftpsync.log")
-        # assert "print 1" not in log_data
-        # assert "write info 1" in log_data
-        # assert "write error 1" in log_data
-        # assert "write info 2" not in log_data, "Loglevel honored"
-        # assert "write error 2" in log_data
-        # # Cleanup properly (log file would be locked otherwise)
-        # custom_logger.removeHandler(handler)
-        # handler.close()
+        # initLogging() removes all other handlers
+        assert rootOutput == ""
+        assert baseOutput == ""
 
 
 if __name__ == "__main__":

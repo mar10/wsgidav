@@ -36,12 +36,9 @@ from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
 
 __docformat__ = "reStructuredText"
 
+#: The base logger (silent by default)
 BASE_LOGGER_NAME = "wsgidav"
 _logger = logging.getLogger(BASE_LOGGER_NAME)
-
-# Pre-initialize, so we get some output before initLogging() was called
-# (for example during parsing of wsgidav.conf)
-# logging.basicConfig(level=logging.INFO)
 
 
 # ========================================================================
