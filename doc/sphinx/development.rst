@@ -135,6 +135,9 @@ to activate a virtual environment::
     $ pipenv shell
     bash-3.2$
 
+**Note:** On Ubuntu you additionally may have to install ``apt-get install python3-venv``.
+
+
 Alternatively (especially on Windows), use `virtualenv <https://virtualenv.pypa.io/en/latest/>`_
 to create and activate the virtual environment.
 For example using Python's builtin ``venv`` (instead of ``virtualenvwrapper``)

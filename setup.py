@@ -86,6 +86,7 @@ if "bdist_msi" in sys.argv:
 
 tests_require = [
     "cheroot",
+    "flake8",
     "pytest",
     "pytest-cov",
     "tox",

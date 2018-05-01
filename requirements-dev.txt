@@ -1,4 +1,7 @@
+# NOTE: Keep in sync with Pipfile!
+
 -r requirements.txt
+
 cx_Freeze
 Paste~=2.0
 pytest~=2.7
