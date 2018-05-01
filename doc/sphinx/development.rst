@@ -180,6 +180,8 @@ Hack, Hack, Hack
 
     	Follow the Style Guide, basically `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
 
+      We prefer to use double quotes and allow a max. line length of 99 characters.
+
       Failing tests or not follwing PEP 8 will break builds on
       `travis <https://travis-ci.org/mar10/wsgidav>`_ and therefore be
       automatically rejected.

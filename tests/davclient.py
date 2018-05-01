@@ -230,7 +230,7 @@ class DAVClient(object):
         """
         body = (b'<?xml version="1.0" encoding="utf-8" ?>'
                 b'<d:propertybehavior xmlns:d="DAV:">'
-                b'<d:keepalive>*</d:keepalive></d:propertybehavior>')
+                b"<d:keepalive>*</d:keepalive></d:propertybehavior>")
 
         # Add proper headers
         if headers is None:
@@ -262,7 +262,7 @@ class DAVClient(object):
         """
         body = (b'<?xml version="1.0" encoding="utf-8" ?>'
                 b'<d:propertybehavior xmlns:d="DAV:">'
-                b'<d:keepalive>*</d:keepalive></d:propertybehavior>')
+                b"<d:keepalive>*</d:keepalive></d:propertybehavior>")
 
         # Add proper headers
         if headers is None:

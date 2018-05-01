@@ -125,7 +125,7 @@ class StreamingFile(object):
     def __init__(self, data_stream):
         """Intialise the object with the data stream."""
         self.data_stream = data_stream
-        self.buffer = ''
+        self.buffer = ""
 
     def read(self, size=None):
         """Read bytes from an iterator."""
@@ -137,7 +137,7 @@ class StreamingFile(object):
 
         sized_chunk = self.buffer[:size]
         if size is None:
-            self.buffer = ''
+            self.buffer = ""
         else:
             self.buffer = self.buffer[size:]
         return sized_chunk

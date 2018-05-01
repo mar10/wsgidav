@@ -162,7 +162,7 @@ See https://github.com/mar10/wsgidav for additional information.
                         action="store_true", dest="no_config",
                         help="do not try to load default {}".format(DEFAULT_CONFIG_FILES))
 
-    parser.add_argument('-V', '--version', action='version', version=__version__)
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     args = parser.parse_args()
 

@@ -199,7 +199,7 @@ class WsgiDAVApp(object):
         # In normal way you should insert it into middleware_stack
         if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
             config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser[
-                'app_class'] for m in middleware_stack]
+                "app_class"] for m in middleware_stack]
 
         for mw in middleware_stack:
             if mw.isSuitable(config):
@@ -212,7 +212,7 @@ class WsgiDAVApp(object):
                     # check anonymous access
                     for share, data in self.providerMap.items():
                         if application.allowAnonymousAccess(share):
-                            data['allow_anonymous'] = True
+                            data["allow_anonymous"] = True
             else:
                 if self._verbose >= 2:
                     _logger.info("Middleware {} is not suitable".format(mw))
@@ -295,7 +295,7 @@ class WsgiDAVApp(object):
         #       All other requests will result in '404 Not Found'
         if share is not None:
             share_data = self.providerMap.get(share)
-            environ["wsgidav.provider"] = share_data['provider']
+            environ["wsgidav.provider"] = share_data["provider"]
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
 
@@ -397,9 +397,9 @@ class WsgiDAVApp(object):
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="{}"'.format(environ.get("HTTP_USER_AGENT")))
                 if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
-                    extra.append('transfer-enc={}'.format(environ.get("HTTP_TRANSFER_ENCODING")))
+                    extra.append("transfer-enc={}".format(environ.get("HTTP_TRANSFER_ENCODING")))
                 if self._verbose >= 1:
-                    extra.append('elap={:.3f}sec'.format(time.time() - start_time))
+                    extra.append("elap={:.3f}sec".format(time.time() - start_time))
                 extra = ", ".join(extra)
 
 #               This is the CherryPy format:

@@ -286,12 +286,12 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             return
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
-        _logger.error('-' * 40, file=sys.stderr)
-        _logger.error('<{}> Exception happened during processing of request from {}'
+        _logger.error("-" * 40, file=sys.stderr)
+        _logger.error("<{}> Exception happened during processing of request from {}"
                       .format(threading.currentThread().ident, client_address))
         _logger.error(client_address, file=sys.stderr)
         traceback.print_exc()
-        _logger.error('-' * 40, file=sys.stderr)
+        _logger.error("-" * 40, file=sys.stderr)
         _logger.error(request, file=sys.stderr)
 #        BaseHTTPServer.HTTPServer.handle_error(self, request, client_address)
 

@@ -167,7 +167,7 @@ def _bench_script(opts):
         for _ in compat.xrange(10):
             client.copy("/test/bigfile.txt",
                         "/test/bigfile-copy.txt",
-                        depth='infinity', overwrite=True)
+                        depth="infinity", overwrite=True)
         client.checkResponse()
 
     with Timing("100 x MOVE 10 MB", 100, "{:>6.1f} req/sec"):
@@ -175,7 +175,7 @@ def _bench_script(opts):
         for i in compat.xrange(100):
             name_to = "/test/bigfile-copy-{}.txt".format(i)
             client.move(name_from, name_to,
-                        depth='infinity', overwrite=True)
+                        depth="infinity", overwrite=True)
             name_from = name_to
         client.checkResponse()
 
@@ -202,7 +202,7 @@ def _bench_script(opts):
         for i in compat.xrange(500):
             client.propfind("/",
                             properties="allprop",
-                            namespace='DAV:',
+                            namespace="DAV:",
                             depth=None,
                             headers=None)
         client.checkResponse()

@@ -1004,7 +1004,7 @@ def obtainContentRanges(rangetext, filesize):
 
 #: any numofsecs above the following limit is regarded as infinite
 MAX_FINITE_TIMEOUT_LIMIT = 10 * 365 * 24 * 60 * 60  # approx 10 years
-reSecondsReader = re.compile(r'second\-([0-9]+)', re.I)
+reSecondsReader = re.compile(r"second\-([0-9]+)", re.I)
 
 
 def readTimeoutValueHeader(timeoutvalue):
@@ -1113,10 +1113,10 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     return
 
 
-reIfSeparator = re.compile(r'(\<([^>]+)\>)|(\(([^\)]+)\))')
-reIfHeader = re.compile(r'\<([^>]+)\>([^<]+)')
-reIfTagList = re.compile(r'\(([^)]+)\)')
-reIfTagListContents = re.compile(r'(\S+)')
+reIfSeparator = re.compile(r"(\<([^>]+)\>)|(\(([^\)]+)\))")
+reIfHeader = re.compile(r"\<([^>]+)\>([^<]+)")
+reIfTagList = re.compile(r"\(([^)]+)\)")
+reIfTagListContents = re.compile(r"(\S+)")
 
 
 def parseIfHeaderDict(environ):

@@ -21,7 +21,7 @@ from wsgidav.dav_error import DAVError
 class BasicTest(unittest.TestCase):
     """Test lock_manager.LockManager()."""
     principal = "Joe Tester"
-    owner = b'joe.tester@example.com'
+    owner = b"joe.tester@example.com"
     root = "/dav/res"
     timeout = 10 * 60  # Default lock timeout 10 minutes
 

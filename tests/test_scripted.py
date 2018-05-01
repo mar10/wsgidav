@@ -251,17 +251,17 @@ class ServerTest(unittest.TestCase):
 
         client.copy("/test/file1.txt",
                     "/test/file2.txt",
-                    depth='infinity', overwrite=True)
+                    depth="infinity", overwrite=True)
         client.checkResponse()
 
         client.move("/test/file2.txt",
                     "/test/file2_moved.txt",
-                    depth='infinity', overwrite=True)
+                    depth="infinity", overwrite=True)
         client.checkResponse()
 
         client.propfind("/",
                         properties="allprop",
-                        namespace='DAV:',
+                        namespace="DAV:",
                         depth=None,
                         headers=None)
         client.checkResponse()
