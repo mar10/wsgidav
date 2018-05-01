@@ -57,9 +57,9 @@ class WsgiDAVDomainController(object):
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                _logger.debug(
-                    "getDomainRealm({}): '{}'".format(
-                        util.safeReEncode(inputURL, sys.stdout.encoding or "ASCII"), None))
+                _logger.debug("getDomainRealm({}): '{}'".format(
+                        util.safeReEncode(inputURL, sys.stdout.encoding),
+                        None))
             return None
         realm = davProvider.sharePath
         if realm == "":

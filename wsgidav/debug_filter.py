@@ -199,6 +199,6 @@ class WsgiDavDebugFilter(BaseMiddleware):
                            sub_app_start_response.exc_info)
 
         if dumpResponse:
-            _logger.info("\n<{}> --- End of {} Response ({:d} bytes) ---".format(
+            _logger.info("<{}> --- End of {} Response ({:d} bytes) ---".format(
                 threading.currentThread().ident, method, nbytes))
         return

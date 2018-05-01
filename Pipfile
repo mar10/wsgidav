@@ -17,6 +17,7 @@ tox = "~=2.0"
 twine = "~=1.11"
 WebTest = "~=2.0"
 wheel = "*"
+"flake8" = "*"
 
 [packages]
 Cheroot = "~=6.2"

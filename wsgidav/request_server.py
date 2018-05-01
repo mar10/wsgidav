@@ -49,7 +49,7 @@ class RequestServer(object):
         self.allowPropfindInfinite = True
         self._verbose = 2
         self.block_size = DEFAULT_BLOCK_SIZE
-        util.debug("RequestServer: __init__", module="sc")
+        _logger.debug("RequestServer: __init__", module="sc")
 
         self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
         # if self._davProvider.propManager is not None:
@@ -63,7 +63,7 @@ class RequestServer(object):
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
     def __del__(self):
-        util.debug("RequestServer: __del__", module="sc")
+        _logger.debug("RequestServer: __del__", module="sc")
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
@@ -681,7 +681,7 @@ class RequestServer(object):
                 readbuffer = environ["wsgi.input"].read(n)
                 # This happens with litmus expect-100 test:
                 if not len(readbuffer) > 0:
-                    util.warn("input.read({}) returned 0 bytes".format(n))
+                    _logger.error("input.read({}) returned 0 bytes".format(n))
                     break
                 environ["wsgidav.some_input_read"] = 1
                 yield readbuffer
@@ -1049,7 +1049,7 @@ class RequestServer(object):
         if isMove:
             reverseSrcList = srcList[:]
             reverseSrcList.reverse()
-            util.status("Delete after move, ignore=", var=ignoreDict)
+            _logger.debug("Delete after move, ignore=", var=ignoreDict)
             for sRes in reverseSrcList:
                 # Non-collections have already been removed in the copy loop.
                 if not sRes.isCollection:
@@ -1061,21 +1061,20 @@ class RequestServer(object):
                         childError = True
                         break
                 if childError:
-                    util.status("Delete after move: skipping '{}', because of child error"
-                                .format(sRes.path))
+                    _logger.debug("Delete after move: skipping '{}', because of child error"
+                                  .format(sRes.path))
                     continue
 
                 try:
-                    util.status("Remove collection after move: {}".format(sRes))
+                    _logger.debug("Remove collection after move: {}".format(sRes))
                     sRes.delete()
                 except Exception as e:
                     errorList.append((srcRes.getHref(), asDAVError(e)))
-            util.status("ErrorList", var=errorList)
+            _logger.debug("ErrorList", var=errorList)
 
         # --- Return response -------------------------------------------------
 
-        return self._sendResponse(environ, start_response,
-                                  srcRes, successCode, errorList)
+        return self._sendResponse(environ, start_response, srcRes, successCode, errorList)
 
     def doLOCK(self, environ, start_response):
         """

@@ -352,7 +352,7 @@ class HgResource(_DAVResource):
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
-        util.write("handleCopy %s -> %s" % (self.localHgPath, destHgPath))
+        _logger.info("handleCopy %s -> %s" % (self.localHgPath, destHgPath))
         if self.rev is None and destType == "edit":
             # COPY /edit/a/b to /edit/c/d: turn into 'hg copy -f a/b c/d'
             commands.copy(ui, repo,
@@ -376,7 +376,7 @@ class HgResource(_DAVResource):
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
-        util.write("handleCopy %s -> %s" % (self.localHgPath, destHgPath))
+        _logger.info("handleCopy %s -> %s" % (self.localHgPath, destHgPath))
         if self.rev is None and destType == "edit":
             # MOVE /edit/a/b to /edit/c/d: turn into 'hg rename -f a/b c/d'
             commands.rename(ui, repo, self.localHgPath, destHgPath,
@@ -416,7 +416,7 @@ class HgResourceProvider(DAVProvider):
         os.chdir(self.repo.root)
 
         # Verify integrity of the repository
-        util.status("Verify repository '%s' tree..." % self.repo.root)
+        _logger.warn("Verify repository '%s' tree..." % self.repo.root)
         commands.verify(self.ui, self.repo)
 
 #        self.ui.status("Changelog: %s\n" % self.repo.changelog)
@@ -509,7 +509,7 @@ class HgResourceProvider(DAVProvider):
         """
         caches = environ.setdefault("wsgidav.hg.cache", {})
         if caches.get(compat.to_native(rev)) is not None:
-            util.debug("_getRepoInfo(%s): cache hit." % rev)
+            _logger.debug("_getRepoInfo(%s): cache hit." % rev)
             return caches[compat.to_native(rev)]
 
         start_time = time.time()
@@ -545,9 +545,9 @@ class HgResourceProvider(DAVProvider):
                  "filedict": filedict,
                  }
         caches[compat.to_native(rev)] = cache
-        util.note("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time)
-                  # , var=cache
-                  )
+        _logger.info("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time)
+                     # , var=cache
+                     )
         return cache
 
 

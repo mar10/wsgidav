@@ -18,7 +18,7 @@ import sys
 import time
 from email.utils import formatdate, parsedate
 from hashlib import md5
-from pprint import pformat
+# from pprint import pformat
 
 from wsgidav import compat
 from wsgidav.dav_error import (
@@ -172,9 +172,11 @@ def initLogging(verbose=2, enable_loggers=[]):
       3      debug   DEBUG        DEBUG                   INFO
     =======  ======  ===========  ======================  =======================
     """
-
-    formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",
+    # print("initLogging({})".format(verbose))
+    formatter = logging.Formatter("[%(asctime)s.%(msecs)d] %(message)s",
                                   "%H:%M:%S")
+    # formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",
+    #                               "%H:%M:%S")
 
     # Define handlers
     consoleHandler = logging.StreamHandler(sys.stdout)
@@ -237,64 +239,64 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
     return logger
 
 
-def _write(msg, var, module, level, flush):
-    if module:
-        logger = logging.getLogger(BASE_LOGGER_NAME + "." + module)
-        # Disable debug messages for module loggers by default
-        if logger.level == logging.NOTSET:
-            logger.setLevel(logging.INFO)
-    else:
-        logger = _logger
-    logger.log(level, msg)
-    if var is not None and level >= logger.getEffectiveLevel():
-        logger.log(level, pformat(var, indent=4))
-    if flush:
-        for hdlr in logger.handlers:
-            hdlr.flush()
+# def _write(msg, var, module, level, flush):
+#     if module:
+#         logger = logging.getLogger(BASE_LOGGER_NAME + "." + module)
+#         # Disable debug messages for module loggers by default
+#         if logger.level == logging.NOTSET:
+#             logger.setLevel(logging.INFO)
+#     else:
+#         logger = _logger
+#     logger.log(level, msg)
+#     if var is not None and level >= logger.getEffectiveLevel():
+#         logger.log(level, pformat(var, indent=4))
+#     if flush:
+#         for hdlr in logger.handlers:
+#             hdlr.flush()
 
 
-def write(msg, var=None, module=None, flush=True):
-    """Log always."""
-    _write(msg, var, module, logging.CRITICAL, flush)
+# def write(msg, var=None, module=None, flush=True):
+#     """Log always."""
+#     _write(msg, var, module, logging.CRITICAL, flush)
 
 
-def warn(msg, var=None, module=None, flush=True):
-    """Log to stderr."""
-    _write(msg, var, module, logging.ERROR, flush)
+# def warn(msg, var=None, module=None, flush=True):
+#     """Log to stderr."""
+#     _write(msg, var, module, logging.ERROR, flush)
 
 
-def status(msg, var=None, module=None, flush=True):
-    """Log if not --quiet."""
-    _write(msg, var, module, logging.WARNING, flush)
+# def status(msg, var=None, module=None, flush=True):
+#     """Log if not --quiet."""
+#     _write(msg, var, module, logging.WARNING, flush)
 
 
-def note(msg, var=None, module=None, flush=True):
-    """Log if --verbose.
-
-    Shortcut for logging.getLogger('wsgidav').info(msg).
-    This message will only display if verbose >= 2.
-    """
-    _write(msg, var, module, logging.INFO, flush)
-
-
-log = note
+# def note(msg, var=None, module=None, flush=True):
+#     """Log if --verbose.
+#
+#     Shortcut for logging.getLogger('wsgidav').info(msg).
+#     This message will only display if verbose >= 2.
+#     """
+#     _write(msg, var, module, logging.INFO, flush)
 
 
-def debug(msg, var=None, module=None, flush=True):
-    """Log if --debug."""
-    _write(msg, var, module, logging.DEBUG, flush)
+# log = note
 
 
-def traceCall(msg=None):
-    """Return name of calling function."""
-    if __debug__:
-        f_code = sys._getframe(2).f_code
-        if msg is None:
-            msg = ""
-        else:
-            msg = ": {}".format(msg)
-        _logger.info("{}.{} #{}{}"
-                     .format(f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
+# def debug(msg, var=None, module=None, flush=True):
+#     """Log if --debug."""
+#     _write(msg, var, module, logging.DEBUG, flush)
+
+
+# def traceCall(msg=None):
+#     """Return name of calling function."""
+#     if __debug__:
+#         f_code = sys._getframe(2).f_code
+#         if msg is None:
+#             msg = ""
+#         else:
+#             msg = ": {}".format(msg)
+#         _logger.info("{}.{} #{}{}"
+#                      .format(f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
 
 
 # ========================================================================
@@ -362,18 +364,27 @@ def toUnicode(s):
     try:
         u = compat.to_unicode(s, "utf8")
     except ValueError:
-        log("toUnicode({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s))
+        _logger.error("toUnicode({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s))
         u = compat.to_unicode(s, "ISO-8859-1")
     return u
 
 
 def safeReEncode(s, encoding_to, errors="backslashreplace"):
-    """Re-encode str or binary so that is compatible wit a given encoding (replacing
-    unsupported chars)."""
+    """Re-encode str or binary so that is compatible with a given encoding (replacing
+    unsupported chars).
+
+    We use ASCII as default, which gives us some output that contains \x99 and \u9999
+    for every character > 127, for easier debugging.
+    (e.g. if we don't know the encoding, see #87, #96)
+    """
+    # prev = s
+    if not encoding_to:
+        encoding_to = "ASCII"
     if compat.is_bytes(s):
         s = s.decode(encoding_to, errors=errors).encode(encoding_to)
     else:
         s = s.encode(encoding_to, errors=errors).decode(encoding_to)
+    # print("safeReEncode({}, {}) => {}".format(prev, encoding_to, s))
     return s
 
 
@@ -497,8 +508,9 @@ def readAndDiscardInput(environ):
             else:
                 n = 1
             body = wsgi_input.read(n)
-            debug("Reading {} bytes from potentially unread httpserver.LimitedLengthFile: '{}'..."
-                  .format(n, body[:50]))
+            _logger.debug(
+                "Reading {} bytes from potentially unread httpserver.LimitedLengthFile: '{}'..."
+                .format(n, body[:50]))
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
@@ -514,15 +526,15 @@ def readAndDiscardInput(environ):
                 else:
                     n = 1
                 body = wsgi_input.read(n)
-                debug("Reading {} bytes from potentially unread POST body: '{}'..."
-                      .format(n, body[:50]))
+                _logger.debug("Reading {} bytes from potentially unread POST body: '{}'..."
+                              .format(n, body[:50]))
             except socket.error as se:
                 # se(10035, 'The socket operation could not complete without blocking')
-                warn("-> read {} bytes failed: {}".format(n, se))
+                _logger.error("-> read {} bytes failed: {}".format(n, se))
             # Restore socket settings
             sock.settimeout(timeout)
         except Exception:
-            warn("--> wsgi_input.read(): {}".format(sys.exc_info()))
+            _logger.error("--> wsgi_input.read(): {}".format(sys.exc_info()))
 
 
 def fail(value, contextinfo=None, srcexception=None, errcondition=None):
@@ -531,7 +543,7 @@ def fail(value, contextinfo=None, srcexception=None, errcondition=None):
         e = asDAVError(value)
     else:
         e = DAVError(value, contextinfo, srcexception, errcondition)
-    log("Raising DAVError {}".format(e.getUserInfo()))
+    _logger.error("Raising DAVError {}".format(e.getUserInfo()))
     raise e
 
 
@@ -723,7 +735,7 @@ def parseXmlBody(environ, allowEmpty=False):
 
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
-        write("{} XML request body:\n{}".format(
+        _logger.info("{} XML request body:\n{}".format(
             environ["REQUEST_METHOD"], compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
@@ -1154,13 +1166,12 @@ def parseIfHeaderDict(environ):
 
     environ["wsgidav.conditions.if"] = ifDict
     environ["wsgidav.ifLockTokenList"] = ifLockList
-    debug("parseIfHeaderDict", var=ifDict, module="if")
+    _logger.debug("parseIfHeaderDict", var=ifDict, module="if")
     return
 
 
 def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
-    debug("testIfHeaderDict({}, {}, {})".format(fullurl, locktokenlist, entitytag),
-          var=dictIf, module="if")
+    _logger.debug("testIfHeaderDict({}, {}, {})".format(fullurl, locktokenlist, entitytag))
 
     if fullurl in dictIf:
         listTest = dictIf[fullurl]
@@ -1189,7 +1200,7 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
                 break
         if not matchfailed:
             return True
-    debug("  -> FAILED", module="if")
+    _logger.debug("  -> FAILED")
     return False
 
 
@@ -1215,7 +1226,7 @@ def guessMimeType(url):
     if not mimetype:
         ext = os.path.splitext(url)[1]
         mimetype = _MIME_TYPES.get(ext)
-        debug("mimetype({}): {}".format(url, mimetype))
+        _logger.debug("mimetype({}): {}".format(url, mimetype))
     if not mimetype:
         mimetype = "application/octet-stream"
     return mimetype

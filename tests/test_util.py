@@ -19,7 +19,6 @@ from wsgidav.util import (
     lstripstr,
     popPath,
     shiftPath,
-    write, warn, note, status, debug,
     getModuleLogger, BASE_LOGGER_NAME,
     )
 
@@ -140,11 +139,11 @@ class LoggerTest(unittest.TestCase):
         _disabledLogger.error("_disabledLogger.error")
         print()
 
-        write("util.write()")
-        warn("util.warn()")
-        status("util.status()")
-        note("util.note()")
-        debug("util.debug()")
+        # write("util.write()")
+        # warn("util.warn()")
+        # status("util.status()")
+        # note("util.note()")
+        # debug("util.debug()")
 
     def testLogging2(self):
         """Test custom loggers."""

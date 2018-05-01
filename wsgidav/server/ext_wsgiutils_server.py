@@ -282,7 +282,7 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # 10053: Software caused connection abort
         # 10054: Connection reset by peer
         if e.args[0] in (10053, 10054):
-            util.warn("*** Caught socket.error: {}".format(e))
+            _logger.error("*** Caught socket.error: {}".format(e))
             return
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
