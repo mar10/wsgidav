@@ -70,6 +70,22 @@ def _get_checked_path(path, mustExist=True, allowNone=True):
     return path
 
 
+class FullExpandedPath(argparse.Action):
+    """Expand user- and relative-paths"""
+    def __call__(self, parser, namespace, values, option_string=None):
+        new_val = os.path.abspath(os.path.expanduser(values))
+        setattr(namespace, self.dest, new_val)
+
+
+# def arg_is_dir(dirname):
+#     """Checks if a path is an actual directory"""
+#     print("is_dir", dirname)
+#     if not os.path.isdir(dirname):
+#         msg = "{} is not a directory".format(dirname)
+#         raise argparse.ArgumentTypeError(msg)
+#     return dirname
+
+
 def _initCommandLineOptions():
     """Parse command line options into a dictionary."""
 
@@ -117,6 +133,8 @@ See https://github.com/mar10/wsgidav for additional information.
                               "application public")),
     parser.add_argument("-r", "--root",
                         dest="root_path",
+                        action=FullExpandedPath,
+                        # type=arg_is_dir,
                         help="path to a file system folder to publish as share '/'.")
     parser.add_argument("--server",
                         choices=("cheroot", "cherrypy-wsgiserver", "ext-wsgiutils", "flup-fcgi",
@@ -137,6 +155,7 @@ See https://github.com/mar10/wsgidav for additional information.
 
     parser.add_argument("-c", "--config",
                         dest="config_file",
+                        action=FullExpandedPath,
                         help=("configuration file (default: {} in current directory)"
                               .format(DEFAULT_CONFIG_FILES)))
     parser.add_argument("--no-config",
@@ -154,8 +173,9 @@ See https://github.com/mar10/wsgidav for additional information.
         del args.quiet
     # print("Verbosity: {}".format(args.verbose))
 
-    if args.config_file and args.no_config:
-        parser.error("--config and --no-config are mutually exclusive")
+    if not os.path.isdir(args.root_path):
+        msg = "{} is not a directory".format(args.root_path)
+        raise parser.error(msg)
 
     if args.no_config:
         if args.config_file:
