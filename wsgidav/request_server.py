@@ -780,16 +780,17 @@ class RequestServer(object):
 
         res.endWrite(hasErrors)
 
-        def tagged_start_response(status, headers, exc_info=None):
-            if res.supportEtag():
-                entitytag = res.getEtag()
-                if entitytag is not None:
-                    headers.append(("ETag", '"{}"'.format(entitytag)))
-            return start_response(status, headers, exc_info)
+        headers = None
+        if res.supportEtag():
+            entitytag = res.getEtag()
+            if entitytag is not None:
+                headers = [("ETag", '"{}"'.format(entitytag))]
 
         if isnewfile:
-            return util.sendStatusResponse(environ, tagged_start_response, HTTP_CREATED)
-        return util.sendStatusResponse(environ, tagged_start_response, HTTP_NO_CONTENT)
+            return util.sendStatusResponse(environ, start_response, HTTP_CREATED,
+                                           add_headers=headers)
+        return util.sendStatusResponse(environ, start_response, HTTP_NO_CONTENT,
+                                       add_headers=headers)
 
     def doCOPY(self, environ, start_response):
         return self._copyOrMove(environ, start_response, False)

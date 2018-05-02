@@ -741,10 +741,12 @@ def parseXmlBody(environ, allowEmpty=False):
 #    return [ body ]
 
 
-def sendStatusResponse(environ, start_response, e):
+def sendStatusResponse(environ, start_response, e, add_headers=None):
     """Start a WSGI response for a DAVError or status code."""
     status = getHttpStatusString(e)
     headers = []
+    if headers:
+        headers.extend(add_headers)
 #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
 #        headers += [
 #            ('Connection', 'keep-alive'),
