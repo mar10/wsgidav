@@ -137,7 +137,7 @@ class FileResource(_VirtualNonCollection):
 
     def __init__(self, path, environ, filePath):
         if not os.path.exists(filePath):
-            util.warn("FileResource({!r}) does not exist.".format(filePath))
+            _logger.error("FileResource({!r}) does not exist.".format(filePath))
         _VirtualNonCollection.__init__(self, path, environ)
         self.filePath = filePath
 

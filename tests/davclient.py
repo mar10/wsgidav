@@ -56,31 +56,31 @@ try:
 except Exception:
     from elementtree import ElementTree
 
-__all__ = ['DAVClient']
+__all__ = ["DAVClient"]
 
 
 class AppError(Exception):
     pass
 
 
-def object_to_etree(parent, obj, namespace=''):
+def object_to_etree(parent, obj, namespace=""):
     """Takes in a python object, traverses it, and adds it to an existing etree object."""
     # TODO: Py3: this will probably brea, since str is used wrong:
     if type(obj) is int or type(obj) is float or type(obj) is str:
         # If object is a string, int, or float just add it
         obj = str(obj)
-        if obj.startswith('{') is False:
-            ElementTree.SubElement(parent, '{%s}%s' % (namespace, obj))
+        if obj.startswith("{") is False:
+            ElementTree.SubElement(parent, "{%s}%s" % (namespace, obj))
         else:
             ElementTree.SubElement(parent, obj)
 
     elif type(obj) is dict:
-        # If the object is a dictionary we'll need to parse it and send it back
+        # If the object is a dictionary we"ll need to parse it and send it back
         # recusively
         for key, value in obj.items():
-            if key.startswith('{') is False:
+            if key.startswith("{") is False:
                 key_etree = ElementTree.SubElement(
-                    parent, '{%s}%s' % (namespace, key))
+                    parent, "{%s}%s" % (namespace, key))
                 object_to_etree(key_etree, value, namespace=namespace)
             else:
                 key_etree = ElementTree.SubElement(parent, key)
@@ -98,26 +98,26 @@ def object_to_etree(parent, obj, namespace=''):
 
     else:
         # If it's none of previous types then raise
-        raise TypeError('%s is an unsupported type' % type(obj))
+        raise TypeError("%s is an unsupported type" % type(obj))
 
 
 class DAVClient(object):
 
-    def __init__(self, url='http://localhost:8080', logger=None):
+    def __init__(self, url="http://localhost:8080", logger=None):
         """Initialization"""
 
         self._url = urlparse(url)
         self.logger = logger
         self.logger_prefix = "DAVClient" if logger is True else str(logger)
 
-        self.headers = {'Host': self._url[1],
-                        'User-Agent': 'python.davclient.DAVClient/0.1'}
+        self.headers = {"Host": self._url[1],
+                        "User-Agent": "python.davclient.DAVClient/0.1"}
 
     def log(self, msg):
         if self.logger:
             print("{}: {}".format(self.logger_prefix, msg))
 
-    def _request(self, method, path='', body=None, headers=None):
+    def _request(self, method, path="", body=None, headers=None):
         """Internal request method"""
         self.response = None
 
@@ -154,7 +154,7 @@ class DAVClient(object):
 
     def _tree_to_binary_body(self, tree):
         """Return tree content as xml bytestring."""
-        # Etree won't just return a normal string, so we have to do this
+        # Etree won"t just return a normal string, so we have to do this
         body = BytesIO()
         tree.write(body)
         body = body.getvalue()  # bytestring
@@ -164,26 +164,26 @@ class DAVClient(object):
 
     def set_basic_auth(self, username, password):
         """Set basic authentication"""
-        u_p = ('%s:%s' % (username, password)).encode("utf8")
+        u_p = ("%s:%s" % (username, password)).encode("utf8")
         b64 = base64_encodebytes(u_p)
         # encodestring() returns a bytestring. We want a native str on Python 3
         if not type(b64) is str:
             b64 = b64.decode("utf8")
-        auth = 'Basic %s' % b64.strip()
+        auth = "Basic %s" % b64.strip()
         self._username = username
         self._password = password
-        self.headers['Authorization'] = auth
+        self.headers["Authorization"] = auth
 
     # HTTP DAV methods
 
     def get(self, path, headers=None):
         """Simple get request"""
-        self._request('GET', path, headers=headers)
+        self._request("GET", path, headers=headers)
         return self.response.content
 
     def head(self, path, headers=None):
         """Basic HEAD request"""
-        self._request('HEAD', path, headers=headers)
+        self._request("HEAD", path, headers=headers)
 
     def put(self, path, body=None, f=None, headers=None):
         """Put resource with body"""
@@ -191,95 +191,95 @@ class DAVClient(object):
         if f is not None:
             body = f.read()
 
-        self._request('PUT', path, body=body, headers=headers)
+        self._request("PUT", path, body=body, headers=headers)
 
     def post(self, path, body=None, headers=None):
         """POST resource with body"""
         assert body is None or is_bytes(body)
-        self._request('POST', path, body=body, headers=headers)
+        self._request("POST", path, body=body, headers=headers)
 
     def mkcol(self, path, headers=None):
         """Make DAV collection"""
-        self._request('MKCOL', path=path, headers=headers)
+        self._request("MKCOL", path=path, headers=headers)
 
     make_collection = mkcol
 
     def delete(self, path, headers=None):
         """Delete DAV resource"""
-        self._request('DELETE', path=path, headers=headers)
+        self._request("DELETE", path=path, headers=headers)
 
-    def copy(self, source, destination, body=None, depth='infinity', overwrite=True, headers=None):
+    def copy(self, source, destination, body=None, depth="infinity", overwrite=True, headers=None):
         """Copy DAV resource"""
         # Set all proper headers
         assert body is None or is_bytes(body)
         if headers is None:
-            headers = {'Destination': destination}
+            headers = {"Destination": destination}
         else:
-            headers['Destination'] = self._url.geturl() + destination
+            headers["Destination"] = self._url.geturl() + destination
         if overwrite is False:
-            headers['Overwrite'] = 'F'
-        headers['Depth'] = depth
+            headers["Overwrite"] = "F"
+        headers["Depth"] = depth
 
-        self._request('COPY', source, body=body, headers=headers)
+        self._request("COPY", source, body=body, headers=headers)
 
-    def copy_collection(self, source, destination, depth='infinity', overwrite=True, headers=None):
+    def copy_collection(self, source, destination, depth="infinity", overwrite=True, headers=None):
         """Copy DAV collection.
 
-        Note: support for the 'propertybehavior' request body for COPY and MOVE
+        Note: support for the "propertybehavior" request body for COPY and MOVE
               has been removed with RFC4918
         """
         body = (b'<?xml version="1.0" encoding="utf-8" ?>'
                 b'<d:propertybehavior xmlns:d="DAV:">'
-                b'<d:keepalive>*</d:keepalive></d:propertybehavior>')
+                b"<d:keepalive>*</d:keepalive></d:propertybehavior>")
 
         # Add proper headers
         if headers is None:
             headers = {}
-        headers['Content-Type'] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = 'text/xml; charset="utf-8"'
 
         self.copy(source, destination, body=body, depth=depth,
                   overwrite=overwrite, headers=headers)
 
-    def move(self, source, destination, body=None, depth='infinity', overwrite=True, headers=None):
+    def move(self, source, destination, body=None, depth="infinity", overwrite=True, headers=None):
         """Move DAV resource"""
         assert body is None or is_bytes(body)
         # Set all proper headers
         if headers is None:
-            headers = {'Destination': destination}
+            headers = {"Destination": destination}
         else:
-            headers['Destination'] = self._url.geturl() + destination
+            headers["Destination"] = self._url.geturl() + destination
         if overwrite is False:
-            headers['Overwrite'] = 'F'
-        headers['Depth'] = depth
+            headers["Overwrite"] = "F"
+        headers["Depth"] = depth
 
-        self._request('MOVE', source, body=body, headers=headers)
+        self._request("MOVE", source, body=body, headers=headers)
 
-    def move_collection(self, source, destination, depth='infinity', overwrite=True, headers=None):
+    def move_collection(self, source, destination, depth="infinity", overwrite=True, headers=None):
         """Move DAV collection and copy all properties.
 
-        Note: support for the 'propertybehavior' request body for COPY and MOVE
+        Note: support for the "propertybehavior" request body for COPY and MOVE
               has been removed with RFC4918
         """
         body = (b'<?xml version="1.0" encoding="utf-8" ?>'
                 b'<d:propertybehavior xmlns:d="DAV:">'
-                b'<d:keepalive>*</d:keepalive></d:propertybehavior>')
+                b"<d:keepalive>*</d:keepalive></d:propertybehavior>")
 
         # Add proper headers
         if headers is None:
             headers = {}
-        headers['Content-Type'] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = 'text/xml; charset="utf-8"'
 
         self.move(source, destination, body, depth=depth,
                   overwrite=overwrite, headers=headers)
 
-    def propfind(self, path, properties='allprop', namespace='DAV:', depth=None, headers=None):
-        """Property find. If properties arg is unspecified it defaults to 'allprop'"""
+    def propfind(self, path, properties="allprop", namespace="DAV:", depth=None, headers=None):
+        """Property find. If properties arg is unspecified it defaults to 'allprop'."""
         # Build propfind xml
-        root = ElementTree.Element('{DAV:}propfind')
+        root = ElementTree.Element("{DAV:}propfind")
         if is_native(properties):
-            ElementTree.SubElement(root, '{DAV:}%s' % properties)
+            ElementTree.SubElement(root, "{DAV:}%s" % properties)
         else:
-            props = ElementTree.SubElement(root, '{DAV:}prop')
+            props = ElementTree.SubElement(root, "{DAV:}prop")
             object_to_etree(props, properties, namespace=namespace)
         tree = ElementTree.ElementTree(root)
 
@@ -289,23 +289,23 @@ class DAVClient(object):
         if headers is None:
             headers = {}
         if depth is not None:
-            headers['Depth'] = depth
-        headers['Content-Type'] = 'text/xml; charset="utf-8"'
+            headers["Depth"] = depth
+        headers["Content-Type"] = 'text/xml; charset="utf-8"'
 
         # Body encoding must be utf-8, 207 is proper response
-        self._request('PROPFIND', path, body=body, headers=headers)
+        self._request("PROPFIND", path, body=body, headers=headers)
 
-        if self.response is not None and hasattr(self.response, 'tree') is True:
+        if self.response is not None and hasattr(self.response, "tree") is True:
             property_responses = {}
             for response in self.response.tree:
-                property_href = response.find('{DAV:}href')
-                property_stat = response.find('{DAV:}propstat')
+                property_href = response.find("{DAV:}href")
+                property_stat = response.find("{DAV:}propstat")
 
                 def parse_props(props):
                     property_dict = {}
                     for prop in props:
-                        if prop.tag.find('{DAV:}') is not -1:
-                            name = prop.tag.split('}')[-1]
+                        if prop.tag.find("{DAV:}") is not -1:
+                            name = prop.tag.split("}")[-1]
                         else:
                             name = prop.tag
                         if len(list(prop)):
@@ -316,26 +316,26 @@ class DAVClient(object):
 
                 if property_href is not None and property_stat is not None:
                     property_dict = parse_props(
-                        property_stat.find('{DAV:}prop'))
+                        property_stat.find("{DAV:}prop"))
                     property_responses[property_href.text] = property_dict
             return property_responses
 
-    def proppatch(self, path, set_props=None, remove_props=None, namespace='DAV:', headers=None):
+    def proppatch(self, path, set_props=None, remove_props=None, namespace="DAV:", headers=None):
         """Patch properties on a DAV resource.
 
         If namespace is not specified, the DAV namespace is used for all properties.
         """
-        root = ElementTree.Element('{DAV:}propertyupdate')
+        root = ElementTree.Element("{DAV:}propertyupdate")
 
         if set_props is not None:
-            prop_set = ElementTree.SubElement(root, '{DAV:}set')
+            prop_set = ElementTree.SubElement(root, "{DAV:}set")
             for p in set_props:
-                prop_prop = ElementTree.SubElement(prop_set, '{DAV:}prop')
+                prop_prop = ElementTree.SubElement(prop_set, "{DAV:}prop")
                 object_to_etree(prop_prop, p, namespace=namespace)
         if remove_props is not None:
-            prop_remove = ElementTree.SubElement(root, '{DAV:}remove')
+            prop_remove = ElementTree.SubElement(root, "{DAV:}remove")
             for p in remove_props:
-                prop_prop = ElementTree.SubElement(prop_remove, '{DAV:}prop')
+                prop_prop = ElementTree.SubElement(prop_remove, "{DAV:}prop")
                 object_to_etree(prop_prop, p, namespace=namespace)
 
         tree = ElementTree.ElementTree(root)
@@ -345,35 +345,35 @@ class DAVClient(object):
         # Add proper headers
         if headers is None:
             headers = {}
-        headers['Content-Type'] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = 'text/xml; charset="utf-8"'
 
-        self._request('PROPPATCH', path, body=body, headers=headers)
+        self._request("PROPPATCH", path, body=body, headers=headers)
 
-    def set_lock(self, path, owner, locktype='write', lockscope='exclusive',
+    def set_lock(self, path, owner, locktype="write", lockscope="exclusive",
                  depth=None, headers=None):
         """Set a lock on a dav resource"""
-        root = ElementTree.Element('{DAV:}lockinfo')
-        object_to_etree(root, {'locktype': locktype, 'lockscope': lockscope, 'owner': {
-                        'href': owner}}, namespace='DAV:')
+        root = ElementTree.Element("{DAV:}lockinfo")
+        object_to_etree(root, {"locktype": locktype, "lockscope": lockscope, "owner": {
+                        "href": owner}}, namespace="DAV:")
         tree = ElementTree.ElementTree(root)
 
         # Add proper headers
         if headers is None:
             headers = {}
         if depth is not None:
-            headers['Depth'] = depth
-        headers['Content-Type'] = 'text/xml; charset="utf-8"'
-        headers['Timeout'] = 'Infinite, Second-4100000000'
+            headers["Depth"] = depth
+        headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        headers["Timeout"] = "Infinite, Second-4100000000"
 
         body = self._tree_to_binary_body(tree)
 
-        self._request('LOCK', path, body=body, headers=headers)
+        self._request("LOCK", path, body=body, headers=headers)
 
-        locks = self.response.tree.findall('.//{DAV:}locktoken')
+        locks = self.response.tree.findall(".//{DAV:}locktoken")
         lock_list = []
         for lock in locks:
-            lock_list.append(lock[0].text.strip().strip('\n'))
-            # lock_list.append(lock.getchildren()[0].text.strip().strip('\n'))
+            lock_list.append(lock[0].text.strip().strip("\n"))
+            # lock_list.append(lock.getchildren()[0].text.strip().strip("\n"))
         return lock_list
 
     def refresh_lock(self, path, token, headers=None):
@@ -381,21 +381,21 @@ class DAVClient(object):
 
         if headers is None:
             headers = {}
-        headers['If'] = '(<%s>)' % token
-        headers['Timeout'] = 'Infinite, Second-4100000000'
+        headers["If"] = "(<%s>)" % token
+        headers["Timeout"] = "Infinite, Second-4100000000"
 
-        self._request('LOCK', path, body=None, headers=headers)
+        self._request("LOCK", path, body=None, headers=headers)
 
     def unlock(self, path, token, headers=None):
         """Unlock DAV resource with token"""
         if headers is None:
             headers = {}
-        headers['Lock-Token'] = '<%s>' % token
+        headers["Lock-Token"] = "<%s>" % token
 
-        self._request('UNLOCK', path, body=None, headers=headers)
+        self._request("UNLOCK", path, body=None, headers=headers)
 
     def checkResponse(self, status=None):
-        """Raise an error, if self.response doesn't match expected status.
+        """Raise an error, if self.response doesn"t match expected status.
 
         Inspired by paste.fixture
         """
@@ -410,14 +410,14 @@ class DAVClient(object):
                 content_length, len(res.content)))
 
         # From paste.fixture:
-        if status == '*':
+        if status == "*":
             return
         if isinstance(status, (list, tuple)):
             if res.status_code not in status:
                 # TODO: Py3: check usage of str:
                 raise AppError(
                     "Bad response: %s (not one of %s for %s %s)\n%s"
-                    % (full_status, ', '.join(map(str, status)),
+                    % (full_status, ", ".join(map(str, status)),
                        self.request["method"], self.request["path"], res.content))
             return
         if status is None:
@@ -439,17 +439,17 @@ class DAVClient(object):
         expect_status = [int(s) for s in expect_status]
 
         self.checkResponse(207)
-        if not hasattr(self.response, 'tree'):
+        if not hasattr(self.response, "tree"):
             raise AppError("Bad response: not XML")
         responses = {}
         for response in self.response.tree:
-            href = response.find('{DAV:}href')
-            pstat = response.find('{DAV:}propstat')
+            href = response.find("{DAV:}href")
+            pstat = response.find("{DAV:}propstat")
             if pstat is not None:
-                stat = pstat.find('{DAV:}status')
+                stat = pstat.find("{DAV:}status")
             else:
-                stat = response.find('{DAV:}status')
-            # 'HTTP/1.1 200 OK' -> 200
+                stat = response.find("{DAV:}status")
+            # "HTTP/1.1 200 OK" -> 200
             statuscode = int(stat.text.split(" ", 2)[1])
             responses.setdefault(statuscode, []).append(href.text)
         for statuscode, hrefs in responses.items():

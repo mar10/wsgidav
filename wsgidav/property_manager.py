@@ -114,7 +114,7 @@ class PropertyManager(object):
                         _logger.info("        {}: ERROR {}".format(k2, e))
             # _logger.flush()
         except Exception as e:
-            util.warn("PropertyManager._dump()  ERROR: {}".format(e))
+            _logger.error("PropertyManager._dump()  ERROR: {}".format(e))
 
     def getProperties(self, normurl, environ=None):
         _logger.debug("getProperties({})".format(normurl))

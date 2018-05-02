@@ -40,7 +40,6 @@ For every request:
 
 """
 import sys
-import threading
 import time
 
 from wsgidav import compat, util
@@ -135,10 +134,11 @@ class WsgiDAVApp(object):
     def __init__(self, config):
         self.config = config
 
-        util.initLogging(config["verbose"], config.get("enable_loggers", []))
+        # Do not initialize logging here, because we want to keep silence in library-mode
+        # util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
-        util.log("Default encoding: {} (file system: {})"
-                 .format(sys.getdefaultencoding(), sys.getfilesystemencoding()))
+        _logger.info("Default encoding: {} (file system: {})"
+                     .format(sys.getdefaultencoding(), sys.getfilesystemencoding()))
 
         # Evaluate configuration and set defaults
         _checkConfig(config)
@@ -200,7 +200,7 @@ class WsgiDAVApp(object):
         # In normal way you should insert it into middleware_stack
         if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
             config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser[
-                'app_class'] for m in middleware_stack]
+                "app_class"] for m in middleware_stack]
 
         for mw in middleware_stack:
             if mw.isSuitable(config):
@@ -213,7 +213,7 @@ class WsgiDAVApp(object):
                     # check anonymous access
                     for share, data in self.providerMap.items():
                         if application.allowAnonymousAccess(share):
-                            data['allow_anonymous'] = True
+                            data["allow_anonymous"] = True
             else:
                 if self._verbose >= 2:
                     _logger.info("Middleware {} is not suitable".format(mw))
@@ -222,14 +222,14 @@ class WsgiDAVApp(object):
         if self._verbose >= 2:
             _logger.info("Using lock manager: {!r}".format(locksManager))
             _logger.info("Using property manager: {!r}".format(propsManager))
-            _logger.info("Using domain controller: {}".format(domain_controller))
+            _logger.info("Using domain controller: {!r}".format(domain_controller))
             _logger.info("Registered DAV providers:")
             for share, data in self.providerMap.items():
-                hint = " (anonymous)" if data['allow_anonymous'] else ""
+                hint = " (anonymous)" if data["allow_anonymous"] else ""
                 _logger.info("  Share '{}': {}{}".format(share, provider, hint))
         if self._verbose >= 1:
             for share, data in self.providerMap.items():
-                if data['allow_anonymous']:
+                if data["allow_anonymous"]:
                     # TODO: we should only warn here, if --no-auth is not given
                     _logger.info("WARNING: share '{}' will allow anonymous access.".format(share))
 
@@ -264,7 +264,7 @@ class WsgiDAVApp(object):
         # GC issue 22: Pylons sends root as u'/'
         # if isinstance(path, unicode):
         if not compat.is_native(path):
-            util.log("Got non-native PATH_INFO: {!r}".format(path))
+            _logger.warn("Got non-native PATH_INFO: {!r}".format(path))
             # path = path.encode("utf8")
             path = compat.to_native(path)
 
@@ -296,7 +296,7 @@ class WsgiDAVApp(object):
         #       All other requests will result in '404 Not Found'
         if share is not None:
             share_data = self.providerMap.get(share)
-            environ["wsgidav.provider"] = share_data['provider']
+            environ["wsgidav.provider"] = share_data["provider"]
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
 
@@ -331,7 +331,7 @@ class WsgiDAVApp(object):
             headerDict = {}
             for header, value in response_headers:
                 if header.lower() in headerDict:
-                    util.warn("Duplicate header in response: {}".format(header))
+                    _logger.error("Duplicate header in response: {}".format(header))
                 headerDict[header.lower()] = value
 
             # Check if we should close the connection after this request.
@@ -346,13 +346,14 @@ class WsgiDAVApp(object):
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
-                util.warn(
+                _logger.error(
                     "Missing required Content-Length header in {}-response: closing connection"
                     .format(statusCode))
                 forceCloseConnection = True
             elif not type(currentContentLength) is str:
-                util.warn("Invalid Content-Length header in response ({!r}): closing connection"
-                          .format(headerDict.get("content-length")))
+                _logger.error(
+                        "Invalid Content-Length header in response ({!r}): closing connection"
+                        .format(headerDict.get("content-length")))
                 forceCloseConnection = True
 
             # HOTFIX for Vista and Windows 7 (GC issue 13, issue 23)
@@ -366,14 +367,12 @@ class WsgiDAVApp(object):
 
             # Make sure the socket is not reused, unless we are 100% sure all
             # current input was consumed
-            if(util.getContentLength(environ) != 0
-               and not environ.get("wsgidav.all_input_read")):
-                util.warn(
-                    "Input stream not completely consumed: closing connection")
+            if(util.getContentLength(environ) != 0 and not environ.get("wsgidav.all_input_read")):
+                _logger.error("Input stream not completely consumed: closing connection")
                 forceCloseConnection = True
 
             if forceCloseConnection and headerDict.get("connection") != "close":
-                util.warn("Adding 'Connection: close' header")
+                _logger.error("Adding 'Connection: close' header")
                 response_headers.append(("Connection", "close"))
 
             # Log request
@@ -381,9 +380,6 @@ class WsgiDAVApp(object):
                 userInfo = environ.get("http_authenticator.username")
                 if not userInfo:
                     userInfo = "(anonymous)"
-                threadInfo = ""
-                if self._verbose >= 1:
-                    threadInfo = "<{}> ".format(threading.currentThread().ident)
                 extra = []
                 if "HTTP_DESTINATION" in environ:
                     extra.append('dest="{}"'.format(environ.get("HTTP_DESTINATION")))
@@ -402,26 +398,24 @@ class WsgiDAVApp(object):
                 if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="{}"'.format(environ.get("HTTP_USER_AGENT")))
                 if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
-                    extra.append('transfer-enc={}'.format(environ.get("HTTP_TRANSFER_ENCODING")))
+                    extra.append("transfer-enc={}".format(environ.get("HTTP_TRANSFER_ENCODING")))
                 if self._verbose >= 1:
-                    extra.append('elap=%.3fsec'.format(time.time() - start_time))
+                    extra.append("elap={:.3f}sec".format(time.time() - start_time))
                 extra = ", ".join(extra)
 
 #               This is the CherryPy format:
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
-
-                _logger.info('{} - {} - [{}] "{}" {} -> {}'.format(
-                    threadInfo + environ.get("REMOTE_ADDR", ""),
+                _logger.warn('{} - {} - [{}] "{}" {} -> {}'.format(
+                    environ.get("REMOTE_ADDR", ""),
                     userInfo,
                     util.getLogTime(),
                     environ.get("REQUEST_METHOD") + " " +
-                    safeReEncode(environ.get("PATH_INFO", ""), sys.stdout.encoding or "ASCII"),
+                    safeReEncode(environ.get("PATH_INFO", ""),  sys.stdout.encoding),
                     extra,
                     status,
                     # response_headers.get(""), # response Content-Length
                     # referer
                 ))
-
             return start_response(status, response_headers, exc_info)
 
         # Call next middleware

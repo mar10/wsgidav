@@ -1,2 +1,7 @@
 [flake8]
 max-line-length = 99
+
+# Options for the flake8-quotes extension:
+inline-quotes = "
+multiline-quotes = """
+docstring-quotes = """

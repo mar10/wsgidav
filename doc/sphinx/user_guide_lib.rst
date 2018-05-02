@@ -13,6 +13,11 @@ Using the Library
 This section describes how to use the ``wsgidav`` package to implement custom
 WebDAV servers.
 
+
+.. todo::
+   This documentation is still under construction.
+
+
 The ``wsgidav`` package can be used in Python code::
 
   $ python
@@ -110,32 +115,22 @@ Logging
 -------
 
 By default, the library initializes and uses a
-`python logger <https://docs.python.org/library/logging.html>`_ named 'wsgidav'.
-This logger can be customized like so::
+`python logger <https://docs.python.org/library/logging.html>`_ named 'wsgidav' and
+sub-loggers named like 'wsgidav.wsgidav_app', etc.
+
+By default, the wsgidav logger only has a ``NullHandler`` assigned and does not propagate
+to the root logger, so it is *silent*.
+
+This logger can be enabled like so::
 
     import logging
 
     logger = logging.getLogger("wsgidav")
+    logger.propagate = True
     logger.setLevel(logging.DEBUG)
-
-and replaced like so::
-
-    import logging
-    import logging.handlers
-    from wsgidav.util import set_wsgidav_logger
-
-    custom_logger = logging.getLogger("my.logger")
-    log_path = "/my/path/wsgidav.log"
-    handler = logging.handlers.WatchedFileHandler(log_path)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    custom_logger.addHandler(handler)
-
-    set_wsgidav_logger(custom_logger)
-
 
 
 .. note::
 
-    The CLI calls ``set_wsgidav_logger(None)`` on startup, so it logs to stdout
-    (and stderr).
+    The CLI calls :func:`util.initLogging` on startup, so it logs to stdout as configured
+    by the ``verbose`` and ``enable_loggers`` options.

@@ -335,7 +335,7 @@ class HTTPAuthenticator(BaseMiddleware):
         # TODO: Chun added this comments, but code was commented out
         # Do not do realm checking - a hotfix for WinXP using some other realm's
         # auth details for this realm - if user/password match
-        if 'realm' in authheaderdict:
+        if "realm" in authheaderdict:
             if authheaderdict["realm"].upper() != realmname.upper():
                 if HOTFIX_WINXP_AcceptRootShareLogin:
                     # Hotfix: also accept '/'

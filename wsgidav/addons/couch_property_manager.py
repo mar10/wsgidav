@@ -57,11 +57,12 @@ class CouchPropertyManager(object):
         dbName = opts.get("dbName", "wsgidav_props")
         if dbName in self.couch:
             self.db = self.couch[dbName]
-            util.log("CouchPropertyManager connected to %s v%s" % (self.db, self.couch.version()))
+            _logger.info("CouchPropertyManager connected to %s v%s" %
+                         (self.db, self.couch.version()))
         else:
             self.db = self.couch.create(dbName)
-            util.log("CouchPropertyManager created new db %s v%s" %
-                     (self.db, self.couch.version()))
+            _logger.info("CouchPropertyManager created new db %s v%s" %
+                         (self.db, self.couch.version()))
 
         # Ensure that we have a permanent view
         if "_design/properties" not in self.db:

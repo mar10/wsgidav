@@ -72,10 +72,11 @@ class MongoPropertyManager(object):
             if not self.db.authenticate(opts.get("user"), opts.get("pwd")):
                 raise RuntimeError("Failed to logon to db %s as user %s" %
                                    (self.db.name, opts.get("user")))
-            util.log("Logged on to mongo db '%s' as user '%s'" % (self.db.name, opts.get("user")))
+            _logger.info("Logged on to mongo db '%s' as user '%s'" %
+                         (self.db.name, opts.get("user")))
 
         self.collection = self.db["properties"]
-        util.log("MongoPropertyManager connected %r" % self.collection)
+        _logger.info("MongoPropertyManager connected %r" % self.collection)
         self.collection.ensure_index("_url")
 
     def _disconnect(self):

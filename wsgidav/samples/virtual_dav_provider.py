@@ -528,7 +528,7 @@ class VirtualResFile(_VirtualNonCollection):
 
     def __init__(self, path, environ, data, filePath):
         if not os.path.exists(filePath):
-            util.warn("VirtualResFile(%r) does not exist." % filePath)
+            _logger.error("VirtualResFile(%r) does not exist." % filePath)
         _VirtualNonCollection.__init__(self, path, environ)
         self.data = data
         self.filePath = filePath

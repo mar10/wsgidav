@@ -175,7 +175,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self._verbose >= 2:
             _logger.error("Raising DAVError {}".format(
-                          safeReEncode(e.getUserInfo(), sys.stdout.encoding or "ASCII")))
+                          safeReEncode(e.getUserInfo(), sys.stdout.encoding)))
         raise e
 
     def _listDirectory(self, davres, environ, start_response):

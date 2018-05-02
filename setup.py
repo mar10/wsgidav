@@ -35,7 +35,7 @@ class ToxCommand(TestCommand):
 # and http://stackoverflow.com/a/22273180/19166
 class SphinxCommand(Command):
     user_options = []
-    description = 'Build docs using Sphinx'
+    description = "Build docs using Sphinx"
 
     def initialize_options(self):
         pass
@@ -86,6 +86,7 @@ if "bdist_msi" in sys.argv:
 
 tests_require = [
     "cheroot",
+    "flake8",
     "pytest",
     "pytest-cov",
     "tox",

@@ -6,6 +6,7 @@
 - Support YAML and use wsgidav.yaml by default if it exists in local folder
 - Use wsgidav.json by default if exists in local folder
 - wsgidav.json can contain comments now (JavaScript syntax)
+- Expand '~' in `--root` and `--config` CLI options
 - #97: Fixing assumption that QUERY_STRING in environment (dir_browser)
 - #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
 - #101: Fail cleanly if trying to put to unknown collection
@@ -16,8 +17,7 @@
 - **Refactor logging**
   - Library:
     - Removed usage of `print` in favor of `logging.getLogger().debug`
-    - Remove enable_loggers option
-    - Remove util.note(), .status(), ...
+    - Remove util.note(), .status(), ... helpers
 
 ## 2.3.0 / 2018-04-06
 
