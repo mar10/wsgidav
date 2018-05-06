@@ -83,7 +83,6 @@ except ImportError:
 _logger = util.getModuleLogger(__name__)
 
 _version = 1.0
-PYTHON_VERSION = "{}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2])
 
 SERVER_ERROR = """\
 <html>
@@ -112,7 +111,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         __version__,
         _version,
         BaseHTTPServer.BaseHTTPRequestHandler.server_version,
-        PYTHON_VERSION)
+        util.PYTHON_VERSION)
 
     def log_message(self, *args):
         pass

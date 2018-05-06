@@ -18,7 +18,6 @@ import sys
 import time
 from email.utils import formatdate, parsedate
 from hashlib import md5
-# from pprint import pformat
 
 from wsgidav import compat
 from wsgidav.dav_error import (
@@ -40,6 +39,8 @@ __docformat__ = "reStructuredText"
 BASE_LOGGER_NAME = "wsgidav"
 _logger = logging.getLogger(BASE_LOGGER_NAME)
 
+PYTHON_VERSION = "{}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2])
+
 
 # ========================================================================
 # Time tools
@@ -48,7 +49,6 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 def getRfc1123Time(secs=None):
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
     # GC issue #20: time string must be locale independent
-#    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(secs))
     return formatdate(timeval=secs, localtime=False, usegmt=True)
 
 
@@ -117,7 +117,7 @@ def _parsegmtime(timestring):
 # Logging
 # ========================================================================
 
-def initLogging(verbose=2, enable_loggers=[]):
+def initLogging(verbose=3, enable_loggers=None):
     """Initialize base logger named 'wsgidav'.
 
     The base logger is filtered by the `verbose` configuration option.
@@ -125,7 +125,7 @@ def initLogging(verbose=2, enable_loggers=[]):
 
     :Parameters:
         verbose : int
-            Verbosity configuration (0..3)
+            Verbosity configuration (0..5)
         enable_loggers : string list
             List of module logger names, that will be switched to DEBUG level.
 
@@ -139,7 +139,7 @@ def initLogging(verbose=2, enable_loggers=[]):
     They will suppress DEBUG level messages, unless they are enabled by passing
     their name to util.initLogging().
 
-    If enabled, module loggers will print DEBUG messages, even if verbose == 2.
+    If enabled, module loggers will print DEBUG messages, even if verbose == 3.
 
     Example initialize and use a module logger, that will generate output,
     if enabled (and verbose >= 2)::
@@ -155,45 +155,60 @@ def initLogging(verbose=2, enable_loggers=[]):
                          ]
         util.initLogging(2, enable_loggers)
 
-    Log level matrix
+
+    Log Level Matrix
     ~~~~~~~~~~~~~~~~
 
-    =======  ======  ===========  ======================  =======================
-    verbose  util                        Log level
-    -------  ------  ------------------------------------------------------------
-      n      ()      base logger  module logger(enabled)  module logger(disabled)
-    =======  ======  ===========  ======================  =======================
-      0      write   ERROR        ERROR                   ERROR
-      1      status  WARN         WARN                    WARN
-      2      note    INFO         DEBUG                   INFO
-      3      debug   DEBUG        DEBUG                   INFO
-    =======  ======  ===========  ======================  =======================
+    +---------+--------+---------------------------------------------------------------+
+    | Verbose | Option |                       Log level                               |
+    | level   |        +-------------+------------------------+------------------------+
+    |         |        | base logger | module logger(default) | module logger(enabled) |
+    +=========+========+=============+========================+========================+
+    |    0    | -qqq   | CRITICAL    | CRITICAL               | CRITICAL               |
+    +---------+--------+-------------+------------------------+------------------------+
+    |    1    | -qq    | ERROR       | ERROR                  | ERROR                  |
+    +---------+--------+-------------+------------------------+------------------------+
+    |    2    | -q     | WARN        | WARN                   | WARN                   |
+    +---------+--------+-------------+------------------------+------------------------+
+    |    3    |        | INFO        | INFO                   | **DEBUG**              |
+    +---------+--------+-------------+------------------------+------------------------+
+    |    4    | -v     | DEBUG       | DEBUG                  | DEBUG                  |
+    +---------+--------+-------------+------------------------+------------------------+
+    |    5    | -vv    | DEBUG       | DEBUG                  | DEBUG                  |
+    +---------+--------+-------------+------------------------+------------------------+
+
     """
+    if enable_loggers is None:
+        enable_loggers = []
     # print("initLogging({})".format(verbose))
-    formatter = logging.Formatter("[%(asctime)s.%(msecs)d] %(message)s",
-                                  "%H:%M:%S")
-    # formatter = logging.Formatter("<%(thread)d> [%(asctime)s.%(msecs)d] %(name)s:  %(message)s",
+    # formatter = logging.Formatter("%(asctime)s.%(msecs)03d - %(message)s",
     #                               "%H:%M:%S")
+    formatter = logging.Formatter(
+            "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-20s %(levelname)-7s:  %(message)s",
+            "%H:%M:%S")
 
     # Define handlers
     consoleHandler = logging.StreamHandler(sys.stdout)
 #    consoleHandler = logging.StreamHandler(sys.stderr)
     consoleHandler.setFormatter(formatter)
-    consoleHandler.setLevel(logging.DEBUG)
+    # consoleHandler.setLevel(logging.DEBUG)
 
     # Add the handlers to the base logger
     logger = logging.getLogger(BASE_LOGGER_NAME)
 
-    if verbose >= 3:  # --debug
+    if verbose >= 4:  # --verbose
         logger.setLevel(logging.DEBUG)
-    elif verbose >= 2:  # --verbose
+    elif verbose == 3:  # default
         logger.setLevel(logging.INFO)
-    elif verbose >= 1:  # standard
+    elif verbose == 2:  # --quiet
         logger.setLevel(logging.WARN)
-        consoleHandler.setLevel(logging.WARN)
-    else:  # --quiet
+        # consoleHandler.setLevel(logging.WARN)
+    elif verbose == 1:  # -qq
         logger.setLevel(logging.ERROR)
-        consoleHandler.setLevel(logging.ERROR)
+        # consoleHandler.setLevel(logging.WARN)
+    else:  # -qqq
+        logger.setLevel(logging.CRITICAL)
+        # consoleHandler.setLevel(logging.ERROR)
 
     # Don't call the root's handlers after our custom handlers
     logger.propagate = False
@@ -209,13 +224,11 @@ def initLogging(verbose=2, enable_loggers=[]):
 
     logger.addHandler(consoleHandler)
 
-    if verbose >= 2:
+    if verbose >= 3:
         for e in enable_loggers:
             if not e.startswith(BASE_LOGGER_NAME + "."):
                 e = BASE_LOGGER_NAME + "." + e
             lg = logging.getLogger(e.strip())
-            # if verbose >= 2:
-            #     log("Logger({}).setLevel(DEBUG)".format(e.strip()))
             lg.setLevel(logging.DEBUG)
 
 
@@ -224,76 +237,12 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
 
     @see: unit.initLogging
     """
-    # _logger.debug("getModuleLogger({})".format(moduleName))
     if not moduleName.startswith(BASE_LOGGER_NAME + "."):
         moduleName = BASE_LOGGER_NAME + "." + moduleName
-#    assert not "." in moduleName, ("Only pass the module name, without "
-#        "leading '%s.'.") % BASE_LOGGER_NAME
-#    logger = logging.getLogger("{}.{}".format(BASE_LOGGER_NAME, moduleName))
     logger = logging.getLogger(moduleName)
-    if logger.level == logging.NOTSET and not defaultToVerbose:
-        logger.setLevel(logging.INFO)  # Disable debug messages by default
+    # if logger.level == logging.NOTSET and not defaultToVerbose:
+    #     logger.setLevel(logging.INFO)  # Disable debug messages by default
     return logger
-
-
-# def _write(msg, var, module, level, flush):
-#     if module:
-#         logger = logging.getLogger(BASE_LOGGER_NAME + "." + module)
-#         # Disable debug messages for module loggers by default
-#         if logger.level == logging.NOTSET:
-#             logger.setLevel(logging.INFO)
-#     else:
-#         logger = _logger
-#     logger.log(level, msg)
-#     if var is not None and level >= logger.getEffectiveLevel():
-#         logger.log(level, pformat(var, indent=4))
-#     if flush:
-#         for hdlr in logger.handlers:
-#             hdlr.flush()
-
-
-# def write(msg, var=None, module=None, flush=True):
-#     """Log always."""
-#     _write(msg, var, module, logging.CRITICAL, flush)
-
-
-# def warn(msg, var=None, module=None, flush=True):
-#     """Log to stderr."""
-#     _write(msg, var, module, logging.ERROR, flush)
-
-
-# def status(msg, var=None, module=None, flush=True):
-#     """Log if not --quiet."""
-#     _write(msg, var, module, logging.WARNING, flush)
-
-
-# def note(msg, var=None, module=None, flush=True):
-#     """Log if --verbose.
-#
-#     Shortcut for logging.getLogger('wsgidav').info(msg).
-#     This message will only display if verbose >= 2.
-#     """
-#     _write(msg, var, module, logging.INFO, flush)
-
-
-# log = note
-
-
-# def debug(msg, var=None, module=None, flush=True):
-#     """Log if --debug."""
-#     _write(msg, var, module, logging.DEBUG, flush)
-
-
-# def traceCall(msg=None):
-#     """Return name of calling function."""
-#     if __debug__:
-#         f_code = sys._getframe(2).f_code
-#         if msg is None:
-#             msg = ""
-#         else:
-#             msg = ": {}".format(msg)
-#         _logger.info("{}.{} #{}{}"
-#                      .format(f_code.co_filename, f_code.co_name, f_code.co_lineno, msg))
 
 
 # ========================================================================

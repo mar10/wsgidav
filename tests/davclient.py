@@ -416,17 +416,16 @@ class DAVClient(object):
             if res.status_code not in status:
                 # TODO: Py3: check usage of str:
                 raise AppError(
-                    "Bad response: %s (not one of %s for %s %s)\n%s"
-                    % (full_status, ", ".join(map(str, status)),
-                       self.request["method"], self.request["path"], res.content))
+                    "Bad response: {} (not one of {} for {} {})\n{}"
+                    .format(full_status, ", ".join(map(str, status)),
+                            self.request["method"], self.request["path"], res.content))
             return
         if status is None:
             if res.status_code >= 200 and res.status_code < 400:
                 return
             raise AssertionError(
-                "Bad response: %s (not 200 OK or 3xx redirect for %s %s)\n%s"
-                % (full_status, self.request["method"], self.request["path"],
-                   res.content))
+                "Bad response: {} (not 200 OK or 3xx redirect for {} {})\n{}"
+                .format(full_status, self.request["method"], self.request["path"], res.content))
         if status != res.status_code:
             raise AppError("Bad response: %s (not %s)" % (full_status, status))
 
@@ -454,5 +453,5 @@ class DAVClient(object):
             responses.setdefault(statuscode, []).append(href.text)
         for statuscode, hrefs in responses.items():
             if statuscode not in expect_status:
-                raise AppError("Invalid multistatus %s for %s (expected %s)\n%s" % (
-                    statuscode, hrefs, expect_status, responses))
+                raise AppError("Invalid multistatus {} for {} (expected {})\n{}"
+                               .format(statuscode, hrefs, expect_status, responses))

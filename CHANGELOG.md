@@ -2,22 +2,27 @@
 
 ## 2.4.0 / Unreleased
 
-- #89 Add support for JSON config files to built-in server runner
-- Support YAML and use wsgidav.yaml by default if it exists in local folder
-- Use wsgidav.json by default if exists in local folder
-- wsgidav.json can contain comments now (JavaScript syntax)
-- Expand '~' in `--root` and `--config` CLI options
-- #97: Fixing assumption that QUERY_STRING in environment (dir_browser)
-- #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
-- #101: Fail cleanly if trying to put to unknown collection
-- Reworked documentation on Read The Docs
-- Use `.format()` syntax instead of `%s` for string templating
-- Mandatory PEP8 compliance (checked by flake8)
+- Improve configuration files:
+  - #89 Add support for JSON config files to built-in server runner
+  - wsgidav.json can contain comments now (JavaScript syntax)
+  - Support YAML format as well
+  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
+- Expand '~' in `--root` and `--config` command line options
 - Bump Cheroot version to 6.2+ (used by MSI installer)
-- **Refactor logging**
-  - Library:
-    - Removed usage of `print` in favor of `logging.getLogger().debug`
-    - Remove util.note(), .status(), ... helpers
+- **TODO** #94: Use utf-8 as default
+- #97: Fix assumption that QUERY_STRING is in environment (dir_browser)
+- #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
+- #100: Send ETags with PUT response
+- #101: Fail cleanly if trying to PUT to unknown collection
+- Reworked documentation on Read The Docs
+- Refactor logging:
+  - Re-define verbosity level range: 0..5
+  - Removed usage of `print` in favor of `logging.getLogger().debug`
+  - Remove util.note(), .status(), ... helpers
+- Refactor code base:
+  - Use `.format()` syntax instead of `%s` for string templating
+  - Mandatory PEP8 compliance (checked by flake8)
+
 
 ## 2.3.0 / 2018-04-06
 

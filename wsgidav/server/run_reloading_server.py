@@ -1,7 +1,7 @@
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-Wrapper for ``run_server``, that restarts the server when source code is
+Wrapper for ``server_cli``, that restarts the server when source code is
 modified.
 """
 from __future__ import print_function
@@ -19,7 +19,7 @@ def run():
     print("run_reloading_server", args)
 
     try:
-        serverpath = os.path.join(os.path.dirname(__file__), "run_server.py")
+        serverpath = os.path.join(os.path.dirname(__file__), "server_cli.py")
         while True:
             p = Popen(["python", serverpath] + args,
                       # stdin=sys.stdin,
@@ -35,9 +35,9 @@ def run():
             sys.stderr = sys.__stderr__
 
             if p.returncode == 3:
-                print("run_server returned 3: restarting...")
+                print("server_cli returned 3: restarting...")
             else:
-                print("run_server returned {}: terminating.".format(p.returncode))
+                print("server_cli returned {}: terminating.".format(p.returncode))
                 break
     except Exception as e:
         raise e

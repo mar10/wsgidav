@@ -247,8 +247,7 @@ class ShelveTest(BasicTest):
             modifier = "-py2"  # shelve formats are incompatible
         else:
             modifier = "-py3"
-        self.path = os.path.join(
-            gettempdir(), "wsgidav-locks%s.shelve" % modifier)
+        self.path = os.path.join(gettempdir(), "wsgidav-locks{}.shelve".format(modifier))
         storage = lock_storage.LockStorageShelve(self.path)
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 2

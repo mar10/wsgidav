@@ -44,13 +44,29 @@ The options described below can be defined for the CLI either
 Verbosity Level
 ---------------
 
-The verbosity level can have a value from 0 to 3::
+The verbosity level can have a value from 0 to 5 (default: 3):
 
-      0 - no output (excepting application exceptions)
-      1 - show single line request summaries (for HTTP logging)
-      2 - show additional events
-      3 - show full request/response header info (HTTP Logging)
-          request body and GET response bodies not shown
+=========  ======  ===========  ======================================================
+Verbosity  Option  Log level    Remarks
+=========  ======  ===========  ======================================================
+  0        -qqq    CRITICAL     quiet
+  1        -qq     ERROR        no output (excepting application exceptions)
+  2        -q      WARN         warnings and errors only
+  3                INFO         show single line request summaries (for HTTP logging)
+  4        -v      DEBUG        show additional events
+  5        -vv     DEBUG        show full request/response header info (HTTP Logging)
+                                request body and GET response bodies not shown
+=========  ======  ===========  ======================================================
+
+
+..
+  The verbosity level can have a value from 0 to 3::
+
+        0 - no output (excepting application exceptions)
+        1 - show single line request summaries (for HTTP logging)
+        2 - show additional events
+        3 - show full request/response header info (HTTP Logging)
+            request body and GET response bodies not shown
 
 
 Sample ``wsgidav.yaml``

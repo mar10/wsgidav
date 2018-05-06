@@ -2,10 +2,11 @@
 
 -r requirements.txt
 
+cheroot~=6.2
 cx_Freeze
 Paste~=2.0
-flake8
-flake8-quotes
+flake8~=3.5
+flake8-quotes~=1.0
 pytest~=2.7
 pytest-cov~=1.8
 recommonmark

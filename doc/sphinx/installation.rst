@@ -49,9 +49,13 @@ Install lxml (optional)::
 
 If everything is cool, this should work now::
 
-    $ wsgidav --version
-    2.3.1
+    $ wsgidav --version -v
+    WsgiDAV/2.4.0 Python/3.6.1 Darwin-17.5.0-x86_64-i386-64bit
     $ wsgidav --help
+
+..
+    $ wsgidav --version
+    bash-3.2$     2.3.1
 
 
 Windows

@@ -65,16 +65,19 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
     print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
 
 # CherryPy is required for the tests and benchmarks. It is also the preferrred
-# server for the stand-alone mode (`wsgidav.server.run_server.py`).
+# server for the stand-alone mode (`wsgidav.server.server_cli.py`).
 # We currently do not add it as an installation requirement, because
 #   1. users may not need the command line server at all
 #   2. users may prefer another server
 #   3. there may already cherrypy versions installed
 
 install_requires = [
-    "defusedxml~=0.5",
-    "jsmin~=2.2",
-    "PyYAML~=3.2",
+    "defusedxml",
+    "jsmin",
+    "PyYAML",
+    # "defusedxml~=0.5",
+    # "jsmin~=2.2",
+    # "PyYAML~=3.2",
     ]
 
 # The Windows MSI Setup should include lxml and CherryPy
@@ -85,12 +88,12 @@ if "bdist_msi" in sys.argv:
         ])
 
 tests_require = [
-    "cheroot",
-    "flake8",
-    "pytest",
-    "pytest-cov",
-    "tox",
-    "webtest",
+    # "cheroot",
+    # "flake8",
+    # "pytest",
+    # "pytest-cov",
+    # "tox",
+    # "webtest",
     ]
 
 setup_requires = install_requires
@@ -105,7 +108,7 @@ if use_cx_freeze:
     try:
         from cx_Freeze import setup, Executable  # noqa F811
         executables = [
-            Executable(script="wsgidav/server/run_server.py",
+            Executable(script="wsgidav/server/server_cli.py",
                        base=None,
                        # base="Win32GUI",
                        targetName="wsgidav.exe",
@@ -183,7 +186,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
     keywords="web wsgi webdav application server",
-    license="The MIT License",
+    license="MIT",
     packages=find_packages(exclude=["tests"]),
     install_requires=install_requires,
     setup_requires=setup_requires,
@@ -196,7 +199,7 @@ setup(
         "sphinx": SphinxCommand,
         },
     entry_points={
-        "console_scripts": ["wsgidav = wsgidav.server.run_server:run"],
+        "console_scripts": ["wsgidav = wsgidav.server.server_cli:run"],
         },
     options={
         "build_exe": build_exe_options,

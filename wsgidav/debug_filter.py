@@ -26,10 +26,9 @@ These configuration settings are evaluated:
     =======  ===================================================================
     verbose  Effect
     =======  ===================================================================
-     0        No additional output.
-     1        No additional output (only standard request logging).
-     2        Dump headers of all requests and responses.
-     3        Dump headers and bodies of all requests and responses.
+     <= 3     No additional output (only standard request logging).
+     4        Dump headers of all requests and responses.
+     5        Dump headers and bodies of all requests and responses.
     =======  ===================================================================
 
 *debug_methods*
@@ -82,7 +81,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
     def __call__(self, environ, start_response):
         """"""
         # srvcfg = environ["wsgidav.config"]
-        verbose = self._config.get("verbose", 2)
+        verbose = self._config.get("verbose", 3)
 
         method = environ["REQUEST_METHOD"]
 
@@ -90,7 +89,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         dumpRequest = False
         dumpResponse = False
 
-        if verbose >= 3:
+        if verbose >= 5:
             dumpRequest = dumpResponse = True
 
         # Process URL commands
@@ -104,11 +103,11 @@ class WsgiDavDebugFilter(BaseMiddleware):
         # Turn on max. debugging for selected litmus tests
         litmusTag = environ.get(
             "HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
-        if litmusTag and verbose >= 2:
+        if litmusTag and verbose >= 3:
             _logger.info("----\nRunning litmus test '{}'...".format(litmusTag))
             for litmusSubstring in self.debug_litmus:
                 if litmusSubstring in litmusTag:
-                    verbose = 3
+                    verbose = 5
                     debugBreak = True
                     dumpRequest = True
                     dumpResponse = True
@@ -121,8 +120,8 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     self.passedLitmus[litmusSubstring] = True
 
         # Turn on max. debugging for selected request methods
-        if verbose >= 2 and method in self.debug_methods:
-            verbose = 3
+        if verbose >= 3 and method in self.debug_methods:
+            verbose = 5
             debugBreak = True
             dumpRequest = True
             dumpResponse = True
@@ -136,7 +135,9 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         # Dump request headers
         if dumpRequest:
-            _logger.info("<{}> --- {} Request ---".format(threading.currentThread().ident, method))
+            _logger.info("} Request ---".format(method))
+            # _logger.info("<{}> --- {} Request ---".format(
+            #         threading.currentThread().ident, method))
             for k, v in environ.items():
                 if k == k.upper():
                     _logger.info("{:<20}: '{}'".format(k, safeReEncode(v, "utf8")))

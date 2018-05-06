@@ -287,8 +287,8 @@ class FolderResource(DAVCollection):
             # may raise: [Error 5] Permission denied:
             # u'C:\\temp\\litmus\\ccdest'
             shutil.copystat(self._filePath, fpDest)
-        except Exception as e:
-            _logger.debug("Could not copy folder stats: {}".format(e))
+        except Exception:
+            _logger.exception("Could not copy folder stats: {}".format(self._filePath))
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
         propMan = self.provider.propManager

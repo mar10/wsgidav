@@ -75,5 +75,5 @@ Package ``wsgidav.server``
 
    wsgidav.server.ext_wsgiutils_server
    wsgidav.server.run_reloading_server
-   wsgidav.server.run_server
+   wsgidav.server.server_cli
    wsgidav.server.server_sample

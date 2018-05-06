@@ -85,7 +85,7 @@ class ShelveTest(BasicTest):
         else:
             modifier = "-py3"
         self.path = os.path.join(
-            gettempdir(), "wsgidav-props%s.shelve" % modifier)
+            gettempdir(), "wsgidav-props{}.shelve".format(modifier))
         # Note: os.remove(self.path) does not work, because Shelve may append
         # a file extension.
 #        if os.path.exists(self.path):

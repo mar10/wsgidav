@@ -57,7 +57,7 @@ from wsgidav.util import safeReEncode
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__, True)
+_logger = util.getModuleLogger(__name__)
 
 # Use these settings, if config file does not define them (or is totally
 # missing)
@@ -144,7 +144,7 @@ class WsgiDAVApp(object):
         _checkConfig(config)
         provider_mapping = self.config["provider_mapping"]
 #        response_trailer = config.get("response_trailer", "")
-        self._verbose = config.get("verbose", 2)
+        self._verbose = config.get("verbose", 3)
 
         lockStorage = config.get("locksmanager")
         if lockStorage is True:
@@ -187,7 +187,9 @@ class WsgiDAVApp(object):
             provider.setPropManager(propsManager)
 
             self.providerMap[share] = {
-                "provider": provider, "allow_anonymous": False}
+                "provider": provider,
+                "allow_anonymous": False,
+                }
 
         # Define WSGI application stack
         application = RequestResolver()
@@ -196,16 +198,19 @@ class WsgiDAVApp(object):
         dir_browser = config.get("dir_browser", {})
         middleware_stack = config.get("middleware_stack", [])
 
-        # Replace WsgiDavDirBrowser to custom class for backward compatibility only
-        # In normal way you should insert it into middleware_stack
-        if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
-            config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser[
-                "app_class"] for m in middleware_stack]
+        if dir_browser.get("app_class"):
+            _logger.error("")
+        # # Replace WsgiDavDirBrowser to custom class for backward compatibility only
+        # # In normal way you should insert it into middleware_stack
+        # if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
+        #     config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser[
+        #         "app_class"] for m in middleware_stack]
 
+        _logger.info("Middleware stack:")
         for mw in middleware_stack:
             if mw.isSuitable(config):
-                if self._verbose >= 2:
-                    _logger.info("Middleware {} is suitable".format(mw))
+                # if self._verbose >= 2:
+                _logger.info("  - {}".format(mw))
                 application = mw(application, config)
 
                 if issubclass(mw, HTTPAuthenticator):
@@ -215,11 +220,11 @@ class WsgiDAVApp(object):
                         if application.allowAnonymousAccess(share):
                             data["allow_anonymous"] = True
             else:
-                if self._verbose >= 2:
-                    _logger.info("Middleware {} is not suitable".format(mw))
+                # if self._verbose >= 2:
+                _logger.warn("- SKIPPING middleware {} (not suitable)".format(mw))
 
         # Print info
-        if self._verbose >= 2:
+        if self._verbose >= 3:
             _logger.info("Using lock manager: {!r}".format(locksManager))
             _logger.info("Using property manager: {!r}".format(propsManager))
             _logger.info("Using domain controller: {!r}".format(domain_controller))
@@ -227,11 +232,11 @@ class WsgiDAVApp(object):
             for share, data in self.providerMap.items():
                 hint = " (anonymous)" if data["allow_anonymous"] else ""
                 _logger.info("  Share '{}': {}{}".format(share, provider, hint))
-        if self._verbose >= 1:
+        if self._verbose >= 2:
             for share, data in self.providerMap.items():
                 if data["allow_anonymous"]:
                     # TODO: we should only warn here, if --no-auth is not given
-                    _logger.info("WARNING: share '{}' will allow anonymous access.".format(share))
+                    _logger.warn("WARNING: share '{}' will allow anonymous access.".format(share))
 
         self._application = application
 
@@ -376,7 +381,7 @@ class WsgiDAVApp(object):
                 response_headers.append(("Connection", "close"))
 
             # Log request
-            if self._verbose >= 1:
+            if self._verbose >= 3:
                 userInfo = environ.get("http_authenticator.username")
                 if not userInfo:
                     userInfo = "(anonymous)"
@@ -405,7 +410,7 @@ class WsgiDAVApp(object):
 
 #               This is the CherryPy format:
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
-                _logger.warn('{} - {} - [{}] "{}" {} -> {}'.format(
+                _logger.info('{} - {} - [{}] "{}" {} -> {}'.format(
                     environ.get("REMOTE_ADDR", ""),
                     userInfo,
                     util.getLogTime(),
