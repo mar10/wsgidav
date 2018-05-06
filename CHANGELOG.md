@@ -7,6 +7,8 @@
   - wsgidav.json can contain comments now (JavaScript syntax)
   - Support YAML format as well
   - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
+  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
+  - `middleware_stack` option accepts module + class names as string
 - Expand '~' in `--root` and `--config` command line options
 - Bump Cheroot version to 6.2+ (used by MSI installer)
 - **TODO** #94: Use utf-8 as default

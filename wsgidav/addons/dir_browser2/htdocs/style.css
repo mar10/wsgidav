@@ -1,0 +1,31 @@
+img {
+  border: 0;
+  padding: 0 2px;
+  vertical-align: text-bottom;
+}
+th, td {
+  padding: 2px 20px 2px 2px;
+}
+th {
+  text-align: left;
+}
+th.right {
+  text-align: right;
+}
+td  {
+  font-family: monospace;
+  vertical-align:
+  bottom; white-space: pre;
+}
+td.right {
+  text-align: right;
+}
+table {
+  border: 0;
+}
+a.symlink {
+  font-style: italic;
+}
+p.trailer {
+  font-size: smaller;
+}

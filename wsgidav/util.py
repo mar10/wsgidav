@@ -7,6 +7,8 @@ Miscellaneous support functions for WsgiDAV.
 """
 import base64
 import calendar
+from email.utils import formatdate, parsedate
+from hashlib import md5
 import locale
 import logging
 import mimetypes
@@ -16,8 +18,6 @@ import socket
 import stat
 import sys
 import time
-from email.utils import formatdate, parsedate
-from hashlib import md5
 
 from wsgidav import compat
 from wsgidav.dav_error import (

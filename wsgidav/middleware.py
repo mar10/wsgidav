@@ -22,6 +22,9 @@ class BaseMiddleware(object):
     def __call__(self, environ, start_response):
         raise NotImplementedError
 
+    def __str__(self):
+        return "{}.{}".format(self.__module__, self.__class__.__name__)
+
     @staticmethod
     def isSuitable(config):
         """

@@ -12,6 +12,14 @@ port: 8080
 # Set verbosity to standard
 verbose: 1
 
+# Uncomment and modify to customize the WSGI application stack:
+
+# middleware_stack:
+#     - wsgidav.dir_browser.WsgiDavDirBrowser
+#     - wsgidav.http_authenticator.HTTPAuthenticator
+#     - wsgidav.error_printer.ErrorPrinter
+#     - wsgidav.debug_filter.WsgiDavDebugFilter
+
 # Remove this block to prevent directory browsing
 dir_browser:
     enable: true

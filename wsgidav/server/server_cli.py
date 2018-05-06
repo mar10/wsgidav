@@ -170,8 +170,8 @@ See https://github.com/mar10/wsgidav for additional information.
     args.verbose -= args.quiet
     del args.quiet
 
-    if args.verbose >= 4:
-        print("Verbosity: {}".format(args.verbose))
+    # if args.verbose >= 4:
+    #     print("Verbosity: {}".format(args.verbose))
 
     if args.root_path and not os.path.isdir(args.root_path):
         msg = "{} is not a directory".format(args.root_path)

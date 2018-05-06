@@ -51,6 +51,7 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
+from wsgidav.middleware import BaseMiddleware
 from wsgidav.property_manager import PropertyManager
 from wsgidav.request_resolver import RequestResolver
 from wsgidav.util import safeReEncode
@@ -137,8 +138,8 @@ class WsgiDAVApp(object):
         # Do not initialize logging here, because we want to keep silence in library-mode
         # util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
-        _logger.info("Default encoding: {} (file system: {})"
-                     .format(sys.getdefaultencoding(), sys.getfilesystemencoding()))
+        _logger.info("Default encoding: {!r} (file system: {!r})".format(
+                sys.getdefaultencoding(), sys.getfilesystemencoding()))
 
         # Evaluate configuration and set defaults
         _checkConfig(config)
@@ -199,39 +200,45 @@ class WsgiDAVApp(object):
         middleware_stack = config.get("middleware_stack", [])
 
         if dir_browser.get("app_class"):
-            _logger.error("")
-        # # Replace WsgiDavDirBrowser to custom class for backward compatibility only
-        # # In normal way you should insert it into middleware_stack
-        # if dir_browser.get("enable", True) and "app_class" in dir_browser.keys():
-        #     config["middleware_stack"] = [m if m != WsgiDavDirBrowser else dir_browser[
-        #         "app_class"] for m in middleware_stack]
+            raise RuntimeError("app_class option was removed. Use middleware_stack instead")
+
+        def dynamic_import_class(name):
+            import importlib
+            module_name, class_name = name.rsplit(".", 1)
+            module = importlib.import_module(module_name)
+            my_class = getattr(module, class_name)
+            return my_class
 
         _logger.info("Middleware stack:")
         for mw in middleware_stack:
-            if mw.isSuitable(config):
-                # if self._verbose >= 2:
-                _logger.info("  - {}".format(mw))
+            # If a string is passed, try to import it
+            if compat.is_basestring(mw):
+                mw = dynamic_import_class(mw)
+
+            if issubclass(mw, BaseMiddleware) and mw.isSuitable(config):
                 application = mw(application, config)
+                _logger.info("  - {}".format(application))
 
                 if issubclass(mw, HTTPAuthenticator):
                     domain_controller = application.getDomainController()
-                    # check anonymous access
+                    # Check anonymous access
                     for share, data in self.providerMap.items():
                         if application.allowAnonymousAccess(share):
                             data["allow_anonymous"] = True
             else:
-                # if self._verbose >= 2:
-                _logger.warn("- SKIPPING middleware {} (not suitable)".format(mw))
+                _logger.warn("  - SKIPPING {} (not suitable)".format(mw))
 
         # Print info
         if self._verbose >= 3:
             _logger.info("Using lock manager: {!r}".format(locksManager))
             _logger.info("Using property manager: {!r}".format(propsManager))
             _logger.info("Using domain controller: {!r}".format(domain_controller))
+
             _logger.info("Registered DAV providers:")
             for share, data in self.providerMap.items():
                 hint = " (anonymous)" if data["allow_anonymous"] else ""
                 _logger.info("  Share '{}': {}{}".format(share, provider, hint))
+
         if self._verbose >= 2:
             for share, data in self.providerMap.items():
                 if data["allow_anonymous"]:

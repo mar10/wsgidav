@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>"
+<html>
+<head>
+  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+  <meta name='generator' content='WsgiDAV {displaypath}'>
+  <title>WsgiDAV - Index of {displaypath} </title>
+  <script type='text/javascript'>{PAGE_SCRIPT}</script>
+  <style type='text/css'>{PAGE_CSS}</style>
+  <style type='text/css'> A {behavior: url(#default#AnchorClick);} </style>
+  <object id='winFirefoxPlugin' type='application/x-sharepoint' width='0' height='0' style='visibility: hidden;'></object>
+</head>
+
+<body onload='onLoad()'>
+
+  <h1>Index of {displaypath}</h1>
+  <a title='Open this folder in a WebDAV client.' href='{url}?davmount'>Mount</a>
+  &#8211;
+  <a title='Open as Web Folder (requires Microsoft Internet Explorer)' href='' FOLDER='{url}'>Open as Web Folder</a>
+
+  <hr>
+
+  <table onclick='return onClickTable(event)'>
+
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th class='right'>Size</th>
+        <th class='right'>Last modified</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>Top level share</td>
+        <td></td> <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href='{parentUrl}'>Parent Directory</a>
+        </td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+
+      <tr>
+        <td>
+          <a href="{href}" class="{class}">{displayName}</a>
+        </td>
+        <td>{displayType}</td>
+        <td class='right'>{strSize}</td>
+        <td class='right'>{strModified}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <p>Authenticated user: '{username}', realm: '{realm}'.</p>
+
+  <p class='trailer'>{trailer}</p>
+
+</body>
+</html>
