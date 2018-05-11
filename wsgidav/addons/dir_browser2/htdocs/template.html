@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="generator" content="WsgiDAV/{{ version }}">
+  <title>WsgiDAV - Index of {{ displaypath }} </title>
+  <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico">
+  <link rel="stylesheet" href="{{ htdocs }}/style.css" />
+  <script defer src="{{ htdocs }}/script.js"></script>
+  <style type="text/css"> A {behavior: url(#default#AnchorClick);} </style>
+</head>
+
+<body onload="onLoad()">
+
+  <h1>
+    <img class="logo" alt="WsgiDAV" src="{{ htdocs }}/logo.png">
+    Index of {{ displaypath }}
+  </h1>
+
+  {{ config.davmount }}
+  {% if config.davmount or config.ms_mount %}
+  <p class="links">
+    {% if config.davmount %}
+      <a title="Open this folder in a WebDAV client." href="{{ url }}?davmount">Mount</a>
+      &#8211;
+    {% endif %}
+    {% if config.ms_mount %}
+      <a title="Open as Web Folder (requires Microsoft Internet Explorer)"
+          href="" folder="{{ url }}">Open as Web Folder</a>
+    {% endif %}
+  </p>
+  {% endif %}
+  <hr>
+
+  <table class="dir-listing" onclick="return onClickTable(event)">
+
+    <colgroup>
+      <col>
+      <col>
+      <col class="right">
+      <col class="right">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Size</th>
+        <th>Last modified</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% if parentUrl %}
+      <tr class="directory">
+          <td>
+            <a href="{{ parentUrl }}">..</a>
+          </td>
+        <td>Directory</td>
+        <td>-</td>
+        <td></td>
+      </tr>
+      {% endif %}
+
+      {% for row in rows %}
+      <tr class="{{ row.class }}">
+        <td>
+          <a href="{{row.href}}">{{row.displayName}}</a>
+        </td>
+        <td>{{ row.displayType }}</td>
+        <td>{{ row.strSize }}</td>
+        <td>{{ row.strModified }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr>
+
+  <p>Authenticated user: "{{username}}", realm: "{{realm}}".</p>
+
+  <p class="trailer">{{trailer}}</p>
+
+  <object id="winFirefoxPlugin" type="application/x-sharepoint"
+      width="0" height="0" style="visibility: hidden;"></object>
+
+</body>
+</html>

@@ -9,10 +9,10 @@ import base64
 import calendar
 from email.utils import formatdate, parsedate
 from hashlib import md5
-import locale
 import logging
 import mimetypes
 import os
+from pprint import pformat
 import re
 import socket
 import stat
@@ -184,7 +184,7 @@ def initLogging(verbose=3, enable_loggers=None):
     # formatter = logging.Formatter("%(asctime)s.%(msecs)03d - %(message)s",
     #                               "%H:%M:%S")
     formatter = logging.Formatter(
-            "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-20s %(levelname)-7s:  %(message)s",
+            "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s",
             "%H:%M:%S")
 
     # Define handlers
@@ -243,6 +243,56 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
     # if logger.level == logging.NOTSET and not defaultToVerbose:
     #     logger.setLevel(logging.INFO)  # Disable debug messages by default
     return logger
+
+
+# ========================================================================
+# Module Import
+# ========================================================================
+
+def dynamic_import_class(name):
+    """Import a class from a module string, e.g. ``my.module.ClassName``."""
+    import importlib
+    module_name, class_name = name.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    the_class = getattr(module, class_name)
+    return the_class
+
+
+def dynamic_instantiate_middleware(name, args, expand=None):
+    """Import a class and instantiate with custom args.
+
+    Example:
+        name = "my.module.Foo"
+        args_dict = {
+            "bar": 42,
+            "baz": "qux"
+            }
+        =>
+        from my.module import Foo
+        return Foo(bar=42, baz="qux")
+    """
+    def _expand(v):
+        """Replace some string templates with defined values."""
+        if expand and compat.is_basestring(v) and v.lower() in expand:
+            return expand[v]
+        return v
+
+    try:
+        the_class = dynamic_import_class(name)
+        inst = None
+        if type(args) in (tuple, list):
+            args = tuple(map(_expand, args))
+            inst = the_class(*args)
+        else:
+            assert type(args) is dict
+            args = {k: _expand(v) for k, v in args.items()}
+            inst = the_class(**args)
+
+        _logger.debug("Instantiate {}({}) => {}".format(name, args, inst))
+    except Exception:
+        _logger.exception("ERROR: Instantiate {}({}) => {}".format(name, args, inst))
+
+    return inst
 
 
 # ========================================================================
@@ -378,9 +428,10 @@ def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, 
             bytesuffix = " Bytes"
 
     if thousandsSep and (number >= 1000 or magsuffix):
-        locale.setlocale(locale.LC_ALL, "")
-        # TODO: make precision configurable
-        snum = locale.format("%d", number, thousandsSep)
+        # locale.setlocale(locale.LC_ALL, "")
+        # # TODO: make precision configurable
+        # snum = locale.format("%d", number, thousandsSep)
+        snum = "{:,d}".format(number)
     else:
         snum = str(number)
 
@@ -1114,7 +1165,7 @@ def parseIfHeaderDict(environ):
 
     environ["wsgidav.conditions.if"] = ifDict
     environ["wsgidav.ifLockTokenList"] = ifLockList
-    _logger.debug("parseIfHeaderDict", var=ifDict, module="if")
+    _logger.debug("parseIfHeaderDict\n{}".format(pformat(ifDict)))
     return
 
 

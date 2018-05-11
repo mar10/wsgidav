@@ -64,8 +64,8 @@ _logger = util.getModuleLogger(__name__)
 
 class WsgiDavDebugFilter(BaseMiddleware):
 
-    def __init__(self, application, config):
-        self._application = application
+    def __init__(self, wsgidav_app, next_app, config):
+        super(WsgiDavDebugFilter, self).__init__(wsgidav_app, next_app, config)
         self._config = config
         # self.out = sys.stdout
         self.passedLitmus = {}
@@ -135,7 +135,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         # Dump request headers
         if dumpRequest:
-            _logger.info("} Request ---".format(method))
+            _logger.info("{} Request ---".format(method))
             # _logger.info("<{}> --- {} Request ---".format(
             #         threading.currentThread().ident, method))
             for k, v in environ.items():
@@ -149,7 +149,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         nbytes = 0
         first_yield = True
-        app_iter = self._application(environ, sub_app_start_response)
+        app_iter = self.next_app(environ, sub_app_start_response)
 
         for v in app_iter:
             # Start response (the first time)

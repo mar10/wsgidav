@@ -29,8 +29,8 @@ _logger = util.getModuleLogger(__name__)
 # ========================================================================
 class ErrorPrinter(BaseMiddleware):
 
-    def __init__(self, application, config):
-        self._application = application
+    def __init__(self, wsgidav_app, next_app, config):
+        super(ErrorPrinter, self).__init__(wsgidav_app, next_app, config)
         self._catch_all_exceptions = config.get("catchall", False)
 
     def __call__(self, environ, start_response):
@@ -40,10 +40,10 @@ class ErrorPrinter(BaseMiddleware):
         try:
             try:
                 # request_server app may be a generator (for example the GET handler)
-                # So we must iterate - not return self._application(..)!
+                # So we must iterate - not return self.next_app(..)!
                 # Otherwise the we could not catch exceptions here.
                 response_started = False
-                app_iter = self._application(environ, sub_app_start_response)
+                app_iter = self.next_app(environ, sub_app_start_response)
                 for v in app_iter:
                     # Start response (the first time)
                     if not response_started:

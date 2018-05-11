@@ -49,7 +49,7 @@ class RequestServer(object):
         self.allowPropfindInfinite = True
         self._verbose = 2
         self.block_size = DEFAULT_BLOCK_SIZE
-        _logger.debug("RequestServer: __init__", module="sc")
+        _logger.debug("RequestServer: __init__")
 
         self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
         # if self._davProvider.propManager is not None:
@@ -70,7 +70,7 @@ class RequestServer(object):
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
     def __del__(self):
-        _logger.debug("RequestServer: __del__", module="sc")
+        _logger.debug("RequestServer: __del__")
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
@@ -79,14 +79,12 @@ class RequestServer(object):
         # is not installed
 #        assert "http_authenticator.username" in environ
         if "http_authenticator.username" not in environ:
-            _logger.info(
-                "*** missing 'http_authenticator.username' in environ")
+            _logger.warn("Missing 'http_authenticator.username' in environ")
 
         environ["wsgidav.username"] = environ.get("http_authenticator.username", "anonymous")
         requestmethod = environ["REQUEST_METHOD"]
 
-        self.block_size = environ["wsgidav.config"].get(
-            "block_size", DEFAULT_BLOCK_SIZE)
+        self.block_size = environ["wsgidav.config"].get("block_size", DEFAULT_BLOCK_SIZE)
 
         # Convert 'infinity' and 'T'/'F' to a common case
         if environ.get("HTTP_DEPTH") is not None:
@@ -122,12 +120,27 @@ class RequestServer(object):
             return
 
         # Run requesthandler (provider may override, #55)
+        # _logger.warn("#1...")
         app_iter = provider.customRequestHandler(environ, start_response, method)
-
-        for v in app_iter:
-            yield v
-        if hasattr(app_iter, "close"):
-            app_iter.close()
+        # _logger.warn("#1... 2")
+        try:
+            # _logger.warn("#1... 3")
+            for v in app_iter:
+                # _logger.warn("#1... 4")
+                yield v
+            # _logger.warn("#1... 5")
+        # except Exception:
+        #     _logger.warn("#1... 6")
+        #     _logger.exception("")
+        #     status = "500 Oops"
+        #     response_headers = [("content-type", "text/plain")]
+        #     start_response(status, response_headers, sys.exc_info())
+        #     return ["error body goes here"]
+        finally:
+            # _logger.warn("#1... 7")
+            if hasattr(app_iter, "close"):
+                # _logger.warn("#1... 8")
+                app_iter.close()
         return
 
     def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):
@@ -279,8 +292,7 @@ class RequestServer(object):
         if requestEL is None:
             # An empty PROPFIND request body MUST be treated as a request for
             # the names and values of all properties.
-            requestEL = etree.XML(
-                "<D:propfind xmlns:D='DAV:'><D:allprop/></D:propfind>")
+            requestEL = etree.XML("<D:propfind xmlns:D='DAV:'><D:allprop/></D:propfind>")
 
         if requestEL.tag != "{DAV:}propfind":
             self._fail(HTTP_BAD_REQUEST)
@@ -431,8 +443,7 @@ class RequestServer(object):
             for (propname, propvalue) in propupdatelist:
                 try:
                     res.setPropertyValue(propname, propvalue, dryRun=False)
-                    # Set value to None, so the response xml contains empty
-                    # tags
+                    # Set value to None, so the response xml contains empty tags
                     propResponseList.append((propname, None))
                 except Exception as e:
                     e = asDAVError(e)
@@ -441,7 +452,6 @@ class RequestServer(object):
 
         # Generate response XML
         multistatusEL = xml_tools.makeMultistatusEL()
-#        href = util.makeCompleteUrl(environ, path)
         href = res.getHref()
         util.addPropertyResponse(multistatusEL, href, propResponseList)
         if responsedescription:

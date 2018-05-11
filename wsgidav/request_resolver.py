@@ -147,8 +147,8 @@ __docformat__ = "reStructuredText"
 
 class RequestResolver(BaseMiddleware):
 
-    def __init__(self):
-        pass
+    def __init__(self, wsgidav_app, next_app, config):
+        super(RequestResolver, self).__init__(wsgidav_app, next_app, config)
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]

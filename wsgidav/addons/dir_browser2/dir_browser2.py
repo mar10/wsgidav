@@ -7,7 +7,8 @@ WSGI middleware that handles GET requests on collections to display directories.
 import os
 import sys
 
-from jinja2 import Template
+from fnmatch import fnmatch
+from jinja2 import Environment, FileSystemLoader
 
 from wsgidav import __version__, compat, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
@@ -18,6 +19,7 @@ __docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
+ASSET_SHARE = "/_dir_browser"
 
 msOfficeTypeToExtMap = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
@@ -34,29 +36,26 @@ for t, el in msOfficeTypeToExtMap.items():
 class WsgiDavDirBrowser2(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
-    def __init__(self, application, config):
-        self._application = application
-        self._verbose = config.get("verbose", 3)
-        self.template = Template("Hello {{ name }}!")
+    def __init__(self, wsgidav_app, next_app, config):
+        super(WsgiDavDirBrowser2, self).__init__(wsgidav_app, next_app, config)
+        self.htdocs_path = os.path.join(os.path.dirname(__file__), "htdocs")
+
+        # Add an additional read-only FS provider that serves the dir_browser assets
+        self.wsgidav_app.add_provider(ASSET_SHARE, self.htdocs_path, readonly=True)
+
+        # Prepare a Jinja2 template
+        templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
+        templateEnv = Environment(loader=templateLoader)
+        self.template = templateEnv.get_template("template.html")
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
-
-        # self.template.render(name="John")
 
         davres = None
         if environ["wsgidav.provider"]:
             davres = environ["wsgidav.provider"].getResourceInst(path, environ)
 
         if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection:
-
-            # if "mozilla" not in environ.get("HTTP_USER_AGENT").lower():
-            #     # issue 14: Nautilus sends GET on collections
-            #     # http://code.google.com/p/wsgidav/issues/detail?id=14
-            #     util.status("Directory browsing disabled for agent '{}'"
-            #                 .format(environ.get("HTTP_USER_AGENT")))
-            #     self._fail(HTTP_NOT_IMPLEMENTED)
-            #     return self._application(environ, start_response)
 
             if util.getContentLength(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -68,9 +67,8 @@ class WsgiDavDirBrowser2(BaseMiddleware):
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
             dirConfig = environ["wsgidav.config"].get("dir_browser", {})
             if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING", ""):
-                #                collectionUrl = davres.getHref()
                 collectionUrl = util.makeCompleteUrl(environ)
-                collectionUrl = collectionUrl.split("?")[0]
+                collectionUrl = collectionUrl.split("?", 1)[0]
                 res = """
                     <dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
                         <dm:url>{}</dm:url>
@@ -84,39 +82,46 @@ class WsgiDavDirBrowser2(BaseMiddleware):
                                           ])
                 return [res]
 
-            # Profile calls
-#            if True:
-#                from cProfile import Profile
-#                profile = Profile()
-#                profile.runcall(self._listDirectory, environ, start_response)
-#                # sort: 0:"calls",1:"time", 2: "cumulative"
-#                profile.print_stats(sort=2)
-            return self._listDirectory(davres, environ, start_response)
+            context = self._get_context(environ, davres)
 
-        return self._application(environ, start_response)
+            res = self.template.render(**context)
+            res = compat.to_bytes(res)
+            start_response("200 OK", [("Content-Type", "text/html"),
+                                      ("Content-Length", str(len(res))),
+                                      ("Cache-Control", "private"),
+                                      ("Date", util.getRfc1123Time()),
+                                      ])
+            return [res]
 
-    @staticmethod
-    def isSuitable(config):
-        return config.get("dir_browser") and config["dir_browser"].get("enable", True)
+        return self.next_app(environ, start_response)
 
     def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
-        if self._verbose >= 2:
-            _logger.error("Raising DAVError {}".format(
-                          safeReEncode(e.getUserInfo(), sys.stdout.encoding)))
+        if self.verbose >= 4:
+            _logger.warn("Raising DAVError {}".format(
+                    safeReEncode(e.getUserInfo(), sys.stdout.encoding)))
         raise e
 
-    def _listDirectory(self, davres, environ, start_response):
+    def _get_context(self, environ, davres):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#rfc.section.9.4
         """
         assert davres.isCollection
 
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
-        # displaypath = compat.unquote(davres.getHref())
         isReadOnly = environ["wsgidav.provider"].isReadOnly()
 
+        context = {
+            "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
+            "rows": [],
+            "version": __version__,
+            "displaypath": compat.unquote(davres.getHref()),
+            "url": davres.getHref(),  # util.makeCompleteUrl(environ),
+            "parentUrl": util.getUriParent(davres.getHref()),
+            "config": dirConfig,
+            "isReadOnly": isReadOnly,
+            }
         trailer = dirConfig.get("response_trailer")
         if trailer:
             trailer = trailer.replace(
@@ -126,8 +131,9 @@ class WsgiDavDirBrowser2(BaseMiddleware):
         else:
             trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
                        .format(__version__, util.getRfc1123Time()))
+        context["trailer"] = trailer
 
-        html = []
+        rows = context["rows"]
 
         # Ask collection for member info list
         dirInfoList = davres.getDirectoryInfo()
@@ -139,9 +145,12 @@ class WsgiDavDirBrowser2(BaseMiddleware):
             for res in childList:
                 di = res.getDisplayInfo()
                 href = res.getHref()
-                infoDict = {
+                classes = []
+                if res.isCollection:
+                    classes.append("directory")
+                entry = {
                     "href": href,
-                    "class": "",
+                    "class": " ".join(classes),
                     "displayName": res.getDisplayName(),
                     "lastModified": res.getLastModified(),
                     "isCollection": res.isCollection,
@@ -155,61 +164,45 @@ class WsgiDavDirBrowser2(BaseMiddleware):
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
                         if dirConfig.get("ms_sharepoint_plugin"):
-                            infoDict["class"] = "msoffice"
+                            entry["class"] = "msoffice"
                         elif dirConfig.get("ms_sharepoint_urls"):
-                            infoDict[
-                                "href"] = "ms-{}:ofe|u|{}".format(officeType, href)
+                            entry["href"] = "ms-{}:ofe|u|{}".format(officeType, href)
 
-                dirInfoList.append(infoDict)
+                dirInfoList.append(entry)
         #
-        for infoDict in dirInfoList:
-            lastModified = infoDict.get("lastModified")
+        ignore_patterns = dirConfig.get("ignore", [])
+        for entry in dirInfoList:
+            # Skip ignore patterns
+            ignore = False
+            for pat in ignore_patterns:
+                if fnmatch(entry["displayName"], pat):
+                    _logger.debug("Ignore {}".format(entry["displayName"]))
+                    ignore = True
+                    break
+            if ignore:
+                continue
+            #
+            lastModified = entry.get("lastModified")
             if lastModified is None:
-                infoDict["strModified"] = ""
+                entry["strModified"] = ""
             else:
-                infoDict["strModified"] = util.getRfc1123Time(lastModified)
+                entry["strModified"] = util.getRfc1123Time(lastModified)
 
-            infoDict["strSize"] = "-"
-            if not infoDict.get("isCollection"):
-                contentLength = infoDict.get("contentLength")
+            entry["strSize"] = "-"
+            if not entry.get("isCollection"):
+                contentLength = entry.get("contentLength")
                 if contentLength is not None:
-                    infoDict["strSize"] = util.byteNumberString(contentLength)
+                    entry["strSize"] = util.byteNumberString(contentLength)
 
-            html.append("""\
-            <tr><td><a href="{href}" class="{class}">{displayName}</a></td>
-            <td>{displayType}</td>
-            <td class='right'>{strSize}</td>
-            <td class='right'>{strModified}</td></tr>""".format(**infoDict))
+            rows.append(entry)
 
-            # html.append("""\
-            # <tr><td><a href="%(href)s" class="%(class)s">%(displayName)s</a></td>
-            # <td>%(displayType)s</td>
-            # <td class='right'>%(strSize)s</td>
-            # <td class='right'>%(strModified)s</td></tr>""" % infoDict)
-
-        html.append("</tbody>")
-        html.append("</table>")
-
-        html.append("<hr>")
+        # sort
+        sort = "name"
+        if sort == "name":
+            rows.sort(key=lambda v: "{}{}".format(not v["isCollection"], v["displayName"].lower()))
 
         if "http_authenticator.username" in environ:
-            if environ.get("http_authenticator.username"):
-                html.append("<p>Authenticated user: '{}', realm: '{}'.</p>"
-                            .format(environ.get("http_authenticator.username"),
-                                    environ.get("http_authenticator.realm")))
-#            else:
-#                html.append("<p>Anonymous</p>")
+            context["username"] = environ.get("http_authenticator.username") or "anonymous"
+            context["realm"] = environ.get("http_authenticator.realm")
 
-        if trailer:
-            html.append("<p class='trailer'>{}</p>".format(trailer))
-
-        html.append("</body></html>")
-
-        body = "\n".join(html)
-        body = compat.to_bytes(body)
-
-        start_response("200 OK", [("Content-Type", "text/html"),
-                                  ("Content-Length", str(len(body))),
-                                  ("Date", util.getRfc1123Time()),
-                                  ])
-        return [body]
+        return context

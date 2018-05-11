@@ -170,9 +170,6 @@ See https://github.com/mar10/wsgidav for additional information.
     args.verbose -= args.quiet
     del args.quiet
 
-    # if args.verbose >= 4:
-    #     print("Verbosity: {}".format(args.verbose))
-
     if args.root_path and not os.path.isdir(args.root_path):
         msg = "{} is not a directory".format(args.root_path)
         raise parser.error(msg)
@@ -243,14 +240,10 @@ def _readConfigFile(config_file, verbose):
                 continue
             conf[k] = v
     except Exception:
-        # if verbose >= 1:
-        #    traceback.print_exc()
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value)
         exceptiontext = ""
         for einfo in exceptioninfo:
             exceptiontext += einfo + "\n"
-#        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to "
-#            + exceptiontext)
         print("Failed to read configuration file: " + config_file +
               "\nDue to " + exceptiontext, file=sys.stderr)
         raise
@@ -304,17 +297,9 @@ def _initConfig():
         print("Configuration({}):\n{}"
               .format(cmdLineOpts["config_file"], pformat(config)))
 
-    # if not useLxml and config["verbose"] >= 1:
-    #     print("WARNING: Could not import lxml: using xml instead (slower). Consider installing"
-    #         "lxml from http://codespeak.net/lxml/.")
-
-    # print "verbose #3: ", config.get("verbose")
-
     if not config["provider_mapping"]:
         print("ERROR: No DAV provider defined. Try --help option.", file=sys.stderr)
         sys.exit(-1)
-#        raise RuntimeWarning("At least one DAV provider must be specified by a --root option,"
-#             or in a configuration file.")
 
     if cmdLineOpts.get("reload"):
         print("Installing paste.reloader.", file=sys.stderr)
@@ -323,8 +308,8 @@ def _initConfig():
         if config_file:
             # Add config file changes
             reloader.watch_file(config_file)
-#        import pydevd
-#        pydevd.settrace()
+        # import pydevd
+        # pydevd.settrace()
 
     return config
 
@@ -603,7 +588,7 @@ def run():
                            .format(server, "', '".join(SUPPORTED_SERVERS.keys())))
 
     if not useLxml:  # and config["verbose"] >= 1:
-        _logger.warn("WARNING: Could not import lxml: using xml instead (slower). "
+        _logger.warn("Could not import lxml: using xml instead (slower). "
                      "Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
     handler(app, config, server)

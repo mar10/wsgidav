@@ -7,8 +7,15 @@
   - wsgidav.json can contain comments now (JavaScript syntax)
   - Support YAML format as well
   - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
-  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
-  - `middleware_stack` option accepts module + class names as string
+  - `middleware_stack` entries can also be strings or dicts that are
+    evaluated to import and instantiate middleware classes.
+  - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
+    and not specially treated
+  - YAML and JSON config files allow to define and configure external middleware
+    by strings
+  - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)
+  - Removed `middleware.isSuitable()` because we don't want to enforce
+    a specific base class for middleware (introduced with #12)
 - Expand '~' in `--root` and `--config` command line options
 - Bump Cheroot version to 6.2+ (used by MSI installer)
 - **TODO** #94: Use utf-8 as default

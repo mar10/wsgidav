@@ -39,6 +39,7 @@ For every request:
     Note: The OPTIONS method for the '*' path is handled directly.
 
 """
+import inspect
 import sys
 import time
 
@@ -54,7 +55,7 @@ from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.property_manager import PropertyManager
 from wsgidav.request_resolver import RequestResolver
-from wsgidav.util import safeReEncode
+from wsgidav.util import safeReEncode,  dynamic_import_class, dynamic_instantiate_middleware
 
 __docformat__ = "reStructuredText"
 
@@ -93,10 +94,12 @@ DEFAULT_CONFIG = {
     ],
 
     # Verbose Output
-    "verbose": 1,        # 0 - no output (excepting application exceptions)
-                         # 1 - show single line request summaries (for HTTP logging)
-                         # 2 - show additional events
-                         # 3 - show full request/response header info (HTTP Logging)
+    "verbose": 3,        # 0 - no output
+                         # 1 - no output (excepting application exceptions)
+                         # 2 - show warnings
+                         # 3 - show single line request summaries (for HTTP logging)
+                         # 4 - show additional events
+                         # 5 - show full request/response header info (HTTP Logging)
                          #     request body and GET response bodies not shown
 
     "dir_browser": {
@@ -110,6 +113,7 @@ DEFAULT_CONFIG = {
         "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
     },
     "middleware_stack": [
+        RequestResolver,
         WsgiDavDirBrowser,
         HTTPAuthenticator,
         ErrorPrinter,
@@ -145,107 +149,139 @@ class WsgiDAVApp(object):
         _checkConfig(config)
         provider_mapping = self.config["provider_mapping"]
 #        response_trailer = config.get("response_trailer", "")
-        self._verbose = config.get("verbose", 3)
+        self.verbose = config.get("verbose", 3)
 
         lockStorage = config.get("locksmanager")
         if lockStorage is True:
             lockStorage = LockStorageDict()
 
         if not lockStorage:
-            locksManager = None
+            self.locksManager = None
         else:
-            locksManager = LockManager(lockStorage)
+            self.locksManager = LockManager(lockStorage)
 
-        propsManager = config.get("propsmanager")
-        if not propsManager:
+        self.propsManager = config.get("propsmanager")
+        if not self.propsManager:
             # Normalize False, 0 to None
-            propsManager = None
-        elif propsManager is True:
-            propsManager = PropertyManager()
+            self.propsManager = None
+        elif self.propsManager is True:
+            self.propsManager = PropertyManager()
 
-        mount_path = config.get("mount_path")
+        self.mount_path = config.get("mount_path")
 
         # Instantiate DAV resource provider objects for every share
         self.providerMap = {}
-        for (share, provider) in provider_mapping.items():
-            # Make sure share starts with, or is, '/'
-            share = "/" + share.strip("/")
-
-            # We allow a simple string as 'provider'. In this case we interpret
-            # it as a file system root folder that is published.
-            if compat.is_basestring(provider):
-                provider = FilesystemProvider(provider)
-
-            assert isinstance(provider, DAVProvider)
-
-            provider.setSharePath(share)
-            if mount_path:
-                provider.setMountPath(mount_path)
-
-            # TODO: someday we may want to configure different lock/prop
-            # managers per provider
-            provider.setLockManager(locksManager)
-            provider.setPropManager(propsManager)
-
-            self.providerMap[share] = {
-                "provider": provider,
-                "allow_anonymous": False,
-                }
-
-        # Define WSGI application stack
-        application = RequestResolver()
+        for share, provider in provider_mapping.items():
+            self.add_provider(share, provider)
 
         domain_controller = None
         dir_browser = config.get("dir_browser", {})
         middleware_stack = config.get("middleware_stack", [])
 
         if dir_browser.get("app_class"):
-            raise RuntimeError("app_class option was removed. Use middleware_stack instead")
+            raise RuntimeError("app_class option was removed. Use `middleware_stack` instead")
 
-        def dynamic_import_class(name):
-            import importlib
-            module_name, class_name = name.rsplit(".", 1)
-            module = importlib.import_module(module_name)
-            my_class = getattr(module, class_name)
-            return my_class
+        # Define WSGI application stack
+        mw_list = []
 
-        _logger.info("Middleware stack:")
+        # This is the 'outer' application, i.e. the WSGI application object that
+        # is eventually called by the server.
+        # When building up the middleware stack, this app will be wrapped and replaced by the
+        # next middleware:
+        self.application = self
+
         for mw in middleware_stack:
-            # If a string is passed, try to import it
+            # The middleware stack configuration may contain plain strings, dicts,
+            # classes, or objects
+            app = None
             if compat.is_basestring(mw):
-                mw = dynamic_import_class(mw)
-
-            if issubclass(mw, BaseMiddleware) and mw.isSuitable(config):
-                application = mw(application, config)
-                _logger.info("  - {}".format(application))
-
-                if issubclass(mw, HTTPAuthenticator):
-                    domain_controller = application.getDomainController()
-                    # Check anonymous access
-                    for share, data in self.providerMap.items():
-                        if application.allowAnonymousAccess(share):
-                            data["allow_anonymous"] = True
+                # If a plain string is passed, try to import it, assuming BaseMiddleware
+                # signature
+                app_class = dynamic_import_class(mw)
+                app = app_class(self, self.application, config)
+            elif type(mw) is dict:
+                # If a dict with one entry is passed, use the key as module/class name
+                # and the value as constructor arguments (positional or kwargs).
+                assert len(mw) == 1
+                name, args = list(mw.items())[0]
+                expand = {"${application}": self.application}
+                app = dynamic_instantiate_middleware(name, args, expand)
+            elif inspect.isclass(mw):
+                # If a class is passed, assume BaseMiddleware (or compatible)
+                assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
+                app = mw(self, self.application, config)
             else:
-                _logger.warn("  - SKIPPING {} (not suitable)".format(mw))
+                # Otherwies assume an initialized middleware instance
+                app = mw
+
+            # TODO: We should try to generalize this specific code:
+            if isinstance(app, HTTPAuthenticator):
+                domain_controller = app.getDomainController()
+                # Check anonymous access
+                for share, data in self.providerMap.items():
+                    if app.allowAnonymousAccess(share):
+                        data["allow_anonymous"] = True
+
+            # Add middleware to the stack
+            if app:
+                mw_list.append(app)
+                self.application = app
+            else:
+                _logger.error("Could not add middleware {}.".format(mw))
 
         # Print info
-        if self._verbose >= 3:
-            _logger.info("Using lock manager: {!r}".format(locksManager))
-            _logger.info("Using property manager: {!r}".format(propsManager))
-            _logger.info("Using domain controller: {!r}".format(domain_controller))
+        if self.verbose >= 3:
+            _logger.info("Lock manager:      {}".format(self.locksManager))
+            _logger.info("Property manager:  {}".format(self.propsManager))
+            _logger.info("Domain controller: {}".format(domain_controller))
 
-            _logger.info("Registered DAV providers:")
+            _logger.info("Middleware stack:")
+            for mw in mw_list:
+                _logger.info("  - {}".format(mw))
+
+            _logger.info("Registered DAV providers by share:")
             for share, data in self.providerMap.items():
                 hint = " (anonymous)" if data["allow_anonymous"] else ""
-                _logger.info("  Share '{}': {}{}".format(share, provider, hint))
+                _logger.info("  - '{}': {}{}".format(share, data["provider"], hint))
 
-        if self._verbose >= 2:
-            for share, data in self.providerMap.items():
-                if data["allow_anonymous"]:
-                    # TODO: we should only warn here, if --no-auth is not given
-                    _logger.warn("WARNING: share '{}' will allow anonymous access.".format(share))
+        for share, data in self.providerMap.items():
+            if data["allow_anonymous"]:
+                # TODO: we should only warn here, if --no-auth is not given
+                _logger.warn("Share '{}' will allow anonymous access.".format(share))
+        return
 
-        self._application = application
+    def add_provider(self, share, provider, readonly=False):
+        """Add a provider to the providerMap."""
+        # Make sure share starts with, or is, '/'
+        share = "/" + share.strip("/")
+        assert share not in self.providerMap
+        # We allow a simple string as 'provider'. In this case we interpret
+        # it as a file system root folder that is published.
+        if compat.is_basestring(provider):
+            provider = FilesystemProvider(provider, readonly)
+
+        assert isinstance(provider, DAVProvider)
+
+        provider.setSharePath(share)
+        if self.mount_path:
+            provider.setMountPath(self.mount_path)
+
+        # TODO: someday we may want to configure different lock/prop
+        # managers per provider
+        provider.setLockManager(self.locksManager)
+        provider.setPropManager(self.propsManager)
+
+        self.providerMap[share] = {
+            "provider": provider,
+            "allow_anonymous": False,
+            }
+
+        # Store the list of share paths, ordered by length, so route lookups
+        # will return the most specific match
+        self.sortedShareList = sorted(self.providerMap.keys(), key=len, reverse=True)
+        self.sortedShareList = [s.lower() for s in self.sortedShareList]
+
+        return provider
 
     def __call__(self, environ, start_response):
 
@@ -266,15 +302,13 @@ class WsgiDAVApp(object):
         if re_encode_path_info is None:
             re_encode_path_info = compat.PY3
         if re_encode_path_info:
-            b = compat.wsgi_to_bytes(path).decode()
-            path = environ["PATH_INFO"] = b
+            path = environ["PATH_INFO"] = compat.wsgi_to_bytes(path).decode()
 
         # We optionally unquote PATH_INFO here, although this should already be
         # done by the server (#8).
         if self.config.get("unquote_path_info", False):
             path = compat.unquote(environ["PATH_INFO"])
         # GC issue 22: Pylons sends root as u'/'
-        # if isinstance(path, unicode):
         if not compat.is_native(path):
             _logger.warn("Got non-native PATH_INFO: {!r}".format(path))
             # path = path.encode("utf8")
@@ -283,25 +317,33 @@ class WsgiDAVApp(object):
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
         environ["wsgidav.provider"] = None
-        environ["wsgidav.verbose"] = self._verbose
+        environ["wsgidav.verbose"] = self.verbose
 
         # Find DAV provider that matches the share
-
-        # sorting share list by reverse length
-#        shareList = self.providerMap.keys()
-#        shareList.sort(key=len, reverse=True)
-        shareList = sorted(self.providerMap.keys(), key=len, reverse=True)
-
         share = None
-        for r in shareList:
+        lower_path = path.lower()
+        for r in self.sortedShareList:
             # @@: Case sensitivity should be an option of some sort here;
             # os.path.normpath might give the preferred case for a filename.
             if r == "/":
                 share = r
                 break
-            elif path.upper() == r.upper() or path.upper().startswith(r.upper() + "/"):
+            elif lower_path == r or lower_path.startswith(r + "/"):
                 share = r
                 break
+        # # sorting share list by reverse length
+        # shareList = sorted(self.providerMap.keys(), key=len, reverse=True)
+        #
+        # share = None
+        # for r in shareList:
+        #     # @@: Case sensitivity should be an option of some sort here;
+        #     # os.path.normpath might give the preferred case for a filename.
+        #     if r == "/":
+        #         share = r
+        #         break
+        #     elif path.upper() == r.upper() or path.upper().startswith(r.upper() + "/"):
+        #         share = r
+        #         break
 
         # Note: we call the next app, even if provider is None, because OPTIONS
         #       must still be handled.
@@ -319,22 +361,17 @@ class WsgiDAVApp(object):
         else:
             environ["SCRIPT_NAME"] += share
             environ["PATH_INFO"] = path[len(share):]
-        # util.log("--> SCRIPT_NAME='{}', PATH_INFO='{}'"
-        #          .format(environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         # assert isinstance(path, str)
         assert compat.is_native(path)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty
-        assert environ["SCRIPT_NAME"] == "" or environ[
-            "SCRIPT_NAME"].startswith("/")
+        assert environ["SCRIPT_NAME"] == "" or environ["SCRIPT_NAME"].startswith("/")
         # SCRIPT_NAME must not have a trailing '/'
-        assert environ["SCRIPT_NAME"] in (
-            "", "/") or not environ["SCRIPT_NAME"].endswith("/")
+        assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
         # PATH_INFO starts with '/'
-        assert environ["PATH_INFO"] == "" or environ[
-            "PATH_INFO"].startswith("/")
+        assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
 
         start_time = time.time()
 
@@ -379,16 +416,16 @@ class WsgiDAVApp(object):
 
             # Make sure the socket is not reused, unless we are 100% sure all
             # current input was consumed
-            if(util.getContentLength(environ) != 0 and not environ.get("wsgidav.all_input_read")):
-                _logger.error("Input stream not completely consumed: closing connection")
+            if util.getContentLength(environ) != 0 and not environ.get("wsgidav.all_input_read"):
+                _logger.warn("Input stream not completely consumed: closing connection")
                 forceCloseConnection = True
 
             if forceCloseConnection and headerDict.get("connection") != "close":
-                _logger.error("Adding 'Connection: close' header")
+                _logger.warn("Adding 'Connection: close' header")
                 response_headers.append(("Connection", "close"))
 
             # Log request
-            if self._verbose >= 3:
+            if self.verbose >= 3:
                 userInfo = environ.get("http_authenticator.username")
                 if not userInfo:
                     userInfo = "(anonymous)"
@@ -403,38 +440,42 @@ class WsgiDAVApp(object):
                     extra.append("range={}".format(environ.get("HTTP_RANGE")))
                 if "HTTP_OVERWRITE" in environ:
                     extra.append("overwrite={}".format(environ.get("HTTP_OVERWRITE")))
-                if self._verbose >= 1 and "HTTP_EXPECT" in environ:
+                if self.verbose >= 3 and "HTTP_EXPECT" in environ:
                     extra.append('expect="{}"'.format(environ.get("HTTP_EXPECT")))
-                if self._verbose >= 2 and "HTTP_CONNECTION" in environ:
+                if self.verbose >= 4 and "HTTP_CONNECTION" in environ:
                     extra.append('connection="{}"'.format(environ.get("HTTP_CONNECTION")))
-                if self._verbose >= 2 and "HTTP_USER_AGENT" in environ:
+                if self.verbose >= 4 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="{}"'.format(environ.get("HTTP_USER_AGENT")))
-                if self._verbose >= 2 and "HTTP_TRANSFER_ENCODING" in environ:
+                if self.verbose >= 4 and "HTTP_TRANSFER_ENCODING" in environ:
                     extra.append("transfer-enc={}".format(environ.get("HTTP_TRANSFER_ENCODING")))
-                if self._verbose >= 1:
+                if self.verbose >= 3:
                     extra.append("elap={:.3f}sec".format(time.time() - start_time))
                 extra = ", ".join(extra)
 
 #               This is the CherryPy format:
 #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
-                _logger.info('{} - {} - [{}] "{}" {} -> {}'.format(
-                    environ.get("REMOTE_ADDR", ""),
-                    userInfo,
-                    util.getLogTime(),
-                    environ.get("REQUEST_METHOD") + " " +
-                    safeReEncode(environ.get("PATH_INFO", ""),  sys.stdout.encoding),
-                    extra,
-                    status,
-                    # response_headers.get(""), # response Content-Length
-                    # referer
-                ))
+                _logger.info('{addr} - {user} - [{time}] "{method} {path}" {extra} -> {status}'
+                             .format(
+                                addr=environ.get("REMOTE_ADDR", ""),
+                                user=userInfo,
+                                time=util.getLogTime(),
+                                method=environ.get("REQUEST_METHOD"),
+                                path=safeReEncode(environ.get("PATH_INFO", ""),
+                                                  sys.stdout.encoding),
+                                extra=extra,
+                                status=status,
+                                # response_headers.get(""), # response Content-Length
+                                # referer
+                                ))
             return start_response(status, response_headers, exc_info)
 
-        # Call next middleware
-        app_iter = self._application(environ, _start_response_wrapper)
-        for v in app_iter:
-            yield v
-        if hasattr(app_iter, "close"):
-            app_iter.close()
+        # Call first middleware
+        app_iter = self.application(environ, _start_response_wrapper)
+        try:
+            for v in app_iter:
+                yield v
+        finally:
+            if hasattr(app_iter, "close"):
+                app_iter.close()
 
         return

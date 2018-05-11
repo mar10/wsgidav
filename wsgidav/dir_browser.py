@@ -108,8 +108,8 @@ function openWithSharePointPlugin(url) {
 class WsgiDavDirBrowser(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
-    def __init__(self, application, config):
-        self._application = application
+    def __init__(self, wsgidav_app, next_app, config):
+        super(WsgiDavDirBrowser, self).__init__(wsgidav_app, next_app, config)
         self._verbose = 2
 
     def __call__(self, environ, start_response):
@@ -127,7 +127,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             #     util.status("Directory browsing disabled for agent '{}'"
             #                 .format(environ.get("HTTP_USER_AGENT")))
             #     self._fail(HTTP_NOT_IMPLEMENTED)
-            #     return self._application(environ, start_response)
+            #     return self.next_app(environ, start_response)
 
             if util.getContentLength(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -164,18 +164,18 @@ class WsgiDavDirBrowser(BaseMiddleware):
 #                profile.print_stats(sort=2)
             return self._listDirectory(davres, environ, start_response)
 
-        return self._application(environ, start_response)
+        return self.next_app(environ, start_response)
 
-    @staticmethod
-    def isSuitable(config):
-        return config.get("dir_browser") and config["dir_browser"].get("enable", True)
+    # @staticmethod
+    # def isSuitable(config):
+    #     return config.get("dir_browser") and config["dir_browser"].get("enable", True)
 
     def _fail(self, value, contextinfo=None, srcexception=None, errcondition=None):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
-        if self._verbose >= 2:
+        if self._verbose >= 4:
             _logger.error("Raising DAVError {}".format(
-                          safeReEncode(e.getUserInfo(), sys.stdout.encoding)))
+                    safeReEncode(e.getUserInfo(), sys.stdout.encoding)))
         raise e
 
     def _listDirectory(self, davres, environ, start_response):
@@ -204,11 +204,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "'http://www.w3.org/TR/html4/strict.dtd'>")
         html.append("<html>")
         html.append("<head>")
-        html.append(
-            "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
+        html.append("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
         html.append("<meta name='generator' content='WsgiDAV {}'>".format(__version__))
         html.append("<title>WsgiDAV - Index of {} </title>".format(displaypath))
-
         html.append("<script type='text/javascript'>{}</script>".format(PAGE_SCRIPT))
         html.append("<style type='text/css'>{}</style>".format(PAGE_CSS))
 

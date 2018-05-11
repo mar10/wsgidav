@@ -74,6 +74,7 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 install_requires = [
     "defusedxml",
     "jsmin",
+    "Jinja2",
     "PyYAML",
     # "defusedxml~=0.5",
     # "jsmin~=2.2",

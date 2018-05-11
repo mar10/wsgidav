@@ -107,18 +107,16 @@ _standardLivePropNames = ["{DAV:}creationdate",
                           "{DAV:}getcontentlength",
                           "{DAV:}getetag",
                           "{DAV:}getcontentlanguage",
-                          #                          "{DAV:}source", # removed in rfc4918
+                          # "{DAV:}source", # removed in rfc4918
                           ]
 _lockPropertyNames = ["{DAV:}lockdiscovery",
-                      "{DAV:}supportedlock"]
+                      "{DAV:}supportedlock",
+                      ]
 
-# DAVHRES_Continue = "continue"
-# DAVHRES_Done = "done"
 
 # ========================================================================
 # _DAVResource
 # ========================================================================
-
 
 class _DAVResource(object):
     """Represents a single existing DAV resource instance.
@@ -1372,7 +1370,7 @@ class DAVProvider(object):
         self.sharePath = None
         self.lockManager = None
         self.propManager = None
-        self.verbose = 2
+        self.verbose = 3
 
         self._count_getResourceInst = 0
         self._count_getResourceInstInit = 0

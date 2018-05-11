@@ -22,6 +22,7 @@ Sphinx = "~=1.6"
 
 [packages]
 defusedxml = "~=0.5"
+Jinja2 = "~=2.10"
 jsmin = "~=2.2"
 PyYAML = "~=3.2"
 
