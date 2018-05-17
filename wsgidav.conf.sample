@@ -77,7 +77,12 @@ add_header_MS_Author_Via = True
 #from debug_filter import WsgiDavDebugFilter
 #from http_authenticator import HTTPAuthenticator
 #from error_printer import ErrorPrinter
-#middleware_stack = [ WsgiDavDirBrowser, HTTPAuthenticator, ErrorPrinter, WsgiDavDebugFilter ]
+#middleware_stack = [
+#    WsgiDavDirBrowser,
+#    HTTPAuthenticator,
+#    ErrorPrinter,
+#    WsgiDavDebugFilter,
+#    ]
 
 #===============================================================================
 # Debugging

@@ -15,7 +15,6 @@
     "verbose": 1,
     // Remove this block to prevent directory browsing
     "dir_browser": {
-        "enable": true,
         "response_trailer": "",
         "davmount": false,
         "ms_mount": false,

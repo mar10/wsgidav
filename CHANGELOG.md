@@ -2,6 +2,11 @@
 
 ## 2.4.0 / Unreleased
 
+- Refactor middleware stack
+  - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
+    and not specially treated
+  - Removed `middleware.isSuitable()` because we don't want to enforce
+    a specific base class for middleware (introduced with #12)
 - Improve configuration files:
   - #89 Add support for JSON config files to built-in server runner
   - wsgidav.json can contain comments now (JavaScript syntax)
@@ -9,13 +14,8 @@
   - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
   - `middleware_stack` entries can also be strings or dicts that are
     evaluated to import and instantiate middleware classes.
-  - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
-    and not specially treated
   - YAML and JSON config files allow to define and configure external middleware
     by strings
-  - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)
-  - Removed `middleware.isSuitable()` because we don't want to enforce
-    a specific base class for middleware (introduced with #12)
 - Expand '~' in `--root` and `--config` command line options
 - Bump Cheroot version to 6.2+ (used by MSI installer)
 - **TODO** #94: Use utf-8 as default
@@ -28,6 +28,9 @@
   - Re-define verbosity level range: 0..5
   - Removed usage of `print` in favor of `logging.getLogger().debug`
   - Remove util.note(), .status(), ... helpers
+- Refactor WsgiDirBrowser:
+  - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)
+  - Uses Jinja2 and loads static assets through WsgiDAV provider
 - Refactor code base:
   - Use `.format()` syntax instead of `%s` for string templating
   - Mandatory PEP8 compliance (checked by flake8)

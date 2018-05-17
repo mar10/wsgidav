@@ -69,6 +69,7 @@ DEFAULT_CONFIG = {
     "host": "localhost",
     "port": 8080,
     "server": "cheroot",
+
     "add_header_MS_Author_Via": True,
     "unquote_path_info": False,  # See #8
     "re_encode_path_info": None,  # (See #73) None: activate on Python 3
@@ -103,7 +104,9 @@ DEFAULT_CONFIG = {
                          #     request body and GET response bodies not shown
 
     "dir_browser": {
-        "enable": True,               # Render HTML listing for GET requests on collections
+        # "enable": True,               # Render HTML listing for GET requests on collections
+        # List of fnmatch patterns:
+        "ignore": [],
         "response_trailer": "",       # Raw HTML code, appended as footer
         # Send <dm:mount> response if request URL contains '?davmount'
         "davmount": False,
