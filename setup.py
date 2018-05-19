@@ -132,9 +132,25 @@ else:
     executables = []
 
 
+# https://stackoverflow.com/a/43034479/19166
+PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
+os.environ["TCL_LIBRARY"] = os.path.join(PYTHON_INSTALL_DIR, "tcl", "tcl8.6")
+os.environ["TK_LIBRARY"] = os.path.join(PYTHON_INSTALL_DIR, "tcl", "tk8.6")
+
 build_exe_options = {
     "includes": install_requires,
-    "packages": [],
+    "include_files": [
+        # https://stackoverflow.com/a/43034479/19166
+        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
+        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
+    ],
+    "packages": [
+        "asyncio",  # https://stackoverflow.com/a/41881598/19166
+        "wsgidav.addons.dir_browser2",
+        "jinja2",
+        ],
+    "excludes": [
+    ],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
     }

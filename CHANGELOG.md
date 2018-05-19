@@ -34,6 +34,7 @@
 - Refactor code base:
   - Use `.format()` syntax instead of `%s` for string templating
   - Mandatory PEP8 compliance (checked by flake8)
+- MSI setup uses Python 3.6
 
 
 ## 2.3.0 / 2018-04-06
