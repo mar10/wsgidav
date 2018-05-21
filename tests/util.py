@@ -189,9 +189,9 @@ class WsgiDavTestServer(object):
         return self
 
     def stop(self):
-        print("Stopping WsgiDAVAppavTestServer...")
         if self.proc:
+            print("Stopping WsgiDAVAppTestServer...")
             self.proc.terminate()
             self.proc.join()
             self.proc = None
-            print("Stopping WsgiDavTestServer... done.")
+        print("Stopping WsgiDavTestServer... done.")
