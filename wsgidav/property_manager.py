@@ -92,7 +92,7 @@ class PropertyManager(object):
                 return True
             for k, v in self._dict.items():
                 _dummy = "{}, {}".format(k, v)  # noqa
-#            _logger.debug("{} checks ok {}".format(self.__class__.__name__, msg))
+            #            _logger.debug("{} checks ok {}".format(self.__class__.__name__, msg))
             return True
         except Exception:
             _logger.exception("{} _check: ERROR {}".format(self.__class__.__name__, msg))

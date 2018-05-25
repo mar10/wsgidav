@@ -19,7 +19,7 @@ from tempfile import gettempdir
 
 from wsgidav.compat import to_bytes
 from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.wsgidav_app import WsgiDAVApp
 
 
 # ========================================================================
@@ -80,8 +80,9 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     if provider is None:
         provider = FilesystemProvider(share_path)
 
-    config = DEFAULT_CONFIG.copy()
-    config.update({
+    # config = DEFAULT_CONFIG.copy()
+    # config.update({
+    config = {
         "host": "127.0.0.1",
         "port": 8080,
         "provider_mapping": {"/": provider},
@@ -94,7 +95,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "locksmanager": True,      # True: use lock_manager.LockManager
         # None: domain_controller.WsgiDAVDomainController(user_mapping)
         "domaincontroller": None,
-    })
+        }
 
     if with_auth:
         config.update({

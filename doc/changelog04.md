@@ -2,7 +2,7 @@
 
 # Introduction
 
-WsgiDAV is a refactored version of [PyFileServer 0.2](http://pyfilesync.berlios.de/pyfileserver.html),
+WsgiDAV is a refactored version of [PyFileServer 0.2](https://github.com/cwho/pyfileserver),
 Copyright (c) 2005 Ho Chun Wei.<br>
 Chun gave his approval to change the license from LGPL to MIT-License for this project.
 

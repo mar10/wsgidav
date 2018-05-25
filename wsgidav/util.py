@@ -117,7 +117,7 @@ def _parsegmtime(timestring):
 # Logging
 # ========================================================================
 
-def initLogging(verbose=3, enable_loggers=None):
+def initLogging(config):
     """Initialize base logger named 'wsgidav'.
 
     The base logger is filtered by the `verbose` configuration option.
@@ -178,14 +178,18 @@ def initLogging(verbose=3, enable_loggers=None):
     +---------+--------+-------------+------------------------+------------------------+
 
     """
+    verbose = config.get("verbose", 3)
+
+    enable_loggers = config.get("enable_loggers", [])
     if enable_loggers is None:
         enable_loggers = []
-    # print("initLogging({})".format(verbose))
-    # formatter = logging.Formatter("%(asctime)s.%(msecs)03d - %(message)s",
-    #                               "%H:%M:%S")
-    formatter = logging.Formatter(
-            "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s",
-            "%H:%M:%S")
+
+    logger_date_format = config.get("logger_date_format", "%Y-%m-%d %H:%M:%S")
+    logger_format = config.get(
+            "logger_format",
+            "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s")
+
+    formatter = logging.Formatter(logger_format, logger_date_format)
 
     # Define handlers
     consoleHandler = logging.StreamHandler(sys.stdout)

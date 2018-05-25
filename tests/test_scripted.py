@@ -23,7 +23,7 @@ from tests.util import WsgiDavTestServer
 from wsgidav import compat
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.wsgidav_app import WsgiDAVApp
 
 
 # SERVER_ADDRESS
@@ -103,23 +103,24 @@ class WsgiDAVServerThread(Thread):
             os.mkdir(self.rootpath)
         provider = FilesystemProvider(self.rootpath)
 
-        config = DEFAULT_CONFIG.copy()
-        config.update({
+        # config = DEFAULT_CONFIG.copy()
+        # config.update({
+        config = {
             "provider_mapping": {"/": provider},
             "user_mapping": {},
             "host": SERVER_HOST,
             "port": SERVER_PORT,
             "enable_loggers": [
-                #                               "http_authenticator",
-                #                               "lock_manager",
-            ],
+                # "http_authenticator",
+                # "lock_manager",
+                ],
             "debug_methods": [],
             "propsmanager": True,      # True: use lock_manager.LockManager
             "locksmanager": True,      # True: use lock_manager.LockManager
             # None: domain_controller.WsgiDAVDomainController(user_mapping)
             "domaincontroller": None,
             "verbose": 2,
-        })
+            }
 
         if withAuthentication:
             config["user_mapping"] = {"/": {"tester": {"password": "secret",

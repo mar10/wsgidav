@@ -3,6 +3,14 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
+::
+
+     _      __         _ ___  ___ _   __
+    | | /| / /__ ___  (_) _ \/ _ | | / /
+    | |/ |/ (_-</ _ `/ / // / __ | |/ /
+    |__/|__/___/\_, /_/____/_/ |_|___/
+               /___/
+
 WSGI container, that handles the HTTP requests. This object is passed to the
 WSGI server and represents our WsgiDAV application to the outside.
 
@@ -63,6 +71,8 @@ _logger = util.getModuleLogger(__name__)
 
 # Use these settings, if config file does not define them (or is totally
 # missing)
+DEFAULT_VERBOSE = 3
+
 DEFAULT_CONFIG = {
     "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
     "provider_mapping": {},
@@ -95,13 +105,14 @@ DEFAULT_CONFIG = {
     ],
 
     # Verbose Output
-    "verbose": 3,        # 0 - no output
-                         # 1 - no output (excepting application exceptions)
-                         # 2 - show warnings
-                         # 3 - show single line request summaries (for HTTP logging)
-                         # 4 - show additional events
-                         # 5 - show full request/response header info (HTTP Logging)
-                         #     request body and GET response bodies not shown
+    # 0 - no output
+    # 1 - no output (excepting application exceptions)
+    # 2 - show warnings
+    # 3 - show single line request summaries (for HTTP logging)
+    # 4 - show additional events
+    # 5 - show full request/response header info (HTTP Logging)
+    #     request body and GET response bodies not shown
+    "verbose": DEFAULT_VERBOSE,
 
     "dir_browser": {
         # "enable": True,               # Render HTML listing for GET requests on collections
@@ -114,24 +125,29 @@ DEFAULT_CONFIG = {
         "ms_mount": False,
         "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
         "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
-    },
+        },
     "middleware_stack": [
-        RequestResolver,
-        WsgiDavDirBrowser,
-        HTTPAuthenticator,
-        ErrorPrinter,
         WsgiDavDebugFilter,
-    ]
+        ErrorPrinter,
+        HTTPAuthenticator,
+        WsgiDavDirBrowser,
+        RequestResolver,
+        ],
 }
 
 
-def _checkConfig(config):
-    mandatoryFields = ["provider_mapping",
-                       ]
-    for field in mandatoryFields:
+def _check_config(config):
+    dir_browser = config.get("dir_browser", {})
+    if dir_browser.get("app_class"):
+        raise ValueError("app_class option was removed. Use `middleware_stack` instead")
+
+    mandatory_fields = (
+        "provider_mapping",
+        )
+    for field in mandatory_fields:
         if field not in config:
-            raise ValueError(
-                "Invalid configuration: missing required field '{}'".format(field))
+            raise ValueError("Invalid configuration: missing required field '{}'".format(field))
+    return True
 
 
 # ========================================================================
@@ -140,17 +156,17 @@ def _checkConfig(config):
 class WsgiDAVApp(object):
 
     def __init__(self, config):
-        self.config = config
+
+        self.config = DEFAULT_CONFIG.copy()
+        self.config.update(config)
+        config = self.config
 
         # Do not initialize logging here, because we want to keep silence in library-mode
         # util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
-        _logger.info("Default encoding: {!r} (file system: {!r})".format(
-                sys.getdefaultencoding(), sys.getfilesystemencoding()))
-
         # Evaluate configuration and set defaults
-        _checkConfig(config)
-        provider_mapping = self.config["provider_mapping"]
+        _check_config(config)
+
 #        response_trailer = config.get("response_trailer", "")
         self.verbose = config.get("verbose", 3)
 
@@ -173,27 +189,37 @@ class WsgiDAVApp(object):
         self.mount_path = config.get("mount_path")
 
         # Instantiate DAV resource provider objects for every share
+        # provider_mapping may contain the args that are passed to a `FilesystemProvider`
+        # instance:
+        #     <mount_path>: <folder_path>
+        # or
+        #     <mount_path>: [folder_path, is_readonly]
+        # or contain a complete new instance:
+        #     <mount_path>: <DAVProvider Instance>
+
+        provider_mapping = self.config["provider_mapping"]
+
         self.providerMap = {}
+        self.sortedShareList = None
         for share, provider in provider_mapping.items():
             self.add_provider(share, provider)
 
         domain_controller = None
-        dir_browser = config.get("dir_browser", {})
-        middleware_stack = config.get("middleware_stack", [])
-
-        if dir_browser.get("app_class"):
-            raise RuntimeError("app_class option was removed. Use `middleware_stack` instead")
 
         # Define WSGI application stack
+        middleware_stack = config.get("middleware_stack", [])
         mw_list = []
 
         # This is the 'outer' application, i.e. the WSGI application object that
         # is eventually called by the server.
-        # When building up the middleware stack, this app will be wrapped and replaced by the
-        # next middleware:
         self.application = self
 
-        for mw in middleware_stack:
+        # When building up the middleware stack, this app will be wrapped and replaced by the
+        # next middleware in the list.
+        # The `middleware_stack` is configured such that the first app in the list should be
+        # called first. But since every app wraps its predecessor, we iterate in reverse
+        # order:
+        for mw in reversed(middleware_stack):
             # The middleware stack configuration may contain plain strings, dicts,
             # classes, or objects
             app = None
@@ -214,7 +240,7 @@ class WsgiDAVApp(object):
                 assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
                 app = mw(self, self.application, config)
             else:
-                # Otherwies assume an initialized middleware instance
+                # Otherwise assume an initialized middleware instance
                 app = mw
 
             # TODO: We should try to generalize this specific code:
@@ -233,17 +259,22 @@ class WsgiDAVApp(object):
                 _logger.error("Could not add middleware {}.".format(mw))
 
         # Print info
-        if self.verbose >= 3:
+        if self.verbose >= 4:
+            _logger.info("Default encoding: {!r} (file system: {!r})".format(
+                    sys.getdefaultencoding(), sys.getfilesystemencoding()))
             _logger.info("Lock manager:      {}".format(self.locksManager))
             _logger.info("Property manager:  {}".format(self.propsManager))
             _logger.info("Domain controller: {}".format(domain_controller))
 
+            # We traversed the stack in reverse order. Now revert again, so
+            # we see the order that was configured:
             _logger.info("Middleware stack:")
-            for mw in mw_list:
+            for mw in reversed(mw_list):
                 _logger.info("  - {}".format(mw))
 
-            _logger.info("Registered DAV providers by share:")
-            for share, data in self.providerMap.items():
+            _logger.info("Registered DAV providers by route:")
+            for share in self.sortedShareList:
+                data = self.providerMap[share]
                 hint = " (anonymous)" if data["allow_anonymous"] else ""
                 _logger.info("  - '{}': {}{}".format(share, data["provider"], hint))
 
@@ -262,8 +293,11 @@ class WsgiDAVApp(object):
         # it as a file system root folder that is published.
         if compat.is_basestring(provider):
             provider = FilesystemProvider(provider, readonly)
+        elif type(provider) in (list, tuple):
+            provider = FilesystemProvider(provider[0], provider[1])
 
-        assert isinstance(provider, DAVProvider)
+        if not isinstance(provider, DAVProvider):
+            raise ValueError("Invalid provider {}".format(provider))
 
         provider.setSharePath(share)
         if self.mount_path:
@@ -281,8 +315,8 @@ class WsgiDAVApp(object):
 
         # Store the list of share paths, ordered by length, so route lookups
         # will return the most specific match
-        self.sortedShareList = sorted(self.providerMap.keys(), key=len, reverse=True)
-        self.sortedShareList = [s.lower() for s in self.sortedShareList]
+        self.sortedShareList = [s.lower() for s in self.providerMap.keys()]
+        self.sortedShareList = sorted(self.sortedShareList, key=len, reverse=True)
 
         return provider
 
@@ -334,19 +368,6 @@ class WsgiDAVApp(object):
             elif lower_path == r or lower_path.startswith(r + "/"):
                 share = r
                 break
-        # # sorting share list by reverse length
-        # shareList = sorted(self.providerMap.keys(), key=len, reverse=True)
-        #
-        # share = None
-        # for r in shareList:
-        #     # @@: Case sensitivity should be an option of some sort here;
-        #     # os.path.normpath might give the preferred case for a filename.
-        #     if r == "/":
-        #         share = r
-        #         break
-        #     elif path.upper() == r.upper() or path.upper().startswith(r.upper() + "/"):
-        #         share = r
-        #         break
 
         # Note: we call the next app, even if provider is None, because OPTIONS
         #       must still be handled.

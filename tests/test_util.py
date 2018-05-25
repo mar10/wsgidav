@@ -10,7 +10,6 @@ import logging.handlers
 import unittest
 
 from wsgidav.compat import StringIO
-
 from wsgidav.util import (
     initLogging,
     isChildUri,
@@ -20,7 +19,7 @@ from wsgidav.util import (
     popPath,
     shiftPath,
     getModuleLogger, BASE_LOGGER_NAME,
-    )
+)
 
 
 class BasicTest(unittest.TestCase):
@@ -165,10 +164,9 @@ class LoggerTest(unittest.TestCase):
         assert ".error" in baseOutput
 
     def testCliLogging(self):
-        """CLI initializes logging """
-        enable_loggers = ["test",
-                          ]
-        initLogging(3, enable_loggers)
+        """CLI initializes logging."""
+        config = {"verbose": 3, "enable_loggers": ["test"]}
+        initLogging(config)
 
         _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
         _enabledLogger = getModuleLogger("test")
