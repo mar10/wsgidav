@@ -45,7 +45,17 @@ class DirbrowserTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testGetPut(self):
+    def testGet(self):
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
-        assert "<meta name='generator' content='WsgiDAV" in res.text
+        assert '<meta name="generator" content="WsgiDAV/' in res.text
+        assert res.encoding == "ISO-8859-1"
+        assert "WsgiDAV" in  res.headers["Server"]
+        assert res.headers["Content-Type"] == "text/html"
+
+        res = requests.get(self.url + "?davmount", auth=self.auth)
+        assert res.status_code == 200
+        # dir_browser.davmount option is not set, so we don't expect it:
+        assert res.headers["Content-Type"] == "text/html"
+        # assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
+        # assert res.headers["Content-Type"] == "application/davmount+xml"

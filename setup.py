@@ -146,7 +146,7 @@ build_exe_options = {
     ],
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
-        "wsgidav.addons.dir_browser2",
+        "wsgidav.addons.dir_browser",
         "jinja2",
         ],
     "excludes": [
@@ -202,14 +202,14 @@ setup(
     license="MIT",
     packages=[
         "wsgidav",
-        "wsgidav.addons.dir_browser2",
+        "wsgidav.addons.dir_browser",
         ],
     # packages=find_packages("wsgidav"),
     # packages=find_packages(exclude=["tests"]),
     package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
-        "wsgidav.addons.dir_browser2": ["htdocs/*.*"],
+        "wsgidav.addons.dir_browser": ["htdocs/*.*"],
     },
     install_requires=install_requires,
     setup_requires=setup_requires,

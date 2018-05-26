@@ -21,6 +21,12 @@ _logger = util.getModuleLogger(__name__)
 
 ASSET_SHARE = "/_dir_browser"
 
+DAVMOUNT_TEMPLATE = """
+<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
+  <dm:url>{}</dm:url>
+</dm:mount>
+""".strip()
+
 msOfficeTypeToExtMap = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
@@ -33,11 +39,11 @@ for t, el in msOfficeTypeToExtMap.items():
         msOfficeExtToTypeMap[e] = t
 
 
-class WsgiDavDirBrowser2(BaseMiddleware):
+class WsgiDavDirBrowser(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
     def __init__(self, wsgidav_app, next_app, config):
-        super(WsgiDavDirBrowser2, self).__init__(wsgidav_app, next_app, config)
+        super(WsgiDavDirBrowser, self).__init__(wsgidav_app, next_app, config)
         self.htdocs_path = os.path.join(os.path.dirname(__file__), "htdocs")
 
         # Add an additional read-only FS provider that serves the dir_browser assets
@@ -69,10 +75,7 @@ class WsgiDavDirBrowser2(BaseMiddleware):
             if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING", ""):
                 collectionUrl = util.makeCompleteUrl(environ)
                 collectionUrl = collectionUrl.split("?", 1)[0]
-                res = """
-                    <dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
-                        <dm:url>{}</dm:url>
-                    </dm:mount>""".format(collectionUrl)
+                res = compat.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
                 # TODO: support <dm:open>%s</dm:open>
 
                 start_response("200 OK", [("Content-Type", "application/davmount+xml"),

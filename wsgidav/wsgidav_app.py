@@ -52,9 +52,9 @@ import sys
 import time
 
 from wsgidav import compat, util
+from wsgidav.addons.dir_browser import WsgiDavDirBrowser
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.debug_filter import WsgiDavDebugFilter
-from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.http_authenticator import HTTPAuthenticator
@@ -286,7 +286,7 @@ class WsgiDAVApp(object):
 
     def add_provider(self, share, provider, readonly=False):
         """Add a provider to the providerMap."""
-        # Make sure share starts with, or is, '/'
+        # Make sure share starts with, or is '/'
         share = "/" + share.strip("/")
         assert share not in self.providerMap
         # We allow a simple string as 'provider'. In this case we interpret

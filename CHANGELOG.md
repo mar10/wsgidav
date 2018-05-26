@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.4.0 / Unreleased
+## 3.0.0 / Unreleased
 
 - Refactor middleware stack
   - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
@@ -8,6 +8,8 @@
   - Removed `middleware.isSuitable()` because we don't want to enforce
     a specific base class for middleware (introduced with #12)
 - Improve configuration files:
+  - WsgiDAVApp constructor now assumes default settings. The passed options
+    override those. 
   - #89 Add support for JSON config files to built-in server runner
   - wsgidav.json can contain comments now (JavaScript syntax)
   - Support YAML format as well

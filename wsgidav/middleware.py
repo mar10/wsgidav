@@ -14,10 +14,11 @@ class BaseMiddleware(object):
 
     Derived classes in WsgiDAV include::
 
+        wsgidav.addons.dir_browser.WsgiDavDirBrowser
         wsgidav.debug_filter.WsgiDavDebugFilter
-        wsgidav.dir_browser.WsgiDavDirBrowser
         wsgidav.error_printer.ErrorPrinter
         wsgidav.http_authenticator.HTTPAuthenticator
+        wsgidav.request_resolver.RequestResolver
     """
 
     def __init__(self, wsgidav_app, next_app, config):

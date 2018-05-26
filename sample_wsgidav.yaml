@@ -15,14 +15,22 @@ port: 8080
 # server: "cheroot"
 # server_args: {}
 
-# Customize the WSGI application stack.
+# Modify to customize the WSGI application stack.
 # Any middleware wraps and replaces its successor, so it get's called first:
 middleware_stack:
+    # Enable online profiling and GC inspection. See https://github.com/mgedmin/dozer
+    # (Requires `pip install Dozer`):
+#    - dozer.Dozer:
+#        - "${application}"
+#    - dozer.Profiler:
+#        - "${application}"
+#        - null  # global_conf
+#        - /tmp  # profile_path
     - wsgidav.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
-    - wsgidav.addons.dir_browser2.dir_browser2.WsgiDavDirBrowser2
-    # - wsgidav.dir_browser.WsgiDavDirBrowser
+    - wsgidav.addons.dir_browser.WsgiDavDirBrowser
+#    - wsgidav.dir_browser_2x.WsgiDavDirBrowser
     - wsgidav.request_resolver.RequestResolver
 
 
@@ -218,6 +226,3 @@ propsmanager = True
 # Example: Use PERSISTENT shelve based lock manager
 #from wsgidav.lock_storage import LockStorageShelve
 #locksmanager = LockStorageShelve("wsgidav-locks.shelve")
-
-
-

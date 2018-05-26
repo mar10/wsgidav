@@ -8,6 +8,8 @@ Configuration
 .. toctree::
    :maxdepth: 1
 
+   sample_wsgidav_conf
+   
 
 The :class:`~wsgidav.wsgidav_app.WsgiDAVApp` object is configured by passing
 a Python ``dict`` with distinct options, that define
@@ -138,14 +140,12 @@ The options described below can be defined for the CLI either
    The YAML format is recommended.
 
 For a start, you should copy
-:download:`YAML Sample Configuration<../../wsgidav.yaml.sample>`
+:download:`YAML Sample Configuration<../../sample_wsgidav.yaml>`
 and edit it to your needs.
 
 You can also start with a
-(:download:`JSON Sample Configuration<../../wsgidav.json.sample>`) or a
-(:download:`Python Sample Configuration<../../wsgidav.conf.sample>`).
-
-See the :ref:`annotated_wsgidav.conf` for another example.
+(:download:`JSON Sample Configuration<../../sample_wsgidav.json>`) or a
+(:download:`Python Sample Configuration<../../sample_wsgidav.conf>`).
 
 
 Verbosity Level
@@ -193,8 +193,8 @@ instead of the instantiated object.
 The built-in middleware derives from :class:`~wsgidav.middleware.BaseMiddleware`, so we can
 simplify as::
 
+    from wsgidav.addons.dir_browser import WsgiDavDirBrowser
     from wsgidav.debug_filter import WsgiDavDebugFilter
-    from wsgidav.dir_browser import WsgiDavDirBrowser
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
     from wsgidav.request_resolver import RequestResolver
@@ -216,8 +216,8 @@ directory browser, and adds a third-party debugging tool::
 
     import dozer
 
+    # from wsgidav.addons.dir_browser import WsgiDavDirBrowser
     from wsgidav.debug_filter import WsgiDavDebugFilter
-    # from wsgidav.dir_browser import WsgiDavDirBrowser
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
     from wsgidav.request_resolver import RequestResolver
@@ -244,7 +244,7 @@ directory browser, and adds a third-party debugging tool::
 The stack can also be defined in text files, for example YAML.
 Again, we can pass an import path for a WSGI compliant class if the signature
 is known.
-For third-party middleware however, the constructor arguments should be
+For third-party middleware however, the constructor's positional arguments should be
 explicitly listed::
 
     ...
@@ -258,12 +258,12 @@ explicitly listed::
         - wsgidav.debug_filter.WsgiDavDebugFilter
         - wsgidav.error_printer.ErrorPrinter
         - wsgidav.http_authenticator.HTTPAuthenticator
-        - wsgidav.addons.dir_browser2.dir_browser2.WsgiDavDirBrowser2
+        - wsgidav.addons.dir_browser.WsgiDavDirBrowser
         - wsgidav.request_resolver.RequestResolver
 
 Note that the external middleware must be available, for example by calling
 ``pip install Doze``, so this will not be possible if WsgiDAV is running from the
-MSI installerÇ.
+MSI installer.
 
 
 Sample ``wsgidav.yaml``
@@ -272,19 +272,21 @@ Sample ``wsgidav.yaml``
 The `YAML <http://yaml.org/spec/1.2/spec.html>`_ syntax is probably the most
 concise format to define configuration:
 
-.. literalinclude:: ../../wsgidav.yaml.sample
+:download:`Download Sample Configuration<../sample_wsgidav.conf>`.
+
+.. literalinclude:: ../../sample_wsgidav.yaml
     :linenos:
 
 
 Sample ``wsgidav.json``
 -----------------------
 
-We can also use a `JSON <http://www.json.org>`_ file for configuration
-if we don't require the full power of Python code to set everything up.
+We can also use a `JSON <http://www.json.org>`_ file for configuration.
+The structure is identical to the YAML format.
 
-Note that the parser ignores JavaScript-style comments:
+Note that the parser tolerates JavaScript-style comments:
 
-.. literalinclude:: ../../wsgidav.json.sample
+.. literalinclude:: ../sample_wsgidav.json
     :linenos:
     :language: json
 
@@ -295,6 +297,7 @@ Sample ``wsgidav.conf``
 This format uses plain Python syntax, which allows us to use Python data structures,
 and even write helpers function, etc.
 
-.. literalinclude:: ../annotated_wsgidav.conf
-    :linenos:
-    :language: python
+This is the most powerful and flexible format, that can be used for complex
+scenarios.
+
+See the :doc:`sample_wsgidav_conf` example.
