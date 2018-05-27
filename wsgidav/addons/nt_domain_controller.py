@@ -11,11 +11,11 @@ Purpose
 Usage::
 
    from wsgidav.addons.nt_domain_controller import NTDomainController
-   domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
+   domain_controller = NTDomainController(presetdomain=None, presetserver=None)
 
 where:
 
-+ domaincontroller object corresponds to that in ``wsgidav.conf`` or
++ domain_controller object corresponds to that in ``wsgidav.conf`` or
   as input into ``wsgidav.http_authenticator.HTTPAuthenticator``.
 
 + presetdomain allows the admin to specify a domain to be used (instead of any domain that

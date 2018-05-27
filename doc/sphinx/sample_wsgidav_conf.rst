@@ -1,5 +1,5 @@
 ===================
-Configuration Files
+Sample wsgidav.conf
 ===================
 
 The configuration file uses Python syntax to specify these options:
@@ -13,17 +13,9 @@ The configuration file uses Python syntax to specify these options:
   * (and more)
 
 For a start, you should copy
-:download:`Sample Configuration<../../wsgidav.conf.sample>` or
-:download:`Annotated Sample Configuration<../annotated_wsgidav.conf>`
+:download:`Annotated Sample Configuration<../sample_wsgidav.conf>`
 and edit it to your needs.
 
-.. literalinclude:: ../annotated_wsgidav.conf
+.. literalinclude:: ../sample_wsgidav.conf
     :linenos:
     :language: python
-
-You can also use a JSON file for configuration if you don't require the
-full power of python code to set everything up.
-
-.. literalinclude:: ../../sample_wsgidav.json
-    :linenos:
-    :language: json

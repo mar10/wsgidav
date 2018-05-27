@@ -74,14 +74,6 @@ Use the ``--help`` or ``-h`` argument to get help::
 Use a Configuration File
 ------------------------
 Much more options are available when a configuration file is specified.
-By default ``wsgidav.conf`` and ``wsgidav.json`` is searched in the local directory. |br|
-An alternative file name can be specified like so::
-
-	$ wsgidav --config=my_config.conf
-
-To *prevent* the use of of a local default configuration file, use this option::
-
-  $ wsgidav --no-config
 
 .. seealso::
 	:doc:`user_guide_configure`

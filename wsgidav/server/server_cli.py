@@ -35,6 +35,7 @@ Configuration is defined like this:
 from __future__ import print_function
 
 import argparse
+import copy
 import json
 import logging
 import os
@@ -47,13 +48,14 @@ from jsmin import jsmin
 import yaml
 
 from wsgidav import __version__, util
+from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.wsgidav_app import WsgiDAVApp
 from wsgidav.xml_tools import useLxml
 
 __docformat__ = "reStructuredText"
 
-#: Try this config files if no --config_file option is specified
+#: Try this config files if no --config=... option is specified
 DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
 
 _logger = logging.getLogger("wsgidav")
@@ -92,7 +94,7 @@ Examples:
     wsgidav --port=80 --host=0.0.0.0 --root=/temp
 
   Run using a specific configuration file:
-    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.conf
+    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.yaml
 
   If no config file is specified, the application will look for a file named
   'wsgidav.conf' in the current directory.
@@ -170,9 +172,6 @@ See https://github.com/mar10/wsgidav for additional information.
     args.verbose -= args.quiet
     del args.quiet
 
-    if args.verbose >= 4:
-        print("Verbosity: {}".format(args.verbose))
-
     if args.root_path and not os.path.isdir(args.root_path):
         msg = "{} is not a directory".format(args.root_path)
         raise parser.error(msg)
@@ -209,7 +208,7 @@ See https://github.com/mar10/wsgidav for additional information.
 
     # Convert args object to dictionary
     cmdLineOpts = args.__dict__.copy()
-    if args.verbose >= 4:
+    if args.verbose >= 5:
         print("Command line args:")
         for k, v in cmdLineOpts.items():
             print("    {:>12}: {}".format(k, v))
@@ -227,6 +226,7 @@ def _readConfigFile(config_file, verbose):
             # Minify the JSON file to strip embedded comments
             minified = jsmin(json_file.read())
         return json.loads(minified)
+
     elif config_file.endswith(".yaml"):
         with open(config_file, mode="r", encoding="utf-8") as yaml_file:
             return yaml.safe_load(yaml_file)
@@ -243,14 +243,10 @@ def _readConfigFile(config_file, verbose):
                 continue
             conf[k] = v
     except Exception:
-        # if verbose >= 1:
-        #    traceback.print_exc()
         exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value)
         exceptiontext = ""
         for einfo in exceptioninfo:
             exceptiontext += einfo + "\n"
-#        raise RuntimeError("Failed to read configuration file: " + config_file + "\nDue to "
-#            + exceptiontext)
         print("Failed to read configuration file: " + config_file +
               "\nDue to " + exceptiontext, file=sys.stderr)
         raise
@@ -260,71 +256,63 @@ def _readConfigFile(config_file, verbose):
 
 def _initConfig():
     """Setup configuration dictionary from default, command line and configuration file."""
-    cmdLineOpts = _initCommandLineOptions()
+    cli_opts = _initCommandLineOptions()
+    cli_verbose = cli_opts["verbose"]
 
     # Set config defaults
-    config = DEFAULT_CONFIG.copy()
-    if cmdLineOpts["verbose"] is None:
-        temp_verbose = config["verbose"]
-    else:
-        temp_verbose = cmdLineOpts["verbose"]
-
-    # print "verbose #1: ", temp_verbose
+    # config = DEFAULT_CONFIG.copy()
+    config = copy.deepcopy(DEFAULT_CONFIG)
 
     # Configuration file overrides defaults
-    config_file = cmdLineOpts.get("config_file")
+    config_file = cli_opts.get("config_file")
     if config_file:
-        fileConf = _readConfigFile(config_file, temp_verbose)
-        config.update(fileConf)
+        file_opts = _readConfigFile(config_file, cli_verbose)
+        # config.update(file_opts)
+        util.deep_update(config, file_opts)
+        if cli_verbose != DEFAULT_VERBOSE and "verbose" in file_opts:
+            if cli_verbose >= 2:
+                print("Config file defines 'verbose: {}' but is overridden by command line: {}."
+                      .format(file_opts["verbose"], cli_verbose))
+            config["verbose"] = cli_verbose
     else:
-        if temp_verbose >= 2:
+        if cli_verbose >= 2:
             print("Running without configuration file.")
 
-    # print "verbose #2: ", config.get("verbose")
-
     # Command line overrides file
-    if cmdLineOpts.get("port"):
-        config["port"] = cmdLineOpts.get("port")
-    if cmdLineOpts.get("host"):
-        config["host"] = cmdLineOpts.get("host")
-    if cmdLineOpts.get("verbose") is not None:
-        config["verbose"] = cmdLineOpts.get("verbose")
-    if cmdLineOpts.get("profile") is not None:
+    if cli_opts.get("port"):
+        config["port"] = cli_opts.get("port")
+    if cli_opts.get("host"):
+        config["host"] = cli_opts.get("host")
+    if cli_opts.get("verbose") is not None:
+        config["verbose"] = cli_opts.get("verbose")
+    if cli_opts.get("profile") is not None:
         config["profile"] = True
-    if cmdLineOpts.get("server") is not None:
-        config["server"] = cmdLineOpts.get("server")
-    if cmdLineOpts.get("ssl_adapter") is not None:
-        config["ssl_adapter"] = cmdLineOpts.get("ssl_adapter")
+    if cli_opts.get("server") is not None:
+        config["server"] = cli_opts.get("server")
+    if cli_opts.get("ssl_adapter") is not None:
+        config["ssl_adapter"] = cli_opts.get("ssl_adapter")
 
-    if cmdLineOpts.get("root_path"):
-        root_path = os.path.abspath(cmdLineOpts.get("root_path"))
+    if cli_opts.get("root_path"):
+        root_path = os.path.abspath(cli_opts.get("root_path"))
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
 
-    if config["verbose"] >= 4:
+    if config["verbose"] >= 5:
         print("Configuration({}):\n{}"
-              .format(cmdLineOpts["config_file"], pformat(config)))
-
-    # if not useLxml and config["verbose"] >= 1:
-    #     print("WARNING: Could not import lxml: using xml instead (slower). Consider installing"
-    #         "lxml from http://codespeak.net/lxml/.")
-
-    # print "verbose #3: ", config.get("verbose")
+              .format(cli_opts["config_file"], pformat(config)))
 
     if not config["provider_mapping"]:
         print("ERROR: No DAV provider defined. Try --help option.", file=sys.stderr)
         sys.exit(-1)
-#        raise RuntimeWarning("At least one DAV provider must be specified by a --root option,"
-#             or in a configuration file.")
 
-    if cmdLineOpts.get("reload"):
+    if cli_opts.get("reload"):
         print("Installing paste.reloader.", file=sys.stderr)
         from paste import reloader  # @UnresolvedImport
         reloader.install()
         if config_file:
             # Add config file changes
             reloader.watch_file(config_file)
-#        import pydevd
-#        pydevd.settrace()
+        # import pydevd
+        # pydevd.settrace()
 
     return config
 
@@ -592,7 +580,7 @@ def run():
                          }
     config = _initConfig()
 
-    util.initLogging(config["verbose"], config.get("enable_loggers", []))
+    util.initLogging(config)
 
     app = WsgiDAVApp(config)
 
@@ -603,7 +591,7 @@ def run():
                            .format(server, "', '".join(SUPPORTED_SERVERS.keys())))
 
     if not useLxml:  # and config["verbose"] >= 1:
-        _logger.warn("WARNING: Could not import lxml: using xml instead (slower). "
+        _logger.warn("Could not import lxml: using xml instead (slower). "
                      "Consider installing lxml https://pypi.python.org/pypi/lxml.")
 
     handler(app, config, server)

@@ -55,7 +55,7 @@ attacks (thanks Tom Viner). We highly recommend to update!
 Contributors:
 
   * WsgiDAV is a [refactored version](https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md)
-    of [PyFileServer 0.2](http://pyfilesync.berlios.de/pyfileserver.html),
+    of [PyFileServer 0.2](https://github.com/cwho/pyfileserver),
     Copyright (c) 2005 Ho Chun Wei.<br>
     Chun gave his approval to change the license from LGPL to MIT-License for
     this project.

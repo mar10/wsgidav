@@ -9,8 +9,8 @@ Usage::
 
    from http_authenticator import HTTPAuthenticator
 
-   WSGIApp = HTTPAuthenticator(ProtectedWSGIApp, domain_controller, acceptbasic,
-                               acceptdigest, defaultdigest)
+   WSGIApp = HTTPAuthenticator(ProtectedWSGIApp, domain_controller, accept_basic,
+                               accept_digest, default_to_digest)
 
    where:
      ProtectedWSGIApp is the application requiring authenticated access
@@ -18,13 +18,13 @@ Usage::
      domain_controller is a domain controller object meeting specific
      requirements (below)
 
-     acceptbasic is a boolean indicating whether to accept requests using
+     accept_basic is a boolean indicating whether to accept requests using
      the basic authentication scheme (default = True)
 
-     acceptdigest is a boolean indicating whether to accept requests using
+     accept_digest is a boolean indicating whether to accept requests using
      the digest authentication scheme (default = True)
 
-     defaultdigest is a boolean. if True, an unauthenticated request will
+     default_to_digest is a boolean. if True, an unauthenticated request will
      be sent a digest authentication required response, else the unauthenticated
      request will be sent a basic authentication required response
      (default = True)
@@ -74,10 +74,10 @@ The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
 """
+from hashlib import md5
 import random
 import re
 import time
-from hashlib import md5
 
 from wsgidav import compat, util
 from wsgidav.domain_controller import WsgiDAVDomainController
@@ -136,16 +136,17 @@ class SimpleDomainController(object):
 class HTTPAuthenticator(BaseMiddleware):
     """WSGI Middleware for basic and digest authenticator."""
 
-    def __init__(self, application, config):
-        self._verbose = config.get("verbose", 2)
-        self._application = application
+    def __init__(self, wsgidav_app, next_app, config):
+        super(HTTPAuthenticator, self).__init__(wsgidav_app, next_app, config)
+        self._verbose = config.get("verbose", 3)
         self._user_mapping = config.get("user_mapping", {})
         self._domaincontroller = config.get(
-            "domaincontroller") or WsgiDAVDomainController(self._user_mapping)
-        self._acceptbasic = config.get("acceptbasic", True)
-        self._acceptdigest = config.get("acceptdigest", True)
-        self._defaultdigest = config.get("defaultdigest", True)
-        self._trusted_auth_header = config.get("trusted_auth_header", None)
+            "domain_controller") or WsgiDAVDomainController(self._user_mapping)
+        auth_conf = config.get("http_authenticator", {})
+        self._acceptbasic = auth_conf.get("accept_basic", True)
+        self._acceptdigest = auth_conf.get("accept_digest", True)
+        self._defaultdigest = auth_conf.get("default_to_digest", True)
+        self._trusted_auth_header = auth_conf.get("trusted_auth_header", None)
         self._noncedict = dict([])
 
         self._headerparser = re.compile(r"([\w]+)=([^,]*),")
@@ -158,8 +159,8 @@ class HTTPAuthenticator(BaseMiddleware):
         if self._domaincontroller.__class__.__name__ == wdcName:
             if self._authacceptdigest or self._authdefaultdigest or not self._authacceptbasic:
                 _logger.warn(
-                    "WARNING: {} requires basic authentication.\n\tSet acceptbasic=True, "
-                    "acceptdigest=False, defaultdigest=False".format(wdcName))
+                    "{} requires basic authentication.\n\tSet accept_basic=True, "
+                    "accept_digest=False, default_to_digest=False".format(wdcName))
 
     def getDomainController(self):
         return self._domaincontroller
@@ -184,7 +185,7 @@ class HTTPAuthenticator(BaseMiddleware):
             _logger.debug("No authorization required for realm '{}'".format(realmname))
             environ["http_authenticator.realm"] = realmname
             environ["http_authenticator.username"] = ""
-            return self._application(environ, start_response)
+            return self.next_app(environ, start_response)
 
         if self._trusted_auth_header and environ.get(self._trusted_auth_header):
             # accept a username that was injected by a trusted upstream server
@@ -192,7 +193,7 @@ class HTTPAuthenticator(BaseMiddleware):
                     self._trusted_auth_header, environ.get(self._trusted_auth_header), realmname))
             environ["http_authenticator.realm"] = realmname
             environ["http_authenticator.username"] = environ.get(self._trusted_auth_header)
-            return self._application(environ, start_response)
+            return self.next_app(environ, start_response)
 
         if "HTTP_AUTHORIZATION" in environ:
             authheader = environ["HTTP_AUTHORIZATION"]
@@ -257,7 +258,7 @@ class HTTPAuthenticator(BaseMiddleware):
         if self._domaincontroller.authDomainUser(realmname, username, password, environ):
             environ["http_authenticator.realm"] = realmname
             environ["http_authenticator.username"] = username
-            return self._application(environ, start_response)
+            return self.next_app(environ, start_response)
         return self.sendBasicAuthResponse(environ, start_response)
 
     def sendDigestAuthResponse(self, environ, start_response):
@@ -422,7 +423,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
         environ["http_authenticator.realm"] = realmname
         environ["http_authenticator.username"] = req_username
-        return self._application(environ, start_response)
+        return self.next_app(environ, start_response)
 
     def computeDigestResponse(
             self, username, realm, password, method, uri, nonce, cnonce, qop, nc):

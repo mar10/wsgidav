@@ -1,32 +1,34 @@
 """
-Abstract base middleware class
+Abstract base middleware class (optional use).
 """
 
 __docformat__ = "reStructuredText"
 
 
 class BaseMiddleware(object):
-    """Abstract base middleware class.
+    """Abstract base middleware class (optional).
 
-    Implementations in WsgiDAV include::
+    Note: this is a convenience class, that *may* be used to implement WsgiDAV
+    middlewares. However it is not a reqiuement: any object that implements
+    the WSGI specification can be added to the stack.
 
-        wsgidav.dir_browser.WsgiDavDirBrowser
-        wsgidav.error_printer.ErrorPrinter
+    Derived classes in WsgiDAV include::
+
+        wsgidav.addons.dir_browser.WsgiDavDirBrowser
         wsgidav.debug_filter.WsgiDavDebugFilter
+        wsgidav.error_printer.ErrorPrinter
         wsgidav.http_authenticator.HTTPAuthenticator
+        wsgidav.request_resolver.RequestResolver
     """
 
-    def __init__(self, application, config):
-        pass
+    def __init__(self, wsgidav_app, next_app, config):
+        self.wsgidav_app = wsgidav_app
+        self.next_app = next_app
+        self.config = config
+        self.verbose = config.get("verbose", 3)
 
     def __call__(self, environ, start_response):
         raise NotImplementedError
 
-    @staticmethod
-    def isSuitable(config):
-        """
-        Is this middleware class is suitable for current configuration?
-
-        Checking when initialize WsgiDAVApp and NOT on each request
-        """
-        return True
+    def __str__(self):
+        return "{}.{}".format(self.__module__, self.__class__.__name__)

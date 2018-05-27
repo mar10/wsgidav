@@ -1,0 +1,172 @@
+# WsgiDAV configuration file
+#
+# 1. Rename this file to `wsgidav.yaml`
+# 2. Adjust settings as appropriate
+# 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
+#
+# See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+#
+# ============================================================================
+# SERVER OPTIONS
+
+server: "cheroot"
+server_args: {}
+
+host: 0.0.0.0
+port: 8080
+
+# Add custom response headers (list of header-name / header-value tuples):
+#response_headers:
+#    - ["Access-Control-Allow-Origin", "http://example.org"]
+
+# Transfer block size in bytes
+block_size: 8192
+
+# Add the MS-Author-Via Response Header to OPTIONS command to allow editing
+# with Microsoft Office (default: true)
+add_header_MS_Author_Via: true
+unquote_path_info: false,  # See #8
+re_encode_path_info: null  # (See #73) None: activate on Python 3
+
+# ----------------------------------------------------------------------------
+# SSL Support
+
+# (The certificate should match the servers hostname, so the bogus certs will not
+# work in all scenarios.)
+
+# ssl_certificate = "wsgidav/server/sample_bogo_server.crt"
+# ssl_private_key = "wsgidav/server/sample_bogo_server.key"
+# ssl_certificate_chain = None
+
+# Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
+# ssl_adapter = "pyopenssl"
+
+# ----------------------------------------------------------------------------
+
+# Modify to customize the WSGI application stack:
+middleware_stack:
+    - wsgidav.debug_filter.WsgiDavDebugFilter
+    - wsgidav.error_printer.ErrorPrinter
+    - wsgidav.http_authenticator.HTTPAuthenticator
+    - wsgidav.addons.dir_browser.WsgiDavDirBrowser
+    - wsgidav.request_resolver.RequestResolver
+
+# ==============================================================================
+# SHARES
+
+# Application root, e.g. <mount_path>/<share_name>/<res_path>
+mount_path: null
+
+provider_mapping:
+    "/share1": "/path/to/share1"
+    "/share2":
+        - "/path/to/share2"
+        - true  # read-only
+
+
+# ==============================================================================
+# AUTHENTICATION
+http_authenticator:
+    accept_basic: false    # Allow basic authentication
+    accept_digest: true    # Allow digest authentication
+    default_to_digest: true   # true (default digest) or false (default basic)
+    # Header field that will be accepted by as authorized user.
+    # Including quotes, for example: trusted_auth_header = "REMOTE_USER"
+    trusted_auth_header: null
+
+# Domain controller that is used by the HTTPAuthenticator middleware
+# Default null: wsgidav.domain_controller, which uses the `user_mapping` below.
+# (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html for
+# an example of NT domain controller, etc.)
+
+domain_controller: null
+
+# Access control per share, used by the default WsgiDAVDomainController.
+# These routes must match the provider mapping.
+# NOTE: Provider routes without a matching entry here, are open for
+# anonymous access!
+
+user_mapping:
+    "/share1":
+        "user1":
+            password: "abc123"
+            description: "User 1 for Share 1"
+            roles: []
+    "/share2":
+        "user1":
+            password: "def456"
+            description: "User 1 for Share 2"
+            roles: []
+        "user2":
+            password: "qwerty"
+            description: "User 2 for Share 2"
+            roles: []
+
+
+# ==============================================================================
+# DEBUGGING
+
+# Set verbosity level (but will be overridden by -v or -q arguments)
+verbose: 3
+
+logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s"
+logger_date_format: "%H:%M:%S"
+
+catch_all: false
+
+# Enable specific module loggers
+# E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
+# enable_loggers: ["http_authenticator", ]
+
+# Enable max. logging for certain http methods
+# E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
+debug_methods: []
+
+# Enable max. logging during  litmus suite tests that contain certain strings
+# E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
+debug_litmus: []
+
+
+# ----------------------------------------------------------------------------
+# WsgiDavDirBrowser
+
+dir_browser:
+    enable: true,          # Render HTML listing for GET requests on collections
+    ignore:  # List of fnmatch patterns
+        - .DS_Store
+        - Thumbs.db
+        - .*
+    response_trailer:  # Raw HTML code, appended as footer
+    davmount: false  # Send <dm:mount> response if request URL contains '?davmount'
+    ms_mount: false # Invoke MS Offce documents for editing using WebDAV
+    ms_sharepoint_plugin: true  # Invoke MS Offce documents for editing using WebDAV
+    ms_sharepoint_urls: false  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+
+
+# ----------------------------------------------------------------------------
+# Property Manager
+# null: (default) Don't support dead properties
+# true: Use in-memory property manager (NOT persistent)
+property_manager: true
+
+# Example:
+# Use PERSISTENT shelve based property manager
+# from wsgidav.property_manager import ShelvePropertyManager
+# property_manager: ShelvePropertyManager("wsgidav-props.shelve")
+
+# Optional additional live property modification
+mutable_live_props:
+    # Enable to allow clients to use e.g. the touch or cp / rsync commands with the
+    # preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
+    - "{DAV:}getlastmodified"
+
+
+# ----------------------------------------------------------------------------
+# Lock Manager
+
+lock_manager: true
+
+# Example:
+# Use PERSISTENT shelve based lock manager
+# from wsgidav.lock_storage import LockStorageShelve
+# lock_manager = LockStorageShelve("wsgidav-locks.shelve")

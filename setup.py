@@ -9,7 +9,7 @@ import sys
 # revision (set to True for real releases)
 # RELEASE = False
 
-from setuptools import setup, find_packages
+from setuptools import setup  # , find_packages
 from setuptools import Command
 from setuptools.command.test import test as TestCommand
 
@@ -74,6 +74,7 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 install_requires = [
     "defusedxml",
     "jsmin",
+    "Jinja2",
     "PyYAML",
     # "defusedxml~=0.5",
     # "jsmin~=2.2",
@@ -87,14 +88,7 @@ if "bdist_msi" in sys.argv:
         "lxml",
         ])
 
-tests_require = [
-    # "cheroot",
-    # "flake8",
-    # "pytest",
-    # "pytest-cov",
-    # "tox",
-    # "webtest",
-    ]
+tests_require = []
 
 setup_requires = install_requires
 
@@ -106,6 +100,12 @@ for cmd in ["bdist_msi"]:
 
 if use_cx_freeze:
     try:
+        # cx_Freeze seems to be confused by module name 'PyYAML' which
+        # must be imported as 'yaml', so we rename here. However it must
+        # be listed as 'PyYAML' in the requirements.txt and be installed!
+        install_requires.remove("PyYAML")
+        install_requires.append("yaml")
+
         from cx_Freeze import setup, Executable  # noqa F811
         executables = [
             Executable(script="wsgidav/server/server_cli.py",
@@ -132,9 +132,25 @@ else:
     executables = []
 
 
+# https://stackoverflow.com/a/43034479/19166
+PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
+os.environ["TCL_LIBRARY"] = os.path.join(PYTHON_INSTALL_DIR, "tcl", "tcl8.6")
+os.environ["TK_LIBRARY"] = os.path.join(PYTHON_INSTALL_DIR, "tcl", "tk8.6")
+
 build_exe_options = {
     "includes": install_requires,
-    "packages": [],
+    "include_files": [
+        # https://stackoverflow.com/a/43034479/19166
+        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
+        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
+    ],
+    "packages": [
+        "asyncio",  # https://stackoverflow.com/a/41881598/19166
+        "wsgidav.addons.dir_browser",
+        "jinja2",
+        ],
+    "excludes": [
+    ],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
     }
@@ -160,11 +176,8 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     classifiers=[
-        # Development Status :: 2 - Pre-Alpha
-        # Development Status :: 3 - Alpha
-        # Development Status :: 4 - Beta
-        # Development Status :: 5 - Production/Stable
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 4 - Beta",
+        # "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
@@ -187,7 +200,17 @@ setup(
         ],
     keywords="web wsgi webdav application server",
     license="MIT",
-    packages=find_packages(exclude=["tests"]),
+    packages=[
+        "wsgidav",
+        "wsgidav.addons.dir_browser",
+        ],
+    # packages=find_packages("wsgidav"),
+    # packages=find_packages(exclude=["tests"]),
+    package_data={
+        # If any package contains *.txt files, include them:
+        # "": ["*.css", "*.html", "*.ico", "*.js"],
+        "wsgidav.addons.dir_browser": ["htdocs/*.*"],
+    },
     install_requires=install_requires,
     setup_requires=setup_requires,
     tests_require=tests_require,

@@ -15,7 +15,6 @@
     "verbose": 1,
     // Remove this block to prevent directory browsing
     "dir_browser": {
-        "enable": true,
         "response_trailer": "",
         "davmount": false,
         "ms_mount": false,
@@ -47,7 +46,10 @@
             }
         }
     },
-    "acceptbasic": false,
-    "acceptdigest": true,
-    "defaultdigest": true
+    "http_authenticator": {
+        "accept_basic": false,
+        "accept_digest": true,
+        "default_to_digest": true,
+        "trusted_auth_header": null
+    }
 }

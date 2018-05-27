@@ -77,7 +77,12 @@ add_header_MS_Author_Via = True
 #from debug_filter import WsgiDavDebugFilter
 #from http_authenticator import HTTPAuthenticator
 #from error_printer import ErrorPrinter
-#middleware_stack = [ WsgiDavDirBrowser, HTTPAuthenticator, ErrorPrinter, WsgiDavDebugFilter ]
+#middleware_stack = [
+#    WsgiDavDirBrowser,
+#    HTTPAuthenticator,
+#    ErrorPrinter,
+#    WsgiDavDebugFilter,
+#    ]
 
 #===============================================================================
 # Debugging
@@ -118,10 +123,10 @@ dir_browser = {
 
 # Example: Use PERSISTENT shelve based property manager
 #from wsgidav.property_manager import ShelvePropertyManager
-#propsmanager = ShelvePropertyManager("wsgidav-props.shelve")
+#property_manager = ShelvePropertyManager("wsgidav-props.shelve")
 
 ### Use in-memory property manager (NOT persistent)
-propsmanager = True
+property_manager = True
 
 
 ### Optional additional live property modification
@@ -135,7 +140,7 @@ propsmanager = True
 #
 # Example: Use PERSISTENT shelve based lock manager
 #from wsgidav.lock_storage import LockStorageShelve
-#locksmanager = LockStorageShelve("wsgidav-locks.shelve")
+#lock_manager = LockStorageShelve("wsgidav-locks.shelve")
 
 
 #===============================================================================
@@ -149,15 +154,15 @@ addShare("", r"~/davshare")
 #===============================================================================
 # HTTP Authentication Options
 
-acceptbasic = True    # Allow basic authentication, True or False
-acceptdigest = True   # Allow digest authentication, True or False
-defaultdigest = True  # True (default digest) or False (default basic)
+accept_basic = True    # Allow basic authentication, True or False
+accept_digest = True   # Allow digest authentication, True or False
+default_to_digest = True  # True (default digest) or False (default basic)
 
 # Enter the name of a header field that will be accepted as authorized user.
 # Including quotes, for example: trusted_auth_header = "REMOTE_USER"
 trusted_auth_header = None
 
-#domaincontroller =   # Uncomment this line to specify your own domain controller
+#domain_controller =   # Uncomment this line to specify your own domain controller
                       # Default: wsgidav.domain_controller, which uses the USERS
                       #          section below
 
@@ -165,13 +170,13 @@ trusted_auth_header = None
 # Example: use a domain controller that allows users to authenticate against
 #          a Windows NT domain or a local computer.
 #          Note: NTDomainController requires basic authentication:
-#                Set acceptbasic=True, acceptdigest=False, defaultdigest=False
+#                Set accept_basic=True, accept_digest=False, default_to_digest=False
 
 # from wsgidav.addons.nt_domain_controller import NTDomainController
-# domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
-# acceptbasic = True
-# acceptdigest = False
-# defaultdigest = False
+# domain_controller = NTDomainController(presetdomain=None, presetserver=None)
+# accept_basic = True
+# accept_digest = False
+# default_to_digest = False
 
 
 #===============================================================================

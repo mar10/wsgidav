@@ -19,7 +19,7 @@ from tempfile import gettempdir
 
 from wsgidav.compat import to_bytes
 from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.wsgidav_app import WsgiDAVApp
 
 
 # ========================================================================
@@ -80,21 +80,22 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     if provider is None:
         provider = FilesystemProvider(share_path)
 
-    config = DEFAULT_CONFIG.copy()
-    config.update({
+    # config = DEFAULT_CONFIG.copy()
+    # config.update({
+    config = {
         "host": "127.0.0.1",
         "port": 8080,
         "provider_mapping": {"/": provider},
         # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        "domaincontroller": None,
+        "domain_controller": None,
         "user_mapping": {},
         "verbose": 0,
         "enable_loggers": [],
-        "propsmanager": True,      # None: no property manager
-        "locksmanager": True,      # True: use lock_manager.LockManager
+        "property_manager": True,      # None: no property manager
+        "lock_manager": True,      # True: use lock_manager.LockManager
         # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        "domaincontroller": None,
-    })
+        "domain_controller": None,
+        }
 
     if with_auth:
         config.update({
@@ -108,9 +109,9 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
                                                },
                                    },
                              },
-            "acceptbasic": True,
-            "acceptdigest": False,
-            "defaultdigest": False,
+            "accept_basic": True,
+            "accept_digest": False,
+            "default_to_digest": False,
         })
 
     if with_ssl:
@@ -118,8 +119,8 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
             "ssl_certificate": os.path.join(package_path, "wsgidav/server/sample_bogo_server.crt"),
             "ssl_private_key": os.path.join(package_path, "wsgidav/server/sample_bogo_server.key"),
             "ssl_certificate_chain": None,
-            # "acceptdigest": True,
-            # "defaultdigest": True,
+            # "accept_digest": True,
+            # "default_to_digest": True,
         })
 
     # This event is .set() when server enters the request handler loop
@@ -189,9 +190,9 @@ class WsgiDavTestServer(object):
         return self
 
     def stop(self):
-        print("Stopping WsgiDAVAppavTestServer...")
         if self.proc:
+            print("Stopping WsgiDAVAppTestServer...")
             self.proc.terminate()
             self.proc.join()
             self.proc = None
-            print("Stopping WsgiDavTestServer... done.")
+        print("Stopping WsgiDavTestServer... done.")
