@@ -47,7 +47,7 @@ class RequestServer(object):
     def __init__(self, davProvider):
         self._davProvider = davProvider
         self.allowPropfindInfinite = True
-        self._verbose = 2
+        self._verbose = 3
         self.block_size = DEFAULT_BLOCK_SIZE
         _logger.debug("RequestServer: __init__")
 

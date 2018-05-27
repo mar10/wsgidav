@@ -151,6 +151,16 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 classes = []
                 if res.isCollection:
                     classes.append("directory")
+
+                if not isReadOnly and not res.isCollection:
+                    ext = os.path.splitext(href)[1].lstrip(".").lower()
+                    officeType = msOfficeExtToTypeMap.get(ext)
+                    if officeType:
+                        if dirConfig.get("ms_sharepoint_plugin"):
+                            classes.append("msoffice")
+                        elif dirConfig.get("ms_sharepoint_urls"):
+                            href = "ms-{}:ofe|u|{}".format(officeType, href)
+
                 entry = {
                     "href": href,
                     "class": " ".join(classes),
@@ -162,18 +172,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     "displayTypeComment": di.get("typeComment"),
                     }
 
-                if not isReadOnly and not res.isCollection:
-                    ext = os.path.splitext(href)[1].lstrip(".").lower()
-                    officeType = msOfficeExtToTypeMap.get(ext)
-                    if officeType:
-                        if dirConfig.get("ms_sharepoint_plugin"):
-                            entry["class"] = "msoffice"
-                        elif dirConfig.get("ms_sharepoint_urls"):
-                            entry["href"] = "ms-{}:ofe|u|{}".format(officeType, href)
-
                 dirInfoList.append(entry)
         #
         ignore_patterns = dirConfig.get("ignore", [])
+        if compat.is_basestring(ignore_patterns):
+            ignore_patterns = ignore_patterns.split(",")
+
         for entry in dirInfoList:
             # Skip ignore patterns
             ignore = False

@@ -9,18 +9,32 @@
     a specific base class for middleware (introduced with #12)
 - Improve configuration files:
   - WsgiDAVApp constructor now assumes default settings. The passed options
-    override those. 
-  - #89 Add support for JSON config files to built-in server runner
-  - wsgidav.json can contain comments now (JavaScript syntax)
-  - Support YAML format as well
+    override those.
+  - YAML is now the preferred configuration file format.
+  - #89 Add support for JSON config files (JavaScript-style comments allowed)
   - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
   - `middleware_stack` entries can also be strings or dicts that are
     evaluated to import and instantiate middleware classes.
   - YAML and JSON config files allow to define and configure external middleware
     by strings
+  - Renamed some settings. e.g. `acceptdigest` => `http_authenticator.accept_digest`
+  - Log format configurable
+- **TODO** #94: Use utf-8 as default
+- Refactor WsgiDirBrowser:
+  - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)
+  - Uses Jinja2 and loads static assets through own WsgiDAV provider
+- MSI setup uses Python 3.6
+
+
+## 2.4.0 / Unreleased
+
+- Improve configuration files:
+  - #89 Add support for JSON config files to built-in server runner
+  - wsgidav.json can contain comments now (JavaScript syntax)
+  - Support YAML format as well
+  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
 - Expand '~' in `--root` and `--config` command line options
 - Bump Cheroot version to 6.2+ (used by MSI installer)
-- **TODO** #94: Use utf-8 as default
 - #97: Fix assumption that QUERY_STRING is in environment (dir_browser)
 - #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
 - #100: Send ETags with PUT response
@@ -30,13 +44,9 @@
   - Re-define verbosity level range: 0..5
   - Removed usage of `print` in favor of `logging.getLogger().debug`
   - Remove util.note(), .status(), ... helpers
-- Refactor WsgiDirBrowser:
-  - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)
-  - Uses Jinja2 and loads static assets through WsgiDAV provider
 - Refactor code base:
   - Use `.format()` syntax instead of `%s` for string templating
   - Mandatory PEP8 compliance (checked by flake8)
-- MSI setup uses Python 3.6
 
 
 ## 2.3.0 / 2018-04-06

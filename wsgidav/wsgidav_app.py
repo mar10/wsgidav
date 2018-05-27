@@ -47,106 +47,62 @@ For every request:
     Note: The OPTIONS method for the '*' path is handled directly.
 
 """
+import copy
 import inspect
 import sys
 import time
 
 from wsgidav import compat, util
-from wsgidav.addons.dir_browser import WsgiDavDirBrowser
 from wsgidav.dav_provider import DAVProvider
-from wsgidav.debug_filter import WsgiDavDebugFilter
-from wsgidav.error_printer import ErrorPrinter
+from wsgidav.default_conf import DEFAULT_CONFIG
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.property_manager import PropertyManager
-from wsgidav.request_resolver import RequestResolver
-from wsgidav.util import safeReEncode,  dynamic_import_class, dynamic_instantiate_middleware
+from wsgidav.util import safeReEncode, dynamic_import_class, dynamic_instantiate_middleware
 
 __docformat__ = "reStructuredText"
 
 _logger = util.getModuleLogger(__name__)
 
-# Use these settings, if config file does not define them (or is totally
-# missing)
-DEFAULT_VERBOSE = 3
-
-DEFAULT_CONFIG = {
-    "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
-    "provider_mapping": {},
-    "host": "localhost",
-    "port": 8080,
-    "server": "cheroot",
-
-    "add_header_MS_Author_Via": True,
-    "unquote_path_info": False,  # See #8
-    "re_encode_path_info": None,  # (See #73) None: activate on Python 3
-    #    "use_text_files": False,
-
-    "propsmanager": None,  # True: use property_manager.PropertyManager
-    "locksmanager": True,  # True: use lock_manager.LockManager
-
-    # HTTP Authentication Options
-    "user_mapping": {},       # dictionary of dictionaries
-    # None: domain_controller.WsgiDAVDomainController(user_mapping)
-    "domaincontroller": None,
-    "acceptbasic": True,      # Allow basic authentication, True or False
-    "acceptdigest": True,     # Allow digest authentication, True or False
-    "defaultdigest": True,    # True (default digest) or False (default basic)
-    # Name of a header field that will be accepted as authorized user
-    "trusted_auth_header": None,
-
-    # Error printer options
-    "catchall": False,
-
-    "enable_loggers": [
-    ],
-
-    # Verbose Output
-    # 0 - no output
-    # 1 - no output (excepting application exceptions)
-    # 2 - show warnings
-    # 3 - show single line request summaries (for HTTP logging)
-    # 4 - show additional events
-    # 5 - show full request/response header info (HTTP Logging)
-    #     request body and GET response bodies not shown
-    "verbose": DEFAULT_VERBOSE,
-
-    "dir_browser": {
-        # "enable": True,               # Render HTML listing for GET requests on collections
-        # List of fnmatch patterns:
-        "ignore": [],
-        "response_trailer": "",       # Raw HTML code, appended as footer
-        # Send <dm:mount> response if request URL contains '?davmount'
-        "davmount": False,
-        # Add an 'open as webfolder' link (requires Windows)
-        "ms_mount": False,
-        "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
-        "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
-        },
-    "middleware_stack": [
-        WsgiDavDebugFilter,
-        ErrorPrinter,
-        HTTPAuthenticator,
-        WsgiDavDirBrowser,
-        RequestResolver,
-        ],
-}
-
 
 def _check_config(config):
-    dir_browser = config.get("dir_browser", {})
-    if dir_browser.get("app_class"):
-        raise ValueError("app_class option was removed. Use `middleware_stack` instead")
+    errors = []
 
     mandatory_fields = (
         "provider_mapping",
         )
     for field in mandatory_fields:
         if field not in config:
-            raise ValueError("Invalid configuration: missing required field '{}'".format(field))
+            errors.append("Missing required option '{}'.".format(field))
+
+    deprecated_fields = {
+        "dir_browser.app_class": "middleware_stack",
+        "dir_browser.enable": "middleware_stack",
+        "domaincontroller": "domain_controller",
+        "acceptbasic": "http_authenticator.accept_basic",
+        "acceptdigest": "http_authenticator.accept_digest",
+        "defaultdigest": "http_authenticator.default_to_digest",
+        "trusted_auth_header": "http_authenticator.trusted_auth_header",
+        "propsmanager": "property_manager",
+        "locksmanager": "lock_manager",
+        "catchall": "error_printer.catch_all",
+        }
+    for old, new in deprecated_fields.items():
+        if "." in old:
+            k, v = old.split(".", 1)
+            d = config[k]
+        else:
+            d, v = config, old
+
+        if d and v in d:
+            errors.append("Deprecated option '{}': use '{}' instead.".format(old, new))
+
+    if errors:
+        raise ValueError("Invalid configuration:\n  - " + "\n  - ".join(errors))
+
     return True
 
 
@@ -157,12 +113,9 @@ class WsgiDAVApp(object):
 
     def __init__(self, config):
 
-        self.config = DEFAULT_CONFIG.copy()
+        self.config = copy.deepcopy(DEFAULT_CONFIG)
         self.config.update(config)
         config = self.config
-
-        # Do not initialize logging here, because we want to keep silence in library-mode
-        # util.initLogging(config["verbose"], config.get("enable_loggers", []))
 
         # Evaluate configuration and set defaults
         _check_config(config)

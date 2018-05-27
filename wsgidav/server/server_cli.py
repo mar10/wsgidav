@@ -92,7 +92,7 @@ Examples:
     wsgidav --port=80 --host=0.0.0.0 --root=/temp
 
   Run using a specific configuration file:
-    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.conf
+    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.yaml
 
   If no config file is specified, the application will look for a file named
   'wsgidav.conf' in the current directory.

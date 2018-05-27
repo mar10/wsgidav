@@ -55,13 +55,13 @@ class PropertyManager(object):
         self._dict = None
         self._loaded = False
         self._lock = ReadWriteLock()
-        self._verbose = 2
+        self._verbose = 3
 
     def __repr__(self):
         return "PropertyManager"
 
     def __del__(self):
-        if __debug__ and self._verbose >= 2:
+        if __debug__ and self._verbose >= 4:
             self._check()
         self._close()
 
@@ -102,7 +102,7 @@ class PropertyManager(object):
         _logger.info("{}({}): {}".format(self.__class__.__name__, self.__repr__(), msg))
         if not self._loaded:
             self._lazyOpen()
-            if self._verbose >= 2:
+            if self._verbose >= 4:
                 return  # Already dumped in _lazyOpen
         try:
             for k, v in self._dict.items():
@@ -171,7 +171,7 @@ class PropertyManager(object):
             # This re-assignment is important, so Shelve realizes the change:
             self._dict[normurl] = locatordict
             self._sync()
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check()
         finally:
             self._lock.release()
@@ -196,7 +196,7 @@ class PropertyManager(object):
                     # change:
                     self._dict[normurl] = locatordict
                     self._sync()
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check()
         finally:
             self._lock.release()
@@ -217,14 +217,14 @@ class PropertyManager(object):
         _logger.debug("copyProperties({}, {})".format(srcurl, desturl))
         self._lock.acquireWrite()
         try:
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check()
             if not self._loaded:
                 self._lazyOpen()
             if srcurl in self._dict:
                 self._dict[desturl] = self._dict[srcurl].copy()
                 self._sync()
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check("after copy")
         finally:
             self._lock.release()
@@ -233,7 +233,7 @@ class PropertyManager(object):
         _logger.debug("moveProperties({}, {}, {})".format(srcurl, desturl, withChildren))
         self._lock.acquireWrite()
         try:
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check()
             if not self._loaded:
                 self._lazyOpen()
@@ -249,7 +249,7 @@ class PropertyManager(object):
                 self._dict[desturl] = self._dict[srcurl]
                 del self._dict[srcurl]
             self._sync()
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check("after move")
         finally:
             self._lock.release()
@@ -283,7 +283,7 @@ class ShelvePropertyManager(PropertyManager):
             self._dict = shelve.open(self._storagePath,
                                      writeback=False)
             self._loaded = True
-            if __debug__ and self._verbose >= 2:
+            if __debug__ and self._verbose >= 4:
                 self._check("After shelve.open()")
                 self._dump("After shelve.open()")
         finally:

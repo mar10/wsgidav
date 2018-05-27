@@ -50,7 +50,7 @@ class DirbrowserTest(unittest.TestCase):
         assert res.status_code == 200
         assert '<meta name="generator" content="WsgiDAV/' in res.text
         assert res.encoding == "ISO-8859-1"
-        assert "WsgiDAV" in  res.headers["Server"]
+        assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html"
 
         res = requests.get(self.url + "?davmount", auth=self.auth)

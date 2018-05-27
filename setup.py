@@ -9,7 +9,7 @@ import sys
 # revision (set to True for real releases)
 # RELEASE = False
 
-from setuptools import setup, find_packages
+from setuptools import setup  # , find_packages
 from setuptools import Command
 from setuptools.command.test import test as TestCommand
 

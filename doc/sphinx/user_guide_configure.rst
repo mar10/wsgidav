@@ -9,7 +9,7 @@ Configuration
    :maxdepth: 1
 
    sample_wsgidav_conf
-   
+
 
 The :class:`~wsgidav.wsgidav_app.WsgiDAVApp` object is configured by passing
 a Python ``dict`` with distinct options, that define
@@ -22,74 +22,10 @@ a Python ``dict`` with distinct options, that define
   * Advanced debugging options
   * (and more)
 
-This section shows the available options and defaults::
+This section shows the available options and defaults:
 
-    DEFAULT_CONFIG = {
-        "host": "localhost",
-        "port": 8080,
-
-        # Application root, e.g. <mount_path>/<share_name>/<res_path>
-        "mount_path": None,
-
-        "provider_mapping": {},
-
-        "server": "cheroot",
-
-        "add_header_MS_Author_Via": True,
-        "unquote_path_info": False,  # (See #8)
-        "re_encode_path_info": None,  # (See #73) None: activate on Python 3
-
-        "propsmanager": None,  # True: use property_manager.PropertyManager
-        "locksmanager": True,  # True: use lock_manager.LockManager
-
-        "middleware_stack": [
-            WsgiDavDebugFilter,
-            ErrorPrinter,
-            HTTPAuthenticator,
-            WsgiDavDirBrowser,
-            RequestResolver,
-            ],
-
-        # HTTP Authentication Options
-        "user_mapping": {},       # dictionary of dictionaries
-
-        # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        "domaincontroller": None,
-
-        "acceptbasic": True,      # Allow basic authentication, True or False
-        "acceptdigest": True,     # Allow digest authentication, True or False
-        "defaultdigest": True,    # True (default digest) or False (default basic)
-        # Name of a header field that will be accepted as authorized user
-        "trusted_auth_header": None,
-
-        # Error printer options
-        "catchall": False,
-
-        # Verbose Output
-        # 0 - no output
-        # 1 - no output (excepting application exceptions)
-        # 2 - show warnings
-        # 3 - show single line request summaries (for HTTP logging)
-        # 4 - show additional events
-        # 5 - show full request/response header info (HTTP Logging)
-        #     request body and GET response bodies not shown
-        "verbose": DEFAULT_VERBOSE,
-
-        "enable_loggers": [],
-
-        #
-        "dir_browser": {
-            # List of fnmatch patterns:
-            "ignore": [],
-            "response_trailer": "",       # Raw HTML code, appended as footer
-            # Send <dm:mount> response if request URL contains '?davmount'
-            "davmount": False,
-            # Add an 'open as webfolder' link (requires Windows)
-            "ms_mount": False,
-            "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
-            "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
-            },
-    }
+.. literalinclude:: ../../wsgidav/default_conf.py
+    :linenos:
 
 When a Python dict is passed to the :class:`~wsgidav.wsgidav_app.WsgiDAVApp` constructor,
 its values will override those defaults::
@@ -139,13 +75,12 @@ The options described below can be defined for the CLI either
 
    The YAML format is recommended.
 
-For a start, you should copy
+For a start, copy
 :download:`YAML Sample Configuration<../../sample_wsgidav.yaml>`
 and edit it to your needs.
-
-You can also start with a
-(:download:`JSON Sample Configuration<../../sample_wsgidav.json>`) or a
-(:download:`Python Sample Configuration<../../sample_wsgidav.conf>`).
+(Alternatively use
+:download:`JSON Sample Configuration<../sample_wsgidav.json>` or
+:download:`Python Sample Configuration<../sample_wsgidav.conf>`.)
 
 
 Verbosity Level
@@ -266,6 +201,34 @@ Note that the external middleware must be available, for example by calling
 MSI installer.
 
 
+Property Manager
+----------------
+
+.. todo:: TODO
+
+
+Lock Manager
+------------
+
+.. todo:: TODO
+
+
+Domain Controller
+-----------------
+
+Example:
+use a domain controller that allows users to authenticate against a
+Windows NT domain or a local computer.
+The :class:`~wsgidav.addons.nt_domain_controller.NTDomainController`
+requires basic authentication::
+
+    from wsgidav.addons.nt_domain_controller import NTDomainController
+    domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
+    acceptbasic = True
+    acceptdigest = False
+    defaultdigest = False
+
+
 Sample ``wsgidav.yaml``
 -----------------------
 
@@ -295,9 +258,8 @@ Sample ``wsgidav.conf``
 -----------------------
 
 This format uses plain Python syntax, which allows us to use Python data structures,
-and even write helpers function, etc.
+and even write helper functions, etc.
 
-This is the most powerful and flexible format, that can be used for complex
-scenarios.
+This is the most powerful and flexible format, that can be used in complex scenarios.
 
 See the :doc:`sample_wsgidav_conf` example.
