@@ -12,7 +12,7 @@ Usage: add this lines to wsgidav.conf::
 
     from wsgidav.addons.couch_property_manager import CouchPropertyManager
     prop_man_opts = {}
-    propsmanager = CouchPropertyManager(prop_man_opts)
+    property_manager = CouchPropertyManager(prop_man_opts)
 
 Valid options are (sample shows defaults)::
 

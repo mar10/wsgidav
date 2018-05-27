@@ -35,6 +35,7 @@ Configuration is defined like this:
 from __future__ import print_function
 
 import argparse
+import copy
 import json
 import logging
 import os
@@ -47,13 +48,14 @@ from jsmin import jsmin
 import yaml
 
 from wsgidav import __version__, util
+from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp, DEFAULT_VERBOSE
+from wsgidav.wsgidav_app import WsgiDAVApp
 from wsgidav.xml_tools import useLxml
 
 __docformat__ = "reStructuredText"
 
-#: Try this config files if no --config_file option is specified
+#: Try this config files if no --config=... option is specified
 DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
 
 _logger = logging.getLogger("wsgidav")
@@ -258,13 +260,15 @@ def _initConfig():
     cli_verbose = cli_opts["verbose"]
 
     # Set config defaults
-    config = DEFAULT_CONFIG.copy()
+    # config = DEFAULT_CONFIG.copy()
+    config = copy.deepcopy(DEFAULT_CONFIG)
 
     # Configuration file overrides defaults
     config_file = cli_opts.get("config_file")
     if config_file:
         file_opts = _readConfigFile(config_file, cli_verbose)
-        config.update(file_opts)
+        # config.update(file_opts)
+        util.deep_update(config, file_opts)
         if cli_verbose != DEFAULT_VERBOSE and "verbose" in file_opts:
             if cli_verbose >= 2:
                 print("Config file defines 'verbose: {}' but is overridden by command line: {}."

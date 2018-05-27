@@ -115,27 +115,33 @@ class WsgiDAVServerThread(Thread):
                 # "lock_manager",
                 ],
             "debug_methods": [],
-            "propsmanager": True,      # True: use lock_manager.LockManager
-            "locksmanager": True,      # True: use lock_manager.LockManager
+            "property_manager": True,      # True: use lock_manager.LockManager
+            "lock_manager": True,      # True: use lock_manager.LockManager
             # None: domain_controller.WsgiDAVDomainController(user_mapping)
-            "domaincontroller": None,
+            "domain_controller": None,
             "verbose": 2,
             }
 
         if withAuthentication:
-            config["user_mapping"] = {"/": {"tester": {"password": "secret",
-                                                       "description": "",
-                                                       "roles": [],
-                                                       },
-                                            "tester2": {"password": "secret2",
-                                                        "description": "",
-                                                        "roles": [],
-                                                        },
-                                            },
-                                      }
-            config["acceptbasic"] = True
-            config["acceptdigest"] = False
-            config["defaultdigest"] = False
+            config["user_mapping"] = {
+                "/": {
+                    "tester": {
+                        "password": "secret",
+                        "description": "",
+                        "roles": [],
+                        },
+                    "tester2": {
+                        "password": "secret2",
+                        "description": "",
+                        "roles": [],
+                        },
+                    },
+                }
+            config["http_authenticator"] = {
+                "accept_basic": True,
+                "accept_digest": False,
+                "default_to_digest": False,
+                }
 
         app = WsgiDAVApp(config)
 

@@ -46,7 +46,10 @@
             }
         }
     },
-    "acceptbasic": false,
-    "acceptdigest": true,
-    "defaultdigest": true
+    "http_authenticator": {
+        "accept_basic": false,
+        "accept_digest": true,
+        "default_to_digest": true,
+        "trusted_auth_header": null
+    }
 }

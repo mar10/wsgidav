@@ -54,10 +54,10 @@ class ServerTest(unittest.TestCase):
             "user_mapping": {},
             "verbose": 1,
             "enable_loggers": [],
-            "propsmanager": None,      # None: no property manager
-            "locksmanager": True,      # True: use lock_manager.LockManager
+            "property_manager": None,      # None: no property manager
+            "lock_manager": True,      # True: use lock_manager.LockManager
             # None: domain_controller.WsgiDAVDomainController(user_mapping)
-            "domaincontroller": None,
+            "domain_controller": None,
             }
 
         if withAuthentication:
@@ -67,9 +67,9 @@ class ServerTest(unittest.TestCase):
                                                        },
                                             },
                                       }
-            config["acceptbasic"] = True
-            config["acceptdigest"] = False
-            config["defaultdigest"] = False
+            config["accept_basic"] = True
+            config["accept_digest"] = False
+            config["default_to_digest"] = False
 
         return WsgiDAVApp(config)
 

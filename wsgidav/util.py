@@ -7,6 +7,7 @@ Miscellaneous support functions for WsgiDAV.
 """
 import base64
 import calendar
+import collections
 from email.utils import formatdate, parsedate
 from hashlib import md5
 import logging
@@ -247,6 +248,15 @@ def getModuleLogger(moduleName, defaultToVerbose=False):
     # if logger.level == logging.NOTSET and not defaultToVerbose:
     #     logger.setLevel(logging.INFO)  # Disable debug messages by default
     return logger
+
+
+def deep_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.Mapping):
+            d[k] = deep_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 
 # ========================================================================

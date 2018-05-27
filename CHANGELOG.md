@@ -17,7 +17,7 @@
     evaluated to import and instantiate middleware classes.
   - YAML and JSON config files allow to define and configure external middleware
     by strings
-  - Renamed some settings. e.g. `acceptdigest` => `http_authenticator.accept_digest`
+  - Renamed some settings. e.g. `accept_digest` => `http_authenticator.accept_digest`
   - Log format configurable
 - **TODO** #94: Use utf-8 as default
 - Refactor WsgiDirBrowser:

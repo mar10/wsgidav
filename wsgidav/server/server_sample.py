@@ -24,9 +24,9 @@ def main():
         "user_mapping": {},
         "verbose": 1,
         "enable_loggers": [],
-        "propsmanager": True,      # True: use property_manager.PropertyManager
-        "locksmanager": True,      # True: use lock_manager.LockManager
-        "domaincontroller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
+        "property_manager": True,      # True: use property_manager.PropertyManager
+        "lock_manager": True,      # True: use lock_manager.LockManager
+        "domain_controller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
         }
     app = WsgiDAVApp(config)
 

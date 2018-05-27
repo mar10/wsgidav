@@ -25,7 +25,8 @@ block_size: 8192
 # Add the MS-Author-Via Response Header to OPTIONS command to allow editing
 # with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
-
+unquote_path_info: false,  # See #8
+re_encode_path_info: null  # (See #73) None: activate on Python 3
 
 # ----------------------------------------------------------------------------
 # SSL Support
@@ -53,6 +54,9 @@ middleware_stack:
 # ==============================================================================
 # SHARES
 
+# Application root, e.g. <mount_path>/<share_name>/<res_path>
+mount_path: null
+
 provider_mapping:
     "/share1": "/path/to/share1"
     "/share2":
@@ -62,21 +66,20 @@ provider_mapping:
 
 # ==============================================================================
 # AUTHENTICATION
-
-acceptbasic: false    # Allow basic authentication
-acceptdigest: true    # Allow digest authentication
-defaultdigest: true   # true (default digest) or false (default basic)
-
-# Header field that will be accepted by as authorized user.
-# Including quotes, for example: trusted_auth_header = "REMOTE_USER"
-trusted_auth_header: null
+http_authenticator:
+    accept_basic: false    # Allow basic authentication
+    accept_digest: true    # Allow digest authentication
+    default_to_digest: true   # true (default digest) or false (default basic)
+    # Header field that will be accepted by as authorized user.
+    # Including quotes, for example: trusted_auth_header = "REMOTE_USER"
+    trusted_auth_header: null
 
 # Domain controller that is used by the HTTPAuthenticator middleware
 # Default null: wsgidav.domain_controller, which uses the `user_mapping` below.
 # (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html for
 # an example of NT domain controller, etc.)
 
-domaincontroller: null
+domain_controller: null
 
 # Access control per share, used by the default WsgiDAVDomainController.
 # These routes must match the provider mapping.
@@ -109,7 +112,7 @@ verbose: 3
 logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s"
 logger_date_format: "%H:%M:%S"
 
-catchall: false
+catch_all: false
 
 # Enable specific module loggers
 # E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
@@ -144,12 +147,12 @@ dir_browser:
 # Property Manager
 # null: (default) Don't support dead properties
 # true: Use in-memory property manager (NOT persistent)
-propsmanager: true
+property_manager: true
 
 # Example:
 # Use PERSISTENT shelve based property manager
 # from wsgidav.property_manager import ShelvePropertyManager
-# propsmanager: ShelvePropertyManager("wsgidav-props.shelve")
+# property_manager: ShelvePropertyManager("wsgidav-props.shelve")
 
 # Optional additional live property modification
 mutable_live_props:
@@ -161,9 +164,9 @@ mutable_live_props:
 # ----------------------------------------------------------------------------
 # Lock Manager
 
-locksmanager: true
+lock_manager: true
 
 # Example:
 # Use PERSISTENT shelve based lock manager
 # from wsgidav.lock_storage import LockStorageShelve
-# locksmanager = LockStorageShelve("wsgidav-locks.shelve")
+# lock_manager = LockStorageShelve("wsgidav-locks.shelve")

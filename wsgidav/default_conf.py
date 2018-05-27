@@ -25,35 +25,42 @@ __docformat__ = "reStructuredText"
 DEFAULT_VERBOSE = 3
 
 DEFAULT_CONFIG = {
-    "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
-    "provider_mapping": {},
+    "server": "cheroot",
+    "server_args": {},
+
     "host": "localhost",
     "port": 8080,
-    "server": "cheroot",
+
+    "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
+    "provider_mapping": {},
 
     "add_header_MS_Author_Via": True,
-    "unquote_path_info": False,  # See #8
-    "re_encode_path_info": None,  # (See #73) None: activate on Python 3
-    #    "use_text_files": False,
+    "unquote_path_info": False,  # See issue #8
+    "re_encode_path_info": None,  # (See issue #73) None: activate on Python 3
 
-    "propsmanager": None,  # True: use property_manager.PropertyManager
-    "locksmanager": True,  # True: use lock_manager.LockManager
+    "property_manager": None,  # True: use property_manager.PropertyManager
+    "lock_manager": True,  # True: use lock_manager.LockManager
+
+    "middleware_stack": [
+        WsgiDavDebugFilter,
+        ErrorPrinter,
+        HTTPAuthenticator,
+        WsgiDavDirBrowser,
+        RequestResolver,
+        ],
 
     # HTTP Authentication Options
-    "user_mapping": {},       # dictionary of dictionaries
+    "http_authenticator": {
+        "accept_basic": True,      # Allow basic authentication, True or False
+        "accept_digest": True,     # Allow digest authentication, True or False
+        "default_to_digest": True,    # True (default digest) or False (default basic)
+        # Name of a header field that will be accepted as authorized user
+        "trusted_auth_header": None,
+        },
+
     # None: domain_controller.WsgiDAVDomainController(user_mapping)
-    "domaincontroller": None,
-    "acceptbasic": True,      # Allow basic authentication, True or False
-    "acceptdigest": True,     # Allow digest authentication, True or False
-    "defaultdigest": True,    # True (default digest) or False (default basic)
-    # Name of a header field that will be accepted as authorized user
-    "trusted_auth_header": None,
-
-    # Error printer options
-    "catchall": False,
-
-    "enable_loggers": [
-    ],
+    "domain_controller": None,
+    "user_mapping": {},
 
     # Verbose Output
     # 0 - no output
@@ -65,10 +72,20 @@ DEFAULT_CONFIG = {
     #     request body and GET response bodies not shown
     "verbose": DEFAULT_VERBOSE,
 
+    # Error printer options
+    "error_printer": {
+        "catch_all": True,  # False,
+        },
+
+    "enable_loggers": [],
+
     "dir_browser": {
         # "enable": True,               # Render HTML listing for GET requests on collections
         # List of fnmatch patterns:
-        "ignore": [],
+        "ignore": [
+            ".DS_Store",  # macOS
+            "._*",  # macOS
+            ],
         "response_trailer": "",       # Raw HTML code, appended as footer
         # Send <dm:mount> response if request URL contains '?davmount'
         "davmount": False,
@@ -77,11 +94,4 @@ DEFAULT_CONFIG = {
         "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
         "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
         },
-    "middleware_stack": [
-        WsgiDavDebugFilter,
-        ErrorPrinter,
-        HTTPAuthenticator,
-        WsgiDavDirBrowser,
-        RequestResolver,
-        ],
 }

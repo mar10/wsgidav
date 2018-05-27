@@ -114,7 +114,8 @@ class WsgiDAVApp(object):
     def __init__(self, config):
 
         self.config = copy.deepcopy(DEFAULT_CONFIG)
-        self.config.update(config)
+        util.deep_update(self.config, config)
+        # self.config.update(config)
         config = self.config
 
         # Evaluate configuration and set defaults
@@ -123,7 +124,7 @@ class WsgiDAVApp(object):
 #        response_trailer = config.get("response_trailer", "")
         self.verbose = config.get("verbose", 3)
 
-        lockStorage = config.get("locksmanager")
+        lockStorage = config.get("lock_manager")
         if lockStorage is True:
             lockStorage = LockStorageDict()
 
@@ -132,7 +133,7 @@ class WsgiDAVApp(object):
         else:
             self.locksManager = LockManager(lockStorage)
 
-        self.propsManager = config.get("propsmanager")
+        self.propsManager = config.get("property_manager")
         if not self.propsManager:
             # Normalize False, 0 to None
             self.propsManager = None

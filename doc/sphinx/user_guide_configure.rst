@@ -223,10 +223,12 @@ The :class:`~wsgidav.addons.nt_domain_controller.NTDomainController`
 requires basic authentication::
 
     from wsgidav.addons.nt_domain_controller import NTDomainController
-    domaincontroller = NTDomainController(presetdomain=None, presetserver=None)
-    acceptbasic = True
-    acceptdigest = False
-    defaultdigest = False
+    domain_controller = NTDomainController(presetdomain=None, presetserver=None)
+    http_authenticator = {
+        "accept_basic": True,
+        "accept_digest": False,
+        "default_to_digest": False,
+        }
 
 
 Sample ``wsgidav.yaml``

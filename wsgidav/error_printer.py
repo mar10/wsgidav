@@ -31,7 +31,7 @@ class ErrorPrinter(BaseMiddleware):
 
     def __init__(self, wsgidav_app, next_app, config):
         super(ErrorPrinter, self).__init__(wsgidav_app, next_app, config)
-        self._catch_all_exceptions = config.get("catchall", False)
+        self._catch_all_exceptions = config["error_printer"].get("catch_all", False)
 
     def __call__(self, environ, start_response):
         # Intercept start_response
