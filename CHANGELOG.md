@@ -3,25 +3,23 @@
 ## 2.4.0 / Unreleased
 
 - Improve configuration files:
-  - #89 Add support for JSON config files to built-in server runner
-  - wsgidav.json can contain comments now (JavaScript syntax)
-  - Support YAML format as well
-  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
+  - YAML is now the preferred configuration file format.
+  - Add support for JSON config files (JavaScript-style comments allowed) (#89)
+  - Use wsgidav.yaml, wsgidav.json, or wsgidav.conf by default if they exist in the local folder
 - Expand '~' in `--root` and `--config` command line options
-- Bump Cheroot version to 6.2+ (used by MSI installer)
-- **TODO** #94: Use utf-8 as default
 - #97: Fix assumption that QUERY_STRING is in environment (dir_browser)
 - #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
 - #100: Send ETags with PUT response
 - #101: Fail cleanly if trying to PUT to unknown collection
-- Reworked documentation on Read The Docs
 - Refactor logging:
   - Re-define verbosity level range: 0..5
-  - Removed usage of `print` in favor of `logging.getLogger().debug`
+  - Remove usage of `print` in favor of `logging.getLogger().debug`
   - Remove util.note(), .status(), ... helpers
 - Refactor code base:
   - Use `.format()` syntax instead of `%s` for string templating
-  - Mandatory PEP8 compliance (checked by flake8)
+  - Mandatory PEP 8 compliance (checked by flake8)
+- Rework documentation on Read The Docs
+- MSI setup uses Cheroot version 6.2+
 
 
 ## 2.3.0 / 2018-04-06
