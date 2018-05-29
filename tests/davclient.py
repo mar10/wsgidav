@@ -16,7 +16,7 @@
 # Taken from http://chandlerproject.org/Projects/Davclient
 # - Fixed set_lock, proppatch
 # - Added (tag, value) syntax to object_to_etree
-# - Added checkResponse()
+# - Added check_response()
 #
 # Modified 2015-10-20, Martin Wendt:
 # - Fix for Py3: StringIO, string-exceptions, bytestring bodies
@@ -402,7 +402,7 @@ class DAVClient(object):
 
         self._request("UNLOCK", path, body=None, headers=headers)
 
-    def checkResponse(self, status=None):
+    def check_response(self, status=None):
         """Raise an error, if self.response doesn"t match expected status.
 
         Inspired by paste.fixture
@@ -437,7 +437,7 @@ class DAVClient(object):
         if status != res.status_code:
             raise AppError("Bad response: %s (not %s)" % (full_status, status))
 
-    def checkMultiStatusResponse(self, expect_status=200):
+    def check_multi_status_response(self, expect_status=200):
         """"""
         if isinstance(expect_status, tuple):
             pass
@@ -445,7 +445,7 @@ class DAVClient(object):
             expect_status = [expect_status]
         expect_status = [int(s) for s in expect_status]
 
-        self.checkResponse(207)
+        self.check_response(207)
         if not hasattr(self.response, "tree"):
             raise AppError("Bad response: not XML")
         responses = {}

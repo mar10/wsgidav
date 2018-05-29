@@ -38,7 +38,7 @@ from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 class WsgiDAVDomainController(object):
@@ -50,15 +50,15 @@ class WsgiDAVDomainController(object):
     def __repr__(self):
         return self.__class__.__name__
 
-    def getDomainRealm(self, inputURL, environ):
+    def get_domain_realm(self, inputURL, environ):
         """Resolve a relative url to the  appropriate realm name."""
         # we don't get the realm here, its already been resolved in
         # request_resolver
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                _logger.debug("getDomainRealm({}): '{}'".format(
-                        util.safeReEncode(inputURL, sys.stdout.encoding),
+                _logger.debug("get_domain_realm({}): '{}'".format(
+                        util.safe_re_encode(inputURL, sys.stdout.encoding),
                         None))
             return None
         realm = davProvider.sharePath
@@ -66,7 +66,7 @@ class WsgiDAVDomainController(object):
             realm = "/"
         return realm
 
-    def requireAuthentication(self, realmname, environ):
+    def require_authentication(self, realmname, environ):
         """Return True if this realm requires authentication or False if it is
         available for general access."""
         # TODO: Should check for --allow_anonymous?
@@ -74,18 +74,18 @@ class WsgiDAVDomainController(object):
 #            "Currently there must be at least on user mapping for this realm")
         return realmname in self.userMap
 
-    def isRealmUser(self, realmname, username, environ):
+    def is_realm_user(self, realmname, username, environ):
         """Returns True if this username is valid for the realm, False otherwise."""
         return realmname in self.userMap and username in self.userMap[realmname]
 
-    def getRealmUserPassword(self, realmname, username, environ):
+    def get_realm_user_password(self, realmname, username, environ):
         """Return the password for the given username for the realm.
 
         Used for digest authentication.
         """
         return self.userMap.get(realmname, {}).get(username, {}).get("password")
 
-    def authDomainUser(self, realmname, username, password, environ):
+    def auth_domain_user(self, realmname, username, password, environ):
         """Returns True if this username/password pair is valid for the realm,
         False otherwise. Used for basic authentication."""
         user = self.userMap.get(realmname, {}).get(username)

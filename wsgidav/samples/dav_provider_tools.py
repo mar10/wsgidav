@@ -12,7 +12,7 @@ from wsgidav.dav_provider import DAVCollection, DAVNonCollection
 
 __docformat__ = "reStructuredText en"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 # ============================================================================
 # VirtualCollection
@@ -23,7 +23,7 @@ class VirtualCollection(DAVCollection):
     """Abstract base class for collections that contain a list of static members.
 
     Member names are passed to the constructor.
-    getMember() is implemented by calling self.provider.getResourceInst()
+    get_member() is implemented by calling self.provider.get_resource_inst()
     """
 
     def __init__(self, path, environ, displayInfo, memberNameList):
@@ -35,20 +35,20 @@ class VirtualCollection(DAVCollection):
         self.displayInfo = displayInfo
         self.memberNameList = memberNameList
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         return self.displayInfo
 
-    def getMemberNames(self):
+    def get_member_names(self):
         return self.memberNameList
 
-    def preventLocking(self):
+    def prevent_locking(self):
         """Return True, since we don't want to lock virtual collections."""
         return True
 
-    def getMember(self, name):
+    def get_member(self, name):
         # raise NotImplementedError
-        return self.provider.getResourceInst(util.joinUri(self.path, name),
-                                             self.environ)
+        return self.provider.get_resource_inst(util.join_uri(self.path, name),
+                                               self.environ)
 
 
 # ============================================================================
@@ -60,34 +60,34 @@ class _VirtualNonCollection(DAVNonCollection):
     def __init__(self, path, environ):
         DAVNonCollection.__init__(self, path, False, environ)
 
-    def getContentLength(self):
+    def get_content_length(self):
         return None
 
-    def getContentType(self):
+    def get_content_type(self):
         return None
 
-    def getCreationDate(self):
+    def get_creation_date(self):
         return None
 
-    def getDisplayName(self):
+    def get_display_name(self):
         return self.name
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         raise NotImplementedError
 
-    def getEtag(self):
+    def get_etag(self):
         return None
 
-    def getLastModified(self):
+    def get_last_modified(self):
         return None
 
-    def supportRanges(self):
+    def support_ranges(self):
         return False
-#    def handleDelete(self):
+#    def handle_delete(self):
 #        raise DAVError(HTTP_FORBIDDEN)
-#    def handleMove(self, destPath):
+#    def handle_move(self, destPath):
 #        raise DAVError(HTTP_FORBIDDEN)
-#    def handleCopy(self, destPath, depthInfinity):
+#    def handle_copy(self, destPath, depthInfinity):
 #        raise DAVError(HTTP_FORBIDDEN)
 
 
@@ -104,27 +104,27 @@ class VirtualTextResource(_VirtualNonCollection):
         self.displayName = displayName
         self.displayType = displayType
 
-    def getContentLength(self):
-        return len(self.getContent().read())
+    def get_content_length(self):
+        return len(self.get_content().read())
 
-    def getContentType(self):
+    def get_content_type(self):
         if self.name.endswith(".txt"):
             return "text/plain"
         return "text/html"
 
-    def getDisplayName(self):
+    def get_display_name(self):
         return self.displayName or self.name
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         return {"type": "Virtual info file"}
 
-    def preventLocking(self):
+    def prevent_locking(self):
         return True
-#    def getRefUrl(self):
+#    def get_ref_url(self):
 #        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
 #        return compat.quote(self.provider.sharePath + refPath)
 
-    def getContent(self):
+    def get_content(self):
         return compat.StringIO(self.content)
 
 
@@ -141,35 +141,35 @@ class FileResource(_VirtualNonCollection):
         _VirtualNonCollection.__init__(self, path, environ)
         self.filePath = filePath
 
-    def getContentLength(self):
+    def get_content_length(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_SIZE]
 
-    def getContentType(self):
+    def get_content_type(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
 #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
 #        if not mimetype:
 #            mimetype = "application/octet-stream"
 #        return mimetype
-        return util.guessMimeType(self.filePath)
+        return util.guess_mime_type(self.filePath)
 
-    def getCreationDate(self):
+    def get_creation_date(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_CTIME]
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         return {"type": "File"}
 
-    def getLastModified(self):
+    def get_last_modified(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_MTIME]
-#    def getRefUrl(self):
+#    def get_ref_url(self):
 #        refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.filePath))
 #        return compat.quote(self.provider.sharePath + refPath)
 
-    def getContent(self):
-        # mime = self.getContentType()
+    def get_content(self):
+        # mime = self.get_content_type()
         # GC issue 57: always store as binary
         # if mime.startswith("text"):
         #     return open(self.filePath, "r", FileResource.BUFFER_SIZE)

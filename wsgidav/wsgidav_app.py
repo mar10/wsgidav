@@ -61,11 +61,11 @@ from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.property_manager import PropertyManager
-from wsgidav.util import safeReEncode, dynamic_import_class, dynamic_instantiate_middleware
+from wsgidav.util import safe_re_encode, dynamic_import_class, dynamic_instantiate_middleware
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 def _check_config(config):
@@ -199,10 +199,10 @@ class WsgiDAVApp(object):
 
             # TODO: We should try to generalize this specific code:
             if isinstance(app, HTTPAuthenticator):
-                domain_controller = app.getDomainController()
+                domain_controller = app.get_domain_controller()
                 # Check anonymous access
                 for share, data in self.providerMap.items():
-                    if app.allowAnonymousAccess(share):
+                    if app.allow_anonymous_access(share):
                         data["allow_anonymous"] = True
 
             # Add middleware to the stack
@@ -253,14 +253,14 @@ class WsgiDAVApp(object):
         if not isinstance(provider, DAVProvider):
             raise ValueError("Invalid provider {}".format(provider))
 
-        provider.setSharePath(share)
+        provider.set_share_path(share)
         if self.mount_path:
-            provider.setMountPath(self.mount_path)
+            provider.set_mount_path(self.mount_path)
 
         # TODO: someday we may want to configure different lock/prop
         # managers per provider
-        provider.setLockManager(self.locksManager)
-        provider.setPropManager(self.propsManager)
+        provider.set_lock_manager(self.locksManager)
+        provider.set_prop_manager(self.propsManager)
 
         self.providerMap[share] = {
             "provider": provider,
@@ -390,11 +390,11 @@ class WsgiDAVApp(object):
             # when trying an anonymous PUT of big files. As a consequence, it
             # doesn't retry with credentials and the file copy fails.
             # (XP is fine however).
-            util.readAndDiscardInput(environ)
+            util.read_and_discard_input(environ)
 
             # Make sure the socket is not reused, unless we are 100% sure all
             # current input was consumed
-            if util.getContentLength(environ) != 0 and not environ.get("wsgidav.all_input_read"):
+            if util.get_content_length(environ) != 0 and not environ.get("wsgidav.all_input_read"):
                 _logger.warn("Input stream not completely consumed: closing connection")
                 forceCloseConnection = True
 
@@ -436,10 +436,10 @@ class WsgiDAVApp(object):
                              .format(
                                 addr=environ.get("REMOTE_ADDR", ""),
                                 user=userInfo,
-                                time=util.getLogTime(),
+                                time=util.get_log_time(),
                                 method=environ.get("REQUEST_METHOD"),
-                                path=safeReEncode(environ.get("PATH_INFO", ""),
-                                                  sys.stdout.encoding),
+                                path=safe_re_encode(environ.get("PATH_INFO", ""),
+                                                    sys.stdout.encoding),
                                 extra=extra,
                                 status=status,
                                 # response_headers.get(""), # response Content-Length

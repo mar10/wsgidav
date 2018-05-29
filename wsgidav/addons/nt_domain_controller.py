@@ -80,7 +80,7 @@ import win32security  # @UnresolvedImport
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 class NTDomainController(object):
@@ -92,20 +92,20 @@ class NTDomainController(object):
     def __repr__(self):
         return self.__class__.__name__
 
-    def getDomainRealm(self, inputURL, environ):
+    def get_domain_realm(self, inputURL, environ):
         return "Windows Domain Authentication"
 
-    def requireAuthentication(self, realmname, environ):
+    def require_authentication(self, realmname, environ):
         return True
 
-    def isRealmUser(self, realmname, username, environ):
-        (domain, usern) = self._getDomainUsername(username)
-        dcname = self._getDomainControllerName(domain)
-        return self._isUser(usern, domain, dcname)
+    def is_realm_user(self, realmname, username, environ):
+        (domain, usern) = self._get_domain_username(username)
+        dcname = self._get_domain_controller_name(domain)
+        return self._is_user(usern, domain, dcname)
 
-    def getRealmUserPassword(self, realmname, username, environ):
-        (domain, user) = self._getDomainUsername(username)
-        dcname = self._getDomainControllerName(domain)
+    def get_realm_user_password(self, realmname, username, environ):
+        (domain, user) = self._get_domain_username(username)
+        dcname = self._get_domain_controller_name(domain)
 
         try:
             userdata = win32net.NetUserGetInfo(dcname, user, 1)
@@ -118,12 +118,12 @@ class NTDomainController(object):
 #        return None
         return userdata.get("password")
 
-    def authDomainUser(self, realmname, username, password, environ):
-        (domain, usern) = self._getDomainUsername(username)
-        dcname = self._getDomainControllerName(domain)
-        return self._authUser(usern, password, domain, dcname)
+    def auth_domain_user(self, realmname, username, password, environ):
+        (domain, usern) = self._get_domain_username(username)
+        dcname = self._get_domain_controller_name(domain)
+        return self._auth_user(usern, password, domain, dcname)
 
-    def _getDomainUsername(self, inusername):
+    def _get_domain_username(self, inusername):
         userdata = inusername.split("\\", 1)
         if len(userdata) == 1:
             domain = None
@@ -137,7 +137,7 @@ class NTDomainController(object):
 
         return (domain, username)
 
-    def _getDomainControllerName(self, domain):
+    def _get_domain_controller_name(self, domain):
         if self._presetserver is not None:
             return self._presetserver
 
@@ -149,7 +149,7 @@ class NTDomainController(object):
 
         return pdc
 
-    def _isUser(self, username, domain, server):
+    def _is_user(self, username, domain, server):
         resume = "init"
         while resume:
             if resume == "init":
@@ -171,8 +171,8 @@ class NTDomainController(object):
         _logger.info("User '%s' not found on server '%s'" % (username, server))
         return False
 
-    def _authUser(self, username, password, domain, server):
-        if not self._isUser(username, domain, server):
+    def _auth_user(self, username, password, domain, server):
+        if not self._is_user(username, domain, server):
             return False
 
         try:

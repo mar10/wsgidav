@@ -172,13 +172,13 @@ class RequestResolver(BaseMiddleware):
 
             dav_compliance_level = "1,2"
 
-            if provider is None or provider.isReadOnly() or provider.lockManager is None:
+            if provider is None or provider.is_readonly() or provider.lockManager is None:
                 dav_compliance_level = "1"
 
             headers = [("Content-Type", "text/html"),
                        ("Content-Length", "0"),
                        ("DAV", dav_compliance_level),
-                       ("Date", util.getRfc1123Time()),
+                       ("Date", util.get_rfc1123_time()),
                        ]
 
             if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):

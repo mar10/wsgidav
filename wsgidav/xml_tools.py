@@ -13,17 +13,17 @@ from wsgidav import compat
 
 __docformat__ = "reStructuredText"
 
-# _logger = util.getModuleLogger(__name__)
+# _logger = util.get_module_logger(__name__)
 _logger = logging.getLogger("wsgidav")
 
 # Import XML support
-useLxml = False
+use_lxml = False
 try:
     # This import helps setup.py to include lxml completely:
     from lxml import _elementpath as _dummy_elementpath  # noqa
     # lxml with safe defaults
     from defusedxml.lxml import _etree as etree
-    useLxml = True
+    use_lxml = True
     _ElementType = etree._Element
 except ImportError:
     # Try xml module (Python 2.5 or later) with safe defaults
@@ -39,11 +39,11 @@ except ImportError:
 # XML
 # ========================================================================
 
-def isEtreeElement(obj):
+def is_etree_element(obj):
     return isinstance(obj, _ElementType)
 
 
-def stringToXML(text):
+def string_to_xml(text):
     """Convert XML string into etree.Element."""
     try:
         return etree.XML(text)
@@ -64,10 +64,10 @@ def stringToXML(text):
         raise
 
 
-def xmlToBytes(element, pretty_print=False):
+def xml_to_bytes(element, pretty_print=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print
     option and prepends an encoding header."""
-    if useLxml:
+    if use_lxml:
         xml = etree.tostring(element,
                              encoding="UTF-8",
                              xml_declaration=True,
@@ -81,28 +81,28 @@ def xmlToBytes(element, pretty_print=False):
     return xml
 
 
-def makeMultistatusEL():
+def make_multistatus_el():
     """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
-    if useLxml:
+    if use_lxml:
         return etree.Element("{DAV:}multistatus", nsmap={"D": "DAV:"})
     return etree.Element("{DAV:}multistatus")
 
 
-def makePropEL():
+def make_prop_el():
     """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
-    if useLxml:
+    if use_lxml:
         return etree.Element("{DAV:}prop", nsmap={"D": "DAV:"})
     return etree.Element("{DAV:}prop")
 
 
-def makeSubElement(parent, tag, nsmap=None):
+def make_sub_element(parent, tag, nsmap=None):
     """Wrapper for etree.SubElement, that takes care of unsupported nsmap option."""
-    if useLxml:
+    if use_lxml:
         return etree.SubElement(parent, tag, nsmap=nsmap)
     return etree.SubElement(parent, tag)
 
 
-def elementContentAsString(element):
+def element_content_as_string(element):
     """Serialize etree.Element.
 
     Note: element may contain more than one child or only text (i.e. no child
@@ -113,16 +113,8 @@ def elementContentAsString(element):
         return element.text or ""  # Make sure, None is returned as ''
     stream = compat.StringIO()
     for childnode in element:
-        stream.write(xmlToBytes(childnode, pretty_print=False) + "\n")
-        # print(xmlToBytes(childnode, pretty_print=False), file=stream)
+        stream.write(xml_to_bytes(childnode, pretty_print=False) + "\n")
+        # print(xml_to_bytes(childnode, pretty_print=False), file=stream)
     s = stream.getvalue()
     stream.close()
     return s
-
-
-# ========================================================================
-# TEST
-# ========================================================================
-
-if __name__ == "__main__":
-    pass

@@ -47,21 +47,21 @@ class BasicTest(unittest.TestCase):
         """Property manager should be lazy opening on first access."""
         pm = self.pm
         assert not pm._loaded, "PM must be closed until first access"
-        pm.getProperties(self.respath)
+        pm.get_properties(self.respath)
         assert pm._loaded, "PM must be opened after first access"
 
     def testValidation(self):
         """Property manager should raise errors on bad args."""
         pm = self.pm
         self.assertRaises(AssertionError,
-                          pm.writeProperty, None, "{ns1:}foo", "hurz", False)
+                          pm.write_property, None, "{ns1:}foo", "hurz", False)
         # name must have a namespace
 #        self.assertRaises(AssertionError,
-#                          pm.writeProperty, "/dav/res", "foo", "hurz", False)
+#                          pm.write_property, "/dav/res", "foo", "hurz", False)
         self.assertRaises(AssertionError,
-                          pm.writeProperty, "/dav/res", None, "hurz", False)
+                          pm.write_property, "/dav/res", None, "hurz", False)
         self.assertRaises(AssertionError,
-                          pm.writeProperty, "/dav/res", "{ns1:}foo", None, False)
+                          pm.write_property, "/dav/res", "{ns1:}foo", None, False)
 
         assert pm._dict is None, "No properties should have been created by this test"
 
@@ -69,8 +69,8 @@ class BasicTest(unittest.TestCase):
         """Property manager should raise errors on bad args."""
         pm = self.pm
         url = "/dav/res"
-        pm.writeProperty(url, "foo", "my name is joe")
-        assert pm.getProperty(url, "foo") == "my name is joe"
+        pm.write_property(url, "foo", "my name is joe")
+        assert pm.get_property(url, "foo") == "my name is joe"
 
 
 # ========================================================================

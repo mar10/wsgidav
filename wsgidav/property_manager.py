@@ -37,7 +37,7 @@ from wsgidav.rw_lock import ReadWriteLock
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 # ========================================================================
@@ -65,9 +65,9 @@ class PropertyManager(object):
             self._check()
         self._close()
 
-    def _lazyOpen(self):
-        _logger.debug("_lazyOpen()")
-        self._lock.acquireWrite()
+    def _lazy_open(self):
+        _logger.debug("_lazy_open()")
+        self._lock.acquire_write()
         try:
             self._dict = {}
             self._loaded = True
@@ -79,7 +79,7 @@ class PropertyManager(object):
 
     def _close(self):
         _logger.debug("_close()")
-        self._lock.acquireWrite()
+        self._lock.acquire_write()
         try:
             self._dict = None
             self._loaded = False
@@ -101,9 +101,9 @@ class PropertyManager(object):
     def _dump(self, msg=""):
         _logger.info("{}({}): {}".format(self.__class__.__name__, self.__repr__(), msg))
         if not self._loaded:
-            self._lazyOpen()
+            self._lazy_open()
             if self._verbose >= 4:
-                return  # Already dumped in _lazyOpen
+                return  # Already dumped in _lazy_open
         try:
             for k, v in self._dict.items():
                 _logger.info("    {}".format(k))
@@ -116,12 +116,12 @@ class PropertyManager(object):
         except Exception as e:
             _logger.error("PropertyManager._dump()  ERROR: {}".format(e))
 
-    def getProperties(self, normurl, environ=None):
-        _logger.debug("getProperties({})".format(normurl))
-        self._lock.acquireRead()
+    def get_properties(self, normurl, environ=None):
+        _logger.debug("get_properties({})".format(normurl))
+        self._lock.acquire_read()
         try:
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             returnlist = []
             if normurl in self._dict:
                 for propdata in self._dict[normurl].keys():
@@ -130,12 +130,12 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def getProperty(self, normurl, propname, environ=None):
-        _logger.debug("getProperty({}, {})".format(normurl, propname))
-        self._lock.acquireRead()
+    def get_property(self, normurl, propname, environ=None):
+        _logger.debug("get_property({}, {})".format(normurl, propname))
+        self._lock.acquire_read()
         try:
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             if normurl not in self._dict:
                 return None
             # TODO: sometimes we get exceptions here: (catch or otherwise make
@@ -143,26 +143,26 @@ class PropertyManager(object):
             try:
                 resourceprops = self._dict[normurl]
             except Exception as e:
-                _logger.exception("getProperty({}, {}) failed : {}".format(normurl, propname, e))
+                _logger.exception("get_property({}, {}) failed : {}".format(normurl, propname, e))
                 raise
             return resourceprops.get(propname)
         finally:
             self._lock.release()
 
-    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
+    def write_property(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
         assert propname  # and propname.startswith("{")
         assert propertyvalue is not None
 
-        _logger.debug("writeProperty({}, {}, dryRun={}):\n\t{}"
+        _logger.debug("write_property({}, {}, dryRun={}):\n\t{}"
                       .format(normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
 
-        self._lock.acquireWrite()
+        self._lock.acquire_write()
         try:
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             if normurl in self._dict:
                 locatordict = self._dict[normurl]
             else:
@@ -176,18 +176,18 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def removeProperty(self, normurl, propname, dryRun=False, environ=None):
+    def remove_property(self, normurl, propname, dryRun=False, environ=None):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
-        _logger.debug("removeProperty({}, {}, dryRun={})".format(normurl, propname, dryRun))
+        _logger.debug("remove_property({}, {}, dryRun={})".format(normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
-        self._lock.acquireWrite()
+        self._lock.acquire_write()
         try:
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             if normurl in self._dict:
                 locatordict = self._dict[normurl]
                 if propname in locatordict:
@@ -201,26 +201,26 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def removeProperties(self, normurl, environ=None):
-        _logger.debug("removeProperties({})".format(normurl))
-        self._lock.acquireWrite()
+    def remove_properties(self, normurl, environ=None):
+        _logger.debug("remove_properties({})".format(normurl))
+        self._lock.acquire_write()
         try:
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             if normurl in self._dict:
                 del self._dict[normurl]
                 self._sync()
         finally:
             self._lock.release()
 
-    def copyProperties(self, srcurl, desturl, environ=None):
-        _logger.debug("copyProperties({}, {})".format(srcurl, desturl))
-        self._lock.acquireWrite()
+    def copy_properties(self, srcurl, desturl, environ=None):
+        _logger.debug("copy_properties({}, {})".format(srcurl, desturl))
+        self._lock.acquire_write()
         try:
             if __debug__ and self._verbose >= 4:
                 self._check()
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             if srcurl in self._dict:
                 self._dict[desturl] = self._dict[srcurl].copy()
                 self._sync()
@@ -229,18 +229,18 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def moveProperties(self, srcurl, desturl, withChildren, environ=None):
-        _logger.debug("moveProperties({}, {}, {})".format(srcurl, desturl, withChildren))
-        self._lock.acquireWrite()
+    def move_properties(self, srcurl, desturl, withChildren, environ=None):
+        _logger.debug("move_properties({}, {}, {})".format(srcurl, desturl, withChildren))
+        self._lock.acquire_write()
         try:
             if __debug__ and self._verbose >= 4:
                 self._check()
             if not self._loaded:
-                self._lazyOpen()
+                self._lazy_open()
             if withChildren:
                 # Move srcurl\*
                 for url in self._dict.keys():
-                    if util.isEqualOrChildUri(srcurl, url):
+                    if util.is_equal_or_child_uri(srcurl, url):
                         d = url.replace(srcurl, desturl)
                         self._dict[d] = self._dict[url]
                         del self._dict[url]
@@ -271,9 +271,9 @@ class ShelvePropertyManager(PropertyManager):
     def __repr__(self):
         return "ShelvePropertyManager({})".format(self._storagePath)
 
-    def _lazyOpen(self):
-        _logger.debug("_lazyOpen({})".format(self._storagePath))
-        self._lock.acquireWrite()
+    def _lazy_open(self):
+        _logger.debug("_lazy_open({})".format(self._storagePath))
+        self._lock.acquire_write()
         try:
             # Test again within the critical section
             if self._loaded:
@@ -292,7 +292,7 @@ class ShelvePropertyManager(PropertyManager):
     def _sync(self):
         """Write persistent dictionary to disc."""
         _logger.debug("_sync()")
-        self._lock.acquireWrite()  # TODO: read access is enough?
+        self._lock.acquire_write()  # TODO: read access is enough?
         try:
             if self._loaded:
                 self._dict.sync()
@@ -301,7 +301,7 @@ class ShelvePropertyManager(PropertyManager):
 
     def _close(self):
         _logger.debug("_close()")
-        self._lock.acquireWrite()
+        self._lock.acquire_write()
         try:
             if self._loaded:
                 self._dict.close()
@@ -312,7 +312,7 @@ class ShelvePropertyManager(PropertyManager):
 
     def clear(self):
         """Delete all entries."""
-        self._lock.acquireWrite()
+        self._lock.acquire_write()
         try:
             was_closed = self._dict is None
             if was_closed:

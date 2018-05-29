@@ -116,7 +116,7 @@ You will find this terms / naming conventions in the source:
     /public/my folder   (missing '/')
     /public/MY FOLDER/  (on a Windows server, which is not case sensitive)
 
-  provider.getPreferredPath(path) will return::
+  provider.get_preferred_path(path) will return::
 
     /public/my folder/
 

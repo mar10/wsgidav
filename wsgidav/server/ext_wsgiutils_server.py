@@ -80,7 +80,7 @@ except ImportError:
     import SocketServer as socketserver
 
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 _version = 1.0
 
