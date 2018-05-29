@@ -2,52 +2,53 @@
 
 ## 3.0.0 / Unreleased
 
-- Refactor middleware stack
-  - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
-    and not specially treated
-  - Removed `middleware.isSuitable()` because we don't want to enforce
-    a specific base class for middleware (introduced with #12)
-- Improve configuration files:
+This release contains **BREAKING CHANGES!**
+
+- Improve configuration:<br>
+   [(See details)](http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html)
+  - **Rename some options**, e.g. `acceptDigest` => `http_authenticator.accept_digest`
   - WsgiDAVApp constructor now assumes default settings. The passed options
     override those.
-  - YAML is now the preferred configuration file format.
-  - #89 Add support for JSON config files (JavaScript-style comments allowed)
-  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
-  - `middleware_stack` entries can also be strings or dicts that are
-    evaluated to import and instantiate middleware classes.
-  - YAML and JSON config files allow to define and configure external middleware
-    by strings
-  - Renamed some settings. e.g. `accept_digest` => `http_authenticator.accept_digest`
-  - Log format configurable
-- Rename methods according to PEP8
-- **TODO** #94: Use utf-8 as default
+  - Log format is configurable
+  - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
+  - Refactor middleware stack
+    - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
+      and not specially treated
+    - Remove `middleware.isSuitable()` because we don't want to enforce
+      a specific base class for middleware (introduced with #12)
+    - `middleware_stack` entries can also be strings or dicts that are
+    evaluated to import and instantiate middleware classes. This allows to
+    define and configure external middleware in YAML and JSON config files.
+- Refactor code base:
+  - **Rename methods** according to PEP 8, e.g.
+    `provider.getResourceInst()` => `provider.get_resource_inst()`.
 - Refactor WsgiDirBrowser:
-  - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)
-  - Uses Jinja2 and loads static assets through own WsgiDAV provider
+  - Use Jinja2 and load static assets through own WsgiDAV provider
+  - Move to `addons.dir_browser` package
+- **TODO** #94: Use utf-8 as default
 - MSI setup uses Python 3.6
 
 
 ## 2.4.0 / Unreleased
 
 - Improve configuration files:
-  - #89 Add support for JSON config files to built-in server runner
-  - wsgidav.json can contain comments now (JavaScript syntax)
-  - Support YAML format as well
-  - Use wsgidav.yaml or wsgidav.json by default if they exist in the local folder
+  - YAML is now the preferred configuration file format.
+  - Add support for JSON config files (JavaScript-style comments allowed) (#89)
+  - Use wsgidav.yaml, wsgidav.json, or wsgidav.conf by default if they exist in the local folder
 - Expand '~' in `--root` and `--config` command line options
-- Bump Cheroot version to 6.2+ (used by MSI installer)
 - #97: Fix assumption that QUERY_STRING is in environment (dir_browser)
 - #99: Fix virtual_dav_provider for Py3: WSGI expects binary instead of str
 - #100: Send ETags with PUT response
 - #101: Fail cleanly if trying to PUT to unknown collection
-- Reworked documentation on Read The Docs
 - Refactor logging:
   - Re-define verbosity level range: 0..5
-  - Removed usage of `print` in favor of `logging.getLogger().debug`
+  - Remove usage of `print` in favor of `logging.getLogger().debug`
   - Remove util.note(), .status(), ... helpers
 - Refactor code base:
   - Use `.format()` syntax instead of `%s` for string templating
-  - Mandatory PEP8 compliance (checked by flake8)
+  - Mandatory PEP 8 compliance (checked by flake8)
+- Rework documentation on Read The Docs
+- MSI setup uses Cheroot version 6.2+
 
 
 ## 2.3.0 / 2018-04-06
@@ -83,10 +84,10 @@
   `--server=cheroot` is the default now.
 - New option `--ssl-adapter`, used by 'cheroot' server if SSL certificates are
   configured. Defaults to 'builtin'.<br>
-  Set to 'pyopenssl' to use an existing OpenSSL nstallation.
+  Set to 'pyopenssl' to use an existing OpenSSL installation.
   (Note: Currently broken as of Cheroot 5.1, see cherrypy/cheroot#6)
 - Deprecate cherrypy.wsgiserver.<br>
-  `--server=cherrypy` was renamed to `--cherrypy-wsgiserver`
+  `--server=cherrypy` was renamed to `--server=cherrypy-wsgiserver`
 - #64: Fix LOCK without owner
 - #65: Add lxml to MSI installer
 - Release as Wheel
@@ -94,8 +95,8 @@
 
 ## 2.1.0 / 2016-11-13
 
-- #42: Remove print usage in favor of logging (Sergi Almacellas Abellana)
-- #43: PEP8 fixes (Sergi Almacellas Abellana, Tom Viner)
+- #42: Remove some print usage in favor of logging (Sergi Almacellas Abellana)
+- #43: PEP 8 fixes (Sergi Almacellas Abellana, Tom Viner)
 - #45 New method `_DAVResource.finalizeHeaders(environ, responseHeaders)` (Samuel Fekete)
 - #55 Custom response handlers for PUT, GET etc.
 - New helpers `addons.stream_tools.FileLikeQueue` and `StreamingFile` allow to
