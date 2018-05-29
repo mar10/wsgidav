@@ -83,8 +83,9 @@ DEFAULT_CONFIG = {
         # "enable": True,               # Render HTML listing for GET requests on collections
         # List of fnmatch patterns:
         "ignore": [
-            ".DS_Store",  # macOS
-            "._*",  # macOS
+            ".DS_Store",  # macOS folder meta data
+            "._*",  # macOS hidden data files
+            "Thumbs.db",  # Windows image previews
             ],
         "response_trailer": "",       # Raw HTML code, appended as footer
         # Send <dm:mount> response if request URL contains '?davmount'

@@ -109,7 +109,7 @@ user_mapping:
 # Set verbosity level (but will be overridden by -v or -q arguments)
 verbose: 3
 
-logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s"
+logger_format: "%(asctime)s.%(msecs)03d - (%(thread)d) %(name)-27s %(levelname)-8s:  %(message)s"
 logger_date_format: "%H:%M:%S"
 
 catch_all: false
@@ -131,12 +131,11 @@ debug_litmus: []
 # WsgiDavDirBrowser
 
 dir_browser:
-    enable: true,          # Render HTML listing for GET requests on collections
     ignore:  # List of fnmatch patterns
-        - .DS_Store
-        - Thumbs.db
-        - .*
-    response_trailer:  # Raw HTML code, appended as footer
+        - ".DS_Store"  # macOS folder meta data
+        - "Thumbs.db"  # Windows image previews
+        - "._*"  # macOS hidden data files
+    response_trailer: null  # Raw HTML code, appended as footer
     davmount: false  # Send <dm:mount> response if request URL contains '?davmount'
     ms_mount: false # Invoke MS Offce documents for editing using WebDAV
     ms_sharepoint_plugin: true  # Invoke MS Offce documents for editing using WebDAV

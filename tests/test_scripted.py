@@ -119,7 +119,7 @@ class WsgiDAVServerThread(Thread):
             "lock_manager": True,      # True: use lock_manager.LockManager
             # None: domain_controller.WsgiDAVDomainController(user_mapping)
             "domain_controller": None,
-            "verbose": 2,
+            "verbose": 4,
             }
 
         if withAuthentication:
@@ -185,10 +185,25 @@ class ServerTest(unittest.TestCase):
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
-    def testGetPut(self):
+    def testAuthentication(self):
         """Read and write file contents."""
         client = self.client
 
+        client.set_basic_auth("tester", "wrong_password")
+        client.put("/file_auth.txt", b"foo")
+        client.checkResponse(401)  # Not authorized
+
+        client.clear_basic_auth()
+        client.put("/file_auth.txt", b"foo")
+        client.checkResponse(401)  # Not authorized
+
+        client.set_basic_auth("tester", "secret")
+        client.put("/file_auth.txt", b"foo")
+        client.checkResponse((201, 204))  # Created or No Content when file existed
+
+    def testGetPut(self):
+        """Read and write file contents."""
+        client = self.client
         # Prepare file content
         data1 = b"this is a file\nwith two lines"
         data2 = b"this is another file\nwith three lines\nsee?"

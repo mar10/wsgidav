@@ -112,6 +112,8 @@ class DAVClient(object):
 
         self.headers = {"Host": self._url[1],
                         "User-Agent": "python.davclient.DAVClient/0.1"}
+        self.response = None
+        self.clear_basic_auth()
 
     def log(self, msg):
         if self.logger:
@@ -173,6 +175,12 @@ class DAVClient(object):
         self._username = username
         self._password = password
         self.headers["Authorization"] = auth
+
+    def clear_basic_auth(self):
+        """Reset basic authentication"""
+        self._username = None
+        self._password = None
+        self.headers.pop("Authorization", None)
 
     # HTTP DAV methods
 
