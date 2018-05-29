@@ -191,15 +191,15 @@ class ServerTest(unittest.TestCase):
 
         client.set_basic_auth("tester", "wrong_password")
         client.put("/file_auth.txt", b"foo")
-        client.checkResponse(401)  # Not authorized
+        client.check_response(401)  # Not authorized
 
         client.clear_basic_auth()
         client.put("/file_auth.txt", b"foo")
-        client.checkResponse(401)  # Not authorized
+        client.check_response(401)  # Not authorized
 
         client.set_basic_auth("tester", "secret")
         client.put("/file_auth.txt", b"foo")
-        client.checkResponse((201, 204))  # Created or No Content when file existed
+        client.check_response((201, 204))  # Created or No Content when file existed
 
     def testGetPut(self):
         """Read and write file contents."""
@@ -218,26 +218,26 @@ class ServerTest(unittest.TestCase):
         # Cleanup
         client.delete("/test/")
         client.mkcol("/test/")
-        client.checkResponse(201)
+        client.check_response(201)
 
         # PUT files
         client.put("/test/file1.txt", data1)
-        client.checkResponse(201)
+        client.check_response(201)
         client.put("/test/file2.txt", data2)
-        client.checkResponse(201)
+        client.check_response(201)
         client.put("/test/bigfile.txt", data3)
-        client.checkResponse(201)
+        client.check_response(201)
 
         body = client.get("/test/file1.txt")
-        client.checkResponse(200)
+        client.check_response(200)
         assert body == data1, "Put/Get produced different bytes"
 
         # PUT with overwrite must return 204 No Content, instead of 201 Created
         client.put("/test/file2.txt", data2)
-        client.checkResponse(204)
+        client.check_response(204)
 
         client.mkcol("/test/folder")
-        client.checkResponse(201)
+        client.check_response(201)
 
         # if a LOCK request is sent to an unmapped URL, we must create a
         # lock-null resource and return '201 Created', instead of '404 Not found'
@@ -246,47 +246,47 @@ class ServerTest(unittest.TestCase):
                                 locktype="write",
                                 lockscope="exclusive",
                                 depth="infinity")
-        client.checkResponse(201)  # created
+        client.check_response(201)  # created
         assert len(locks) == 1, "LOCK failed"
 
         token = locks[0]
         client.refresh_lock("/test/lock-0", token)
-        client.checkResponse(200)  # ok
+        client.check_response(200)  # ok
 
         client.unlock("/test/lock-0", token)
-        client.checkResponse(204)  # no content
+        client.check_response(204)  # no content
 
         client.unlock("/test/lock-0", token)
         # 409 Conflict, because resource was not locked
         # (http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK)
-        client.checkResponse(409)
+        client.check_response(409)
 
         # issue #71: unlock non existing resource
         client.unlock("/test/lock-not-existing", token)
-        client.checkResponse(404)
+        client.check_response(404)
 
         client.proppatch("/test/file1.txt",
                          set_props=[("{testns:}testname", "testval"),
                                     ],
                          remove_props=None)
-        client.checkResponse()
+        client.check_response()
 
         client.copy("/test/file1.txt",
                     "/test/file2.txt",
                     depth="infinity", overwrite=True)
-        client.checkResponse()
+        client.check_response()
 
         client.move("/test/file2.txt",
                     "/test/file2_moved.txt",
                     depth="infinity", overwrite=True)
-        client.checkResponse()
+        client.check_response()
 
         client.propfind("/",
                         properties="allprop",
                         namespace="DAV:",
                         depth=None,
                         headers=None)
-        client.checkResponse()
+        client.check_response()
 
 #        print client.response.tree
 
@@ -351,7 +351,7 @@ class ServerTest(unittest.TestCase):
         client.put("/test/a/c", data)
         client.put("/test/a/b/d", data)
         client.put("/test/x/y", data)
-        client.checkResponse(201)
+        client.check_response(201)
 
     def _checkCommonLock(self, client2):
         """Check for access when /test/a/ of our sample tree is locked.
@@ -365,41 +365,41 @@ class ServerTest(unittest.TestCase):
         """
         # DELETE a collection's direct internal member
         client2.delete("/test/a/b")
-        client2.checkResponse(423)
+        client2.check_response(423)
         client2.delete("/test/a/c")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # MOVE an internal member out of the collection
         client2.move("/test/a/b", "/test/x/a")
-        client2.checkResponse(423)
+        client2.check_response(423)
         client2.move("/test/a/c", "/test/x/c")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # MOVE an internal member into the collection
         client2.move("/test/x/y", "/test/a")
-        client2.checkResponse(423)
+        client2.check_response(423)
         client2.move("/test/x/y", "/test/a/y")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # MOVE to rename an internal member within a collection
         client2.move("/test/a/c", "/test/a/c2")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # COPY an internal member into a collection
         client2.copy("/test/x/y", "/test/a/y")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # PUT or MKCOL request that would create a new internal member
         client2.put("/test/a/x", b"data")
-        client2.checkResponse(423)
+        client2.check_response(423)
         client2.mkcol("/test/a/e")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # LOCK must fail
         client2.set_lock("/test/a", owner="test-bench", depth="0")
-        client2.checkResponse(423)
+        client2.check_response(423)
         client2.set_lock("/test/a", owner="test-bench", depth="infinity")
-        client2.checkResponse(423)
+        client2.check_response(423)
         client2.set_lock("/test", owner="test-bench", depth="infinity")
-        client2.checkResponse(423)
+        client2.check_response(423)
         # Modifying properties of the locked resource must fail
         client2.proppatch("/test/a",
                           set_props=[("{testns:}testname", "testval")])
-        client2.checkResponse(423)
+        client2.check_response(423)
 
     def testLocking(self):
         """Locking."""
@@ -417,14 +417,14 @@ class ServerTest(unittest.TestCase):
                                  locktype="write",
                                  lockscope="exclusive",
                                  depth="infinity")
-        client1.checkResponse(200)
+        client1.check_response(200)
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
 
         # Unlock with correct token, but other principal: expect '403
         # Forbidden'
         client2.unlock("/test/a", token)
-        client2.checkResponse(403)
+        client2.check_response(403)
 
         # Check that commonly protected operations fail
         self._checkCommonLock(client2)
@@ -437,21 +437,21 @@ class ServerTest(unittest.TestCase):
                                  locktype="write",
                                  lockscope="exclusive",
                                  depth="0")
-        client2.checkResponse(423)
+        client2.check_response(423)
 
         locks = client2.set_lock("/test/a/b/d",
                                  owner="test-bench",
                                  locktype="write",
                                  lockscope="exclusive",
                                  depth="infinity")
-        client2.checkResponse(423)
+        client2.check_response(423)
 
         locks = client2.set_lock("/test/a/b/c",
                                  owner="test-bench",
                                  locktype="write",
                                  lockscope="exclusive",
                                  depth="0")
-        client2.checkResponse(423)
+        client2.check_response(423)
 
         # client1 can LOCK /a and /a/b/d at the same time, but must
         # provide both tokens in order to access a/b/d
@@ -461,21 +461,21 @@ class ServerTest(unittest.TestCase):
 #                                 locktype="write",
 #                                 lockscope="exclusive",
 #                                 depth="0")
-#        client1.checkResponse(200)
+#        client1.check_response(200)
 #        assert len(locks) == 1, "Locking inside below locked collection failed"
 #        tokenABD = locks[0]
 
         # --- Check with depth-0 lock -----------------------------------------
         # LOCK-0 parent collection and try to access members
         client1.unlock("/test/a", token)
-        client1.checkResponse(204)
+        client1.check_response(204)
 
         locks = client1.set_lock("/test/a",
                                  owner="test-bench",
                                  locktype="write",
                                  lockscope="exclusive",
                                  depth="0")
-        client1.checkResponse(200)
+        client1.check_response(200)
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
 
@@ -486,30 +486,30 @@ class ServerTest(unittest.TestCase):
         # Modifying member properties is allowed
         client2.proppatch("/test/a/c",
                           set_props=[("{testns:}testname", "testval")])
-        client2.checkMultiStatusResponse(200)
+        client2.check_multi_status_response(200)
         # Modifying a member without creating a new resource is allowed
         client2.put("/test/a/c", b"data")
-        client2.checkResponse(204)
+        client2.check_response(204)
         # Modifying non-internal member resources is allowed
         client2.put("/test/a/b/f", b"data")
-        client2.checkResponse(201)
+        client2.check_response(201)
         client2.mkcol("/test/a/b/g")
-        client2.checkResponse(201)
+        client2.check_response(201)
         client2.move("/test/a/b/g", "/test/a/b/g2")
-        client2.checkResponse(201)
+        client2.check_response(201)
         client2.delete("/test/a/b/g2")
-        client2.checkResponse(204)
+        client2.check_response(204)
 
         # --- Check root access, when a child is locked -----------------------
         client1.unlock("/test/a", token)
-        client1.checkResponse(204)
+        client1.check_response(204)
 
         locks = client1.set_lock("/test/a/b/d",
                                  owner="test-bench",
                                  locktype="write",
                                  lockscope="exclusive",
                                  depth="0")
-        client1.checkResponse(200)
+        client1.check_response(200)
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
 
@@ -517,7 +517,7 @@ class ServerTest(unittest.TestCase):
         # --> Must delete all but a/b/d (expect 423 Locked inside Multistatus)
         client2.delete("/test/a/b")
 #        print client2.response.body
-        client2.checkMultiStatusResponse(423)
+        client2.check_multi_status_response(423)
 
 
 # ========================================================================

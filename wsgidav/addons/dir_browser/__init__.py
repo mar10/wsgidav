@@ -13,11 +13,11 @@ from jinja2 import Environment, FileSystemLoader
 from wsgidav import __version__, compat, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.middleware import BaseMiddleware
-from wsgidav.util import safeReEncode
+from wsgidav.util import safe_re_encode
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 ASSET_SHARE = "/_dir_browser"
 
@@ -59,21 +59,21 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         davres = None
         if environ["wsgidav.provider"]:
-            davres = environ["wsgidav.provider"].getResourceInst(path, environ)
+            davres = environ["wsgidav.provider"].get_resource_inst(path, environ)
 
-        if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.isCollection:
+        if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.is_collection:
 
-            if util.getContentLength(environ) != 0:
+            if util.get_content_length(environ) != 0:
                 self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
                            "The server does not handle any body content.")
 
             if environ["REQUEST_METHOD"] == "HEAD":
-                return util.sendStatusResponse(environ, start_response, HTTP_OK)
+                return util.send_status_response(environ, start_response, HTTP_OK)
 
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
             dirConfig = environ["wsgidav.config"].get("dir_browser", {})
             if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING", ""):
-                collectionUrl = util.makeCompleteUrl(environ)
+                collectionUrl = util.make_complete_url(environ)
                 collectionUrl = collectionUrl.split("?", 1)[0]
                 res = compat.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
                 # TODO: support <dm:open>%s</dm:open>
@@ -81,7 +81,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 start_response("200 OK", [("Content-Type", "application/davmount+xml"),
                                           ("Content-Length", str(len(res))),
                                           ("Cache-Control", "private"),
-                                          ("Date", util.getRfc1123Time()),
+                                          ("Date", util.get_rfc1123_time()),
                                           ])
                 return [res]
 
@@ -92,7 +92,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             start_response("200 OK", [("Content-Type", "text/html"),
                                       ("Content-Length", str(len(res))),
                                       ("Cache-Control", "private"),
-                                      ("Date", util.getRfc1123Time()),
+                                      ("Date", util.get_rfc1123_time()),
                                       ])
             return [res]
 
@@ -103,56 +103,56 @@ class WsgiDavDirBrowser(BaseMiddleware):
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self.verbose >= 4:
             _logger.warn("Raising DAVError {}".format(
-                    safeReEncode(e.getUserInfo(), sys.stdout.encoding)))
+                    safe_re_encode(e.get_user_info(), sys.stdout.encoding)))
         raise e
 
     def _get_context(self, environ, davres):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#rfc.section.9.4
         """
-        assert davres.isCollection
+        assert davres.is_collection
 
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
-        isReadOnly = environ["wsgidav.provider"].isReadOnly()
+        isReadOnly = environ["wsgidav.provider"].is_readonly()
 
         context = {
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
             "rows": [],
             "version": __version__,
-            "displaypath": compat.unquote(davres.getHref()),
-            "url": davres.getHref(),  # util.makeCompleteUrl(environ),
-            "parentUrl": util.getUriParent(davres.getHref()),
+            "displaypath": compat.unquote(davres.get_href()),
+            "url": davres.get_href(),  # util.make_complete_url(environ),
+            "parentUrl": util.get_uri_parent(davres.get_href()),
             "config": dirConfig,
-            "isReadOnly": isReadOnly,
+            "is_readonly": isReadOnly,
             }
         trailer = dirConfig.get("response_trailer")
         if trailer:
             trailer = trailer.replace(
                 "${version}",
                 "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a>".format(__version__))
-            trailer = trailer.replace("${time}", util.getRfc1123Time())
+            trailer = trailer.replace("${time}", util.get_rfc1123_time())
         else:
             trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
-                       .format(__version__, util.getRfc1123Time()))
+                       .format(__version__, util.get_rfc1123_time()))
         context["trailer"] = trailer
 
         rows = context["rows"]
 
         # Ask collection for member info list
-        dirInfoList = davres.getDirectoryInfo()
+        dirInfoList = davres.get_directory_info()
 
         if dirInfoList is None:
             # No pre-build info: traverse members
             dirInfoList = []
-            childList = davres.getDescendants(depth="1", addSelf=False)
+            childList = davres.get_descendants(depth="1", addSelf=False)
             for res in childList:
-                di = res.getDisplayInfo()
-                href = res.getHref()
+                di = res.get_display_info()
+                href = res.get_href()
                 classes = []
-                if res.isCollection:
+                if res.is_collection:
                     classes.append("directory")
 
-                if not isReadOnly and not res.isCollection:
+                if not isReadOnly and not res.is_collection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
@@ -164,10 +164,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 entry = {
                     "href": href,
                     "class": " ".join(classes),
-                    "displayName": res.getDisplayName(),
-                    "lastModified": res.getLastModified(),
-                    "isCollection": res.isCollection,
-                    "contentLength": res.getContentLength(),
+                    "displayName": res.get_display_name(),
+                    "lastModified": res.get_last_modified(),
+                    "is_collection": res.is_collection,
+                    "contentLength": res.get_content_length(),
                     "displayType": di.get("type"),
                     "displayTypeComment": di.get("typeComment"),
                     }
@@ -193,20 +193,21 @@ class WsgiDavDirBrowser(BaseMiddleware):
             if lastModified is None:
                 entry["strModified"] = ""
             else:
-                entry["strModified"] = util.getRfc1123Time(lastModified)
+                entry["strModified"] = util.get_rfc1123_time(lastModified)
 
             entry["strSize"] = "-"
-            if not entry.get("isCollection"):
+            if not entry.get("is_collection"):
                 contentLength = entry.get("contentLength")
                 if contentLength is not None:
-                    entry["strSize"] = util.byteNumberString(contentLength)
+                    entry["strSize"] = util.byte_number_string(contentLength)
 
             rows.append(entry)
 
         # sort
         sort = "name"
         if sort == "name":
-            rows.sort(key=lambda v: "{}{}".format(not v["isCollection"], v["displayName"].lower()))
+            rows.sort(key=lambda v:
+                      "{}{}".format(not v["is_collection"], v["displayName"].lower()))
 
         if "http_authenticator.username" in environ:
             context["username"] = environ.get("http_authenticator.username") or "anonymous"

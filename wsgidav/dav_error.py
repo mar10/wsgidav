@@ -155,7 +155,7 @@ class DAVErrorCondition(object):
         return errorEL
 
     def as_string(self):
-        return compat.to_native(xml_tools.xmlToBytes(self.as_xml(), True))
+        return compat.to_native(xml_tools.xml_to_bytes(self.as_xml(), True))
 
 
 # ========================================================================
@@ -189,12 +189,12 @@ class DAVError(Exception):
             self.errcondition) is DAVErrorCondition
 
     def __repr__(self):
-        return "DAVError({})".format(self.getUserInfo())
+        return "DAVError({})".format(self.get_user_info())
 
     def __str__(self):  # Required for 2.4
         return self.__repr__()
 
-    def getUserInfo(self):
+    def get_user_info(self):
         """Return readable string."""
         if self.value in ERROR_DESCRIPTIONS:
             s = "{}".format(ERROR_DESCRIPTIONS[self.value])
@@ -213,7 +213,7 @@ class DAVError(Exception):
             s += "\n    Error condition: '{}'".format(self.errcondition)
         return s
 
-    def getResponsePage(self):
+    def get_response_page(self):
         """Return an tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response
         if self.errcondition:
@@ -221,7 +221,7 @@ class DAVError(Exception):
                     compat.to_bytes(self.errcondition.as_string()))
 
         # Else return as HTML
-        status = getHttpStatusString(self)
+        status = get_http_status_string(self)
         html = []
         html.append(
             "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' "
@@ -232,7 +232,7 @@ class DAVError(Exception):
         html.append("  <title>{}</title>".format(status))
         html.append("</head><body>")
         html.append("  <h1>{}</h1>".format(status))
-        html.append("  <p>{}</p>".format(compat.html_escape(self.getUserInfo())))
+        html.append("  <p>{}</p>".format(compat.html_escape(self.get_user_info())))
         html.append("<hr/>")
         html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
                     .format(__version__,
@@ -242,7 +242,7 @@ class DAVError(Exception):
         return ("text/html", compat.to_bytes(html))
 
 
-def getHttpStatusCode(v):
+def get_http_status_code(v):
     """Return HTTP response code as integer, e.g. 204."""
     if hasattr(v, "value"):
         return int(v.value)  # v is a DAVError
@@ -250,25 +250,25 @@ def getHttpStatusCode(v):
         return int(v)
 
 
-def getHttpStatusString(v):
+def get_http_status_string(v):
     """Return HTTP response string, e.g. 204 -> ('204 No Content').
     The return string always includes descriptive text, to satisfy Apache mod_dav.
 
     `v`: status code or DAVError
     """
-    code = getHttpStatusCode(v)
+    code = get_http_status_code(v)
     try:
         return ERROR_DESCRIPTIONS[code]
     except KeyError:
         return "{} Status".format(code)
 
 
-def getResponsePage(v):
-    v = asDAVError(v)
-    return v.getResponsePage()
+def get_response_page(v):
+    v = as_DAVError(v)
+    return v.get_response_page()
 
 
-def asDAVError(e):
+def as_DAVError(e):
     """Convert any non-DAVError exception to HTTP_INTERNAL_ERROR."""
     if isinstance(e, DAVError):
         return e

@@ -173,7 +173,7 @@ class ServerTest(unittest.TestCase):
         #     return s.encode('iso-8859-1')
 
         def __testrw(filename):
-            # print(util.stringRepr(filename))
+            # print(util.string_repr(filename))
             app.delete(filename, expect_errors=True)
             app.put(filename, params=data, status=201)
             res = app.get(filename, status=200)

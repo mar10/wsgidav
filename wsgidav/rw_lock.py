@@ -37,7 +37,7 @@ class ReadWriteLock(object):
     locks (which they eventually should free, as they starve the waiting
     writers otherwise), but a new thread requesting a read lock will not
     be granted one, and block. This might mean starvation for readers if
-    two writer threads interweave their calls to acquireWrite() without
+    two writer threads interweave their calls to acquire_write() without
     leaving a window only for readers.
 
     In case a current reader requests a write lock, this can and will be
@@ -45,7 +45,7 @@ class ReadWriteLock(object):
     may perform this kind of lock upgrade, as a deadlock would otherwise
     occur. After the write lock has been granted, the thread will hold a
     full write lock, and not be downgraded after the upgrading call to
-    acquireWrite() has been match by a corresponding release().
+    acquire_write() has been match by a corresponding release().
     """
 
     def __init__(self):
@@ -63,11 +63,11 @@ class ReadWriteLock(object):
         # Initialize with no readers.
         self.__readers = {}
 
-    def acquireRead(self, timeout=None):
+    def acquire_read(self, timeout=None):
         """Acquire a read lock for the current thread, waiting at most
         timeout seconds or doing a non-blocking check in case timeout is <= 0.
 
-        In case timeout is None, the call to acquireRead blocks until the
+        In case timeout is None, the call to acquire_read blocks until the
         lock request can be serviced.
 
         In case the timeout expires before the lock could be serviced, a
@@ -110,14 +110,14 @@ class ReadWriteLock(object):
         finally:
             self.__condition.release()
 
-    def acquireWrite(self, timeout=None):
+    def acquire_write(self, timeout=None):
         """Acquire a write lock for the current thread, waiting at most
         timeout seconds or doing a non-blocking check in case timeout is <= 0.
 
         In case the write lock cannot be serviced due to the deadlock
         condition mentioned above, a ValueError is raised.
 
-        In case timeout is None, the call to acquireWrite blocks until the
+        In case timeout is None, the call to acquire_write blocks until the
         lock request can be serviced.
 
         In case the timeout expires before the lock could be serviced, a

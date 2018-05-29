@@ -55,11 +55,11 @@ import threading
 
 from wsgidav import compat, util
 from wsgidav.middleware import BaseMiddleware
-from wsgidav.util import safeReEncode
+from wsgidav.util import safe_re_encode
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 class WsgiDavDebugFilter(BaseMiddleware):
@@ -140,7 +140,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
             #         threading.currentThread().ident, method))
             for k, v in environ.items():
                 if k == k.upper():
-                    _logger.info("{:<20}: '{}'".format(k, safeReEncode(v, "utf8")))
+                    _logger.info("{:<20}: '{}'".format(k, safe_re_encode(v, "utf8")))
             _logger.info("\n")
 
         # Intercept start_response

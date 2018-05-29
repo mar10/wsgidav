@@ -30,7 +30,7 @@ from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 # ============================================================================
 # CouchPropertyManager
@@ -118,7 +118,7 @@ class CouchPropertyManager(object):
             return row.doc
         return None
 
-    def _findDescendents(self, url):
+    def _find_descendents(self, url):
         """Return properties document for url and all children."""
         # Ad-hoc query for URL starting with a prefix
         map_fun = """function(doc) {
@@ -132,8 +132,8 @@ class CouchPropertyManager(object):
             yield row.doc
         return
 
-    def getProperties(self, normurl, environ=None):
-        _logger.debug("getProperties(%s)" % normurl)
+    def get_properties(self, normurl, environ=None):
+        _logger.debug("get_properties(%s)" % normurl)
         doc = self._find(normurl)
         propNames = []
         if doc:
@@ -141,20 +141,20 @@ class CouchPropertyManager(object):
                 propNames.append(name)
         return propNames
 
-    def getProperty(self, normurl, propname, environ=None):
-        _logger.debug("getProperty(%s, %s)" % (normurl, propname))
+    def get_property(self, normurl, propname, environ=None):
+        _logger.debug("get_property(%s, %s)" % (normurl, propname))
         doc = self._find(normurl)
         if not doc:
             return None
         prop = doc["properties"].get(propname)
         return prop
 
-    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
+    def write_property(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
 
-        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" %
+        _logger.debug("write_property(%s, %s, dryRun=%s):\n\t%s" %
                       (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
@@ -171,8 +171,8 @@ class CouchPropertyManager(object):
                    }
         self.db.save(doc)
 
-    def removeProperty(self, normurl, propname, dryRun=False, environ=None):
-        _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
+    def remove_property(self, normurl, propname, dryRun=False, environ=None):
+        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
@@ -183,19 +183,19 @@ class CouchPropertyManager(object):
         del doc["properties"][propname]
         self.db.save(doc)
 
-    def removeProperties(self, normurl, environ=None):
-        _logger.debug("removeProperties(%s)" % normurl)
+    def remove_properties(self, normurl, environ=None):
+        _logger.debug("remove_properties(%s)" % normurl)
         doc = self._find(normurl)
         if doc:
             self.db.delete(doc)
         return
 
-    def copyProperties(self, srcUrl, destUrl, environ=None):
+    def copy_properties(self, srcUrl, destUrl, environ=None):
         doc = self._find(srcUrl)
         if not doc:
-            _logger.debug("copyProperties(%s, %s): src has no properties" % (srcUrl, destUrl))
+            _logger.debug("copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl))
             return
-        _logger.debug("copyProperties(%s, %s)" % (srcUrl, destUrl))
+        _logger.debug("copy_properties(%s, %s)" % (srcUrl, destUrl))
         assert not self._find(destUrl)
         doc2 = {"_id": uuid4().hex,
                 "url": destUrl,
@@ -205,11 +205,11 @@ class CouchPropertyManager(object):
                 }
         self.db.save(doc2)
 
-    def moveProperties(self, srcUrl, destUrl, withChildren, environ=None):
-        _logger.debug("moveProperties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
+    def move_properties(self, srcUrl, destUrl, withChildren, environ=None):
+        _logger.debug("move_properties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
         if withChildren:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
-            docList = self._findDescendents(srcUrl)
+            docList = self._find_descendents(srcUrl)
             for doc in docList:
                 newDest = doc["url"].replace(srcUrl, destUrl)
                 _logger.debug("move property %s -> %s" % (doc["url"], newDest))

@@ -14,14 +14,14 @@ from wsgidav.dav_error import (
     HTTP_NO_CONTENT,
     HTTP_NOT_MODIFIED,
     DAVError,
-    asDAVError,
-    getHttpStatusString,
+    as_DAVError,
+    get_http_status_string,
     )
 from wsgidav.middleware import BaseMiddleware
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 # ========================================================================
@@ -76,7 +76,7 @@ class ErrorPrinter(BaseMiddleware):
                     # Catch all exceptions to return as 500 Internal Error
                     # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
                     _logger.error("{}".format(traceback.format_exc(10)))
-                    raise asDAVError(e)
+                    raise as_DAVError(e)
                 else:
                     _logger.error("Caught Exception\n{}".format(traceback.format_exc(10)))
                     # traceback.print_exc(10, sys.stderr)
@@ -84,7 +84,7 @@ class ErrorPrinter(BaseMiddleware):
         except DAVError as e:
             _logger.debug("caught {}".format(e))
 
-            status = getHttpStatusString(e)
+            status = get_http_status_string(e)
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
                 tb = traceback.format_exc(10)
@@ -95,19 +95,19 @@ class ErrorPrinter(BaseMiddleware):
                 # _logger.warn("Forcing empty error response for {}".format(e.value))
                 # See paste.lint: these code don't have content
                 start_response(status, [("Content-Length", "0"),
-                                        ("Date", util.getRfc1123Time()),
+                                        ("Date", util.get_rfc1123_time()),
                                         ])
                 yield b""
                 return
 
             # If exception has pre-/post-condition: return as XML response,
             # else return as HTML
-            content_type, body = e.getResponsePage()
+            content_type, body = e.get_response_page()
 
             # TODO: provide exc_info=sys.exc_info()?
             start_response(status, [("Content-Type", content_type),
                                     ("Content-Length", str(len(body))),
-                                    ("Date", util.getRfc1123Time()),
+                                    ("Date", util.get_rfc1123_time()),
                                     ])
             yield body
             return

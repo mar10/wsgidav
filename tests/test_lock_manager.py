@@ -99,7 +99,7 @@ class BasicTest(unittest.TestCase):
 #        """Lock manager should be lazy opening on first access."""
 #        lm = self.lm
 # #        assert not lm._loaded, "LM must only be opened after first access"
-#        lm._generateLock(self.principal, "write", "exclusive", "infinity",
+#        lm._generate_lock(self.principal, "write", "exclusive", "infinity",
 #                        self.owner,
 #                        "/dav",
 #                        10)
@@ -109,19 +109,19 @@ class BasicTest(unittest.TestCase):
         """Lock manager should raise errors on bad args."""
         lm = self.lm
         self.assertRaises(AssertionError,
-                          lm._generateLock, lm, "writeX", "exclusive", "infinity",
+                          lm._generate_lock, lm, "writeX", "exclusive", "infinity",
                           self.owner, self.root, self.timeout)
         self.assertRaises(AssertionError,
-                          lm._generateLock, lm, "write", "exclusiveX", "infinity",
+                          lm._generate_lock, lm, "write", "exclusiveX", "infinity",
                           self.owner, self.root, self.timeout)
         self.assertRaises(AssertionError,
-                          lm._generateLock, lm, "write", "exclusive", "infinityX",
+                          lm._generate_lock, lm, "write", "exclusive", "infinityX",
                           self.owner, self.root, self.timeout)
         self.assertRaises(AssertionError,
-                          lm._generateLock, lm, "write", "exclusive", "infinity",
+                          lm._generate_lock, lm, "write", "exclusive", "infinity",
                           None, self.root, self.timeout)
         self.assertRaises(AssertionError,
-                          lm._generateLock, lm, "write", "exclusive", "infinity",
+                          lm._generate_lock, lm, "write", "exclusive", "infinity",
                           self.owner, None, self.timeout)
 
 #        assert lm._dict is None, "No locks should have been created by this test"
@@ -131,8 +131,8 @@ class BasicTest(unittest.TestCase):
         lm = self.lm
         url = "/dav/res"
         # Create a new lock
-        lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity",
-                                    self.owner, url, self.timeout)
+        lockDict = lm._generate_lock(self.principal, "write", "exclusive", "infinity",
+                                     self.owner, url, self.timeout)
         # Check returned dictionary
         assert lockDict is not None
         assert lockDict["root"] == url
@@ -144,9 +144,9 @@ class BasicTest(unittest.TestCase):
 
         # Test lookup
         tok = lockDict.get("token")
-        assert lm.getLock(tok, "root") == url
+        assert lm.get_lock(tok, "root") == url
 
-        lockDict = lm.getLock(tok)
+        lockDict = lm.get_lock(tok)
 
         assert lockDict is not None
         assert lockDict["root"] == url
@@ -157,46 +157,46 @@ class BasicTest(unittest.TestCase):
         assert lockDict["principal"] == self.principal
 
         # We locked "/dav/res", did we?
-        assert lm.isTokenLockedByUser(tok, self.principal)
+        assert lm.is_token_locked_by_user(tok, self.principal)
 
-#        res = lm.getUrlLockList(url, self.principal)
-        res = lm.getUrlLockList(url)
+#        res = lm.get_url_lock_list(url, self.principal)
+        res = lm.get_url_lock_list(url)
         self.assertEqual(len(res), 1)
 
-#        res = lm.getUrlLockList(url, "another user")
+#        res = lm.get_url_lock_list(url, "another user")
 #        assert len(res) == 0
 
-        assert lm.isUrlLockedByToken(
+        assert lm.is_url_locked_by_token(
             "/dav/res", tok), "url not directly locked by locktoken."
-        assert lm.isUrlLockedByToken(
+        assert lm.is_url_locked_by_token(
             "/dav/res/", tok), "url not directly locked by locktoken."
-        assert lm.isUrlLockedByToken(
+        assert lm.is_url_locked_by_token(
             "/dav/res/sub", tok), "child url not indirectly locked"
 
-        assert not lm.isUrlLockedByToken(
+        assert not lm.is_url_locked_by_token(
             "/dav/ressub", tok), "non-child url reported as locked"
-        assert not lm.isUrlLockedByToken(
+        assert not lm.is_url_locked_by_token(
             "/dav", tok), "parent url reported as locked"
-        assert not lm.isUrlLockedByToken(
+        assert not lm.is_url_locked_by_token(
             "/dav/", tok), "parent url reported as locked"
 
     def testTimeout(self):
         """Locks should be purged after expiration date."""
         lm = self.lm
         timeout = 1
-        lockDict = lm._generateLock(self.principal, "write", "exclusive", "infinity",
-                                    self.owner, self.root, timeout)
+        lockDict = lm._generate_lock(self.principal, "write", "exclusive", "infinity",
+                                     self.owner, self.root, timeout)
 
         assert lockDict is not None
         tok = lockDict.get("token")
-        assert lm.getLock(tok, "root") == self.root
+        assert lm.get_lock(tok, "root") == self.root
 
         sleep(timeout - 0.5)
-        lockDict = lm.getLock(tok)
+        lockDict = lm.get_lock(tok)
         assert lockDict is not None, "Lock expired too early"
 
         sleep(1)
-        lockDict = lm.getLock(tok)
+        lockDict = lm.get_lock(tok)
         assert lockDict is None, "Lock has not expired"
 
     def testConflict(self):

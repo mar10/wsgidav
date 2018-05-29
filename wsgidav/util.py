@@ -29,10 +29,10 @@ from wsgidav.dav_error import (
     HTTP_OK,
     HTTP_PRECONDITION_FAILED,
     DAVError,
-    asDAVError,
-    getHttpStatusString,
+    as_DAVError,
+    get_http_status_string,
     )
-from wsgidav.xml_tools import etree, isEtreeElement, makeSubElement, xmlToBytes
+from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
 __docformat__ = "reStructuredText"
 
@@ -47,13 +47,13 @@ PYTHON_VERSION = "{}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys
 # Time tools
 # ========================================================================
 
-def getRfc1123Time(secs=None):
+def get_rfc1123_time(secs=None):
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
     # GC issue #20: time string must be locale independent
     return formatdate(timeval=secs, localtime=False, usegmt=True)
 
 
-def getRfc3339Time(secs=None):
+def get_rfc3339_time(secs=None):
     """Return <secs> in RFC 3339 date/time format (pass secs=None for current date).
 
     RFC 3339 is a subset of ISO 8601, used for '{DAV:}creationdate'.
@@ -62,12 +62,12 @@ def getRfc3339Time(secs=None):
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(secs))
 
 
-def getLogTime(secs=None):
+def get_log_time(secs=None):
     """Return <secs> in log time format (pass secs=None for current date)."""
     return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(secs))
 
 
-def parseTimeString(timestring):
+def parse_time_string(timestring):
     """Return the number of seconds since the epoch, for a date/time string.
 
     Returns None for invalid input
@@ -78,13 +78,13 @@ def parseTimeString(timestring):
     Sunday, 06-Nov-94 08:49:37 GMT ; RFC 850, obsoleted by RFC 1036
     Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format
     """
-    result = _parsegmtime(timestring)
+    result = _parse_gmt_time(timestring)
     if result:
         return calendar.timegm(result)
     return None
 
 
-def _parsegmtime(timestring):
+def _parse_gmt_time(timestring):
     """Return a standard time tuple (see time and calendar), for a date/time string."""
     # Sun, 06 Nov 1994 08:49:37 GMT  ; RFC 822, updated by RFC 1123
     try:
@@ -118,7 +118,7 @@ def _parsegmtime(timestring):
 # Logging
 # ========================================================================
 
-def initLogging(config):
+def init_logging(config):
     """Initialize base logger named 'wsgidav'.
 
     The base logger is filtered by the `verbose` configuration option.
@@ -138,23 +138,23 @@ def initLogging(config):
     Except for verbosity, they will inherit settings from the base logger.
 
     They will suppress DEBUG level messages, unless they are enabled by passing
-    their name to util.initLogging().
+    their name to util.init_logging().
 
     If enabled, module loggers will print DEBUG messages, even if verbose == 3.
 
     Example initialize and use a module logger, that will generate output,
     if enabled (and verbose >= 2)::
 
-        _logger = util.getModuleLogger(__name__)
+        _logger = util.get_module_logger(__name__)
         [..]
         _logger.debug("foo: '{}'".format(s))
 
-    This logger would be enabled by passing its name to initLogging()::
+    This logger would be enabled by passing its name to init_logging()::
 
         enable_loggers = ["lock_manager",
                           "property_manager",
                          ]
-        util.initLogging(2, enable_loggers)
+        util.init_logging(2, enable_loggers)
 
 
     Log Level Matrix
@@ -237,10 +237,10 @@ def initLogging(config):
             lg.setLevel(logging.DEBUG)
 
 
-def getModuleLogger(moduleName, defaultToVerbose=False):
+def get_module_logger(moduleName, defaultToVerbose=False):
     """Create a module logger, that can be en/disabled by configuration.
 
-    @see: unit.initLogging
+    @see: unit.init_logging
     """
     if not moduleName.startswith(BASE_LOGGER_NAME + "."):
         moduleName = BASE_LOGGER_NAME + "." + moduleName
@@ -323,7 +323,7 @@ def lstripstr(s, prefix, ignoreCase=False):
     return s[len(prefix):]
 
 
-def saveSplit(s, sep, maxsplit):
+def save_split(s, sep, maxsplit):
     """Split string, always returning n-tuple (filled with None if necessary)."""
     tok = s.split(sep, maxsplit)
     while len(tok) <= maxsplit:
@@ -331,7 +331,7 @@ def saveSplit(s, sep, maxsplit):
     return tok
 
 
-def popPath(path):
+def pop_path(path):
     """Return '/a/b/c' -> ('a', '/b/c')."""
     if path in ("", "/"):
         return ("", "")
@@ -340,22 +340,22 @@ def popPath(path):
     return (first, "/" + rest)
 
 
-def popPath2(path):
+def pop_path2(path):
     """Return '/a/b/c' -> ('a', 'b', '/c')."""
     if path in ("", "/"):
         return ("", "", "")
-    first, rest = popPath(path)
-    second, rest = popPath(rest)
+    first, rest = pop_path(path)
+    second, rest = pop_path(rest)
     return (first, second, "/" + rest)
 
 
-def shiftPath(scriptName, pathInfo):
+def shift_path(scriptName, pathInfo):
     """Return ('/a', '/b/c') -> ('b', '/a/b', 'c')."""
-    segment, rest = popPath(pathInfo)
-    return (segment, joinUri(scriptName.rstrip("/"), segment), rest.rstrip("/"))
+    segment, rest = pop_path(pathInfo)
+    return (segment, join_uri(scriptName.rstrip("/"), segment), rest.rstrip("/"))
 
 
-def splitNamespace(clarkName):
+def split_namespace(clarkName):
     """Return (namespace, localname) tuple for a property name in Clark Notation.
 
     Namespace defaults to ''.
@@ -379,7 +379,7 @@ def toUnicode(s):
     return u
 
 
-def safeReEncode(s, encoding_to, errors="backslashreplace"):
+def safe_re_encode(s, encoding_to, errors="backslashreplace"):
     """Re-encode str or binary so that is compatible with a given encoding (replacing
     unsupported chars).
 
@@ -394,11 +394,11 @@ def safeReEncode(s, encoding_to, errors="backslashreplace"):
         s = s.decode(encoding_to, errors=errors).encode(encoding_to)
     else:
         s = s.encode(encoding_to, errors=errors).decode(encoding_to)
-    # print("safeReEncode({}, {}) => {}".format(prev, encoding_to, s))
+    # print("safe_re_encode({}, {}) => {}".format(prev, encoding_to, s))
     return s
 
 
-def stringRepr(s):
+def string_repr(s):
     """Return a string as hex dump."""
     if compat.is_bytes(s):
         res = "{!r}: ".format(s)
@@ -410,12 +410,13 @@ def stringRepr(s):
     return "{}".format(s)
 
 
-def getFileExtension(path):
+def get_file_extension(path):
     ext = os.path.splitext(path)[1]
     return ext
 
 
-def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, appendBytes=True):
+def byte_number_string(number, thousandsSep=True, partition=False,
+                       base1024=True, appendBytes=True):
     """Convert bytes into human-readable representation."""
     magsuffix = ""
     bytesuffix = ""
@@ -455,7 +456,7 @@ def byteNumberString(number, thousandsSep=True, partition=False, base1024=True, 
 # ========================================================================
 # WSGI
 # ========================================================================
-def getContentLength(environ):
+def get_content_length(environ):
     """Return a positive CONTENT_LENGTH in a safe way (return 0 otherwise)."""
     # TODO: http://www.wsgi.org/wsgi/WSGI_2.0
     try:
@@ -466,7 +467,7 @@ def getContentLength(environ):
 
 # def readAllInput(environ):
 #    """Read and discard all from from wsgi.input, if this has not been done yet."""
-#    cl = getContentLength(environ)
+#    cl = get_content_length(environ)
 #    if environ.get("wsgidav.all_input_read") or cl == 0:
 #        return
 #    assert not environ.get("wsgidav.some_input_read")
@@ -475,7 +476,7 @@ def getContentLength(environ):
 #    environ["wsgidav.all_input_read"] = 1
 
 
-def readAndDiscardInput(environ):
+def read_and_discard_input(environ):
     """Read 1 byte from wsgi.input, if this has not been done yet.
 
     Returning a response without reading from a request body might confuse the
@@ -493,7 +494,7 @@ def readAndDiscardInput(environ):
     """
     if environ.get("wsgidav.some_input_read") or environ.get("wsgidav.all_input_read"):
         return
-    cl = getContentLength(environ)
+    cl = get_content_length(environ)
     assert cl >= 0
     if cl == 0:
         return
@@ -551,10 +552,10 @@ def readAndDiscardInput(environ):
 def fail(value, contextinfo=None, srcexception=None, errcondition=None):
     """Wrapper to raise (and log) DAVError."""
     if isinstance(value, Exception):
-        e = asDAVError(value)
+        e = as_DAVError(value)
     else:
         e = DAVError(value, contextinfo, srcexception, errcondition)
-    _logger.error("Raising DAVError {}".format(e.getUserInfo()))
+    _logger.error("Raising DAVError {}".format(e.get_user_info()))
     raise e
 
 
@@ -592,10 +593,10 @@ class SubAppStartResponse(object):
 # URLs
 # ========================================================================
 
-def joinUri(uri, *segments):
+def join_uri(uri, *segments):
     """Append segments to URI.
 
-    Example: joinUri("/a/b", "c", "d")
+    Example: join_uri("/a/b", "c", "d")
     """
     sub = "/".join(segments)
     if not sub:
@@ -603,12 +604,12 @@ def joinUri(uri, *segments):
     return uri.rstrip("/") + "/" + sub
 
 
-def getUriName(uri):
+def get_uri_name(uri):
     """Return local name, i.e. last segment of URI."""
     return uri.strip("/").split("/")[-1]
 
 
-def getUriParent(uri):
+def get_uri_parent(uri):
     """Return URI of parent collection with trailing '/', or None, if URI is top-level.
 
     This function simply strips the last segment. It does not test, if the
@@ -619,7 +620,7 @@ def getUriParent(uri):
     return uri.rstrip("/").rsplit("/", 1)[0] + "/"
 
 
-def isChildUri(parentUri, childUri):
+def is_child_uri(parentUri, childUri):
     """Return True, if childUri is a child of parentUri.
 
     This function accounts for the fact that '/a/b/c' and 'a/b/c/' are
@@ -629,17 +630,17 @@ def isChildUri(parentUri, childUri):
     return parentUri and childUri and childUri.rstrip("/").startswith(parentUri.rstrip("/") + "/")
 
 
-def isEqualOrChildUri(parentUri, childUri):
+def is_equal_or_child_uri(parentUri, childUri):
     """Return True, if childUri is a child of parentUri or maps to the same resource.
 
-    Similar to <util.isChildUri>_ ,  but this method also returns True, if parent
+    Similar to <util.is_child_uri>_ ,  but this method also returns True, if parent
     equals child. ('/a/b' is considered identical with '/a/b/').
     """
     return (parentUri and childUri
             and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/"))
 
 
-def makeCompleteUrl(environ, localUri=None):
+def make_complete_url(environ, localUri=None):
     """URL reconstruction according to PEP 333.
     @see http://www.python.org/dev/peps/pep-0333/#id33
     """
@@ -672,7 +673,7 @@ def makeCompleteUrl(environ, localUri=None):
 # XML
 # ========================================================================
 
-def parseXmlBody(environ, allowEmpty=False):
+def parse_xml_body(environ, allowEmpty=False):
     """Read request body XML into an etree.Element.
 
     Return None, if no request body was sent.
@@ -747,7 +748,7 @@ def parseXmlBody(environ, allowEmpty=False):
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
         _logger.info("{} XML request body:\n{}".format(
-            environ["REQUEST_METHOD"], compat.to_native(xmlToBytes(rootEL, pretty_print=True))))
+            environ["REQUEST_METHOD"], compat.to_native(xml_to_bytes(rootEL, pretty_print=True))))
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -758,15 +759,15 @@ def parseXmlBody(environ, allowEmpty=False):
 #    assert content_type in ("application/xml", "text/html")
 #
 #    start_response(status, [("Content-Type", content_type),
-#                            ("Date", getRfc1123Time()),
+#                            ("Date", get_rfc1123_time()),
 #                            ("Content-Length", str(len(body))),
 #                            ])
 #    return [ body ]
 
 
-def sendStatusResponse(environ, start_response, e, add_headers=None):
+def send_status_response(environ, start_response, e, add_headers=None):
     """Start a WSGI response for a DAVError or status code."""
-    status = getHttpStatusString(e)
+    status = get_http_status_string(e)
     headers = []
     if add_headers:
         headers.extend(add_headers)
@@ -778,7 +779,7 @@ def sendStatusResponse(environ, start_response, e, add_headers=None):
     if e in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
         # See paste.lint: these code don't have content
         start_response(status, [("Content-Length", "0"),
-                                ("Date", getRfc1123Time()),
+                                ("Date", get_rfc1123_time()),
                                 ] + headers)
         return [b""]
 
@@ -786,35 +787,35 @@ def sendStatusResponse(environ, start_response, e, add_headers=None):
         e = DAVError(e)
     assert isinstance(e, DAVError)
 
-    content_type, body = e.getResponsePage()
+    content_type, body = e.get_response_page()
 
     assert compat.is_bytes(body), body  # If not, Content-Length is wrong!
     start_response(status, [("Content-Type", content_type),
-                            ("Date", getRfc1123Time()),
+                            ("Date", get_rfc1123_time()),
                             ("Content-Length", str(len(body))),
                             ] + headers)
     return [body]
 
 
-def sendMultiStatusResponse(environ, start_response, multistatusEL):
+def send_multi_status_response(environ, start_response, multistatusEL):
     # If logging of the body is desired, then this is the place to do it
     # pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "{} XML response body:\n{}".format(
             environ["REQUEST_METHOD"],
-            compat.to_native(xmlToBytes(multistatusEL, pretty_print=True)))
+            compat.to_native(xml_to_bytes(multistatusEL, pretty_print=True)))
         environ["wsgidav.dump_response_body"] = xml
 
     # Hotfix for Windows XP
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
-    xml_data = xmlToBytes(multistatusEL, pretty_print=False)
+    xml_data = xml_to_bytes(multistatusEL, pretty_print=False)
     # If not, Content-Length is wrong!
     assert compat.is_bytes(xml_data), xml_data
 
     headers = [
         ("Content-Type", "application/xml"),
-        ("Date", getRfc1123Time()),
+        ("Date", get_rfc1123_time()),
         ("Content-Length", str(len(xml_data))),
         ]
 
@@ -827,7 +828,7 @@ def sendMultiStatusResponse(environ, start_response, multistatusEL):
     return [xml_data]
 
 
-def addPropertyResponse(multistatusEL, href, propList):
+def add_property_response(multistatusEL, href, propList):
     """Append <response> element to <multistatus> element.
 
     <prop> node depends on the value type:
@@ -849,13 +850,13 @@ def addPropertyResponse(multistatusEL, href, propList):
     for name, value in propList:
         status = "200 OK"
         if isinstance(value, DAVError):
-            status = getHttpStatusString(value)
+            status = get_http_status_string(value)
             # Always generate *empty* elements for props with error status
             value = None
 
         # Collect namespaces, so we can declare them in the <response> for
         # compacter output
-        ns, _ = splitNamespace(name)
+        ns, _ = split_namespace(name)
         if ns != "DAV:" and ns not in nsDict and ns != "":
             nsDict[ns] = True
             nsMap["NS{}".format(nsCount)] = ns
@@ -864,9 +865,9 @@ def addPropertyResponse(multistatusEL, href, propList):
         propDict.setdefault(status, []).append((name, value))
 
     # <response>
-    responseEL = makeSubElement(multistatusEL, "{DAV:}response", nsmap=nsMap)
+    responseEL = make_sub_element(multistatusEL, "{DAV:}response", nsmap=nsMap)
 
-#    log("href value:{}".format(stringRepr(href)))
+#    log("href value:{}".format(string_repr(href)))
 #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
 #    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'(),"
@@ -880,11 +881,11 @@ def addPropertyResponse(multistatusEL, href, propList):
         for name, value in propDict[status]:
             if value is None:
                 etree.SubElement(propEL, name)
-            elif isEtreeElement(value):
+            elif is_etree_element(value):
                 propEL.append(value)
             else:
                 # value must be string or unicode
-                #                log("{} value:{}".format(name, stringRepr(value)))
+                #                log("{} value:{}".format(name, string_repr(value)))
                 #                etree.SubElement(propEL, name).text = value
                 etree.SubElement(propEL, name).text = toUnicode(value)
         # <status>
@@ -909,7 +910,7 @@ def calc_base64(s):
     return compat.to_native(s)
 
 
-def getETag(filePath):
+def get_etag(filePath):
     """Return a strong Entity Tag for a (file)path.
 
     http://www.webdav.org/specs/rfc4918.html#etag
@@ -951,7 +952,7 @@ reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
 reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
 
 
-def obtainContentRanges(rangetext, filesize):
+def obtain_content_ranges(rangetext, filesize):
     """
    returns tuple (list, value)
 
@@ -1020,7 +1021,7 @@ MAX_FINITE_TIMEOUT_LIMIT = 10 * 365 * 24 * 60 * 60  # approx 10 years
 reSecondsReader = re.compile(r"second\-([0-9]+)", re.I)
 
 
-def readTimeoutValueHeader(timeoutvalue):
+def read_timeout_value_header(timeoutvalue):
     """Return -1 if infinite, else return numofsecs."""
     timeoutsecs = 0
     timeoutvaluelist = timeoutvalue.split(",")
@@ -1043,7 +1044,7 @@ def readTimeoutValueHeader(timeoutvalue):
 # If Headers
 # ========================================================================
 
-def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
+def evaluate_http_conditionals(davres, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
 
     If-Match
@@ -1077,7 +1078,7 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     # cache validators, MUST NOT return a response status of 304 (Not Modified) unless doing so
     # is consistent with all of the conditional header fields in the request.
 
-    if "HTTP_IF_MATCH" in environ and davres.supportEtag():
+    if "HTTP_IF_MATCH" in environ and davres.support_etag():
         ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
             ifmatchtag = ifmatchtag.strip(" \"\t")
@@ -1088,8 +1089,8 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
 
     # TODO: after the refactoring
     ifModifiedSinceFailed = False
-    if "HTTP_IF_MODIFIED_SINCE" in environ and davres.supportModified():
-        ifmodtime = parseTimeString(environ["HTTP_IF_MODIFIED_SINCE"])
+    if "HTTP_IF_MODIFIED_SINCE" in environ and davres.support_modified():
+        ifmodtime = parse_time_string(environ["HTTP_IF_MODIFIED_SINCE"])
         if ifmodtime and ifmodtime > lastmodified:
             ifModifiedSinceFailed = True
 
@@ -1099,7 +1100,7 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     # field (s) in the request. That is, if no entity tags match, then the server MUST NOT return
     # a 304 (Not Modified) response.
     ignoreIfModifiedSince = False
-    if "HTTP_IF_NONE_MATCH" in environ and davres.supportEtag():
+    if "HTTP_IF_NONE_MATCH" in environ and davres.support_etag():
         ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
             ifmatchtag = ifmatchtag.strip(" \"\t")
@@ -1113,8 +1114,8 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
                                "If-None-Match header condition failed")
         ignoreIfModifiedSince = True
 
-    if "HTTP_IF_UNMODIFIED_SINCE" in environ and davres.supportModified():
-        ifunmodtime = parseTimeString(environ["HTTP_IF_UNMODIFIED_SINCE"])
+    if "HTTP_IF_UNMODIFIED_SINCE" in environ and davres.support_modified():
+        ifunmodtime = parse_time_string(environ["HTTP_IF_UNMODIFIED_SINCE"])
         if ifunmodtime and ifunmodtime <= lastmodified:
             raise DAVError(HTTP_PRECONDITION_FAILED,
                            "If-Unmodified-Since header condition failed")
@@ -1132,7 +1133,7 @@ reIfTagList = re.compile(r"\(([^)]+)\)")
 reIfTagListContents = re.compile(r"(\S+)")
 
 
-def parseIfHeaderDict(environ):
+def parse_if_header_dict(environ):
     """Parse HTTP_IF header into a dictionary and lists, and cache the result.
 
     @see http://www.webdav.org/specs/rfc4918.html#HEADER_If
@@ -1179,12 +1180,12 @@ def parseIfHeaderDict(environ):
 
     environ["wsgidav.conditions.if"] = ifDict
     environ["wsgidav.ifLockTokenList"] = ifLockList
-    _logger.debug("parseIfHeaderDict\n{}".format(pformat(ifDict)))
+    _logger.debug("parse_if_header_dict\n{}".format(pformat(ifDict)))
     return
 
 
-def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
-    _logger.debug("testIfHeaderDict({}, {}, {})".format(fullurl, locktokenlist, entitytag))
+def test_if_header_dict(davres, dictIf, fullurl, locktokenlist, entitytag):
+    _logger.debug("test_if_header_dict({}, {}, {})".format(fullurl, locktokenlist, entitytag))
 
     if fullurl in dictIf:
         listTest = dictIf[fullurl]
@@ -1194,7 +1195,7 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
         return True
 
 #    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
-    supportEntityTag = davres.supportEtag()
+    supportEntityTag = davres.support_etag()
     for listTestConds in listTest:
         matchfailed = False
 
@@ -1217,11 +1218,11 @@ def testIfHeaderDict(davres, dictIf, fullurl, locktokenlist, entitytag):
     return False
 
 
-testIfHeaderDict.__test__ = False  # Tell nose to ignore this function
+test_if_header_dict.__test__ = False  # Tell nose to ignore this function
 
 
 # ========================================================================
-# guessMimeType
+# guess_mime_type
 # ========================================================================
 _MIME_TYPES = {".oga": "audio/ogg",
                ".ogg": "audio/ogg",
@@ -1230,7 +1231,7 @@ _MIME_TYPES = {".oga": "audio/ogg",
                }
 
 
-def guessMimeType(url):
+def guess_mime_type(url):
     """Use the mimetypes module to lookup the type for an extension.
 
     This function also adds some extensions required for HTML5

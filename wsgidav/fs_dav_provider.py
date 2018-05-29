@@ -25,7 +25,7 @@ from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 BUFFER_SIZE = 8192
 
@@ -48,50 +48,50 @@ class FileResource(DAVNonCollection):
         self.name = compat.to_native(self.name)
 
     # Getter methods for standard live properties
-    def getContentLength(self):
+    def get_content_length(self):
         return self.filestat[stat.ST_SIZE]
 
-    def getContentType(self):
-        return util.guessMimeType(self.path)
+    def get_content_type(self):
+        return util.guess_mime_type(self.path)
 
-    def getCreationDate(self):
+    def get_creation_date(self):
         return self.filestat[stat.ST_CTIME]
 
-    def getDisplayName(self):
+    def get_display_name(self):
         return self.name
 
-    def getEtag(self):
-        return util.getETag(self._filePath)
+    def get_etag(self):
+        return util.get_etag(self._filePath)
 
-    def getLastModified(self):
+    def get_last_modified(self):
         return self.filestat[stat.ST_MTIME]
 
-    def supportEtag(self):
+    def support_etag(self):
         return True
 
-    def supportRanges(self):
+    def support_ranges(self):
         return True
 
-    def getContent(self):
+    def get_content(self):
         """Open content as a stream for reading.
 
-        See DAVResource.getContent()
+        See DAVResource.get_content()
         """
-        assert not self.isCollection
+        assert not self.is_collection
         # GC issue 28, 57: if we open in text mode, \r\n is converted to one byte.
         # So the file size reported by Windows differs from len(..), thus
         # content-length will be wrong.
         return open(self._filePath, "rb", BUFFER_SIZE)
 
-    def beginWrite(self, contentType=None):
+    def begin_write(self, contentType=None):
         """Open content as a stream for writing.
 
-        See DAVResource.beginWrite()
+        See DAVResource.begin_write()
         """
-        assert not self.isCollection
+        assert not self.is_collection
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        # _logger.debug("beginWrite: {}, {}".format(self._filePath, "wb"))
+        # _logger.debug("begin_write: {}, {}".format(self._filePath, "wb"))
         # GC issue 57: always store as binary
         return open(self._filePath, "wb", BUFFER_SIZE)
 
@@ -103,52 +103,52 @@ class FileResource(DAVNonCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         os.unlink(self._filePath)
-        self.removeAllProperties(True)
-        self.removeAllLocks(True)
+        self.remove_all_properties(True)
+        self.remove_all_locks(True)
 
-    def copyMoveSingle(self, destPath, isMove):
-        """See DAVResource.copyMoveSingle() """
+    def copy_move_single(self, destPath, isMove):
+        """See DAVResource.copy_move_single() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath, self.environ)
-        assert not util.isEqualOrChildUri(self.path, destPath)
+        fpDest = self.provider._loc_to_file_path(destPath, self.environ)
+        assert not util.is_equal_or_child_uri(self.path, destPath)
         # Copy file (overwrite, if exists)
         shutil.copy2(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
         propMan = self.provider.propManager
         if propMan:
-            destRes = self.provider.getResourceInst(destPath, self.environ)
+            destRes = self.provider.get_resource_inst(destPath, self.environ)
             if isMove:
-                propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                       withChildren=False, environ=self.environ)
+                propMan.move_properties(self.get_ref_url(), destRes.get_ref_url(),
+                                        withChildren=False, environ=self.environ)
             else:
-                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl(), self.environ)
+                propMan.copy_properties(self.get_ref_url(), destRes.get_ref_url(), self.environ)
 
-    def supportRecursiveMove(self, destPath):
-        """Return True, if moveRecursive() is available (see comments there)."""
+    def support_recursive_move(self, destPath):
+        """Return True, if move_recursive() is available (see comments there)."""
         return True
 
-    def moveRecursive(self, destPath):
-        """See DAVResource.moveRecursive() """
+    def move_recursive(self, destPath):
+        """See DAVResource.move_recursive() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath, self.environ)
-        assert not util.isEqualOrChildUri(self.path, destPath)
+        fpDest = self.provider._loc_to_file_path(destPath, self.environ)
+        assert not util.is_equal_or_child_uri(self.path, destPath)
         assert not os.path.exists(fpDest)
-        _logger.debug("moveRecursive({}, {})".format(self._filePath, fpDest))
+        _logger.debug("move_recursive({}, {})".format(self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
         if self.provider.propManager:
-            destRes = self.provider.getResourceInst(destPath, self.environ)
-            self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                                     withChildren=True, environ=self.environ)
+            destRes = self.provider.get_resource_inst(destPath, self.environ)
+            self.provider.propManager.move_properties(self.get_ref_url(), destRes.get_ref_url(),
+                                                      withChildren=True, environ=self.environ)
 
-    def setLastModified(self, destPath, timeStamp, dryRun):
+    def set_last_modified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         # Translate time from RFC 1123 to seconds since epoch format
-        secs = util.parseTimeString(timeStamp)
+        secs = util.parse_time_string(timeStamp)
         if not dryRun:
             os.utime(self._filePath, (secs, secs))
         return True
@@ -173,25 +173,25 @@ class FolderResource(DAVCollection):
         self.name = compat.to_native(self.name)  # .encode("utf8")
 
     # Getter methods for standard live properties
-    def getCreationDate(self):
+    def get_creation_date(self):
         return self.filestat[stat.ST_CTIME]
 
-    def getDisplayName(self):
+    def get_display_name(self):
         return self.name
 
-    def getDirectoryInfo(self):
+    def get_directory_info(self):
         return None
 
-    def getEtag(self):
+    def get_etag(self):
         return None
 
-    def getLastModified(self):
+    def get_last_modified(self):
         return self.filestat[stat.ST_MTIME]
 
-    def getMemberNames(self):
+    def get_member_names(self):
         """Return list of direct collection member names (utf-8 encoded).
 
-        See DAVCollection.getMemberNames()
+        See DAVCollection.get_member_names()
         """
         # On Windows NT/2k/XP and Unix, if path is a Unicode object, the result
         # will be a list of Unicode objects.
@@ -217,15 +217,15 @@ class FolderResource(DAVCollection):
             nameList.append(name)
         return nameList
 
-    def getMember(self, name):
+    def get_member(self, name):
         """Return direct collection member (DAVResource or derived).
 
-        See DAVCollection.getMember()
+        See DAVCollection.get_member()
         """
         assert compat.is_native(name), "{!r}".format(name)
         fp = os.path.join(self._filePath, compat.to_unicode(name))
 #        name = name.encode("utf8")
-        path = util.joinUri(self.path, name)
+        path = util.join_uri(self.path, name)
         if os.path.isdir(fp):
             res = FolderResource(path, self.environ, fp)
         elif os.path.isfile(fp):
@@ -237,30 +237,30 @@ class FolderResource(DAVCollection):
 
     # --- Read / write -------------------------------------------------------
 
-    def createEmptyResource(self, name):
+    def create_empty_resource(self, name):
         """Create an empty (length-0) resource.
 
-        See DAVResource.createEmptyResource()
+        See DAVResource.create_empty_resource()
         """
         assert "/" not in name
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        path = util.joinUri(self.path, name)
-        fp = self.provider._locToFilePath(path, self.environ)
+        path = util.join_uri(self.path, name)
+        fp = self.provider._loc_to_file_path(path, self.environ)
         f = open(fp, "wb")
         f.close()
-        return self.provider.getResourceInst(path, self.environ)
+        return self.provider.get_resource_inst(path, self.environ)
 
-    def createCollection(self, name):
+    def create_collection(self, name):
         """Create a new collection as member of self.
 
-        See DAVResource.createCollection()
+        See DAVResource.create_collection()
         """
         assert "/" not in name
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        path = util.joinUri(self.path, name)
-        fp = self.provider._locToFilePath(path, self.environ)
+        path = util.join_uri(self.path, name)
+        fp = self.provider._loc_to_file_path(path, self.environ)
         os.mkdir(fp)
 
     def delete(self):
@@ -271,15 +271,15 @@ class FolderResource(DAVCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         shutil.rmtree(self._filePath, ignore_errors=False)
-        self.removeAllProperties(True)
-        self.removeAllLocks(True)
+        self.remove_all_properties(True)
+        self.remove_all_locks(True)
 
-    def copyMoveSingle(self, destPath, isMove):
-        """See DAVResource.copyMoveSingle() """
+    def copy_move_single(self, destPath, isMove):
+        """See DAVResource.copy_move_single() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath, self.environ)
-        assert not util.isEqualOrChildUri(self.path, destPath)
+        fpDest = self.provider._loc_to_file_path(destPath, self.environ)
+        assert not util.is_equal_or_child_uri(self.path, destPath)
         # Create destination collection, if not exists
         if not os.path.exists(fpDest):
             os.mkdir(fpDest)
@@ -293,37 +293,37 @@ class FolderResource(DAVCollection):
         # Copy dead properties
         propMan = self.provider.propManager
         if propMan:
-            destRes = self.provider.getResourceInst(destPath, self.environ)
+            destRes = self.provider.get_resource_inst(destPath, self.environ)
             if isMove:
-                propMan.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                       withChildren=False, environ=self.environ)
+                propMan.move_properties(self.get_ref_url(), destRes.get_ref_url(),
+                                        withChildren=False, environ=self.environ)
             else:
-                propMan.copyProperties(self.getRefUrl(), destRes.getRefUrl(), self.environ)
+                propMan.copy_properties(self.get_ref_url(), destRes.get_ref_url(), self.environ)
 
-    def supportRecursiveMove(self, destPath):
-        """Return True, if moveRecursive() is available (see comments there)."""
+    def support_recursive_move(self, destPath):
+        """Return True, if move_recursive() is available (see comments there)."""
         return True
 
-    def moveRecursive(self, destPath):
-        """See DAVResource.moveRecursive() """
+    def move_recursive(self, destPath):
+        """See DAVResource.move_recursive() """
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._locToFilePath(destPath, self.environ)
-        assert not util.isEqualOrChildUri(self.path, destPath)
+        fpDest = self.provider._loc_to_file_path(destPath, self.environ)
+        assert not util.is_equal_or_child_uri(self.path, destPath)
         assert not os.path.exists(fpDest)
-        _logger.debug("moveRecursive({}, {})".format(self._filePath, fpDest))
+        _logger.debug("move_recursive({}, {})".format(self._filePath, fpDest))
         shutil.move(self._filePath, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
         if self.provider.propManager:
-            destRes = self.provider.getResourceInst(destPath, self.environ)
-            self.provider.propManager.moveProperties(self.getRefUrl(), destRes.getRefUrl(),
-                                                     withChildren=True, environ=self.environ)
+            destRes = self.provider.get_resource_inst(destPath, self.environ)
+            self.provider.propManager.move_properties(self.get_ref_url(), destRes.get_ref_url(),
+                                                      withChildren=True, environ=self.environ)
 
-    def setLastModified(self, destPath, timeStamp, dryRun):
+    def set_last_modified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         # Translate time from RFC 1123 to seconds since epoch format
-        secs = util.parseTimeString(timeStamp)
+        secs = util.parse_time_string(timeStamp)
         if not dryRun:
             os.utime(self._filePath, (secs, secs))
         return True
@@ -352,7 +352,7 @@ class FilesystemProvider(DAVProvider):
             rw = "Read-Only"
         return "{} for path '{}' ({})".format(self.__class__.__name__, self.rootFolderPath, rw)
 
-    def _locToFilePath(self, path, environ=None):
+    def _loc_to_file_path(self, path, environ=None):
         """Convert resource path to a unicode absolute file path.
         Optional environ argument may be useful e.g. in relation to per-user
         sub-folder chrooting inside rootFolderPath.
@@ -372,16 +372,16 @@ class FilesystemProvider(DAVProvider):
         file_path = util.toUnicode(file_path)
         return file_path
 
-    def isReadOnly(self):
+    def is_readonly(self):
         return self.readonly
 
-    def getResourceInst(self, path, environ):
+    def get_resource_inst(self, path, environ):
         """Return info dictionary for path.
 
-        See DAVProvider.getResourceInst()
+        See DAVProvider.get_resource_inst()
         """
         self._count_getResourceInst += 1
-        fp = self._locToFilePath(path, environ)
+        fp = self._loc_to_file_path(path, environ)
         if not os.path.exists(fp):
             return None
 

@@ -51,7 +51,7 @@ from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
-from wsgidav.xml_tools import useLxml
+from wsgidav.xml_tools import use_lxml
 
 __docformat__ = "reStructuredText"
 
@@ -81,7 +81,7 @@ class FullExpandedPath(argparse.Action):
         setattr(namespace, self.dest, new_val)
 
 
-def _initCommandLineOptions():
+def _init_command_line_options():
     """Parse command line options into a dictionary."""
 
     description = """\
@@ -215,7 +215,7 @@ See https://github.com/mar10/wsgidav for additional information.
     return cmdLineOpts
 
 
-def _readConfigFile(config_file, verbose):
+def _read_config_file(config_file, verbose):
     """Read configuration file options into a dictionary."""
 
     if not os.path.exists(config_file):
@@ -254,9 +254,9 @@ def _readConfigFile(config_file, verbose):
     return conf
 
 
-def _initConfig():
+def _init_config():
     """Setup configuration dictionary from default, command line and configuration file."""
-    cli_opts = _initCommandLineOptions()
+    cli_opts = _init_command_line_options()
     cli_verbose = cli_opts["verbose"]
 
     # Set config defaults
@@ -266,7 +266,7 @@ def _initConfig():
     # Configuration file overrides defaults
     config_file = cli_opts.get("config_file")
     if config_file:
-        file_opts = _readConfigFile(config_file, cli_verbose)
+        file_opts = _read_config_file(config_file, cli_verbose)
         # config.update(file_opts)
         util.deep_update(config, file_opts)
         if cli_verbose != DEFAULT_VERBOSE and "verbose" in file_opts:
@@ -317,7 +317,7 @@ def _initConfig():
     return config
 
 
-def _runPaste(app, config, mode):
+def _run_paste(app, config, mode):
     """Run WsgiDAV using paste.httpserver, if Paste is installed.
 
     See http://pythonpaste.org/modules/httpserver.html for more options
@@ -370,7 +370,7 @@ def _runPaste(app, config, mode):
     return
 
 
-def _runCherryPy(app, config, mode):
+def _run__cherrypy(app, config, mode):
     """Run WsgiDAV using cherrypy.wsgiserver if CherryPy is installed."""
     assert mode == "cherrypy-wsgiserver"
 
@@ -445,10 +445,9 @@ def _runCherryPy(app, config, mode):
     return
 
 
-def _runCheroot(app, config, mode):
+def _run_cheroot(app, config, mode):
     """Run WsgiDAV using cheroot.server if Cheroot is installed."""
     assert mode == "cheroot"
-
     try:
         from cheroot import server, wsgi
 #         from cheroot.ssl.builtin import BuiltinSSLAdapter
@@ -462,9 +461,7 @@ def _runCheroot(app, config, mode):
         raise
 
     server_name = "WsgiDAV/{} {} Python/{}".format(
-        __version__,
-        wsgi.Server.version,
-        util.PYTHON_VERSION)
+        __version__, wsgi.Server.version, util.PYTHON_VERSION)
     wsgi.Server.version = server_name
 
     # Support SSL
@@ -518,8 +515,8 @@ def _runCheroot(app, config, mode):
     return
 
 
-def _runFlup(app, config, mode):
-    """Run WsgiDAV using flup.server.fcgi, if Flup is installed."""
+def _run_flup(app, config, mode):
+    """Run WsgiDAV using flup.server.fcgi if Flup is installed."""
     # http://trac.saddi.com/flup/wiki/FlupServers
     if mode == "flup-fcgi":
         from flup.server.fcgi import WSGIServer, __version__ as flupver
@@ -541,7 +538,7 @@ def _runFlup(app, config, mode):
     return
 
 
-def _runWsgiref(app, config, mode):
+def _run_wsgiref(app, config, mode):
     """Run WsgiDAV using wsgiref.simple_server, on Python 2.5+."""
     # http://www.python.org/doc/2.5.2/lib/module-wsgiref.html
     from wsgiref.simple_server import make_server, software_version
@@ -556,7 +553,7 @@ def _runWsgiref(app, config, mode):
     return
 
 
-def _runExtWsgiutils(app, config, mode):
+def _run_ext_wsgiutils(app, config, mode):
     """Run WsgiDAV using ext_wsgiutils_server from the wsgidav package."""
     from wsgidav.server import ext_wsgiutils_server
     _logger.info("Running WsgiDAV {} on wsgidav.ext_wsgiutils_server...".format(__version__))
@@ -570,17 +567,17 @@ def _runExtWsgiutils(app, config, mode):
 
 
 def run():
-    SUPPORTED_SERVERS = {"paste": _runPaste,
-                         "cheroot": _runCheroot,
-                         "cherrypy": _runCherryPy,
-                         "ext-wsgiutils": _runExtWsgiutils,
-                         "flup-fcgi": _runFlup,
-                         "flup-fcgi_fork": _runFlup,
-                         "wsgiref": _runWsgiref,
+    SUPPORTED_SERVERS = {"paste": _run_paste,
+                         "cheroot": _run_cheroot,
+                         "cherrypy": _run__cherrypy,
+                         "ext-wsgiutils": _run_ext_wsgiutils,
+                         "flup-fcgi": _run_flup,
+                         "flup-fcgi_fork": _run_flup,
+                         "wsgiref": _run_wsgiref,
                          }
-    config = _initConfig()
+    config = _init_config()
 
-    util.initLogging(config)
+    util.init_logging(config)
 
     app = WsgiDAVApp(config)
 
@@ -590,7 +587,7 @@ def run():
         raise RuntimeError("Unsupported server type {!r} (expected {!r})"
                            .format(server, "', '".join(SUPPORTED_SERVERS.keys())))
 
-    if not useLxml:  # and config["verbose"] >= 1:
+    if not use_lxml:  # and config["verbose"] >= 1:
         _logger.warn("Could not import lxml: using xml instead (slower). "
                      "Consider installing lxml https://pypi.python.org/pypi/lxml.")
 

@@ -74,7 +74,7 @@ from wsgidav.dav_provider import DAVProvider, _DAVResource
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 class MySQLBrowserResource(_DAVResource):
@@ -83,8 +83,8 @@ class MySQLBrowserResource(_DAVResource):
     See also DAVResource and MySQLBrowserProvider.
     """
 
-    def __init__(self, provider, path, isCollection, environ):
-        super(MySQLBrowserResource, self).__init__(path, isCollection, environ)
+    def __init__(self, provider, path, is_collection, environ):
+        super(MySQLBrowserResource, self).__init__(path, is_collection, environ)
         self._cache = None
 
     def _init(self):
@@ -95,7 +95,7 @@ class MySQLBrowserResource(_DAVResource):
         # TODO: recalc self.path from <self._filePath>, to fix correct file system case
         #       On windows this would lead to correct URLs
         self.provider._count_getResourceInstInit += 1
-        tableName, primKey = self.provider._splitPath(self.path)
+        tableName, primKey = self.provider._split_path(self.path)
 
         displayType = "Unknown"
         displayTypeComment = ""
@@ -115,8 +115,8 @@ class MySQLBrowserResource(_DAVResource):
                 displayType = "Database Record"
                 displayTypeComment = "Attributes available as properties"
 
-        # Avoid calling isCollection, since it would call isExisting -> _initConnection
-        isCollection = primKey is None
+        # Avoid calling is_collection, since it would call isExisting -> _init_connection
+        is_collection = primKey is None
 
         self._cache = {"contentLength": None,
                        "contentType": contentType,
@@ -125,88 +125,86 @@ class MySQLBrowserResource(_DAVResource):
                        "etag": hashlib.md5().update(self.path).hexdigest(),
                        # "etag": md5.new(self.path).hexdigest(),
                        "modified": None,
-                       "supportRanges": False,
+                       "support_ranges": False,
                        "displayInfo": {"type": displayType,
                                        "typeComment": displayTypeComment,
                                        },
                        }
 
         # Some resource-only infos:
-        if not isCollection:
+        if not is_collection:
             self._cache["modified"] = time.time()
         _logger.debug("---> _init, nc=%s" % self.provider._count_initConnection)
 
-    def _getInfo(self, info):
+    def _get_info(self, info):
         if self._cache is None:
             self._init()
         return self._cache.get(info)
 
     # Getter methods for standard live properties
-    def getContentLength(self):
-        return self._getInfo("contentLength")
+    def get_content_length(self):
+        return self._get_info("contentLength")
 
-    def getContentType(self):
-        return self._getInfo("contentType")
+    def get_content_type(self):
+        return self._get_info("contentType")
 
-    def getCreationDate(self):
-        return self._getInfo("created")
+    def get_creation_date(self):
+        return self._get_info("created")
 
-    def getDisplayName(self):
+    def get_display_name(self):
         return self.name
 
-    def getDisplayInfo(self):
-        return self._getInfo("displayInfo")
+    def get_display_info(self):
+        return self._get_info("displayInfo")
 
-    def getEtag(self):
-        return self._getInfo("etag")
+    def get_etag(self):
+        return self._get_info("etag")
 
-    def getLastModified(self):
-        return self._getInfo("modified")
+    def get_last_modified(self):
+        return self._get_info("modified")
 
-    def getMemberList(self):
+    def get_member_list(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
 
-        See DAVResource.getMemberList()
+        See DAVResource.get_member_list()
         """
         members = []
-        conn = self.provider._initConnection()
+        conn = self.provider._init_connection()
         try:
-            tableName, primKey = self.provider._splitPath(self.path)
+            tableName, primKey = self.provider._split_path(self.path)
             if tableName is None:
-                retlist = self.provider._listTables(conn)
+                retlist = self.provider._list_tables(conn)
                 for name in retlist:
                     members.append(MySQLBrowserResource(self.provider,
-                                                        util.joinUri(self.path, name),
+                                                        util.join_uri(self.path, name),
                                                         True,
                                                         self.environ))
             elif primKey is None:
-                pri_key = self.provider._findPrimaryKey(conn, tableName)
+                pri_key = self.provider._find_primary_key(conn, tableName)
                 if pri_key is not None:
-                    retlist = self.provider._listFields(conn, tableName, pri_key)
+                    retlist = self.provider._list_fields(conn, tableName, pri_key)
                     for name in retlist:
-                        members.append(MySQLBrowserResource(self.provider,
-                                                            util.joinUri(self.path, name),
-                                                            False,
-                                                            self.environ))
-                members.insert(0, MySQLBrowserResource(self.provider,
-                                                       util.joinUri(self.path, "_ENTIRE_CONTENTS"),
-                                                       False,
-                                                       self.environ))
+                        members.append(MySQLBrowserResource(
+                                self.provider, util.join_uri(self.path, name),
+                                False, self.environ))
+                members.insert(0, MySQLBrowserResource(
+                        self.provider, util.join_uri(self.path, "_ENTIRE_CONTENTS"),
+                        False, self.environ))
         finally:
             conn.close()
         return members
 
-    def getContent(self):
+    def get_content(self):
         """Open content as a stream for reading.
 
-        See DAVResource.getContent()
+        See DAVResource.get_content()
         """
         filestream = compat.StringIO()
 
-        tableName, primKey = self.provider._splitPath(self.path)
+        tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:
-            conn = self.provider._initConnection()
-            listFields = self.provider._getFieldList(conn, tableName)
+            conn = self.provider._init_connection()
+            listFields = self.provider._get_field_list(conn, tableName)
             csvwriter = csv.DictWriter(filestream, listFields, extrasaction="ignore")
             dictFields = {}
             for field_name in listFields:
@@ -221,7 +219,7 @@ class MySQLBrowserResource(_DAVResource):
                     csvwriter.writerow(row)
                 cursor.close()
             else:
-                row = self.provider._getRecordByPrimaryKey(conn, tableName, primKey)
+                row = self.provider._get_record_by_primary_key(conn, tableName, primKey)
                 if row is not None:
                     csvwriter.writerow(row)
             conn.close()
@@ -232,26 +230,26 @@ class MySQLBrowserResource(_DAVResource):
         filestream.seek(0)
         return filestream
 
-    def getPropertyNames(self, isAllProp):
+    def get_property_names(self, isAllProp):
         """Return list of supported property names in Clark Notation.
 
-        Return supported live and dead properties. (See also DAVProvider.getPropertyNames().)
+        Return supported live and dead properties. (See also DAVProvider.get_property_names().)
 
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super(MySQLBrowserResource, self).getPropertyNames(isAllProp)
+        propNames = super(MySQLBrowserResource, self).get_property_names(isAllProp)
         # Add fieldnames as properties
-        tableName, primKey = self.provider._splitPath(self.path)
+        tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:
-            conn = self.provider._initConnection()
-            fieldlist = self.provider._getFieldList(conn, tableName)
+            conn = self.provider._init_connection()
+            fieldlist = self.provider._get_field_list(conn, tableName)
             for fieldname in fieldlist:
                 propNames.append("{%s:}%s" % (tableName, fieldname))
             conn.close()
         return propNames
 
-    def getPropertyValue(self, propname):
+    def get_property_value(self, propname):
         """Return the value of a property.
 
         The base implementation handles:
@@ -264,24 +262,25 @@ class MySQLBrowserResource(_DAVResource):
           the associated property manager, if one is present.
         """
         # Return table field as property
-        tableName, primKey = self.provider._splitPath(self.path)
+        tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:
-            ns, localName = util.splitNamespace(propname)
+            ns, localName = util.split_namespace(propname)
             if ns == (tableName + ":"):
-                conn = self.provider._initConnection()
-                fieldlist = self.provider._getFieldList(conn, tableName)
+                conn = self.provider._init_connection()
+                fieldlist = self.provider._get_field_list(conn, tableName)
                 if localName in fieldlist:
-                    val = self.provider._getFieldByPrimaryKey(conn, tableName, primKey, localName)
+                    val = self.provider._get_field_by_primary_key(
+                            conn, tableName, primKey, localName)
                     conn.close()
                     return val
                 conn.close()
         # else, let default implementation return supported live and dead properties
-        return super(MySQLBrowserResource, self).getPropertyValue(propname)
+        return super(MySQLBrowserResource, self).get_property_value(propname)
 
-    def setPropertyValue(self, propname, value, dryRun=False):
+    def set_property_value(self, propname, value, dryRun=False):
         """Set or remove property value.
 
-        See DAVResource.setPropertyValue()
+        See DAVResource.set_property_value()
         """
         raise DAVError(HTTP_FORBIDDEN,
                        errcondition=PRECONDITION_CODE_ProtectedProperty)
@@ -305,22 +304,22 @@ class MySQLBrowserProvider(DAVProvider):
         return "%s for db '%s' on '%s' (user: '%s')'" % (
             self.__class__.__name__, self._db, self._host, self._user)
 
-    def _splitPath(self, path):
+    def _split_path(self, path):
         """Return (tableName, primaryKey) tuple for a request path."""
         if path.strip() in (None, "", "/"):
             return (None, None)
-        tableName, primKey = util.saveSplit(path.strip("/"), "/", 1)
+        tableName, primKey = util.save_split(path.strip("/"), "/", 1)
 #        _logger.debug("'%s' -> ('%s', '%s')" % (path, tableName, primKey))
         return (tableName, primKey)
 
-    def _initConnection(self):
+    def _init_connection(self):
         self._count_initConnection += 1
         return MySQLdb.connect(host=self._host,
                                user=self._user,
                                passwd=self._passwd,
                                db=self._db)
 
-    def _getFieldList(self, conn, table_name):
+    def _get_field_list(self, conn, table_name):
         retlist = []
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("DESCRIBE " + table_name)
@@ -330,7 +329,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return retlist
 
-    def _isDataTypeNumeric(self, datatype):
+    def _is_data_type_numeric(self, datatype):
         if datatype is None:
             return False
         # how many MySQL datatypes does it take to change a lig... I mean, store numbers
@@ -354,7 +353,7 @@ class MySQLBrowserProvider(DAVProvider):
                 return True
         return False
 
-    def _existsRecordByPrimaryKey(self, conn, table_name, pri_key_value):
+    def _exists_record_by_primary_key(self, conn, table_name, pri_key_value):
         pri_key = None
         pri_field_type = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -369,7 +368,7 @@ class MySQLBrowserProvider(DAVProvider):
                     return False  # more than one primary key - multipart key?
         cursor.close()
 
-        isNumType = self._isDataTypeNumeric(pri_field_type)
+        isNumType = self._is_data_type_numeric(pri_field_type)
 
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         if isNumType:
@@ -385,7 +384,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return True
 
-    def _getFieldByPrimaryKey(self, conn, table_name, pri_key_value, field_name):
+    def _get_field_by_primary_key(self, conn, table_name, pri_key_value, field_name):
         pri_key = None
         pri_field_type = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -400,7 +399,7 @@ class MySQLBrowserProvider(DAVProvider):
                     return None  # more than one primary key - multipart key?
         cursor.close()
 
-        isNumType = self._isDataTypeNumeric(pri_field_type)
+        isNumType = self._is_data_type_numeric(pri_field_type)
 
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         if isNumType:
@@ -417,7 +416,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return val
 
-    def _getRecordByPrimaryKey(self, conn, table_name, pri_key_value):
+    def _get_record_by_primary_key(self, conn, table_name, pri_key_value):
         dictRet = {}
         pri_key = None
         pri_field_type = None
@@ -433,7 +432,7 @@ class MySQLBrowserProvider(DAVProvider):
                     return None  # more than one primary key - multipart key?
         cursor.close()
 
-        isNumType = self._isDataTypeNumeric(pri_field_type)
+        isNumType = self._is_data_type_numeric(pri_field_type)
 
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         if isNumType:
@@ -451,7 +450,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return dictRet
 
-    def _findPrimaryKey(self, conn, table_name):
+    def _find_primary_key(self, conn, table_name):
         pri_key = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("DESCRIBE " + table_name)
@@ -467,7 +466,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return pri_key
 
-    def _listFields(self, conn, table_name, field_name):
+    def _list_fields(self, conn, table_name, field_name):
         retlist = []
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT " + field_name + " FROM " + self._db + "." + table_name)
@@ -477,7 +476,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return retlist
 
-    def _listTables(self, conn):
+    def _list_tables(self, conn):
         retlist = []
         cursor = conn.cursor()
         cursor.execute("SHOW TABLES")
@@ -487,10 +486,10 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.close()
         return retlist
 
-    def getResourceInst(self, path, environ):
+    def get_resource_inst(self, path, environ):
         """Return info dictionary for path.
 
-        See getResourceInst()
+        See get_resource_inst()
         """
         # TODO: calling exists() makes directory browsing VERY slow.
         #       At least compared to PyFileServer, which simply used string
@@ -498,30 +497,30 @@ class MySQLBrowserProvider(DAVProvider):
         self._count_getResourceInst += 1
         if not self.exists(path, environ):
             return None
-        _tableName, primKey = self._splitPath(path)
-        isCollection = primKey is None
-        return MySQLBrowserResource(self, path, isCollection, environ)
+        _tableName, primKey = self._split_path(path)
+        is_collection = primKey is None
+        return MySQLBrowserResource(self, path, is_collection, environ)
 
     def exists(self, path, environ):
-        tableName, primKey = self._splitPath(path)
+        tableName, primKey = self._split_path(path)
         if tableName is None:
             return True
 
         try:
             conn = None
-            conn = self._initConnection()
+            conn = self._init_connection()
             # Check table existence:
-            tbllist = self._listTables(conn)
+            tbllist = self._list_tables(conn)
             if tableName not in tbllist:
                 return False
             # Check table key existence:
             if primKey and primKey != "_ENTIRE_CONTENTS":
-                return self._existsRecordByPrimaryKey(conn, tableName, primKey)
+                return self._exists_record_by_primary_key(conn, tableName, primKey)
             return True
         finally:
             if conn:
                 conn.close()
 
-    def isCollection(self, path, environ):
-        _tableName, primKey = self._splitPath(path)
+    def is_collection(self, path, environ):
+        _tableName, primKey = self._split_path(path)
         return self.exists(path, environ) and primKey is None

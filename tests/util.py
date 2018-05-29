@@ -13,11 +13,11 @@ from __future__ import print_function
 
 import os
 import sys
-import time
 import multiprocessing
 from tempfile import gettempdir
+import time
 
-from wsgidav.compat import to_bytes
+from wsgidav import compat, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 
@@ -60,7 +60,7 @@ class Timing(object):
 def write_test_file(name, size):
     path = os.path.join(gettempdir(), name)
     with open(path, "wb") as f:
-        f.write(to_bytes("*") * size)
+        f.write(compat.to_bytes("*") * size)
     return path
 
 
@@ -70,8 +70,8 @@ def write_test_file(name, size):
 
 def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     """Start blocking WsgiDAV server (called as a separate process)."""
-    package_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), ".."))
+
+    package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     share_path = os.path.join(gettempdir(), "wsgidav-test")
     if not os.path.exists(share_path):
@@ -89,9 +89,9 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         # None: domain_controller.WsgiDAVDomainController(user_mapping)
         "domain_controller": None,
         "user_mapping": {},
-        "verbose": 0,
+        "verbose": 1,
         "enable_loggers": [],
-        "property_manager": True,      # None: no property manager
+        "property_manager": True,  # None: no property manager
         "lock_manager": True,      # True: use lock_manager.LockManager
         # None: domain_controller.WsgiDAVDomainController(user_mapping)
         "domain_controller": None,
@@ -99,16 +99,12 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 
     if with_auth:
         config.update({
-            "user_mapping": {"/": {"tester": {"password": "secret",
-                                              "description": "",
-                                              "roles": [],
-                                              },
-                                   "tester2": {"password": "secret2",
-                                               "description": "",
-                                               "roles": [],
-                                               },
-                                   },
-                             },
+            "user_mapping": {
+                "/": {
+                    "tester": {"password": "secret", "description": "", "roles": []},
+                    "tester2": {"password": "secret2", "description": "", "roles": []},
+                    },
+                },
             "accept_basic": True,
             "accept_digest": False,
             "default_to_digest": False,
@@ -123,6 +119,9 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
             # "default_to_digest": True,
         })
 
+    # We want output captured for tests
+    util.init_logging(config)
+
     # This event is .set() when server enters the request handler loop
     if kwargs.get("startup_event"):
         config["startup_event"] = kwargs["startup_event"]
@@ -131,8 +130,8 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 
     # from wsgidav.server.server_cli import _runBuiltIn
     # _runBuiltIn(app, config, None)
-    from wsgidav.server.server_cli import _runCheroot
-    _runCheroot(app, config, "cheroot")
+    from wsgidav.server.server_cli import _run_cheroot
+    _run_cheroot(app, config, "cheroot")
     # blocking...
 
 
@@ -143,8 +142,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 class WsgiDavTestServer(object):
     """Run wsgidav in a separate process."""
 
-    def __init__(self, config=None, with_auth=False, with_ssl=False,
-                 provider=None, profile=False):
+    def __init__(self, config=None, with_auth=False, with_ssl=False, provider=None, profile=False):
         self.config = config
         self.with_auth = with_auth
         self.with_ssl = with_ssl

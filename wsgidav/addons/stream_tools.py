@@ -6,10 +6,10 @@ Implement the FileLikeQueue helper class.
 This helper class is intended to handle use cases where an incoming PUT
 request should be directly streamed to a remote target.
 
-Usage: return an instance of this class to`beginWrite` and pass it to the
+Usage: return an instance of this class to`begin_write` and pass it to the
 consumer at the same time::
 
-    def beginWrite(self, contentType=None):
+    def begin_write(self, contentType=None):
         queue = FileLikeQueue(maxsize=1)
         requests.post(..., data=queue)
         return queue
@@ -22,7 +22,7 @@ from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 # ============================================================================
@@ -37,7 +37,7 @@ class FileLikeQueue(object):
     This helper class is intended to handle use cases where an incoming PUT
     request should be directly streamed to a remote target:
 
-    def beginWrite(self, contentType=None):
+    def begin_write(self, contentType=None):
         # Create a proxy buffer
         queue = FileLikeQueue(maxsize=1)
         # ... and use it as source for the consumer:

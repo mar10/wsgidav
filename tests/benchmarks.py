@@ -59,7 +59,7 @@ import sys
 
 from tests.util import Timing, WsgiDavTestServer
 from wsgidav import __version__
-from wsgidav.xml_tools import useLxml
+from wsgidav.xml_tools import use_lxml
 
 try:
     # WsgiDAV 2.x
@@ -101,7 +101,7 @@ def _setup_fixture(opts, client):
     # Cleanup target folder
     client.delete("/test/")
     client.mkcol("/test/")
-    client.checkResponse(201)
+    client.check_response(201)
 
 
 def _bench_litmus(opts):
@@ -146,29 +146,29 @@ def _bench_script(opts):
     with Timing("1000 x PUT 1 kB", 1000, "{:>6.1f} req/sec", 1, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(1000):
             client.put("/test/file1.txt", data_1k)
-        client.checkResponse()
+        client.check_response()
 
     with Timing("10 x PUT 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(10):
             client.put("/test/bigfile.txt", data_10m)
-        client.checkResponse()
+        client.check_response()
 
     with Timing("1000 x GET 1 kB", 1000, "{:>6.1f} req/sec", 1, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(1000):
             body = client.get("/test/file1.txt")
-        client.checkResponse()
+        client.check_response()
 
     with Timing("10 x GET 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(10):
             body = client.get("/test/bigfile.txt")  # noqa F841
-        client.checkResponse()
+        client.check_response()
 
     with Timing("10 x COPY 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(10):
             client.copy("/test/bigfile.txt",
                         "/test/bigfile-copy.txt",
                         depth="infinity", overwrite=True)
-        client.checkResponse()
+        client.check_response()
 
     with Timing("100 x MOVE 10 MB", 100, "{:>6.1f} req/sec"):
         name_from = "/test/bigfile-copy.txt"
@@ -177,7 +177,7 @@ def _bench_script(opts):
             client.move(name_from, name_to,
                         depth="infinity", overwrite=True)
             name_from = name_to
-        client.checkResponse()
+        client.check_response()
 
     with Timing("100 x LOCK/UNLOCK", 200, "{:>6.1f} req/sec"):
         for _ in compat.xrange(100):
@@ -188,7 +188,7 @@ def _bench_script(opts):
                                     depth="infinity")
             token = locks[0]
             client.unlock("/test/lock-0", token)
-        client.checkResponse()
+        client.check_response()
 
     with Timing("1000 x PROPPATCH", 1000, "{:>6.1f} req/sec"):
         for _ in compat.xrange(1000):
@@ -196,7 +196,7 @@ def _bench_script(opts):
                              set_props=[("{testns:}testname", "testval"),
                                         ],
                              remove_props=None)
-        client.checkResponse()
+        client.check_response()
 
     with Timing("500 x PROPFIND", 500, "{:>6.1f} req/sec"):
         for i in compat.xrange(500):
@@ -205,7 +205,7 @@ def _bench_script(opts):
                             namespace="DAV:",
                             depth=None,
                             headers=None)
-        client.checkResponse()
+        client.check_response()
 
 
 # ------------------------------------------------------------------------
@@ -223,7 +223,7 @@ def run_benchmarks(opts):
     print("CherryPy: {}".format(cp_version))
     print("OS:       {}".format(platform.platform(aliased=True)))
 
-    if useLxml:
+    if use_lxml:
         from lxml.etree import LXML_VERSION as lxml_version
         print("lxml:     {}".format(lxml_version))
     else:

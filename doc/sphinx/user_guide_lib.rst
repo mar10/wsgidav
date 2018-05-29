@@ -132,5 +132,5 @@ This logger can be enabled like so::
 
 .. note::
 
-    The CLI calls :func:`util.initLogging` on startup, so it logs to stdout as configured
+    The CLI calls :func:`util.init_logging` on startup, so it logs to stdout as configured
     by the ``verbose`` and ``enable_loggers`` options.

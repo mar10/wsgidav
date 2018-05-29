@@ -29,11 +29,11 @@ import pymongo
 from bson.objectid import ObjectId
 from wsgidav import compat, util
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
-from wsgidav.util import joinUri
+from wsgidav.util import join_uri
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 
 # ============================================================================
@@ -46,11 +46,11 @@ class ConnectionCollection(DAVCollection):
         DAVCollection.__init__(self, path, environ)
         self.conn = self.provider.conn
 
-    def getMemberNames(self):
+    def get_member_names(self):
         return [name.encode("utf8") for name in self.conn.database_names()]
 
-    def getMember(self, name):
-        return DbCollection(joinUri(self.path, name), self.environ)
+    def get_member(self, name):
+        return DbCollection(join_uri(self.path, name), self.environ)
 
 
 class DbCollection(DAVCollection):
@@ -61,15 +61,15 @@ class DbCollection(DAVCollection):
         self.conn = self.provider.conn
         self.db = self.conn[self.name]
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         return {"type": "Mongo database"}
 
-    def getMemberNames(self):
+    def get_member_names(self):
         return [name.encode("utf8") for name in self.db.collection_names()]
 
-    def getMember(self, name):
+    def get_member(self, name):
         coll = self.db[name]
-        return CollCollection(joinUri(self.path, name), self.environ, coll)
+        return CollCollection(join_uri(self.path, name), self.environ, coll)
 
 
 class CollCollection(DAVCollection):
@@ -80,18 +80,18 @@ class CollCollection(DAVCollection):
         self.conn = self.provider.conn
         self.coll = coll
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         return {"type": "Mongo collection"}
 
-    def getMemberNames(self):
+    def get_member_names(self):
         res = []
         for doc in self.coll.find():
             res.append(compat.to_native(doc["_id"]))
         return res
 
-    def getMember(self, name):
+    def get_member(self, name):
         doc = self.coll.find_one(ObjectId(name))
-        return DocResource(joinUri(self.path, name), self.environ, doc)
+        return DocResource(join_uri(self.path, name), self.environ, doc)
 
 
 class DocResource(DAVNonCollection):
@@ -101,17 +101,17 @@ class DocResource(DAVNonCollection):
         DAVNonCollection.__init__(self, path, environ)
         self.doc = doc
 
-    def getContent(self):
+    def get_content(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
         return compat.StringIO(html.encode("utf8"))
 
-    def getContentLength(self):
-        return len(self.getContent().read())
+    def get_content_length(self):
+        return len(self.get_content().read())
 
-    def getContentType(self):
+    def get_content_type(self):
         return "text/html"
 
-    def getDisplayName(self):
+    def get_display_name(self):
         doc = self.doc
         if doc.get("_title"):
             return doc["_title"].encode("utf8")
@@ -121,7 +121,7 @@ class DocResource(DAVNonCollection):
             return compat.to_native(doc["_id"])
         return compat.to_native(doc["key"])
 
-    def getDisplayInfo(self):
+    def get_display_info(self):
         return {"type": "Mongo document"}
 
 
@@ -146,12 +146,12 @@ class MongoResourceProvider(DAVProvider):
                          (db.name, options.get("user")))
         _logger.info("MongoResourceProvider connected to %s" % self.conn)
 
-    def getResourceInst(self, path, environ):
+    def get_resource_inst(self, path, environ):
         """Return DAVResource object for path.
 
-        See DAVProvider.getResourceInst()
+        See DAVProvider.get_resource_inst()
         """
-        _logger.info("getResourceInst('%s')" % path)
+        _logger.info("get_resource_inst('%s')" % path)
         self._count_getResourceInst += 1
         root = ConnectionCollection("/", environ)
         return root.resolve("/", path)

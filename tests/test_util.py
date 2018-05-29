@@ -11,14 +11,14 @@ import unittest
 
 from wsgidav.compat import StringIO
 from wsgidav.util import (
-    initLogging,
-    isChildUri,
-    isEqualOrChildUri,
-    joinUri,
+    init_logging,
+    is_child_uri,
+    is_equal_or_child_uri,
+    join_uri,
     lstripstr,
-    popPath,
-    shiftPath,
-    getModuleLogger, BASE_LOGGER_NAME,
+    pop_path,
+    shift_path,
+    get_module_logger, BASE_LOGGER_NAME,
 )
 
 
@@ -38,49 +38,49 @@ class BasicTest(unittest.TestCase):
 
     def testBasics(self):
         """Test basic tool functions."""
-        assert joinUri("/a/b", "c") == "/a/b/c"
-        assert joinUri("/a/b/", "c") == "/a/b/c"
-        assert joinUri("/a/b", "c", "d") == "/a/b/c/d"
-        assert joinUri("a/b", "c", "d") == "a/b/c/d"
-        assert joinUri("/", "c") == "/c"
-        assert joinUri("", "c") == "/c"
+        assert join_uri("/a/b", "c") == "/a/b/c"
+        assert join_uri("/a/b/", "c") == "/a/b/c"
+        assert join_uri("/a/b", "c", "d") == "/a/b/c/d"
+        assert join_uri("a/b", "c", "d") == "a/b/c/d"
+        assert join_uri("/", "c") == "/c"
+        assert join_uri("", "c") == "/c"
 
-        assert not isChildUri("/a/b", "/a/")
-        assert not isChildUri("/a/b", "/a/b")
-        assert not isChildUri("/a/b", "/a/b/")
-        assert not isChildUri("/a/b", "/a/bc")
-        assert not isChildUri("/a/b", "/a/bc/")
-        assert isChildUri("/a/b", "/a/b/c")
-        assert isChildUri("/a/b", "/a/b/c")
+        assert not is_child_uri("/a/b", "/a/")
+        assert not is_child_uri("/a/b", "/a/b")
+        assert not is_child_uri("/a/b", "/a/b/")
+        assert not is_child_uri("/a/b", "/a/bc")
+        assert not is_child_uri("/a/b", "/a/bc/")
+        assert is_child_uri("/a/b", "/a/b/c")
+        assert is_child_uri("/a/b", "/a/b/c")
 
-        assert not isEqualOrChildUri("/a/b", "/a/")
-        assert isEqualOrChildUri("/a/b", "/a/b")
-        assert isEqualOrChildUri("/a/b", "/a/b/")
-        assert not isEqualOrChildUri("/a/b", "/a/bc")
-        assert not isEqualOrChildUri("/a/b", "/a/bc/")
-        assert isEqualOrChildUri("/a/b", "/a/b/c")
-        assert isEqualOrChildUri("/a/b", "/a/b/c")
+        assert not is_equal_or_child_uri("/a/b", "/a/")
+        assert is_equal_or_child_uri("/a/b", "/a/b")
+        assert is_equal_or_child_uri("/a/b", "/a/b/")
+        assert not is_equal_or_child_uri("/a/b", "/a/bc")
+        assert not is_equal_or_child_uri("/a/b", "/a/bc/")
+        assert is_equal_or_child_uri("/a/b", "/a/b/c")
+        assert is_equal_or_child_uri("/a/b", "/a/b/c")
 
         assert lstripstr("/dav/a/b", "/dav") == "/a/b"
         assert lstripstr("/dav/a/b", "/DAV") == "/dav/a/b"
         assert lstripstr("/dav/a/b", "/DAV", True) == "/a/b"
 
-        assert popPath("/a/b/c") == ("a", "/b/c")
-        assert popPath("/a/b/") == ("a", "/b/")
-        assert popPath("/a/") == ("a", "/")
-        assert popPath("/a") == ("a", "/")
-        assert popPath("/") == ("", "")
-        assert popPath("") == ("", "")
+        assert pop_path("/a/b/c") == ("a", "/b/c")
+        assert pop_path("/a/b/") == ("a", "/b/")
+        assert pop_path("/a/") == ("a", "/")
+        assert pop_path("/a") == ("a", "/")
+        assert pop_path("/") == ("", "")
+        assert pop_path("") == ("", "")
 
-        self.assertEqual(shiftPath("", "/a/b/c"),
+        self.assertEqual(shift_path("", "/a/b/c"),
                          ("a", "/a", "/b/c"))
-        self.assertEqual(shiftPath("/a", "/b/c"),
+        self.assertEqual(shift_path("/a", "/b/c"),
                          ("b", "/a/b", "/c"))
-        self.assertEqual(shiftPath("/a/b", "/c"),
+        self.assertEqual(shift_path("/a/b", "/c"),
                          ("c", "/a/b/c", ""))
-        self.assertEqual(shiftPath("/a/b/c", "/"),
+        self.assertEqual(shift_path("/a/b/c", "/"),
                          ("", "/a/b/c", ""))
-        self.assertEqual(shiftPath("/a/b/c", ""),
+        self.assertEqual(shift_path("/a/b/c", ""),
                          ("", "/a/b/c", ""))
 
 
@@ -166,11 +166,11 @@ class LoggerTest(unittest.TestCase):
     def testCliLogging(self):
         """CLI initializes logging."""
         config = {"verbose": 3, "enable_loggers": ["test"]}
-        initLogging(config)
+        init_logging(config)
 
         _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
-        _enabledLogger = getModuleLogger("test")
-        _disabledLogger = getModuleLogger("test2")
+        _enabledLogger = get_module_logger("test")
+        _disabledLogger = get_module_logger("test2")
 
         _baseLogger.debug("_baseLogger.debug")
         _baseLogger.info("_baseLogger.info")
@@ -191,7 +191,7 @@ class LoggerTest(unittest.TestCase):
         # Printed for debugging, when test fails:
         print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
 
-        # initLogging() removes all other handlers
+        # init_logging() removes all other handlers
         assert rootOutput == ""
         assert baseOutput == ""
 

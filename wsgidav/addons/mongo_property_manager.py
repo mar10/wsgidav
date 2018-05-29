@@ -28,7 +28,7 @@ from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 
-_logger = util.getModuleLogger(__name__)
+_logger = util.get_module_logger(__name__)
 
 # We use these keys internally, so they must be protected
 HIDDEN_KEYS = ("_id", "_url", "_title")
@@ -38,14 +38,14 @@ HIDDEN_KEYS = ("_id", "_url", "_title")
 DOT_ESCAPE = "^"
 
 
-def encodeMongoKey(s):
+def encode_mongo_key(s):
     """Return an encoded version of `s` that may be used as MongoDB key."""
     assert DOT_ESCAPE not in s
     return s.replace(".", DOT_ESCAPE)
 
 
-def decodeMongoKey(key):
-    """Decode a string that was encoded by encodeMongoKey()."""
+def decode_mongo_key(key):
+    """Decode a string that was encoded by encode_mongo_key()."""
     return key.replace(DOT_ESCAPE, ".")
 
 
@@ -96,31 +96,31 @@ class MongoPropertyManager(object):
     def _dump(self, msg="", out=None):
         pass
 
-    def getProperties(self, normurl, environ=None):
-        _logger.debug("getProperties(%s)" % normurl)
+    def get_properties(self, normurl, environ=None):
+        _logger.debug("get_properties(%s)" % normurl)
         doc = self.collection.find_one({"_url": normurl})
         propNames = []
         if doc:
             for name in doc.keys():
                 if name not in HIDDEN_KEYS:
-                    propNames.append(decodeMongoKey(name))
+                    propNames.append(decode_mongo_key(name))
         return propNames
 
-    def getProperty(self, normurl, propname, environ=None):
-        _logger.debug("getProperty(%s, %s)" % (normurl, propname))
+    def get_property(self, normurl, propname, environ=None):
+        _logger.debug("get_property(%s, %s)" % (normurl, propname))
         doc = self.collection.find_one({"_url": normurl})
         if not doc:
             return None
-        prop = doc.get(encodeMongoKey(propname))
+        prop = doc.get(encode_mongo_key(propname))
         return prop
 
-    def writeProperty(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
+    def write_property(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
         assert propname not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % propname
 
-        _logger.debug("writeProperty(%s, %s, dryRun=%s):\n\t%s" %
+        _logger.debug("write_property(%s, %s, dryRun=%s):\n\t%s" %
                       (normurl, propname, dryRun, propertyvalue))
         if dryRun:
             return  # TODO: can we check anything here?
@@ -130,41 +130,41 @@ class MongoPropertyManager(object):
             doc = {"_url": normurl,
                    "_title": compat.quote(normurl),
                    }
-        doc[encodeMongoKey(propname)] = propertyvalue
+        doc[encode_mongo_key(propname)] = propertyvalue
         self.collection.save(doc)
 
-    def removeProperty(self, normurl, propname, dryRun=False, environ=None):
+    def remove_property(self, normurl, propname, dryRun=False, environ=None):
         """
         """
-        _logger.debug("removeProperty(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
+        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
         doc = self.collection.find_one({"_url": normurl})
         # Specifying the removal of a property that does not exist is NOT an error.
-        if not doc or doc.get(encodeMongoKey(propname)) is None:
+        if not doc or doc.get(encode_mongo_key(propname)) is None:
             return
-        del doc[encodeMongoKey(propname)]
+        del doc[encode_mongo_key(propname)]
         self.collection.save(doc)
 
-    def removeProperties(self, normurl, environ=None):
-        _logger.debug("removeProperties(%s)" % normurl)
+    def remove_properties(self, normurl, environ=None):
+        _logger.debug("remove_properties(%s)" % normurl)
         doc = self.collection.find_one({"_url": normurl})
         if doc:
             self.collection.remove(doc)
         return
 
-    def copyProperties(self, srcUrl, destUrl, environ=None):
+    def copy_properties(self, srcUrl, destUrl, environ=None):
         doc = self.collection.find_one({"_url": srcUrl})
         if not doc:
-            _logger.debug("copyProperties(%s, %s): src has no properties" % (srcUrl, destUrl))
+            _logger.debug("copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl))
             return
-        _logger.debug("copyProperties(%s, %s)" % (srcUrl, destUrl))
+        _logger.debug("copy_properties(%s, %s)" % (srcUrl, destUrl))
         doc2 = doc.copy()
         self.collection.insert(doc2)
 
-    def moveProperties(self, srcUrl, destUrl, withChildren, environ=None):
-        _logger.debug("moveProperties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
+    def move_properties(self, srcUrl, destUrl, withChildren, environ=None):
+        _logger.debug("move_properties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
         if withChildren:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
             matchBegin = "^" + srcUrl.rstrip("/") + "/"

@@ -19,6 +19,7 @@
     by strings
   - Renamed some settings. e.g. `accept_digest` => `http_authenticator.accept_digest`
   - Log format configurable
+- Rename methods according to PEP8
 - **TODO** #94: Use utf-8 as default
 - Refactor WsgiDirBrowser:
   - Removed option 'dir_browser.enabled' (modify `middleware_stack` instead)

@@ -36,8 +36,8 @@ class MockProxyResource(DAVNonCollection):
         self.target_path = target_path
         self.worker = None
 
-    def beginWrite(self, contentType=None):
-        # print("beginWrite: {}".format(self.target_path))
+    def begin_write(self, contentType=None):
+        # print("begin_write: {}".format(self.target_path))
         queue = FileLikeQueue(maxsize=1)
 
         # Simulate an asynchrounous consumer. We use a file, so we can check
@@ -61,8 +61,8 @@ class MockProxyResource(DAVNonCollection):
         self.worker.start()
         return queue
 
-    def endWrite(self, withErrors):
-        print("endWrite: {}".format(self.target_path))
+    def end_write(self, withErrors):
+        print("end_write: {}".format(self.target_path))
         self.worker.join()
 
 
@@ -74,11 +74,11 @@ class MockProxyProvider(DAVProvider):
         super(MockProxyProvider, self).__init__()
         self.target_path = target_path
 
-    def getResourceInst(self, path, environ):
-        print("getResourceInst", path)
+    def get_resource_inst(self, path, environ):
+        print("get_resource_inst", path)
         res = MockProxyResource(path, environ, self.target_path)
         if path == "/":  # if server asks for the parent collection, fake one
-            res.isCollection = True
+            res.is_collection = True
         return res
 
 
