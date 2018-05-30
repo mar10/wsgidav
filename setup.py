@@ -106,6 +106,12 @@ for cmd in ["bdist_msi"]:
 
 if use_cx_freeze:
     try:
+        # cx_Freeze seems to be confused by module name 'PyYAML' which
+        # must be imported as 'yaml', so we rename here. However it must
+        # be listed as 'PyYAML' in the requirements.txt and be installed!
+        install_requires.remove("PyYAML")
+        install_requires.append("yaml")
+
         from cx_Freeze import setup, Executable  # noqa F811
         executables = [
             Executable(script="wsgidav/server/server_cli.py",
