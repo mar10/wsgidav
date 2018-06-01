@@ -87,7 +87,9 @@ DEFAULT_CONFIG = {
             "._*",  # macOS hidden data files
             "Thumbs.db",  # Windows image previews
             ],
-        "response_trailer": "",       # Raw HTML code, appended as footer
+        "icon": True,
+        "response_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
+        "show_user": True,  # Show authenticated user an realm
         # Send <dm:mount> response if request URL contains '?davmount'
         "davmount": False,
         # Add an 'open as webfolder' link (requires Windows clients):

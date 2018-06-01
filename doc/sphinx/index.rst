@@ -41,6 +41,12 @@ Main Features
   written by Ho Chun Wei.
 
 
+.. note::
+
+  Release 3.0 is pretty new and introduces some refactorings and breaking changes. |br|
+  Wimps may prefer using 2.x for a more stable release ;-)
+
+
 Quickstart
 ==========
 

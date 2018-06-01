@@ -1,7 +1,7 @@
-# ![logo](doc/logo.png?raw=true) WsgiDAV
+# ![logo](https://raw.githubusercontent.com/mar10/wsgidav/master/doc/logo.png) WsgiDAV
 [![Build Status](https://travis-ci.org/mar10/wsgidav.svg?branch=master)](https://travis-ci.org/mar10/wsgidav)
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
-[![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE.txt)
+[![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
@@ -37,11 +37,10 @@ Main features:
 ## Status
 
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
-See the ([change log](CHANGELOG.md)) for details.
+See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
 
-**Note 2016-10-08:** Release 2.0.1 includes a security patch that prevents certain XML
-attacks (thanks Tom Viner). We highly recommend to update!
-
+**Note:** Release 3.0 is pretty new and introduces some refactorings and breaking changes.<br>
+Wimps may prefer using 2.x for a more stable release ;-)
 
 ## More info
 
