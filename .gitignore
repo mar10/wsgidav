@@ -1,6 +1,8 @@
 .cache/
 .eggs/
+.idea/
 .tox/
+.vscode/
 doc/sphinx/_build
 doc/sphinx-api/
 htmlcov/
@@ -16,3 +18,4 @@ wsgidav.conf
 dist
 
 *.prefs
+wsgidav.yaml
