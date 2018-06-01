@@ -53,6 +53,14 @@ extensions = [
     # 'sphinx_automodapi.automodapi',
 ]
 
+# Included at the beginning of every file:
+rst_prolog = """
+.. seealso ::
+
+    You are looking at the documentation for the stable release 2.x. |br|
+    A `pre-release of 3.x </en/latest/>`_ is also available.
+"""
+
 # A string of reStructuredText that will be included at the end of every source file that is read.
 # This is the right place to add substitutions that should be available in every file. An example:
 rst_epilog = """
