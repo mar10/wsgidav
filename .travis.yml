@@ -6,7 +6,8 @@ python:
     - "3.4"
     - "3.5"
     - "3.6"
-    - "3.7-dev"  # Planned for 2018-06
+    # See yaml/pyyaml#126.
+#    - "3.7-dev"  # Planned for 2018-06
 sudo: required
 before_install:
     # See issue #80: litmus fails to build on travis
