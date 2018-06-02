@@ -13,22 +13,29 @@
 <body onload="onLoad()">
 
   <h1>
-    <img class="logo" alt="WsgiDAV" src="{{ htdocs }}/logo.png">
+    {%- if config.icon %}
+    <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png">
+    {% endif -%}
     Index of {{ displaypath }}
   </h1>
 
   {% if config.davmount or config.ms_mount %}
   <p class="links">
-    {% if config.davmount %}
+    {%- if config.davmount %}
       <a title="Open this folder in a WebDAV client." href="{{ url }}?davmount">Mount</a>
-      &#8211;
-    {% endif %}
-    {% if config.ms_mount %}
+    {% endif -%}
+    {%- if config.ms_mount %}
+      {% if config.davmount %} &#8211; {% endif %}
       <a title="Open as Web Folder (requires Microsoft Internet Explorer)"
           href="" folder="{{ url }}">Open as Web Folder</a>
     {% endif %}
   </p>
   {% endif %}
+
+  {%- if username and config.show_user %}
+  <p class="auth-user">Authenticated user: "{{username}}", realm: "{{realm}}".</p>
+  {% endif -%}
+
   <hr>
 
   <table class="dir-listing" onclick="return onClickTable(event)">
@@ -39,6 +46,7 @@
       <col class="right">
       <col class="right">
     </colgroup>
+
     <thead>
       <tr>
         <th>Name</th>
@@ -49,7 +57,7 @@
     </thead>
 
     <tbody>
-      {% if parentUrl %}
+      {%- if parentUrl %}
       <tr class="directory">
           <td>
             <a href="{{ parentUrl }}">..</a>
@@ -58,7 +66,7 @@
         <td>-</td>
         <td></td>
       </tr>
-      {% endif %}
+      {% endif -%}
 
       {% for row in rows %}
       <tr class="{{ row.class }}">
@@ -75,9 +83,9 @@
 
   <hr>
 
-  <p>Authenticated user: "{{username}}", realm: "{{realm}}".</p>
-
-  <p class="trailer">{{trailer}}</p>
+  {% if trailer %}
+  <p class="trailer">{{ trailer }}</p>
+  {% endif %}
 
   <object id="winFirefoxPlugin" type="application/x-sharepoint"
       width="0" height="0" style="visibility: hidden;"></object>

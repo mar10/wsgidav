@@ -19,7 +19,7 @@ __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
 
-ASSET_SHARE = "/_dir_browser"
+ASSET_SHARE = "/:dir_browser"
 
 DAVMOUNT_TEMPLATE = """
 <dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
@@ -125,15 +125,17 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "config": dirConfig,
             "is_readonly": isReadOnly,
             }
+
         trailer = dirConfig.get("response_trailer")
+        if trailer is True:
+            trailer = "${version} - ${time}"
+
         if trailer:
             trailer = trailer.replace(
                 "${version}",
                 "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a>".format(__version__))
             trailer = trailer.replace("${time}", util.get_rfc1123_time())
-        else:
-            trailer = ("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
-                       .format(__version__, util.get_rfc1123_time()))
+
         context["trailer"] = trailer
 
         rows = context["rows"]

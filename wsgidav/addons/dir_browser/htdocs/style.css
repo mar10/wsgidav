@@ -49,6 +49,10 @@ table.dir-listing td:nth-child(3)
 a.symlink {
   font-style: italic;
 }
+p.auth-user {
+  font-size: smaller;
+  text-align: right;
+}
 p.trailer {
   font-size: smaller;
 }

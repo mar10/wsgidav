@@ -29,7 +29,7 @@ This release contains **BREAKING CHANGES!**
 - MSI setup uses Python 3.6
 
 
-## 2.4.0 / Unreleased
+## 2.4.0 / 2018-05-30
 
 - Improve configuration files:
   - YAML is now the preferred configuration file format.
