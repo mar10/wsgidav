@@ -9,7 +9,7 @@ import sys
 # revision (set to True for real releases)
 # RELEASE = False
 
-from setuptools import setup  # , find_packages
+from setuptools import setup, find_packages
 from setuptools import Command
 from setuptools.command.test import test as TestCommand
 
@@ -54,7 +54,6 @@ class SphinxCommand(Command):
 
 
 try:
-    # readme = open("readme_pypi.rst", "rt").read()
     readme = open("README.md", "rt").read()
 except IOError:
     readme = "(Readme file not found. Running from tox/setup.py test?)"
@@ -76,9 +75,6 @@ install_requires = [
     "jsmin",
     "Jinja2",
     "PyYAML",
-    # "defusedxml~=0.5",
-    # "jsmin~=2.2",
-    # "PyYAML~=3.2",
     ]
 
 # The Windows MSI Setup should include lxml and CherryPy
@@ -201,13 +197,14 @@ setup(
         ],
     keywords="web wsgi webdav application server",
     license="MIT",
-    packages=[
-        "wsgidav",
-        "wsgidav.addons.dir_browser",
-        ],
+    # packages=[
+    #     "wsgidav",
+    #     "wsgidav.addons.dir_browser",
+    #     "wsgidav.server.server_cli",
+    #     ],
     # packages=find_packages("wsgidav"),
-    # packages=find_packages(exclude=["tests"]),
-    package_data={
+    packages=find_packages(exclude=["tests"]),
+    package_data={  
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
         "wsgidav.addons.dir_browser": ["htdocs/*.*"],
