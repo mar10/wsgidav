@@ -1114,7 +1114,7 @@ def parseIfHeaderDict(environ):
 
     environ["wsgidav.conditions.if"] = ifDict
     environ["wsgidav.ifLockTokenList"] = ifLockList
-    _logger.debug("parseIfHeaderDict", var=ifDict, module="if")
+    _logger.debug("parseIfHeaderDict:\n{}".format(ifDict))
     return
 
 

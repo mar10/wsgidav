@@ -49,7 +49,7 @@ class RequestServer(object):
         self.allowPropfindInfinite = True
         self._verbose = 2
         self.block_size = DEFAULT_BLOCK_SIZE
-        _logger.debug("RequestServer: __init__", module="sc")
+        _logger.debug("RequestServer: __init__")
 
         self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
         # if self._davProvider.propManager is not None:
@@ -70,7 +70,7 @@ class RequestServer(object):
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
     def __del__(self):
-        _logger.debug("RequestServer: __del__", module="sc")
+        _logger.debug("RequestServer: __del__")
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
@@ -1047,7 +1047,7 @@ class RequestServer(object):
         if isMove:
             reverseSrcList = srcList[:]
             reverseSrcList.reverse()
-            _logger.debug("Delete after move, ignore=", var=ignoreDict)
+            _logger.debug("Delete after move, ignoreDict={}".format(ignoreDict))
             for sRes in reverseSrcList:
                 # Non-collections have already been removed in the copy loop.
                 if not sRes.isCollection:
@@ -1068,7 +1068,7 @@ class RequestServer(object):
                     sRes.delete()
                 except Exception as e:
                     errorList.append((srcRes.getHref(), asDAVError(e)))
-            _logger.debug("ErrorList", var=errorList)
+            _logger.debug("ErrorList: {}".format(errorList))
 
         # --- Return response -------------------------------------------------
 

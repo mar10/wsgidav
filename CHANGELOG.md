@@ -2,7 +2,7 @@
 
 ## 2.4.1 / Unreleased
 
--
+- Fix some logging exceptions
 
 
 ## 2.4.0 / 2018-05-30

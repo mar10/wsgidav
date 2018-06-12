@@ -135,7 +135,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         # Dump request headers
         if dumpRequest:
-            _logger.info("} Request ---".format(method))
+            _logger.info("{} Request ---".format(method))
             # _logger.info("<{}> --- {} Request ---".format(
             #         threading.currentThread().ident, method))
             for k, v in environ.items():
