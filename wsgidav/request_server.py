@@ -1058,7 +1058,7 @@ class RequestServer(object):
         if isMove:
             reverseSrcList = srcList[:]
             reverseSrcList.reverse()
-            _logger.debug("Delete after move, ignore=", var=ignoreDict)
+            _logger.debug("Delete after move, ignoreDict={}".format(ignoreDict))
             for sRes in reverseSrcList:
                 # Non-collections have already been removed in the copy loop.
                 if not sRes.is_collection:
@@ -1079,7 +1079,7 @@ class RequestServer(object):
                     sRes.delete()
                 except Exception as e:
                     errorList.append((srcRes.get_href(), as_DAVError(e)))
-            _logger.debug("ErrorList", var=errorList)
+            _logger.debug("ErrorList: {}".format(errorList))
 
         # --- Return response -------------------------------------------------
 
