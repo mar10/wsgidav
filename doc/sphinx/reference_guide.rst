@@ -5,7 +5,7 @@ This document gives a brief introduction to the WsgiDAV application package
 (targeted to developers).
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    reference_guide_architecture.rst
    reference_guide_glossary.rst

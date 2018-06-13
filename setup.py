@@ -204,7 +204,7 @@ setup(
     #     ],
     # packages=find_packages("wsgidav"),
     packages=find_packages(exclude=["tests"]),
-    package_data={  
+    package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
         "wsgidav.addons.dir_browser": ["htdocs/*.*"],

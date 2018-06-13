@@ -50,8 +50,9 @@ Here we keep most of the default options and use the
   config = {
       "host": "0.0.0.0",
       "port": 8080,
-      "mount_path": "/dav",
-      "root": "/User/joe/pub",
+      "provider_mapping": {
+          "/": "/Users/joe/pub",
+          },
       "verbose": 1,
       }
 
