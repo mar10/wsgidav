@@ -545,9 +545,7 @@ class HgResourceProvider(DAVProvider):
                  "filedict": filedict,
                  }
         caches[compat.to_native(rev)] = cache
-        _logger.info("_get_repo_info(%s) took %.3f" % (rev, time.time() - start_time)
-                     # , var=cache
-                     )
+        _logger.info("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time))
         return cache
 
 

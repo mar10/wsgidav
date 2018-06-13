@@ -29,6 +29,11 @@ This release contains **BREAKING CHANGES!**
 - MSI setup uses Python 3.6
 
 
+## 2.4.1 / Unreleased
+
+- Fix some logging exceptions
+
+
 ## 2.4.0 / 2018-05-30
 
 - Improve configuration files:
