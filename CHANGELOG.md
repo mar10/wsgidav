@@ -3,6 +3,7 @@
 ## 2.4.1 / Unreleased
 
 - Fix some logging exceptions
+- Fix exception in CLI config reader (Py2)
 
 
 ## 2.4.0 / 2018-05-30
