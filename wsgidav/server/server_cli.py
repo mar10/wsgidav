@@ -36,6 +36,7 @@ from __future__ import print_function
 
 import argparse
 import copy
+import io
 import json
 import logging
 import os
@@ -222,13 +223,13 @@ def _read_config_file(config_file, verbose):
         raise RuntimeError("Couldn't open configuration file '{}'.".format(config_file))
 
     if config_file.endswith(".json"):
-        with open(config_file, mode="r", encoding="utf-8") as json_file:
+        with io.open(config_file, mode="r", encoding="utf-8") as json_file:
             # Minify the JSON file to strip embedded comments
             minified = jsmin(json_file.read())
         return json.loads(minified)
 
     elif config_file.endswith(".yaml"):
-        with open(config_file, mode="r", encoding="utf-8") as yaml_file:
+        with io.open(config_file, mode="r", encoding="utf-8") as yaml_file:
             return yaml.safe_load(yaml_file)
 
     try:
