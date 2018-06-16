@@ -26,3 +26,4 @@ dist
 *.pydevproject
 npm-debug.log
 wsgidav.yaml
+wsgidav_2x.yaml
