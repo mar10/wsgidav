@@ -3,9 +3,7 @@
 
 $ProjectRoot = "C:\Prj\git\wsgidav";
 
-#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.4";
 $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.5";
-#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
 
 
 # ----------------------------------------------------------------------------
@@ -31,9 +29,7 @@ Remove-Item $BuildEnvRoot -Force -Recurse -ErrorAction SilentlyContinue
 
 
 "Creating venv folder $BuildEnvRoot..."
-#py -3.4 -m venv "$BuildEnvRoot"
 py -3.5 -m venv "$BuildEnvRoot"
-#py -3.6 -m venv "$BuildEnvRoot"
 
 Invoke-Expression "& ""$BuildEnvRoot\Scripts\Activate.ps1"""
 

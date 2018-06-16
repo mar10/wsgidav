@@ -1,6 +1,9 @@
 # Changelog
 
-## 2.4.1 / Unreleased
+## 2.4.2 / Unreleased
+
+
+## 2.4.1 / 2018-06-16
 
 - Fix some logging exceptions
 - Fix exception in CLI config reader (Py2)
