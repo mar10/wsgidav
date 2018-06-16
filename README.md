@@ -1,7 +1,7 @@
-# ![logo](doc/logo.png?raw=true) WsgiDAV
+# ![logo](https://raw.githubusercontent.com/mar10/wsgidav/master/doc/logo.png) WsgiDAV
 [![Build Status](https://travis-ci.org/mar10/wsgidav.svg?branch=master)](https://travis-ci.org/mar10/wsgidav)
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
-[![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE.txt)
+[![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
@@ -55,7 +55,7 @@ attacks (thanks Tom Viner). We highly recommend to update!
 Contributors:
 
   * WsgiDAV is a [refactored version](https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md)
-    of [PyFileServer 0.2](http://pyfilesync.berlios.de/pyfileserver.html),
+    of [PyFileServer 0.2](https://github.com/cwho/pyfileserver),
     Copyright (c) 2005 Ho Chun Wei.<br>
     Chun gave his approval to change the license from LGPL to MIT-License for
     this project.
