@@ -39,6 +39,8 @@ DEFAULT_CONFIG = {
     "re_encode_path_info": None,  # (See issue #73) None: activate on Python 3
 
     "property_manager": None,  # True: use property_manager.PropertyManager
+    "mutable_live_props": [],
+
     "lock_manager": True,  # True: use lock_manager.LockManager
 
     "middleware_stack": [

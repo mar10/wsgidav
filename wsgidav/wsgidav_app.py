@@ -87,6 +87,7 @@ def _check_config(config):
         "defaultdigest": "http_authenticator.default_to_digest",
         "trusted_auth_header": "http_authenticator.trusted_auth_header",
         "propsmanager": "property_manager",
+        "mutableLiveProps": "mutable_live_props",
         "locksmanager": "lock_manager",
         "catchall": "error_printer.catch_all",
         }
