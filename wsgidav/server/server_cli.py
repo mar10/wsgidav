@@ -143,11 +143,12 @@ See https://github.com/mar10/wsgidav for additional information.
                         help="used by 'cheroot' server if SSL certificates are configured "
                              "(default: %(default)s.")
 
-    parser.add_argument("-v", "--verbose", action="count", default=3,
-                        help="increment verbosity by one (default: %(default)s, range: 0..5)")
-    parser.add_argument("-q", "--quiet", default=0,
-                        action="count",
-                        help="decrement verbosity by one")
+    qv_group = parser.add_mutually_exclusive_group()
+    qv_group.add_argument("-v", "--verbose", action="count", default=3,
+                          help="increment verbosity by one (default: %(default)s, range: 0..5)")
+    qv_group.add_argument("-q", "--quiet", default=0,
+                          action="count",
+                          help="decrement verbosity by one")
 
     parser.add_argument("-c", "--config",
                         dest="config_file",
@@ -167,8 +168,8 @@ See https://github.com/mar10/wsgidav for additional information.
 
     args = parser.parse_args()
 
-    if args.quiet and args.verbose > 3:
-        parser.error("-v and -q are mutually exclusive")
+    # if args.quiet and args.verbose > 3:
+    #     parser.error("-v and -q are mutually exclusive")
 
     args.verbose -= args.quiet
     del args.quiet
