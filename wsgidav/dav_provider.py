@@ -711,6 +711,8 @@ class _DAVResource(object):
         - raises HTTP_FORBIDDEN, if trying to modify a locking property
         - raises HTTP_FORBIDDEN, if trying to modify an immutable {DAV:}
           property
+        - handles Windows' Win32LastModifiedTime to set the getlastmodified
+          property, if enabled
         - stores everything else as dead property, if a property manager is
           present.
         - raises HTTP_FORBIDDEN, else
@@ -747,6 +749,22 @@ class _DAVResource(object):
 
             # Unsupported or not allowed
             raise DAVError(HTTP_FORBIDDEN)
+
+        # Handle MS Windows Win32LastModifiedTime, if enabled.
+        # Note that the WebDAV client in Win7 and earler has issues and can't be used
+        # with this so we ignore older clients. Others pre-Win10 should be tested.
+        agent = self.environ.get("HTTP_USER_AGENT", "None")
+        win32_emu = _config.get("emulate_win32_lastmod", False)
+        if propname.startswith("{urn:schemas-microsoft-com:}") and \
+                win32_emu and "MiniRedir/6.1" not in agent:
+            if "Win32LastModifiedTime" in propname:
+                return self.setLastModified(self.path, value.text, dryRun)
+            if "Win32FileAttributes" in propname:
+                return True
+            if "Win32CreationTime" in propname:
+                return True
+            if "Win32LastAccessTime" in propname:
+                return True
 
         # Dead property
         pm = self.provider.propManager
