@@ -170,6 +170,7 @@ mutable_live_props:
 # file will be "now" instead of its original value.
 # The proper solution for dealing with the Windows WebDAV client is to use
 # a persistent property manager. This setting is merely a work-around.
+# NOTE: Works with Win10, can't work with Win7. Other versions untested.
 emulate_win32_lastmod: true
 
 # ----------------------------------------------------------------------------
