@@ -765,11 +765,11 @@ class _DAVResource(object):
             if win32_emu and "MiniRedir/6.1" not in agent:
                 if "Win32LastModifiedTime" in propname:
                     return self.set_last_modified(self.path, value.text, dryRun)
-                if "Win32FileAttributes" in propname:
+                elif "Win32FileAttributes" in propname:
                     return True
-                if "Win32CreationTime" in propname:
+                elif "Win32CreationTime" in propname:
                     return True
-                if "Win32LastAccessTime" in propname:
+                elif "Win32LastAccessTime" in propname:
                     return True
 
         # Dead property

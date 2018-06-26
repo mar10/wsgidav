@@ -39,6 +39,7 @@ DEFAULT_CONFIG = {
     "re_encode_path_info": None,  # (See issue #73) None: activate on Python 3
 
     "property_manager": None,  # True: use property_manager.PropertyManager
+    "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
     "mutable_live_props": [],
 
     "lock_manager": True,  # True: use lock_manager.LockManager
