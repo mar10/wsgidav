@@ -291,6 +291,10 @@ class _DAVResource(object):
         """
         return None
 
+    def set_last_modified(self, destPath, timeStamp, dryRun):
+        """Set last modified time for destPath to timeStamp on epoch-format"""
+        raise NotImplementedError
+
     def support_ranges(self):
         """Return True, if this non-resource supports Range on GET requests.
 
@@ -726,8 +730,7 @@ class _DAVResource(object):
 
         if propname in _lockPropertyNames:
             # Locking properties are always read-only
-            raise DAVError(HTTP_FORBIDDEN,
-                           errcondition=PRECONDITION_CODE_ProtectedProperty)
+            raise DAVError(HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty)
 
         # Live property
         _config = self.environ["wsgidav.config"]
@@ -741,9 +744,12 @@ class _DAVResource(object):
             # it may still make sense to make mutable in order to support time
             # stamp changes from e.g. utime calls or the touch or rsync -a
             # commands.
-            if propname in ("{DAV:}getlastmodified", "{DAV:}lastmodified") \
-                    and hasattr(self, "set_last_modified"):
-                return self.setLastModified(self.path, value.text, dryRun)
+            if propname in ("{DAV:}getlastmodified", "{DAV:}lastmodified"):
+                try:
+                    return self.set_last_modified(self.path, value.text, dryRun)
+                except Exception:
+                    _logger.warn("Provider does not support set_last_modified on {}."
+                                 .format(self.path))
 
             # Unsupported or not allowed
             raise DAVError(HTTP_FORBIDDEN)
