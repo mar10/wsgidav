@@ -161,6 +161,17 @@ mutable_live_props:
     # preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
     - "{DAV:}getlastmodified"
 
+# Handle Microsoft's Win32LastModifiedTime property.
+# This is useful only in the case when you copy files from a Windows
+# client into a WebDAV share. Windows sends the "last modified" time of
+# the file in a Microsoft extended property called "Win32LastModifiedTime"
+# instead of the standard WebDAV property "getlastmodified". So without
+# this config option set to "True", the "last modified" time of the copied
+# file will be "now" instead of its original value.
+# The proper solution for dealing with the Windows WebDAV client is to use
+# a persistent property manager. This setting is merely a work-around.
+# NOTE: Works with Win10, can't work with Win7. Other versions untested.
+emulate_win32_lastmod: true
 
 # ----------------------------------------------------------------------------
 # Lock Manager

@@ -27,6 +27,7 @@ This release contains **BREAKING CHANGES!**
   - Move to `addons.dir_browser` package
 - **TODO** #94: Use utf-8 as default
 - MSI setup uses Python 3.6
+- #112: Added limited support for Microsoft's Win32LastModified property.
 
 
 ## 2.4.1 / 2018-06-16
