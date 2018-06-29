@@ -649,7 +649,7 @@ class RequestServer(object):
             else:
                 environ["wsgi.input"].readline()
                 buf = environ["wsgi.input"].readline()
-                if buf == "":
+                if buf == "" or buf == b"":
                     length = 0
                 else:
                     length = int(buf, 16)
