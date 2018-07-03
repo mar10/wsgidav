@@ -156,7 +156,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
         wdcName = "NTDomainController"
         if self._domaincontroller.__class__.__name__ == wdcName:
-            if self._authacceptdigest or self._authdefaultdigest or not self._authacceptbasic:
+            if self._acceptdigest or self._defaultdigest or not self._acceptbasic:
                 _logger.warn(
                     "WARNING: {} requires basic authentication.\n\tSet acceptbasic=True, "
                     "acceptdigest=False, defaultdigest=False".format(wdcName))
