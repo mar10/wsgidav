@@ -88,8 +88,8 @@ header, if present, to::
 """
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
-from wsgidav.request_server import RequestServer
 from wsgidav.middleware import BaseMiddleware
+from wsgidav.request_server import RequestServer
 
 __docformat__ = "reStructuredText"
 

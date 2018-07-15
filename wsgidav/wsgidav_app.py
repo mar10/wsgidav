@@ -62,9 +62,9 @@ from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.property_manager import PropertyManager
 from wsgidav.util import (
-    safe_re_encode,
     dynamic_import_class,
     dynamic_instantiate_middleware,
+    safe_re_encode,
 )
 
 __docformat__ = "reStructuredText"

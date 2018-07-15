@@ -76,7 +76,6 @@ from __future__ import print_function
 import win32net  # @UnresolvedImport
 import win32netcon  # @UnresolvedImport
 import win32security  # @UnresolvedImport
-
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"

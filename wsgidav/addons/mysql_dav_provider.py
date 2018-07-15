@@ -60,7 +60,6 @@ from __future__ import print_function
 
 import csv
 import hashlib
-
 # import md5
 import time
 

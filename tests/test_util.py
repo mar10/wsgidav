@@ -11,6 +11,8 @@ import unittest
 
 from wsgidav.compat import StringIO
 from wsgidav.util import (
+    BASE_LOGGER_NAME,
+    get_module_logger,
     init_logging,
     is_child_uri,
     is_equal_or_child_uri,
@@ -18,8 +20,6 @@ from wsgidav.util import (
     lstripstr,
     pop_path,
     shift_path,
-    get_module_logger,
-    BASE_LOGGER_NAME,
 )
 
 

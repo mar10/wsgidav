@@ -35,7 +35,6 @@ import sys
 
 from wsgidav import util
 
-
 __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)

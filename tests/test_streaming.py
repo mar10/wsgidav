@@ -8,17 +8,16 @@ Unit tests for wsgidav.addons.stream_tools.FileLikeQueue
 """
 
 import os
-from tempfile import gettempdir
 import threading
 import unittest
+from tempfile import gettempdir
 
 import requests
 
-from tests.util import Timing, write_test_file, WsgiDavTestServer
+from tests.util import Timing, WsgiDavTestServer, write_test_file
 from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, DAVNonCollection
 from wsgidav.addons.stream_tools import FileLikeQueue
-
+from wsgidav.dav_provider import DAVNonCollection, DAVProvider
 
 # ----------------------------------------------------------------------------
 # Dummy DAVProvider implementation

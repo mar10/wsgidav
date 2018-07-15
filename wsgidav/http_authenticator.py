@@ -74,10 +74,10 @@ The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
 """
-from hashlib import md5
 import random
 import re
 import time
+from hashlib import md5
 
 from wsgidav import compat, util
 from wsgidav.domain_controller import WsgiDAVDomainController

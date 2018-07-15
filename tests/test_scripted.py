@@ -25,7 +25,6 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 from wsgidav.wsgidav_app import WsgiDAVApp
 
-
 # SERVER_ADDRESS
 # (using localhost or mixing hostnames with IPs may be very slow!)
 SERVER_ADDRESS = "http://127.0.0.1:8080"

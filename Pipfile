@@ -21,6 +21,7 @@ WebTest = "~=2.0"
 wheel = "*"
 Sphinx = "~=1.6"
 black = "*"
+isort = "*"
 
 [packages]
 defusedxml = "~=0.5"

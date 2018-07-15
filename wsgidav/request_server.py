@@ -29,7 +29,6 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
-
 from wsgidav.util import etree
 
 __docformat__ = "reStructuredText"

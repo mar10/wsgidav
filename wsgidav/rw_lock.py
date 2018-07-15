@@ -18,7 +18,6 @@ Released under the BSD-license.
 from threading import Condition, Lock, currentThread
 from time import time
 
-
 # Read write lock
 # ---------------
 

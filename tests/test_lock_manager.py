@@ -12,7 +12,6 @@ from time import sleep
 from wsgidav import lock_manager, lock_storage
 from wsgidav.dav_error import DAVError
 
-
 # ========================================================================
 # BasicTest
 # ========================================================================

@@ -17,8 +17,7 @@ consumer at the same time::
 """
 from __future__ import print_function
 
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 

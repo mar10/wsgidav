@@ -7,10 +7,10 @@ Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 import datetime
 
-# import traceback
-
 from wsgidav import __version__, compat, xml_tools
 from wsgidav.xml_tools import etree
+
+# import traceback
 
 
 __docformat__ = "reStructuredText"

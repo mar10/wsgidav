@@ -45,8 +45,8 @@ import traceback
 from inspect import isfunction
 from pprint import pformat
 
-from jsmin import jsmin
 import yaml
+from jsmin import jsmin
 
 from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE

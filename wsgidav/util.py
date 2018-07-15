@@ -8,17 +8,17 @@ Miscellaneous support functions for WsgiDAV.
 import base64
 import calendar
 import collections
-from email.utils import formatdate, parsedate
-from hashlib import md5
 import logging
 import mimetypes
 import os
-from pprint import pformat
 import re
 import socket
 import stat
 import sys
 import time
+from email.utils import formatdate, parsedate
+from hashlib import md5
+from pprint import pformat
 
 from wsgidav import compat
 from wsgidav.dav_error import (

@@ -88,7 +88,6 @@ from wsgidav.dav_error import (
     PRECONDITION_CODE_ProtectedProperty,
     as_DAVError,
 )
-
 # Trick PyDev to do intellisense and don't produce warnings:
 from wsgidav.util import etree  # noqa
 
