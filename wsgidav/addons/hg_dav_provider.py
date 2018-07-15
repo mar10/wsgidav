@@ -88,9 +88,13 @@ try:
     import mercurial.ui
     from mercurial.__version__ import version as hgversion
     from mercurial import commands, hg
+
     # from mercurial import util as hgutil
 except ImportError:
-    print("Could not import Mercurial API. Try 'easy_install -U mercurial'.", file=sys.stderr)
+    print(
+        "Could not import Mercurial API. Try 'easy_install -U mercurial'.",
+        file=sys.stderr,
+    )
     raise
 
 __docformat__ = "reStructuredText en"
@@ -123,10 +127,11 @@ class HgResource(_DAVResource):
             # rev=<int>: Revision ID
             wdctx = self.provider.repo[self.rev]
             self.fctx = wdctx[self.localHgPath]
-#        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (
-#            self.path, self.rev, self.localHgPath, self.fctx))
-#        util.status("HgResource: name=%s, dn=%s, abspath=%s" % (
-#            self.name, self.get_display_name(), self.absFilePath))
+
+    #        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (
+    #            self.path, self.rev, self.localHgPath, self.fctx))
+    #        util.status("HgResource: name=%s, dn=%s, abspath=%s" % (
+    #            self.name, self.get_display_name(), self.absFilePath))
 
     def _getFilePath(self, *addParts):
         parts = self.localHgPath.split("/")
@@ -136,11 +141,14 @@ class HgResource(_DAVResource):
 
     def _commit(self, message):
         user = self.environ.get("http_authenticator.username") or "Anonymous"
-        commands.commit(self.provider.ui, self.provider.repo,
-                        self.localHgPath,
-                        addremove=True,
-                        user=user,
-                        message=message)
+        commands.commit(
+            self.provider.ui,
+            self.provider.repo,
+            self.localHgPath,
+            addremove=True,
+            user=user,
+            message=message,
+        )
 
     def _check_write_access(self):
         """Raise HTTP_FORBIDDEN, if resource is unwritable."""
@@ -156,10 +164,10 @@ class HgResource(_DAVResource):
     def get_content_type(self):
         if self.is_collection:
             return None
-#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
-#        if not mimetype:
-#            return "application/octet-stream"
-#        return mimetype
+        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.path)
+        #        if not mimetype:
+        #            return "application/octet-stream"
+        #        return mimetype
         return util.guess_mime_type(self.path)
 
     def get_creation_date(self):
@@ -173,8 +181,13 @@ class HgResource(_DAVResource):
         return "%s@%s" % (self.name, self.fctx.filerev())
 
     def get_etag(self):
-        return (md5(self.path).hexdigest() + "-" + compat.to_native(self.get_last_modified()) + "-"
-                + str(self.get_content_length()))
+        return (
+            md5(self.path).hexdigest()
+            + "-"
+            + compat.to_native(self.get_last_modified())
+            + "-"
+            + str(self.get_content_length())
+        )
 
     def get_last_modified(self):
         if self.is_collection:
@@ -192,13 +205,15 @@ class HgResource(_DAVResource):
         if self.localHgPath not in dirinfos:
             return []
         return dirinfos[self.localHgPath][0] + dirinfos[self.localHgPath][1]
-#        return self.provider._listMembers(self.path)
+
+    #        return self.provider._listMembers(self.path)
 
     def get_member(self, name):
         # Rely on provider to get member oinstances
         assert self.is_collection
-        return self.provider.get_resource_inst(util.join_uri(self.path, name),
-                                               self.environ)
+        return self.provider.get_resource_inst(
+            util.join_uri(self.path, name), self.environ
+        )
 
     def get_display_info(self):
         if self.is_collection:
@@ -214,13 +229,16 @@ class HgResource(_DAVResource):
         propNameList = super(HgResource, self).get_property_names(isAllProp)
         # Add custom live properties (report on 'allprop' and 'propnames')
         if self.fctx:
-            propNameList.extend(["{hg:}branch",
-                                 "{hg:}date",
-                                 "{hg:}description",
-                                 "{hg:}filerev",
-                                 "{hg:}rev",
-                                 "{hg:}user",
-                                 ])
+            propNameList.extend(
+                [
+                    "{hg:}branch",
+                    "{hg:}date",
+                    "{hg:}description",
+                    "{hg:}filerev",
+                    "{hg:}rev",
+                    "{hg:}user",
+                ]
+            )
         return propNameList
 
     def get_property_value(self, propname):
@@ -275,9 +293,14 @@ class HgResource(_DAVResource):
         f.close()
         commands.add(self.provider.ui, self.provider.repo, filepath)
         # get_resource_inst() won't work, because the cached manifest is outdated
-#        return self.provider.get_resource_inst(self.path.rstrip("/")+"/"+name, self.environ)
-        return HgResource(self.path.rstrip("/") + "/" + name, False,
-                          self.environ, self.rev, self.localHgPath + "/" + name)
+        #        return self.provider.get_resource_inst(self.path.rstrip("/")+"/"+name, self.environ)
+        return HgResource(
+            self.path.rstrip("/") + "/" + name,
+            False,
+            self.environ,
+            self.rev,
+            self.localHgPath + "/" + name,
+        )
 
     def create_collection(self, name):
         """Create a new collection as member of self.
@@ -312,8 +335,8 @@ class HgResource(_DAVResource):
         self._check_write_access()
         mode = "wb"
         # GC issue 57: always store as binary
-#        if contentType and contentType.startswith("text"):
-#            mode = "w"
+        #        if contentType and contentType.startswith("text"):
+        #            mode = "w"
         return open(self.absFilePath, mode, BUFFER_SIZE)
 
     def end_write(self, withErrors):
@@ -324,12 +347,12 @@ class HgResource(_DAVResource):
         if not withErrors:
             commands.add(self.provider.ui, self.provider.repo, self.localHgPath)
 
-#    def handle_delete(self):
-#        """Handle a DELETE request natively.
-#
-#        """
-#        self._check_write_access()
-#        return False
+    #    def handle_delete(self):
+    #        """Handle a DELETE request natively.
+    #
+    #        """
+    #        self._check_write_access()
+    #        return False
 
     def support_recursive_delete(self):
         """Return True, if delete() may be called on non-empty collections
@@ -340,9 +363,7 @@ class HgResource(_DAVResource):
         """Remove this resource (recursive)."""
         self._check_write_access()
         filepath = self._getFilePath()
-        commands.remove(self.provider.ui, self.provider.repo,
-                        filepath,
-                        force=True)
+        commands.remove(self.provider.ui, self.provider.repo, filepath, force=True)
 
     def handle_copy(self, destPath, depthInfinity):
         """Handle a COPY request natively.
@@ -355,10 +376,7 @@ class HgResource(_DAVResource):
         _logger.info("handle_copy %s -> %s" % (self.localHgPath, destHgPath))
         if self.rev is None and destType == "edit":
             # COPY /edit/a/b to /edit/c/d: turn into 'hg copy -f a/b c/d'
-            commands.copy(ui, repo,
-                          self.localHgPath,
-                          destHgPath,
-                          force=True)
+            commands.copy(ui, repo, self.localHgPath, destHgPath, force=True)
         elif self.rev is None and destType == "released":
             # COPY /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
@@ -379,8 +397,7 @@ class HgResource(_DAVResource):
         _logger.info("handle_copy %s -> %s" % (self.localHgPath, destHgPath))
         if self.rev is None and destType == "edit":
             # MOVE /edit/a/b to /edit/c/d: turn into 'hg rename -f a/b c/d'
-            commands.rename(ui, repo, self.localHgPath, destHgPath,
-                            force=True)
+            commands.rename(ui, repo, self.localHgPath, destHgPath, force=True)
         elif self.rev is None and destType == "released":
             # MOVE /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
@@ -394,6 +411,7 @@ class HgResource(_DAVResource):
 # ============================================================================
 # HgResourceProvider
 # ============================================================================
+
 
 class HgResourceProvider(DAVProvider):
     """
@@ -412,19 +430,20 @@ class HgResourceProvider(DAVProvider):
         # Some commands (remove) seem to expect cwd set to the repo
         # TODO: try to go along without this, because it prevents serving
         #       multiple repos. Instead pass absolute paths to the commands.
-#        print(os.getcwd())
+        #        print(os.getcwd())
         os.chdir(self.repo.root)
 
         # Verify integrity of the repository
         _logger.warn("Verify repository '%s' tree..." % self.repo.root)
         commands.verify(self.ui, self.repo)
 
-#        self.ui.status("Changelog: %s\n" % self.repo.changelog)
+        #        self.ui.status("Changelog: %s\n" % self.repo.changelog)
         print("Status:")
         pprint(self.repo.status())
-        self.repo.ui.status("the default username to be used in commits: %s\n" %
-                            self.repo.ui.username())
-#        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
+        self.repo.ui.status(
+            "the default username to be used in commits: %s\n" % self.repo.ui.username()
+        )
+        #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
         self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
 
         print("Working directory state summary:")
@@ -436,8 +455,7 @@ class HgResourceProvider(DAVProvider):
 
         print("Repository state summary:")
         self.ui.pushbuffer()
-        commands.identify(self.ui, self.repo,
-                          num=True, id=True, branch=True, tags=True)
+        commands.identify(self.ui, self.repo, num=True, id=True, branch=True, tags=True)
         res = self.ui.popbuffer().strip()
         reslines = [tuple(line.split(":", 1)) for line in res.split("\n")]
         pprint(reslines)
@@ -447,8 +465,7 @@ class HgResourceProvider(DAVProvider):
     def _get_log(self, limit=None):
         """Read log entries into a list of dictionaries."""
         self.ui.pushbuffer()
-        commands.log(self.ui, self.repo, limit=limit,
-                     date=None, rev=None, user=None)
+        commands.log(self.ui, self.repo, limit=limit, date=None, rev=None, user=None)
         res = self.ui.popbuffer().strip()
 
         logList = []
@@ -463,7 +480,7 @@ class HgResourceProvider(DAVProvider):
             local_id, unid = log["changeset"].split(":")
             log["local_id"] = int(local_id)
             log["unid"] = unid
-#        pprint(logList)
+        #        pprint(logList)
         return logList
 
     def _get_repo_info(self, environ, rev, reload=False):
@@ -540,27 +557,23 @@ class HgResourceProvider(DAVProvider):
             filedict[file] = True
         files.sort()
 
-        cache = {"files": files,
-                 "dirinfos": dirinfos,
-                 "filedict": filedict,
-                 }
+        cache = {"files": files, "dirinfos": dirinfos, "filedict": filedict}
         caches[compat.to_native(rev)] = cache
         _logger.info("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time))
         return cache
 
-
-#    def _listMembers(self, path, rev=None):
-#        """Return a list of all non-collection members"""
-#        # Pattern for direct members:
-#        glob = "glob:" + os.path.join(path, "*").lstrip("/")
-#        print(glob)
-#        self.ui.pushbuffer()
-#        commands.status(self.ui, self.repo,
-#                        glob,
-#                        all=True)
-#        lines = self.ui.popbuffer().strip().split("\n")
-#        pprint(lines)
-#        return dict
+    #    def _listMembers(self, path, rev=None):
+    #        """Return a list of all non-collection members"""
+    #        # Pattern for direct members:
+    #        glob = "glob:" + os.path.join(path, "*").lstrip("/")
+    #        print(glob)
+    #        self.ui.pushbuffer()
+    #        commands.status(self.ui, self.repo,
+    #                        glob,
+    #                        all=True)
+    #        lines = self.ui.popbuffer().strip().split("\n")
+    #        pprint(lines)
+    #        return dict
 
     def get_resource_inst(self, path, environ):
         """Return HgResource object for path.
@@ -575,9 +588,9 @@ class HgResourceProvider(DAVProvider):
         cmd, rest = util.pop_path(path)
 
         if cmd == "":
-            return VirtualCollection(path, environ,
-                                     "root",
-                                     ["edit", "released", "archive"])
+            return VirtualCollection(
+                path, environ, "root", ["edit", "released", "archive"]
+            )
         elif cmd == "edit":
             localHgPath = rest.strip("/")
             rev = None

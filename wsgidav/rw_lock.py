@@ -22,6 +22,7 @@ from time import time
 # Read write lock
 # ---------------
 
+
 class ReadWriteLock(object):
     """Read-Write lock class. A read-write lock differs from a standard
     threading.RLock() by allowing multiple threads to simultaneously hold a
@@ -140,9 +141,7 @@ class ReadWriteLock(object):
                     # else also wants to upgrade, there is no way we can do
                     # this except if one of us releases all his read locks.
                     # Signal this to user.
-                    raise ValueError(
-                        "Inevitable dead lock, denying write lock"
-                    )
+                    raise ValueError("Inevitable dead lock, denying write lock")
                 upgradewriter = True
                 self.__upgradewritercount = self.__readers.pop(me)
             else:

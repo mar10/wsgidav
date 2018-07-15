@@ -42,10 +42,10 @@ _logger = util.get_module_logger(__name__)
 
 
 class WsgiDAVDomainController(object):
-
     def __init__(self, userMap):
         self.userMap = userMap
-#        self.allowAnonymous = allowAnonymous
+
+    #        self.allowAnonymous = allowAnonymous
 
     def __repr__(self):
         return self.__class__.__name__
@@ -57,9 +57,11 @@ class WsgiDAVDomainController(object):
         davProvider = environ["wsgidav.provider"]
         if not davProvider:
             if environ["wsgidav.verbose"] >= 2:
-                _logger.debug("get_domain_realm({}): '{}'".format(
-                        util.safe_re_encode(inputURL, sys.stdout.encoding),
-                        None))
+                _logger.debug(
+                    "get_domain_realm({}): '{}'".format(
+                        util.safe_re_encode(inputURL, sys.stdout.encoding), None
+                    )
+                )
             return None
         realm = davProvider.sharePath
         if realm == "":
@@ -70,8 +72,8 @@ class WsgiDAVDomainController(object):
         """Return True if this realm requires authentication or False if it is
         available for general access."""
         # TODO: Should check for --allow_anonymous?
-#        assert realmname in environ["wsgidav.config"]["user_mapping"], (
-#            "Currently there must be at least on user mapping for this realm")
+        #        assert realmname in environ["wsgidav.config"]["user_mapping"], (
+        #            "Currently there must be at least on user mapping for this realm")
         return realmname in self.userMap
 
     def is_realm_user(self, realmname, username, environ):

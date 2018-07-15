@@ -18,7 +18,8 @@ from wsgidav.util import (
     lstripstr,
     pop_path,
     shift_path,
-    get_module_logger, BASE_LOGGER_NAME,
+    get_module_logger,
+    BASE_LOGGER_NAME,
 )
 
 
@@ -34,7 +35,8 @@ class BasicTest(unittest.TestCase):
     def testPreconditions(self):
         """Environment must be set."""
         self.assertTrue(
-            __debug__, "__debug__ must be True, otherwise asserts are ignored")
+            __debug__, "__debug__ must be True, otherwise asserts are ignored"
+        )
 
     def testBasics(self):
         """Test basic tool functions."""
@@ -72,16 +74,11 @@ class BasicTest(unittest.TestCase):
         assert pop_path("/") == ("", "")
         assert pop_path("") == ("", "")
 
-        self.assertEqual(shift_path("", "/a/b/c"),
-                         ("a", "/a", "/b/c"))
-        self.assertEqual(shift_path("/a", "/b/c"),
-                         ("b", "/a/b", "/c"))
-        self.assertEqual(shift_path("/a/b", "/c"),
-                         ("c", "/a/b/c", ""))
-        self.assertEqual(shift_path("/a/b/c", "/"),
-                         ("", "/a/b/c", ""))
-        self.assertEqual(shift_path("/a/b/c", ""),
-                         ("", "/a/b/c", ""))
+        self.assertEqual(shift_path("", "/a/b/c"), ("a", "/a", "/b/c"))
+        self.assertEqual(shift_path("/a", "/b/c"), ("b", "/a/b", "/c"))
+        self.assertEqual(shift_path("/a/b", "/c"), ("c", "/a/b/c", ""))
+        self.assertEqual(shift_path("/a/b/c", "/"), ("", "/a/b/c", ""))
+        self.assertEqual(shift_path("/a/b/c", ""), ("", "/a/b/c", ""))
 
 
 class LoggerTest(unittest.TestCase):

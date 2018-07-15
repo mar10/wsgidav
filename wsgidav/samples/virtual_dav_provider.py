@@ -103,7 +103,7 @@ from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
     HTTP_INTERNAL_ERROR,
     DAVError,
-    PRECONDITION_CODE_ProtectedProperty
+    PRECONDITION_CODE_ProtectedProperty,
 )
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import join_uri
@@ -126,34 +126,36 @@ All files listed in resPathList are expected to exist in FILE_FOLDER.
 FILE_FOLDER = r"c:\temp\virtfiles"
 
 _resourceData = [
-    {"key": "1",
-     "title": "My doc 1",
-     "orga": "development",
-     "tags": ["cool", "hot"],
-     "status": "draft",
-     "description": "This resource contains two specification files.",
-     "resPathList": [os.path.join(FILE_FOLDER, "MySpec.doc"),
-                     os.path.join(FILE_FOLDER, "MySpec.pdf"),
-                     ],
-     },
-    {"key": "2",
-     "title": "My doc 2",
-     "orga": "development",
-     "tags": ["cool", "nice"],
-     "status": "published",
-     "description": "This resource contains one file.",
-     "resPathList": [os.path.join(FILE_FOLDER, "My URS.doc"),
-                     ],
-     },
-    {"key": "3",
-     "title": u"My doc (euro:\u20AC, uuml:��)".encode("utf8"),
-     "orga": "marketing",
-     "tags": ["nice"],
-     "status": "published",
-     "description": "Long text describing it",
-     "resPathList": [os.path.join(FILE_FOLDER, "My URS.doc"),
-                     ],
-     },
+    {
+        "key": "1",
+        "title": "My doc 1",
+        "orga": "development",
+        "tags": ["cool", "hot"],
+        "status": "draft",
+        "description": "This resource contains two specification files.",
+        "resPathList": [
+            os.path.join(FILE_FOLDER, "MySpec.doc"),
+            os.path.join(FILE_FOLDER, "MySpec.pdf"),
+        ],
+    },
+    {
+        "key": "2",
+        "title": "My doc 2",
+        "orga": "development",
+        "tags": ["cool", "nice"],
+        "status": "published",
+        "description": "This resource contains one file.",
+        "resPathList": [os.path.join(FILE_FOLDER, "My URS.doc")],
+    },
+    {
+        "key": "3",
+        "title": "My doc (euro:\u20AC, uuml:��)".encode("utf8"),
+        "orga": "marketing",
+        "tags": ["nice"],
+        "status": "published",
+        "description": "Long text describing it",
+        "resPathList": [os.path.join(FILE_FOLDER, "My URS.doc")],
+    },
 ]
 
 
@@ -182,8 +184,9 @@ def _get_res_by_key(key):
 # ============================================================================
 class RootCollection(DAVCollection):
     """Resolve top-level requests '/'."""
+
     _visibleMemberNames = ("by_orga", "by_tag", "by_status")
-    _validMemberNames = _visibleMemberNames + ("by_key", )
+    _validMemberNames = _visibleMemberNames + ("by_key",)
 
     def __init__(self, environ):
         DAVCollection.__init__(self, "/", environ)
@@ -245,7 +248,9 @@ class CategoryCollection(DAVCollection):
         return {"type": "Category"}
 
     def get_member_names(self):
-        names = [data["title"] for data in _get_res_list_by_attr(self.catType, self.name)]
+        names = [
+            data["title"] for data in _get_res_list_by_attr(self.catType, self.name)
+        ]
         names.sort()
         return names
 
@@ -261,18 +266,21 @@ class CategoryCollection(DAVCollection):
 # ============================================================================
 class VirtualResource(DAVCollection):
     """A virtual 'resource', displayed as a collection of artifacts and files."""
-    _artifactNames = (".Info.txt",
-                      ".Info.html",
-                      ".Description.txt",
-                      # ".Admin.html",
-                      )
-    _supportedProps = ["{virtres:}key",
-                       "{virtres:}title",
-                       "{virtres:}status",
-                       "{virtres:}orga",
-                       "{virtres:}tags",
-                       "{virtres:}description",
-                       ]
+
+    _artifactNames = (
+        ".Info.txt",
+        ".Info.html",
+        ".Description.txt",
+        # ".Admin.html",
+    )
+    _supportedProps = [
+        "{virtres:}key",
+        "{virtres:}title",
+        "{virtres:}status",
+        "{virtres:}orga",
+        "{virtres:}tags",
+        "{virtres:}description",
+    ]
 
     def __init__(self, path, environ, data):
         DAVCollection.__init__(self, path, environ)
@@ -294,7 +302,9 @@ class VirtualResource(DAVCollection):
         for filePath in self.data["resPathList"]:
             fname = os.path.basename(filePath)
             if fname == name:
-                return VirtualResFile(join_uri(self.path, name), self.environ, self.data, filePath)
+                return VirtualResFile(
+                    join_uri(self.path, name), self.environ, self.data, filePath
+                )
         return None
 
     def handle_delete(self):
@@ -390,8 +400,9 @@ class VirtualResource(DAVCollection):
             self.data["description"] = value.text
         elif propname in VirtualResource._supportedProps:
             # Supported property, but read-only
-            raise DAVError(HTTP_FORBIDDEN,
-                           errcondition=PRECONDITION_CODE_ProtectedProperty)
+            raise DAVError(
+                HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty
+            )
         else:
             # Unsupported property
             raise DAVError(HTTP_FORBIDDEN)
@@ -431,6 +442,8 @@ class _VirtualNonCollection(DAVNonCollection):
 
     def support_ranges(self):
         return False
+
+
 #    def handle_delete(self):
 #        raise DAVError(HTTP_FORBIDDEN)
 #    def handle_move(self, destPath):
@@ -469,12 +482,15 @@ class VirtualArtifact(_VirtualNonCollection):
         return compat.quote(self.provider.sharePath + refPath)
 
     def get_content(self):
-        fileLinks = ["<a href='%s'>%s</a>\n" %
-                     (os.path.basename(f), f) for f in self.data["resPathList"]]
+        fileLinks = [
+            "<a href='%s'>%s</a>\n" % (os.path.basename(f), f)
+            for f in self.data["resPathList"]
+        ]
         dict = self.data.copy()
         dict["fileLinks"] = ", ".join(fileLinks)
         if self.name == ".Info.html":
-            html = """\
+            html = (
+                """\
             <html><head>
             <title>%(title)s</title>
             </head><body>
@@ -501,17 +517,20 @@ class VirtualArtifact(_VirtualNonCollection):
             </tr>
             </table>
             <p>This is a virtual WsgiDAV resource called '%(title)s'.</p>
-            </body></html>""" % dict
+            </body></html>"""
+                % dict
+            )
         elif self.name == ".Info.txt":
-            lines = [self.data["title"],
-                     "=" * len(self.data["title"]),
-                     self.data["description"],
-                     "",
-                     "Status: %s" % self.data["status"],
-                     "Orga:   %8s" % self.data["orga"],
-                     "Tags:   '%s'" % "', '".join(self.data["tags"]),
-                     "Key:    %s" % self.data["key"],
-                     ]
+            lines = [
+                self.data["title"],
+                "=" * len(self.data["title"]),
+                self.data["description"],
+                "",
+                "Status: %s" % self.data["status"],
+                "Orga:   %8s" % self.data["orga"],
+                "Tags:   '%s'" % "', '".join(self.data["tags"]),
+                "Key:    %s" % self.data["key"],
+            ]
             html = "\n".join(lines)
         elif self.name == ".Description.txt":
             html = self.data["description"]
@@ -540,10 +559,10 @@ class VirtualResFile(_VirtualNonCollection):
     def get_content_type(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
-#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
-#        if not mimetype:
-#            mimetype = "application/octet-stream"
-#        return mimetype
+        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
+        #        if not mimetype:
+        #            mimetype = "application/octet-stream"
+        #        return mimetype
         return util.guess_mime_type(self.filePath)
 
     def get_creation_date(self):
@@ -595,6 +614,7 @@ class VirtualResourceProvider(DAVProvider):
         self._count_getResourceInst += 1
         root = RootCollection(environ)
         return root.resolve("", path)
+
 
 # class VirtualResourceProvider(DAVProvider):
 #    """

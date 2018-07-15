@@ -29,6 +29,7 @@ _logger = util.get_module_logger(__name__)
 # FileLikeQueue
 # ============================================================================
 
+
 class FileLikeQueue(object):
     """A queue for chunks that behaves like a file-like.
 
@@ -45,6 +46,7 @@ class FileLikeQueue(object):
         # pass it to the PUT handler as target
         return queue
     """
+
     def __init__(self, maxsize=0):
         self.is_closed = False
         self.queue = compat.queue.Queue(maxsize)
@@ -118,6 +120,7 @@ class FileLikeQueue(object):
 # ============================================================================
 # StreamingFile
 # ============================================================================
+
 
 class StreamingFile(object):
     """A file object wrapped around an iterator / data stream."""

@@ -26,6 +26,7 @@ class ToxCommand(TestCommand):
     def run_tests(self):
         # Import here, cause outside the eggs aren't loaded
         import tox
+
         errcode = tox.cmdline(self.test_args)
         sys.exit(errcode)
 
@@ -45,7 +46,10 @@ class SphinxCommand(Command):
 
     def run(self):
         import subprocess
-        res = subprocess.call("sphinx-build -b html doc/sphinx doc/sphinx-build", shell=True)
+
+        res = subprocess.call(
+            "sphinx-build -b html doc/sphinx doc/sphinx-build", shell=True
+        )
         outdir = os.path.join("doc", "sphinx-build")
         if res:
             print("ERROR: sphinx-build exited with code {}".format(res))
@@ -70,19 +74,11 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 #   2. users may prefer another server
 #   3. there may already cherrypy versions installed
 
-install_requires = [
-    "defusedxml",
-    "jsmin",
-    "Jinja2",
-    "PyYAML",
-    ]
+install_requires = ["defusedxml", "jsmin", "Jinja2", "PyYAML"]
 
 # The Windows MSI Setup should include lxml and CherryPy
 if "bdist_msi" in sys.argv:
-    install_requires.extend([
-        "cheroot",
-        "lxml",
-        ])
+    install_requires.extend(["cheroot", "lxml"])
 
 tests_require = []
 
@@ -103,27 +99,34 @@ if use_cx_freeze:
         install_requires.append("yaml")
 
         from cx_Freeze import setup, Executable  # noqa F811
+
         executables = [
-            Executable(script="wsgidav/server/server_cli.py",
-                       base=None,
-                       # base="Win32GUI",
-                       targetName="wsgidav.exe",
-                       icon="doc/logo.ico",
-                       shortcutName="WsgiDAV",
-                       # requires cx_Freeze PR#94:
-                       # copyright="(c) 2009-2018 Martin Wendt",
-                       # trademarks="...",
-                       )
-            ]
+            Executable(
+                script="wsgidav/server/server_cli.py",
+                base=None,
+                # base="Win32GUI",
+                targetName="wsgidav.exe",
+                icon="doc/logo.ico",
+                shortcutName="WsgiDAV",
+                # requires cx_Freeze PR#94:
+                # copyright="(c) 2009-2018 Martin Wendt",
+                # trademarks="...",
+            )
+        ]
     except ImportError:
         # tox has problems to install cx_Freeze to it's venvs, but it is not
         # needed for the tests anyway
-        print("Could not import cx_Freeze; 'build' and 'bdist' commands will not be available.")
+        print(
+            "Could not import cx_Freeze; 'build' and 'bdist' commands will not be available."
+        )
         print("See https://pypi.python.org/pypi/cx_Freeze")
         executables = []
 else:
-    print("Did not import cx_Freeze, because 'bdist_msi' commands are not used ({})."
-          .format(sys.argv))
+    print(
+        "Did not import cx_Freeze, because 'bdist_msi' commands are not used ({}).".format(
+            sys.argv
+        )
+    )
     print("NOTE: this is a hack, because cx_Freeze seemed to sabotage wheel creation")
     executables = []
 
@@ -144,12 +147,11 @@ build_exe_options = {
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.addons.dir_browser",
         "jinja2",
-        ],
-    "excludes": [
     ],
+    "excludes": [],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
-    }
+}
 
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
@@ -158,7 +160,7 @@ bdist_msi_options = {
     # "initial_target_dir": r"[ProgramFilesFolder]\%s\%s" % (company_name, product_name),
     # TODO: configure shortcuts:
     # http://stackoverflow.com/a/15736406/19166
-    }
+}
 
 setup(
     name="WsgiDAV",
@@ -186,7 +188,7 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
-#        "Programming Language :: Python :: 3.7",
+        #        "Programming Language :: Python :: 3.7",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
@@ -194,7 +196,7 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
         "Topic :: Software Development :: Libraries :: Python Modules",
-        ],
+    ],
     keywords="web wsgi webdav application server",
     license="MIT",
     # packages=[
@@ -207,7 +209,7 @@ setup(
     package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
-        "wsgidav.addons.dir_browser": ["htdocs/*.*"],
+        "wsgidav.addons.dir_browser": ["htdocs/*.*"]
     },
     install_requires=install_requires,
     setup_requires=setup_requires,
@@ -215,16 +217,8 @@ setup(
     py_modules=[],
     zip_safe=False,
     extras_require={},
-    cmdclass={
-        "test": ToxCommand,
-        "sphinx": SphinxCommand,
-        },
-    entry_points={
-        "console_scripts": ["wsgidav = wsgidav.server.server_cli:run"],
-        },
-    options={
-        "build_exe": build_exe_options,
-        "bdist_msi": bdist_msi_options,
-        },
+    cmdclass={"test": ToxCommand, "sphinx": SphinxCommand},
+    entry_points={"console_scripts": ["wsgidav = wsgidav.server.server_cli:run"]},
+    options={"build_exe": build_exe_options, "bdist_msi": bdist_msi_options},
     executables=executables,
-    )
+)

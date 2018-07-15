@@ -146,7 +146,6 @@ __docformat__ = "reStructuredText"
 
 
 class RequestResolver(BaseMiddleware):
-
     def __init__(self, wsgidav_app, next_app, config):
         super(RequestResolver, self).__init__(wsgidav_app, next_app, config)
 
@@ -172,14 +171,19 @@ class RequestResolver(BaseMiddleware):
 
             dav_compliance_level = "1,2"
 
-            if provider is None or provider.is_readonly() or provider.lockManager is None:
+            if (
+                provider is None
+                or provider.is_readonly()
+                or provider.lockManager is None
+            ):
                 dav_compliance_level = "1"
 
-            headers = [("Content-Type", "text/html"),
-                       ("Content-Length", "0"),
-                       ("DAV", dav_compliance_level),
-                       ("Date", util.get_rfc1123_time()),
-                       ]
+            headers = [
+                ("Content-Type", "text/html"),
+                ("Content-Length", "0"),
+                ("DAV", dav_compliance_level),
+                ("Date", util.get_rfc1123_time()),
+            ]
 
             if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
                 headers.append(("MS-Author-Via", "DAV"))
@@ -189,8 +193,9 @@ class RequestResolver(BaseMiddleware):
             return
 
         if provider is None:
-            raise DAVError(HTTP_NOT_FOUND,
-                           "Could not find resource provider for '{}'".format(path))
+            raise DAVError(
+                HTTP_NOT_FOUND, "Could not find resource provider for '{}'".format(path)
+            )
 
         # Let the appropriate resource provider for the realm handle the
         # request

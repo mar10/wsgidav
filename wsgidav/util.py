@@ -31,7 +31,7 @@ from wsgidav.dav_error import (
     DAVError,
     as_DAVError,
     get_http_status_string,
-    )
+)
 from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
 __docformat__ = "reStructuredText"
@@ -40,12 +40,15 @@ __docformat__ = "reStructuredText"
 BASE_LOGGER_NAME = "wsgidav"
 _logger = logging.getLogger(BASE_LOGGER_NAME)
 
-PYTHON_VERSION = "{}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2])
+PYTHON_VERSION = "{}.{}.{}".format(
+    sys.version_info[0], sys.version_info[1], sys.version_info[2]
+)
 
 
 # ========================================================================
 # Time tools
 # ========================================================================
+
 
 def get_rfc1123_time(secs=None):
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
@@ -118,6 +121,7 @@ def _parse_gmt_time(timestring):
 # Logging
 # ========================================================================
 
+
 def init_logging(config):
     """Initialize base logger named 'wsgidav'.
 
@@ -187,14 +191,15 @@ def init_logging(config):
 
     logger_date_format = config.get("logger_date_format", "%Y-%m-%d %H:%M:%S")
     logger_format = config.get(
-            "logger_format",
-            "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s")
+        "logger_format",
+        "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s",
+    )
 
     formatter = logging.Formatter(logger_format, logger_date_format)
 
     # Define handlers
     consoleHandler = logging.StreamHandler(sys.stdout)
-#    consoleHandler = logging.StreamHandler(sys.stderr)
+    #    consoleHandler = logging.StreamHandler(sys.stderr)
     consoleHandler.setFormatter(formatter)
     # consoleHandler.setLevel(logging.DEBUG)
 
@@ -263,9 +268,11 @@ def deep_update(d, u):
 # Module Import
 # ========================================================================
 
+
 def dynamic_import_class(name):
     """Import a class from a module string, e.g. ``my.module.ClassName``."""
     import importlib
+
     module_name, class_name = name.rsplit(".", 1)
     module = importlib.import_module(module_name)
     the_class = getattr(module, class_name)
@@ -285,6 +292,7 @@ def dynamic_instantiate_middleware(name, args, expand=None):
         from my.module import Foo
         return Foo(bar=42, baz="qux")
     """
+
     def _expand(v):
         """Replace some string templates with defined values."""
         if expand and compat.is_basestring(v) and v.lower() in expand:
@@ -313,6 +321,7 @@ def dynamic_instantiate_middleware(name, args, expand=None):
 # Strings
 # ========================================================================
 
+
 def lstripstr(s, prefix, ignoreCase=False):
     if ignoreCase:
         if not s.lower().startswith(prefix.lower()):
@@ -320,7 +329,7 @@ def lstripstr(s, prefix, ignoreCase=False):
     else:
         if not s.startswith(prefix):
             return s
-    return s[len(prefix):]
+    return s[len(prefix) :]
 
 
 def save_split(s, sep, maxsplit):
@@ -415,8 +424,9 @@ def get_file_extension(path):
     return ext
 
 
-def byte_number_string(number, thousandsSep=True, partition=False,
-                       base1024=True, appendBytes=True):
+def byte_number_string(
+    number, thousandsSep=True, partition=False, base1024=True, appendBytes=True
+):
     """Convert bytes into human-readable representation."""
     magsuffix = ""
     bytesuffix = ""
@@ -521,8 +531,10 @@ def read_and_discard_input(environ):
                 n = 1
             body = wsgi_input.read(n)
             _logger.debug(
-                "Reading {} bytes from potentially unread httpserver.LimitedLengthFile: '{}'..."
-                .format(n, body[:50]))
+                "Reading {} bytes from potentially unread httpserver.LimitedLengthFile: '{}'...".format(
+                    n, body[:50]
+                )
+            )
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
         # Seems to be a socket
@@ -538,8 +550,11 @@ def read_and_discard_input(environ):
                 else:
                     n = 1
                 body = wsgi_input.read(n)
-                _logger.debug("Reading {} bytes from potentially unread POST body: '{}'..."
-                              .format(n, body[:50]))
+                _logger.debug(
+                    "Reading {} bytes from potentially unread POST body: '{}'...".format(
+                        n, body[:50]
+                    )
+                )
             except socket.error as se:
                 # se(10035, 'The socket operation could not complete without blocking')
                 _logger.error("-> read {} bytes failed: {}".format(n, se))
@@ -563,7 +578,6 @@ def fail(value, contextinfo=None, srcexception=None, errcondition=None):
 # SubAppStartResponse
 # ========================================================================
 class SubAppStartResponse(object):
-
     def __init__(self):
         self.__status = ""
         self.__response_headers = []
@@ -592,6 +606,7 @@ class SubAppStartResponse(object):
 # ========================================================================
 # URLs
 # ========================================================================
+
 
 def join_uri(uri, *segments):
     """Append segments to URI.
@@ -627,7 +642,11 @@ def is_child_uri(parentUri, childUri):
     children of '/a/b' (and also of '/a/b/').
     Note that '/a/b/cd' is NOT a child of 'a/b/c'.
     """
-    return parentUri and childUri and childUri.rstrip("/").startswith(parentUri.rstrip("/") + "/")
+    return (
+        parentUri
+        and childUri
+        and childUri.rstrip("/").startswith(parentUri.rstrip("/") + "/")
+    )
 
 
 def is_equal_or_child_uri(parentUri, childUri):
@@ -636,8 +655,11 @@ def is_equal_or_child_uri(parentUri, childUri):
     Similar to <util.is_child_uri>_ ,  but this method also returns True, if parent
     equals child. ('/a/b' is considered identical with '/a/b/').
     """
-    return (parentUri and childUri
-            and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/"))
+    return (
+        parentUri
+        and childUri
+        and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/")
+    )
 
 
 def make_complete_url(environ, localUri=None):
@@ -672,6 +694,7 @@ def make_complete_url(environ, localUri=None):
 # ========================================================================
 # XML
 # ========================================================================
+
 
 def parse_xml_body(environ, allowEmpty=False):
     """Read request body XML into an etree.Element.
@@ -712,7 +735,7 @@ def parse_xml_body(environ, allowEmpty=False):
     """
     #
     clHeader = environ.get("CONTENT_LENGTH", "").strip()
-#    contentLength = -1 # read all of stream
+    #    contentLength = -1 # read all of stream
     if clHeader == "":
         # No Content-Length given: read to end of stream
         # TODO: etree.parse() locks, if input is invalid?
@@ -747,8 +770,12 @@ def parse_xml_body(environ, allowEmpty=False):
 
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
-        _logger.info("{} XML request body:\n{}".format(
-            environ["REQUEST_METHOD"], compat.to_native(xml_to_bytes(rootEL, pretty_print=True))))
+        _logger.info(
+            "{} XML request body:\n{}".format(
+                environ["REQUEST_METHOD"],
+                compat.to_native(xml_to_bytes(rootEL, pretty_print=True)),
+            )
+        )
         environ["wsgidav.dump_request_body"] = False
 
     return rootEL
@@ -771,16 +798,16 @@ def send_status_response(environ, start_response, e, add_headers=None):
     headers = []
     if add_headers:
         headers.extend(add_headers)
-#    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
-#        headers += [
-#            ('Connection', 'keep-alive'),
-#        ]
+    #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
+    #        headers += [
+    #            ('Connection', 'keep-alive'),
+    #        ]
 
     if e in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
         # See paste.lint: these code don't have content
-        start_response(status, [("Content-Length", "0"),
-                                ("Date", get_rfc1123_time()),
-                                ] + headers)
+        start_response(
+            status, [("Content-Length", "0"), ("Date", get_rfc1123_time())] + headers
+        )
         return [b""]
 
     if e in (HTTP_OK, HTTP_CREATED):
@@ -790,10 +817,15 @@ def send_status_response(environ, start_response, e, add_headers=None):
     content_type, body = e.get_response_page()
 
     assert compat.is_bytes(body), body  # If not, Content-Length is wrong!
-    start_response(status, [("Content-Type", content_type),
-                            ("Date", get_rfc1123_time()),
-                            ("Content-Length", str(len(body))),
-                            ] + headers)
+    start_response(
+        status,
+        [
+            ("Content-Type", content_type),
+            ("Date", get_rfc1123_time()),
+            ("Content-Length", str(len(body))),
+        ]
+        + headers,
+    )
     return [body]
 
 
@@ -803,7 +835,8 @@ def send_multi_status_response(environ, start_response, multistatusEL):
     if environ.get("wsgidav.dump_response_body"):
         xml = "{} XML response body:\n{}".format(
             environ["REQUEST_METHOD"],
-            compat.to_native(xml_to_bytes(multistatusEL, pretty_print=True)))
+            compat.to_native(xml_to_bytes(multistatusEL, pretty_print=True)),
+        )
         environ["wsgidav.dump_response_body"] = xml
 
     # Hotfix for Windows XP
@@ -817,12 +850,12 @@ def send_multi_status_response(environ, start_response, multistatusEL):
         ("Content-Type", "application/xml"),
         ("Date", get_rfc1123_time()),
         ("Content-Length", str(len(xml_data))),
-        ]
+    ]
 
-#    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
-#        headers += [
-#            ('Connection', 'keep-alive'),
-#        ]
+    #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
+    #        headers += [
+    #            ('Connection', 'keep-alive'),
+    #        ]
 
     start_response("207 Multi-Status", headers)
     return [xml_data]
@@ -867,11 +900,11 @@ def add_property_response(multistatusEL, href, propList):
     # <response>
     responseEL = make_sub_element(multistatusEL, "{DAV:}response", nsmap=nsMap)
 
-#    log("href value:{}".format(string_repr(href)))
-#    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
+    #    log("href value:{}".format(string_repr(href)))
+    #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
-#    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'(),"
-#       + "$-_|.")
+    #    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'(),"
+    #       + "$-_|.")
 
     # One <propstat> per status code
     for status in propDict:
@@ -889,13 +922,13 @@ def add_property_response(multistatusEL, href, propList):
                 #                etree.SubElement(propEL, name).text = value
                 etree.SubElement(propEL, name).text = toUnicode(value)
         # <status>
-        etree.SubElement(
-            propstatEL, "{DAV:}status").text = "HTTP/1.1 {}".format(status)
+        etree.SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 {}".format(status)
 
 
 # ========================================================================
 # ETags
 # ========================================================================
+
 
 def calc_hexdigest(s):
     """Return md5 digest for a string."""
@@ -935,12 +968,22 @@ def get_etag(filePath):
 
     if sys.platform == "win32":
         statresults = os.stat(unicodeFilePath)
-        return (md5(filePath).hexdigest() + "-" + str(statresults[stat.ST_MTIME]) + "-"
-                + str(statresults[stat.ST_SIZE]))
+        return (
+            md5(filePath).hexdigest()
+            + "-"
+            + str(statresults[stat.ST_MTIME])
+            + "-"
+            + str(statresults[stat.ST_SIZE])
+        )
     else:
         statresults = os.stat(unicodeFilePath)
-        return (str(statresults[stat.ST_INO]) + "-" + str(statresults[stat.ST_MTIME]) + "-"
-                + str(statresults[stat.ST_SIZE]))
+        return (
+            str(statresults[stat.ST_INO])
+            + "-"
+            + str(statresults[stat.ST_MTIME])
+            + "-"
+            + str(statresults[stat.ST_SIZE])
+        )
 
 
 # ========================================================================
@@ -994,7 +1037,7 @@ def obtain_content_ranges(rangetext, filesize):
     listReturn.sort()
     listReturn2 = []
     totallength = 0
-    while(len(listReturn) > 0):
+    while len(listReturn) > 0:
         (rfirstpos, rlastpos) = listReturn.pop()
         counter = len(listReturn)
         while counter > 0:
@@ -1044,6 +1087,7 @@ def read_timeout_value_header(timeoutvalue):
 # If Headers
 # ========================================================================
 
+
 def evaluate_http_conditionals(davres, lastmodified, entitytag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
 
@@ -1081,11 +1125,10 @@ def evaluate_http_conditionals(davres, lastmodified, entitytag, environ):
     if "HTTP_IF_MATCH" in environ and davres.support_etag():
         ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
-            ifmatchtag = ifmatchtag.strip(" \"\t")
+            ifmatchtag = ifmatchtag.strip(' "\t')
             if ifmatchtag == entitytag or ifmatchtag == "*":
                 break
-            raise DAVError(HTTP_PRECONDITION_FAILED,
-                           "If-Match header condition failed")
+            raise DAVError(HTTP_PRECONDITION_FAILED, "If-Match header condition failed")
 
     # TODO: after the refactoring
     ifModifiedSinceFailed = False
@@ -1103,26 +1146,29 @@ def evaluate_http_conditionals(davres, lastmodified, entitytag, environ):
     if "HTTP_IF_NONE_MATCH" in environ and davres.support_etag():
         ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
-            ifmatchtag = ifmatchtag.strip(" \"\t")
+            ifmatchtag = ifmatchtag.strip(' "\t')
             if ifmatchtag == entitytag or ifmatchtag == "*":
                 # ETag matched. If it's a GET request and we don't have an
                 # conflicting If-Modified header, we return NOT_MODIFIED
-                if environ["REQUEST_METHOD"] in ("GET", "HEAD") and not ifModifiedSinceFailed:
-                    raise DAVError(HTTP_NOT_MODIFIED,
-                                   "If-None-Match header failed")
-                raise DAVError(HTTP_PRECONDITION_FAILED,
-                               "If-None-Match header condition failed")
+                if (
+                    environ["REQUEST_METHOD"] in ("GET", "HEAD")
+                    and not ifModifiedSinceFailed
+                ):
+                    raise DAVError(HTTP_NOT_MODIFIED, "If-None-Match header failed")
+                raise DAVError(
+                    HTTP_PRECONDITION_FAILED, "If-None-Match header condition failed"
+                )
         ignoreIfModifiedSince = True
 
     if "HTTP_IF_UNMODIFIED_SINCE" in environ and davres.support_modified():
         ifunmodtime = parse_time_string(environ["HTTP_IF_UNMODIFIED_SINCE"])
         if ifunmodtime and ifunmodtime <= lastmodified:
-            raise DAVError(HTTP_PRECONDITION_FAILED,
-                           "If-Unmodified-Since header condition failed")
+            raise DAVError(
+                HTTP_PRECONDITION_FAILED, "If-Unmodified-Since header condition failed"
+            )
 
     if ifModifiedSinceFailed and not ignoreIfModifiedSince:
-        raise DAVError(HTTP_NOT_MODIFIED,
-                       "If-Modified-Since header condition failed")
+        raise DAVError(HTTP_NOT_MODIFIED, "If-Modified-Since header condition failed")
 
     return
 
@@ -1154,7 +1200,9 @@ def parse_if_header_dict(environ):
     ifLockList = []
 
     resource1 = "*"
-    for (tmpURLVar, URLVar, _tmpContentVar, contentVar) in reIfSeparator.findall(iftext):
+    for (tmpURLVar, URLVar, _tmpContentVar, contentVar) in reIfSeparator.findall(
+        iftext
+    ):
         if tmpURLVar != "":
             resource1 = URLVar
         else:
@@ -1164,10 +1212,12 @@ def parse_if_header_dict(environ):
                 if listitem.upper() != "NOT":
                     if listitem.startswith("["):
                         listTagContents.append(
-                            (testflag, "entity", listitem.strip('\"[]')))
+                            (testflag, "entity", listitem.strip('"[]'))
+                        )
                     else:
                         listTagContents.append(
-                            (testflag, "locktoken", listitem.strip("<>")))
+                            (testflag, "locktoken", listitem.strip("<>"))
+                        )
                         ifLockList.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"
 
@@ -1185,7 +1235,9 @@ def parse_if_header_dict(environ):
 
 
 def test_if_header_dict(davres, dictIf, fullurl, locktokenlist, entitytag):
-    _logger.debug("test_if_header_dict({}, {}, {})".format(fullurl, locktokenlist, entitytag))
+    _logger.debug(
+        "test_if_header_dict({}, {}, {})".format(fullurl, locktokenlist, entitytag)
+    )
 
     if fullurl in dictIf:
         listTest = dictIf[fullurl]
@@ -1194,7 +1246,7 @@ def test_if_header_dict(davres, dictIf, fullurl, locktokenlist, entitytag):
     else:
         return True
 
-#    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
+    #    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
     supportEntityTag = davres.support_etag()
     for listTestConds in listTest:
         matchfailed = False
@@ -1224,11 +1276,12 @@ test_if_header_dict.__test__ = False  # Tell nose to ignore this function
 # ========================================================================
 # guess_mime_type
 # ========================================================================
-_MIME_TYPES = {".oga": "audio/ogg",
-               ".ogg": "audio/ogg",
-               ".ogv": "video/ogg",
-               ".webm": "video/webm",
-               }
+_MIME_TYPES = {
+    ".oga": "audio/ogg",
+    ".ogg": "audio/ogg",
+    ".ogv": "video/ogg",
+    ".webm": "video/webm",
+}
 
 
 def guess_mime_type(url):

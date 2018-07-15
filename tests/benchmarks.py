@@ -87,10 +87,12 @@ try:
         from cherrypy import __version__ as cp_version
     except ImportError:
         # Bundled CherryPy wsgiserver in WsgDAV 1.x
-        server_folder = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), "..", "wsgidav", "server"))
+        server_folder = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "wsgidav", "server")
+        )
         sys.path.append(server_folder)
         from cherrypy import wsgiserver
+
         cp_version = wsgiserver.CherryPyWSGIServer.version
 except ImportError:
     cp_version = "unknown"
@@ -110,11 +112,14 @@ def _bench_litmus(opts):
         with Timing("litmus test suite"):
             # Run litmus test suite without printing output
             res = subprocess.check_output(
-                ["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
+                ["litmus", "http://127.0.0.1:8080/", "tester", "secret"]
+            )
             # res = subprocess.check_call(["litmus", "http://127.0.0.1:8080/", "tester", "secret"],
             # stdout=DEVNULL, stderr=subprocess.STDOUT)
     except OSError:
-        print("This test requires the litmus test suite (see http://www.webdav.org/neon/litmus/)")
+        print(
+            "This test requires the litmus test suite (see http://www.webdav.org/neon/litmus/)"
+        )
         raise
     return res
 
@@ -124,6 +129,7 @@ def _bench_script(opts):
     # print("_bench_script(), {}...".format(opts))
 
     from tests import davclient
+
     server_url = opts.get("external_server") or "http://localhost:8080/"
     client = davclient.DAVClient(server_url)
     client.set_basic_auth("tester", "secret")
@@ -165,52 +171,56 @@ def _bench_script(opts):
 
     with Timing("10 x COPY 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
         for _ in compat.xrange(10):
-            client.copy("/test/bigfile.txt",
-                        "/test/bigfile-copy.txt",
-                        depth="infinity", overwrite=True)
+            client.copy(
+                "/test/bigfile.txt",
+                "/test/bigfile-copy.txt",
+                depth="infinity",
+                overwrite=True,
+            )
         client.check_response()
 
     with Timing("100 x MOVE 10 MB", 100, "{:>6.1f} req/sec"):
         name_from = "/test/bigfile-copy.txt"
         for i in compat.xrange(100):
             name_to = "/test/bigfile-copy-{}.txt".format(i)
-            client.move(name_from, name_to,
-                        depth="infinity", overwrite=True)
+            client.move(name_from, name_to, depth="infinity", overwrite=True)
             name_from = name_to
         client.check_response()
 
     with Timing("100 x LOCK/UNLOCK", 200, "{:>6.1f} req/sec"):
         for _ in compat.xrange(100):
-            locks = client.set_lock("/test/lock-0",
-                                    owner="test-bench",
-                                    locktype="write",
-                                    lockscope="exclusive",
-                                    depth="infinity")
+            locks = client.set_lock(
+                "/test/lock-0",
+                owner="test-bench",
+                locktype="write",
+                lockscope="exclusive",
+                depth="infinity",
+            )
             token = locks[0]
             client.unlock("/test/lock-0", token)
         client.check_response()
 
     with Timing("1000 x PROPPATCH", 1000, "{:>6.1f} req/sec"):
         for _ in compat.xrange(1000):
-            client.proppatch("/test/file1.txt",
-                             set_props=[("{testns:}testname", "testval"),
-                                        ],
-                             remove_props=None)
+            client.proppatch(
+                "/test/file1.txt",
+                set_props=[("{testns:}testname", "testval")],
+                remove_props=None,
+            )
         client.check_response()
 
     with Timing("500 x PROPFIND", 500, "{:>6.1f} req/sec"):
         for i in compat.xrange(500):
-            client.propfind("/",
-                            properties="allprop",
-                            namespace="DAV:",
-                            depth=None,
-                            headers=None)
+            client.propfind(
+                "/", properties="allprop", namespace="DAV:", depth=None, headers=None
+            )
         client.check_response()
 
 
 # ------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------
+
 
 def run_benchmarks(opts):
 
@@ -225,6 +235,7 @@ def run_benchmarks(opts):
 
     if use_lxml:
         from lxml.etree import LXML_VERSION as lxml_version
+
         print("lxml:     {}".format(lxml_version))
     else:
         print("lxml:     (not installed)")
@@ -238,16 +249,18 @@ def run_benchmarks(opts):
     if opts.get("external_server"):
         _runner(opts)
     else:
-        with WsgiDavTestServer(with_auth=False, with_ssl=False,
-                               profile=opts.get("profile_server")):
+        with WsgiDavTestServer(
+            with_auth=False, with_ssl=False, profile=opts.get("profile_server")
+        ):
             if opts.get("profile_client"):
                 import cProfile
                 import pstats
+
                 prof = cProfile.Profile()
                 prof = prof.runctx("_runner(opts)", globals(), locals())
                 stream = compat.StringIO()
                 stats = pstats.Stats(prof, stream=stream)
-        #        stats.sort_stats("time")  # Or cumulative
+                #        stats.sort_stats("time")  # Or cumulative
                 stats.sort_stats("cumulative")  # Or time
                 stats.print_stats(20)  # 80 = how many to print
                 # The rest is optional.
@@ -262,10 +275,11 @@ def run_benchmarks(opts):
 
 
 def main():
-    opts = {"profile_client": False,  #
-            "profile_server": False,
-            "external_server": None,  # "http://localhost:8080",
-            }
+    opts = {
+        "profile_client": False,  #
+        "profile_server": False,
+        "external_server": None,  # "http://localhost:8080",
+    }
     run_benchmarks(opts)
 
 

@@ -63,7 +63,6 @@ _logger = util.get_module_logger(__name__)
 
 
 class WsgiDavDebugFilter(BaseMiddleware):
-
     def __init__(self, wsgidav_app, next_app, config):
         super(WsgiDavDebugFilter, self).__init__(wsgidav_app, next_app, config)
         self._config = config
@@ -101,8 +100,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                 dav.propManager._dump()
 
         # Turn on max. debugging for selected litmus tests
-        litmusTag = environ.get(
-            "HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
+        litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 3:
             _logger.info("----\nRunning litmus test '{}'...".format(litmusTag))
             for litmusSubstring in self.debug_litmus:
@@ -113,7 +111,10 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     dumpResponse = True
                     break
             for litmusSubstring in self.break_after_litmus:
-                if litmusSubstring in self.passedLitmus and litmusSubstring not in litmusTag:
+                if (
+                    litmusSubstring in self.passedLitmus
+                    and litmusSubstring not in litmusTag
+                ):
                     _logger.info(" *** break after litmus {}".format(litmusTag))
                     sys.exit(-1)
                 if litmusSubstring in litmusTag:
@@ -155,14 +156,21 @@ class WsgiDavDebugFilter(BaseMiddleware):
             # Start response (the first time)
             if first_yield:
                 # Success!
-                start_response(sub_app_start_response.status,
-                               sub_app_start_response.response_headers,
-                               sub_app_start_response.exc_info)
+                start_response(
+                    sub_app_start_response.status,
+                    sub_app_start_response.response_headers,
+                    sub_app_start_response.exc_info,
+                )
 
             # Dump response headers
             if first_yield and dumpResponse:
-                _logger.info("<{}> ---{}  Response({}): ---".format(
-                    threading.currentThread().ident, method, sub_app_start_response.status))
+                _logger.info(
+                    "<{}> ---{}  Response({}): ---".format(
+                        threading.currentThread().ident,
+                        method,
+                        sub_app_start_response.status,
+                    )
+                )
                 headersdict = dict(sub_app_start_response.response_headers)
                 for envitem in headersdict.keys():
                     _logger.info("{}: {}".format(envitem, repr(headersdict[envitem])))
@@ -195,11 +203,16 @@ class WsgiDavDebugFilter(BaseMiddleware):
         # Start response (if it hasn't been done yet)
         if first_yield:
             # Success!
-            start_response(sub_app_start_response.status,
-                           sub_app_start_response.response_headers,
-                           sub_app_start_response.exc_info)
+            start_response(
+                sub_app_start_response.status,
+                sub_app_start_response.response_headers,
+                sub_app_start_response.exc_info,
+            )
 
         if dumpResponse:
-            _logger.info("<{}> --- End of {} Response ({:d} bytes) ---".format(
-                threading.currentThread().ident, method, nbytes))
+            _logger.info(
+                "<{}> --- End of {} Response ({:d} bytes) ---".format(
+                    threading.currentThread().ident, method, nbytes
+                )
+            )
         return

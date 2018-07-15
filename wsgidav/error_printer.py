@@ -16,7 +16,7 @@ from wsgidav.dav_error import (
     DAVError,
     as_DAVError,
     get_http_status_string,
-    )
+)
 from wsgidav.middleware import BaseMiddleware
 
 __docformat__ = "reStructuredText"
@@ -28,7 +28,6 @@ _logger = util.get_module_logger(__name__)
 # ErrorPrinter
 # ========================================================================
 class ErrorPrinter(BaseMiddleware):
-
     def __init__(self, wsgidav_app, next_app, config):
         super(ErrorPrinter, self).__init__(wsgidav_app, next_app, config)
         self._catch_all_exceptions = config["error_printer"].get("catch_all", False)
@@ -48,9 +47,11 @@ class ErrorPrinter(BaseMiddleware):
                     # Start response (the first time)
                     if not response_started:
                         # Success!
-                        start_response(sub_app_start_response.status,
-                                       sub_app_start_response.response_headers,
-                                       sub_app_start_response.exc_info)
+                        start_response(
+                            sub_app_start_response.status,
+                            sub_app_start_response.response_headers,
+                            sub_app_start_response.exc_info,
+                        )
                     response_started = True
 
                     yield v
@@ -62,9 +63,11 @@ class ErrorPrinter(BaseMiddleware):
                 # Start response (if it hasn't been done yet)
                 if not response_started:
                     # Success!
-                    start_response(sub_app_start_response.status,
-                                   sub_app_start_response.response_headers,
-                                   sub_app_start_response.exc_info)
+                    start_response(
+                        sub_app_start_response.status,
+                        sub_app_start_response.response_headers,
+                        sub_app_start_response.exc_info,
+                    )
 
                 return
             except DAVError as e:
@@ -78,7 +81,9 @@ class ErrorPrinter(BaseMiddleware):
                     _logger.error("{}".format(traceback.format_exc(10)))
                     raise as_DAVError(e)
                 else:
-                    _logger.error("Caught Exception\n{}".format(traceback.format_exc(10)))
+                    _logger.error(
+                        "Caught Exception\n{}".format(traceback.format_exc(10))
+                    )
                     # traceback.print_exc(10, sys.stderr)
                     raise
         except DAVError as e:
@@ -88,15 +93,17 @@ class ErrorPrinter(BaseMiddleware):
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
                 tb = traceback.format_exc(10)
-                _logger.error("Caught HTTPRequestException(HTTP_INTERNAL_ERROR)\n{}".format(tb))
+                _logger.error(
+                    "Caught HTTPRequestException(HTTP_INTERNAL_ERROR)\n{}".format(tb)
+                )
                 # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stdout)
                 _logger.error("e.srcexception:\n{}".format(e.srcexception))
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
                 # _logger.warn("Forcing empty error response for {}".format(e.value))
                 # See paste.lint: these code don't have content
-                start_response(status, [("Content-Length", "0"),
-                                        ("Date", util.get_rfc1123_time()),
-                                        ])
+                start_response(
+                    status, [("Content-Length", "0"), ("Date", util.get_rfc1123_time())]
+                )
                 yield b""
                 return
 
@@ -105,9 +112,13 @@ class ErrorPrinter(BaseMiddleware):
             content_type, body = e.get_response_page()
 
             # TODO: provide exc_info=sys.exc_info()?
-            start_response(status, [("Content-Type", content_type),
-                                    ("Content-Length", str(len(body))),
-                                    ("Date", util.get_rfc1123_time()),
-                                    ])
+            start_response(
+                status,
+                [
+                    ("Content-Type", content_type),
+                    ("Content-Length", str(len(body))),
+                    ("Date", util.get_rfc1123_time()),
+                ],
+            )
             yield body
             return

@@ -25,12 +25,14 @@ from wsgidav.addons.stream_tools import FileLikeQueue
 #
 # Note that this code runs in a separated process, spawned by the unit tests.
 
+
 class MockProxyResource(DAVNonCollection):
     """
     A simple _DAVResource that handles PUT requests by passing a FileLikeQueue
     to the server and asynchronuosly pipes the incoming data stream to a target
     file.
     """
+
     def __init__(self, path, environ, target_path):
         super(MockProxyResource, self).__init__(path, environ)
         self.target_path = target_path
@@ -70,6 +72,7 @@ class MockProxyProvider(DAVProvider):
     """
     A simple DAVProvider that returns a dummy MockProxyResource for all requests.
     """
+
     def __init__(self, target_path):
         super(MockProxyProvider, self).__init__()
         self.target_path = target_path
@@ -85,6 +88,7 @@ class MockProxyProvider(DAVProvider):
 # ========================================================================
 # BasicTest
 # ========================================================================
+
 
 class BasicTest(unittest.TestCase):
     def setUp(self):
