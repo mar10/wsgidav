@@ -19,6 +19,7 @@ twine = "~=1.11"
 WebTest = "~=2.0"
 wheel = "*"
 Sphinx = "~=1.6"
+black = "*"
 
 [packages]
 defusedxml = "~=0.5"
@@ -28,3 +29,6 @@ PyYAML = "~=3.2"
 
 [requires]
 #python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
