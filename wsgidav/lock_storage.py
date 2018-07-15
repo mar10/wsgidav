@@ -63,24 +63,28 @@ class LockStorageDict(object):
 
         { 'URL2TOKEN:/temp/litmus/lockme': ['opaquelocktoken:0x1d7b86...',
                                             'opaquelocktoken:0xd7d4c0...'],
-          'opaquelocktoken:0x1d7b86...': { 'depth': '0',
-                                           'owner': "<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">litmus test suite</owner>\\n",
-                                           'principal': 'tester',
-                                           'root': '/temp/litmus/lockme',
-                                           'scope': 'shared',
-                                           'expire': 1261328382.4530001,
-                                           'token': 'opaquelocktoken:0x1d7b86...',
-                                           'type': 'write',
-                                           },
-          'opaquelocktoken:0xd7d4c0...': { 'depth': '0',
-                                           'owner': '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">litmus: notowner_sharedlock</owner>\\n',
-                                           'principal': 'tester',
-                                           'root': '/temp/litmus/lockme',
-                                           'scope': 'shared',
-                                           'expire': 1261328381.6040001,
-                                           'token': 'opaquelocktoken:0xd7d4c0...',
-                                           'type': 'write'
-                                           },
+          'opaquelocktoken:0x1d7b86...': {
+            'depth': '0',
+            'owner': "<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">"
+                + "litmus test suite</owner>\\n",
+            'principal': 'tester',
+            'root': '/temp/litmus/lockme',
+            'scope': 'shared',
+            'expire': 1261328382.4530001,
+            'token': 'opaquelocktoken:0x1d7b86...',
+            'type': 'write',
+            },
+          'opaquelocktoken:0xd7d4c0...': {
+            'depth': '0',
+            'owner': '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">'
+                + 'litmus: notowner_sharedlock</owner>\\n',
+            'principal': 'tester',
+            'root': '/temp/litmus/lockme',
+            'scope': 'shared',
+            'expire': 1261328381.6040001,
+            'token': 'opaquelocktoken:0xd7d4c0...',
+            'type': 'write'
+           },
          }
     """  # noqa
 

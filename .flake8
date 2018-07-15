@@ -1,11 +1,17 @@
 [flake8]
 max-line-length = 99
+#max-line-length = 88
+
+# max-complexity = 12
 
 # Ignore some errors that may be created by Black:
 # E203 whitespace before ':'
 # E501 line too long
 # W503 line break before binary operator
 ignore = E203, E501, W503
+
+# Instead of strict E501, enable B950 for relaxed line length checking (and other bugbear warnings)
+select = B,C,E,F,Q,W,B9
 
 # Options for the flake8-quotes extension:
 inline-quotes = "

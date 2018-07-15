@@ -210,7 +210,7 @@ def _bench_script(opts):
         client.check_response()
 
     with Timing("500 x PROPFIND", 500, "{:>6.1f} req/sec"):
-        for i in compat.xrange(500):
+        for _ in compat.xrange(500):
             client.propfind(
                 "/", properties="allprop", namespace="DAV:", depth=None, headers=None
             )
