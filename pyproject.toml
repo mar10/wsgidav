@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 88
-py36 = true
+py36 = false  # don't strip 'u' from native strings
 include = '\.pyi?$'
 exclude = '''
 /(
