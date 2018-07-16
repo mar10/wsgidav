@@ -160,10 +160,10 @@ class ServerTest(unittest.TestCase):
         """Handle special characters."""
         app = self.app
         uniData = (
-            "This is a file with special characters:\n"
-            + "Umlaute(äöüß)\n"
-            + "Euro(\u20AC)\n"
-            + "Male(\u2642)"
+            u"This is a file with special characters:\n"
+            + u"Umlaute(äöüß)\n"
+            + u"Euro(\u20AC)\n"
+            + u"Male(\u2642)"
         )
 
         data = uniData.encode("utf8")
@@ -198,11 +198,11 @@ class ServerTest(unittest.TestCase):
             return compat.quote(s.encode("utf8"))
 
         # äöüß: (part of latin1)
-        __testrw(unicode_to_url("/file uml(\u00E4\u00F6\u00FC\u00DF).txt"))
+        __testrw(unicode_to_url(u"/file uml(\u00E4\u00F6\u00FC\u00DF).txt"))
         # Euro sign (not latin1, but Cp1252)
-        __testrw(unicode_to_url("/file euro(\u20AC).txt"))
+        __testrw(unicode_to_url(u"/file euro(\u20AC).txt"))
         # Male sign (only utf8)
-        __testrw(unicode_to_url("/file male(\u2642).txt"))
+        __testrw(unicode_to_url(u"/file male(\u2642).txt"))
 
     def testAuthentication(self):
         """Require login."""

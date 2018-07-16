@@ -149,7 +149,7 @@ _resourceData = [
     },
     {
         "key": "3",
-        "title": "My doc (euro:\u20AC, uuml:��)".encode("utf8"),
+        "title": u"My doc (euro:\u20AC, uuml:��)".encode("utf8"),
         "orga": "marketing",
         "tags": ["nice"],
         "status": "published",
