@@ -95,8 +95,6 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "enable_loggers": [],
         "property_manager": True,  # None: no property manager
         "lock_manager": True,  # True: use lock_manager.LockManager
-        # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        "domain_controller": None,
     }
 
     if with_auth:
