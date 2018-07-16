@@ -8,22 +8,22 @@ Unit tests for wsgidav.addons.stream_tools.FileLikeQueue
 """
 
 import os
-from tempfile import gettempdir
 import threading
 import unittest
+from tempfile import gettempdir
 
 import requests
 
-from tests.util import Timing, write_test_file, WsgiDavTestServer
+from tests.util import Timing, WsgiDavTestServer, write_test_file
 from wsgidav import compat
-from wsgidav.dav_provider import DAVProvider, DAVNonCollection
 from wsgidav.addons.stream_tools import FileLikeQueue
-
+from wsgidav.dav_provider import DAVNonCollection, DAVProvider
 
 # ----------------------------------------------------------------------------
 # Dummy DAVProvider implementation
 #
 # Note that this code runs in a separated process, spawned by the unit tests.
+
 
 class MockProxyResource(DAVNonCollection):
     """
@@ -31,6 +31,7 @@ class MockProxyResource(DAVNonCollection):
     to the server and asynchronuosly pipes the incoming data stream to a target
     file.
     """
+
     def __init__(self, path, environ, target_path):
         super(MockProxyResource, self).__init__(path, environ)
         self.target_path = target_path
@@ -70,6 +71,7 @@ class MockProxyProvider(DAVProvider):
     """
     A simple DAVProvider that returns a dummy MockProxyResource for all requests.
     """
+
     def __init__(self, target_path):
         super(MockProxyProvider, self).__init__()
         self.target_path = target_path
@@ -85,6 +87,7 @@ class MockProxyProvider(DAVProvider):
 # ========================================================================
 # BasicTest
 # ========================================================================
+
 
 class BasicTest(unittest.TestCase):
     def setUp(self):
@@ -125,7 +128,7 @@ class BasicTest(unittest.TestCase):
         q.write("*" * 9)
         q.close()
         # sized reads will return chunks as demanded
-        for i in range(6):
+        for _ in range(6):
             self.assertEqual(len(q.read(5)), 5)
         self.assertEqual(len(q.read(5)), 2, "last chunk delivers the reminder")
         self.assertEqual(len(q.read(5)), 0, "furtehr read() returns ''")

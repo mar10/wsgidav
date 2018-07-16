@@ -21,15 +21,19 @@ use_lxml = False
 try:
     # This import helps setup.py to include lxml completely:
     from lxml import _elementpath as _dummy_elementpath  # noqa
+
     # lxml with safe defaults
     from defusedxml.lxml import _etree as etree
+
     use_lxml = True
     _ElementType = etree._Element
 except ImportError:
     # Try xml module (Python 2.5 or later) with safe defaults
     from defusedxml import ElementTree as etree
+
     # defusedxml doesn't define these non-parsing related objects
     from xml.etree.ElementTree import Element, SubElement, tostring
+
     etree.Element = _ElementType = Element
     etree.SubElement = SubElement
     etree.tostring = tostring
@@ -38,6 +42,7 @@ except ImportError:
 # ========================================================================
 # XML
 # ========================================================================
+
 
 def is_etree_element(obj):
     return isinstance(obj, _ElementType)
@@ -57,9 +62,11 @@ def string_to_xml(text):
         #   </ns0:high-unicode>
         #        t2 = text.encode("utf8")
         #        return etree.XML(t2)
-        _logger.error("Error parsing XML string. "
-                      "If lxml is not available, and unicode is involved, then "
-                      "installing lxml _may_ solve this issue.")
+        _logger.error(
+            "Error parsing XML string. "
+            "If lxml is not available, and unicode is involved, then "
+            "installing lxml _may_ solve this issue."
+        )
         _logger.error("XML source: {}".format(text))
         raise
 
@@ -68,10 +75,9 @@ def xml_to_bytes(element, pretty_print=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print
     option and prepends an encoding header."""
     if use_lxml:
-        xml = etree.tostring(element,
-                             encoding="UTF-8",
-                             xml_declaration=True,
-                             pretty_print=pretty_print)
+        xml = etree.tostring(
+            element, encoding="UTF-8", xml_declaration=True, pretty_print=pretty_print
+        )
     else:
         xml = etree.tostring(element, encoding="UTF-8")
         if not xml.startswith(b"<?xml "):

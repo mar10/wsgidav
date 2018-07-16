@@ -11,20 +11,20 @@ Example:
 """
 from __future__ import print_function
 
+import multiprocessing
 import os
 import sys
-import multiprocessing
-from tempfile import gettempdir
 import time
+from tempfile import gettempdir
 
 from wsgidav import compat, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 
-
 # ========================================================================
 # Timing
 # ========================================================================
+
 
 class Timing(object):
     """Print timing"""
@@ -57,6 +57,7 @@ class Timing(object):
 # write_test_file
 # ==============================================================================
 
+
 def write_test_file(name, size):
     path = os.path.join(gettempdir(), name)
     with open(path, "wb") as f:
@@ -67,6 +68,7 @@ def write_test_file(name, size):
 # ==============================================================================
 # run_wsgidav_server
 # ==============================================================================
+
 
 def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     """Start blocking WsgiDAV server (called as a separate process)."""
@@ -92,30 +94,46 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "verbose": 1,
         "enable_loggers": [],
         "property_manager": True,  # None: no property manager
-        "lock_manager": True,      # True: use lock_manager.LockManager
-        }
+        "lock_manager": True,  # True: use lock_manager.LockManager
+    }
 
     if with_auth:
-        config.update({
-            "user_mapping": {
-                "/": {
-                    "tester": {"password": "secret", "description": "", "roles": []},
-                    "tester2": {"password": "secret2", "description": "", "roles": []},
-                    },
+        config.update(
+            {
+                "user_mapping": {
+                    "/": {
+                        "tester": {
+                            "password": "secret",
+                            "description": "",
+                            "roles": [],
+                        },
+                        "tester2": {
+                            "password": "secret2",
+                            "description": "",
+                            "roles": [],
+                        },
+                    }
                 },
-            "accept_basic": True,
-            "accept_digest": False,
-            "default_to_digest": False,
-        })
+                "accept_basic": True,
+                "accept_digest": False,
+                "default_to_digest": False,
+            }
+        )
 
     if with_ssl:
-        config.update({
-            "ssl_certificate": os.path.join(package_path, "wsgidav/server/sample_bogo_server.crt"),
-            "ssl_private_key": os.path.join(package_path, "wsgidav/server/sample_bogo_server.key"),
-            "ssl_certificate_chain": None,
-            # "accept_digest": True,
-            # "default_to_digest": True,
-        })
+        config.update(
+            {
+                "ssl_certificate": os.path.join(
+                    package_path, "wsgidav/server/sample_bogo_server.crt"
+                ),
+                "ssl_private_key": os.path.join(
+                    package_path, "wsgidav/server/sample_bogo_server.key"
+                ),
+                "ssl_certificate_chain": None,
+                # "accept_digest": True,
+                # "default_to_digest": True,
+            }
+        )
 
     # We want output captured for tests
     util.init_logging(config)
@@ -129,6 +147,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     # from wsgidav.server.server_cli import _runBuiltIn
     # _runBuiltIn(app, config, None)
     from wsgidav.server.server_cli import _run_cheroot
+
     _run_cheroot(app, config, "cheroot")
     # blocking...
 
@@ -137,10 +156,13 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 # WsgiDavTestServer
 # ========================================================================
 
+
 class WsgiDavTestServer(object):
     """Run wsgidav in a separate process."""
 
-    def __init__(self, config=None, with_auth=False, with_ssl=False, provider=None, profile=False):
+    def __init__(
+        self, config=None, with_auth=False, with_ssl=False, provider=None, profile=False
+    ):
         self.config = config
         self.with_auth = with_auth
         self.with_ssl = with_ssl
@@ -180,8 +202,11 @@ class WsgiDavTestServer(object):
         print("Starting WsgiDavTestServer... waiting for request loop...")
         # time.sleep(self.start_delay)
         if not self.startup_event.wait(self.startup_timeout):
-            raise RuntimeError("WsgiDavTestServer start() timed out after {} seconds"
-                               .format(self.startup_timeout))
+            raise RuntimeError(
+                "WsgiDavTestServer start() timed out after {} seconds".format(
+                    self.startup_timeout
+                )
+            )
         print("Starting WsgiDavTestServer... running.")
         return self
 

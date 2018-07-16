@@ -25,7 +25,6 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 from wsgidav.wsgidav_app import WsgiDAVApp
 
-
 # SERVER_ADDRESS
 # (using localhost or mixing hostnames with IPs may be very slow!)
 SERVER_ADDRESS = "http://127.0.0.1:8080"
@@ -113,46 +112,38 @@ class WsgiDAVServerThread(Thread):
             "enable_loggers": [
                 # "http_authenticator",
                 # "lock_manager",
-                ],
+            ],
             "debug_methods": [],
-            "property_manager": True,      # True: use lock_manager.LockManager
-            "lock_manager": True,      # True: use lock_manager.LockManager
+            "property_manager": True,  # True: use lock_manager.LockManager
+            "lock_manager": True,  # True: use lock_manager.LockManager
             # None: domain_controller.WsgiDAVDomainController(user_mapping)
             "domain_controller": None,
             "verbose": 4,
-            }
+        }
 
         if withAuthentication:
             config["user_mapping"] = {
                 "/": {
-                    "tester": {
-                        "password": "secret",
-                        "description": "",
-                        "roles": [],
-                        },
-                    "tester2": {
-                        "password": "secret2",
-                        "description": "",
-                        "roles": [],
-                        },
-                    },
+                    "tester": {"password": "secret", "description": "", "roles": []},
+                    "tester2": {"password": "secret2", "description": "", "roles": []},
                 }
+            }
             config["http_authenticator"] = {
                 "accept_basic": True,
                 "accept_digest": False,
                 "default_to_digest": False,
-                }
+            }
 
         app = WsgiDAVApp(config)
 
-        self.ext_server = ExtServer((config["host"], config["port"]),
-                                    {"": app})
+        self.ext_server = ExtServer((config["host"], config["port"]), {"": app})
 
         print("WsgiDAVServerThread ext_server.serve_forever_stoppable()...")
         self.ext_server.serve_forever_stoppable()
         print("WsgiDAVServerThread ext_server stopped.")
         self.ext_server = None
-#        print "WsgiDAVServerThread.run() terminated"
+
+    #        print "WsgiDAVServerThread.run() terminated"
 
     def shutdown(self):
         if self.ext_server:
@@ -163,6 +154,7 @@ class WsgiDAVServerThread(Thread):
             self.ext_server.stop_serve_forever()
             self.ext_server = None
             print("WsgiDAVServerThread.shutdown()... complete")
+
 
 # ========================================================================
 # ServerTest
@@ -175,7 +167,8 @@ class ServerTest(unittest.TestCase):
     def setUp(self):
         self.client = davclient.DAVClient(SERVER_ADDRESS, logger=True)
         self.client.set_basic_auth("tester", "secret")
-#        self.client.headers['new_header_for_session'] = "useful_example"
+
+    #        self.client.headers['new_header_for_session'] = "useful_example"
 
     def tearDown(self):
         del self.client
@@ -183,7 +176,8 @@ class ServerTest(unittest.TestCase):
     def testPreconditions(self):
         """Environment must be set."""
         self.assertTrue(
-            __debug__, "__debug__ must be True, otherwise asserts are ignored")
+            __debug__, "__debug__ must be True, otherwise asserts are ignored"
+        )
 
     def testAuthentication(self):
         """Read and write file contents."""
@@ -241,11 +235,13 @@ class ServerTest(unittest.TestCase):
 
         # if a LOCK request is sent to an unmapped URL, we must create a
         # lock-null resource and return '201 Created', instead of '404 Not found'
-        locks = client.set_lock("/test/lock-0",
-                                owner="test-bench",
-                                locktype="write",
-                                lockscope="exclusive",
-                                depth="infinity")
+        locks = client.set_lock(
+            "/test/lock-0",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="infinity",
+        )
         client.check_response(201)  # created
         assert len(locks) == 1, "LOCK failed"
 
@@ -265,70 +261,69 @@ class ServerTest(unittest.TestCase):
         client.unlock("/test/lock-not-existing", token)
         client.check_response(404)
 
-        client.proppatch("/test/file1.txt",
-                         set_props=[("{testns:}testname", "testval"),
-                                    ],
-                         remove_props=None)
+        client.proppatch(
+            "/test/file1.txt",
+            set_props=[("{testns:}testname", "testval")],
+            remove_props=None,
+        )
         client.check_response()
 
-        client.copy("/test/file1.txt",
-                    "/test/file2.txt",
-                    depth="infinity", overwrite=True)
+        client.copy(
+            "/test/file1.txt", "/test/file2.txt", depth="infinity", overwrite=True
+        )
         client.check_response()
 
-        client.move("/test/file2.txt",
-                    "/test/file2_moved.txt",
-                    depth="infinity", overwrite=True)
+        client.move(
+            "/test/file2.txt", "/test/file2_moved.txt", depth="infinity", overwrite=True
+        )
         client.check_response()
 
-        client.propfind("/",
-                        properties="allprop",
-                        namespace="DAV:",
-                        depth=None,
-                        headers=None)
+        client.propfind(
+            "/", properties="allprop", namespace="DAV:", depth=None, headers=None
+        )
         client.check_response()
 
-#        print client.response.tree
+    #        print client.response.tree
 
-#        print dict(client.response.getheaders())
+    #        print dict(client.response.getheaders())
 
-#        # Remove old test files
-#
-#        # Access unmapped resource (expect '404 Not Found')
-#        app.delete("/file1.txt", status=404)
-#        app.get("/file1.txt", status=404)
-#
-#        # PUT a small file (expect '201 Created')
-#        app.put("/file1.txt", params=data1, status=201)
-#
-#        res = app.get("/file1.txt", status=200)
-#        assert res.body == data1, "GET file content different from PUT"
-#
-#        # PUT overwrites a small file (expect '204 No Content')
-#        app.put("/file1.txt", params=data2, status=204)
-#
-#        res = app.get("/file1.txt", status=200)
-#        assert res.body == data2, "GET file content different from PUT"
-#
-#        # PUT writes a big file (expect '201 Created')
-#        app.put("/file2.txt", params=data3, status=201)
-#
-#        res = app.get("/file2.txt", status=200)
-#        assert res.body == data3, "GET file content different from PUT"
-#
-#        # Request must not contain a body (expect '415 Media Type Not Supported')
-#        app.get("/file1.txt",
-#                headers={"Content-Length": compat.to_native(len(data1))},
-#                params=data1,
-#                status=415)
-#
-#        # Delete existing resource (expect '204 No Content')
-#        app.delete("/file1.txt", status=204)
-#        # Get deleted resource (expect '404 Not Found')
-#        app.get("/file1.txt", status=404)
-#
-#        # PUT a small file (expect '201 Created')
-#        app.put("/file1.txt", params=data1, status=201)
+    #        # Remove old test files
+    #
+    #        # Access unmapped resource (expect '404 Not Found')
+    #        app.delete("/file1.txt", status=404)
+    #        app.get("/file1.txt", status=404)
+    #
+    #        # PUT a small file (expect '201 Created')
+    #        app.put("/file1.txt", params=data1, status=201)
+    #
+    #        res = app.get("/file1.txt", status=200)
+    #        assert res.body == data1, "GET file content different from PUT"
+    #
+    #        # PUT overwrites a small file (expect '204 No Content')
+    #        app.put("/file1.txt", params=data2, status=204)
+    #
+    #        res = app.get("/file1.txt", status=200)
+    #        assert res.body == data2, "GET file content different from PUT"
+    #
+    #        # PUT writes a big file (expect '201 Created')
+    #        app.put("/file2.txt", params=data3, status=201)
+    #
+    #        res = app.get("/file2.txt", status=200)
+    #        assert res.body == data3, "GET file content different from PUT"
+    #
+    #        # Request must not contain a body (expect '415 Media Type Not Supported')
+    #        app.get("/file1.txt",
+    #                headers={"Content-Length": compat.to_native(len(data1))},
+    #                params=data1,
+    #                status=415)
+    #
+    #        # Delete existing resource (expect '204 No Content')
+    #        app.delete("/file1.txt", status=204)
+    #        # Get deleted resource (expect '404 Not Found')
+    #        app.get("/file1.txt", status=404)
+    #
+    #        # PUT a small file (expect '201 Created')
+    #        app.put("/file1.txt", params=data1, status=201)
 
     def _prepareTree0(self):
         """Create a resource structure for testing.
@@ -397,8 +392,7 @@ class ServerTest(unittest.TestCase):
         client2.set_lock("/test", owner="test-bench", depth="infinity")
         client2.check_response(423)
         # Modifying properties of the locked resource must fail
-        client2.proppatch("/test/a",
-                          set_props=[("{testns:}testname", "testval")])
+        client2.proppatch("/test/a", set_props=[("{testns:}testname", "testval")])
         client2.check_response(423)
 
     def testLocking(self):
@@ -412,11 +406,13 @@ class ServerTest(unittest.TestCase):
 
         # --- Check with deoth-infinity lock ----------------------------------
         # LOCK-infinity parent collection and try to access members
-        locks = client1.set_lock("/test/a",
-                                 owner="test-bench",
-                                 locktype="write",
-                                 lockscope="exclusive",
-                                 depth="infinity")
+        locks = client1.set_lock(
+            "/test/a",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="infinity",
+        )
         client1.check_response(200)
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
@@ -432,49 +428,57 @@ class ServerTest(unittest.TestCase):
         # Check operations that are only protected when /test/a is locked
         # with depth-infinity
 
-        locks = client2.set_lock("/test/a/b/c",
-                                 owner="test-bench",
-                                 locktype="write",
-                                 lockscope="exclusive",
-                                 depth="0")
+        locks = client2.set_lock(
+            "/test/a/b/c",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="0",
+        )
         client2.check_response(423)
 
-        locks = client2.set_lock("/test/a/b/d",
-                                 owner="test-bench",
-                                 locktype="write",
-                                 lockscope="exclusive",
-                                 depth="infinity")
+        locks = client2.set_lock(
+            "/test/a/b/d",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="infinity",
+        )
         client2.check_response(423)
 
-        locks = client2.set_lock("/test/a/b/c",
-                                 owner="test-bench",
-                                 locktype="write",
-                                 lockscope="exclusive",
-                                 depth="0")
+        locks = client2.set_lock(
+            "/test/a/b/c",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="0",
+        )
         client2.check_response(423)
 
         # client1 can LOCK /a and /a/b/d at the same time, but must
         # provide both tokens in order to access a/b/d
         # TODO: correct?
-#        locks = client1.set_lock("/test/a/b/d",
-#                                 owner="test-bench",
-#                                 locktype="write",
-#                                 lockscope="exclusive",
-#                                 depth="0")
-#        client1.check_response(200)
-#        assert len(locks) == 1, "Locking inside below locked collection failed"
-#        tokenABD = locks[0]
+        #        locks = client1.set_lock("/test/a/b/d",
+        #                                 owner="test-bench",
+        #                                 locktype="write",
+        #                                 lockscope="exclusive",
+        #                                 depth="0")
+        #        client1.check_response(200)
+        #        assert len(locks) == 1, "Locking inside below locked collection failed"
+        #        tokenABD = locks[0]
 
         # --- Check with depth-0 lock -----------------------------------------
         # LOCK-0 parent collection and try to access members
         client1.unlock("/test/a", token)
         client1.check_response(204)
 
-        locks = client1.set_lock("/test/a",
-                                 owner="test-bench",
-                                 locktype="write",
-                                 lockscope="exclusive",
-                                 depth="0")
+        locks = client1.set_lock(
+            "/test/a",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="0",
+        )
         client1.check_response(200)
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
@@ -484,8 +488,7 @@ class ServerTest(unittest.TestCase):
 
         # These operations are allowed with depth-0
         # Modifying member properties is allowed
-        client2.proppatch("/test/a/c",
-                          set_props=[("{testns:}testname", "testval")])
+        client2.proppatch("/test/a/c", set_props=[("{testns:}testname", "testval")])
         client2.check_multi_status_response(200)
         # Modifying a member without creating a new resource is allowed
         client2.put("/test/a/c", b"data")
@@ -504,11 +507,13 @@ class ServerTest(unittest.TestCase):
         client1.unlock("/test/a", token)
         client1.check_response(204)
 
-        locks = client1.set_lock("/test/a/b/d",
-                                 owner="test-bench",
-                                 locktype="write",
-                                 lockscope="exclusive",
-                                 depth="0")
+        locks = client1.set_lock(
+            "/test/a/b/d",
+            owner="test-bench",
+            locktype="write",
+            lockscope="exclusive",
+            depth="0",
+        )
         client1.check_response(200)
         assert len(locks) == 1, "LOCK failed"
         token = locks[0]
@@ -516,7 +521,7 @@ class ServerTest(unittest.TestCase):
         # LOCK /a/b/d, then DELETE /a/b/
         # --> Must delete all but a/b/d (expect 423 Locked inside Multistatus)
         client2.delete("/test/a/b")
-#        print client2.response.body
+        #        print client2.response.body
         client2.check_multi_status_response(423)
 
 

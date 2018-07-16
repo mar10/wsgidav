@@ -28,8 +28,10 @@ try:
 except ImportError:
     print("*" * 70, file=sys.stderr)
     print("Could not import webtest.TestApp: some tests will fail.", file=sys.stderr)
-    print("Try 'pip install WebTest' or use 'python setup.py test' to run these tests.",
-          file=sys.stderr)
+    print(
+        "Try 'pip install WebTest' or use 'python setup.py test' to run these tests.",
+        file=sys.stderr,
+    )
     print("*" * 70, file=sys.stderr)
     raise
 
@@ -54,19 +56,16 @@ class ServerTest(unittest.TestCase):
             "user_mapping": {},
             "verbose": 1,
             "enable_loggers": [],
-            "property_manager": None,      # None: no property manager
-            "lock_manager": True,      # True: use lock_manager.LockManager
+            "property_manager": None,  # None: no property manager
+            "lock_manager": True,  # True: use lock_manager.LockManager
             # None: domain_controller.WsgiDAVDomainController(user_mapping)
             "domain_controller": None,
-            }
+        }
 
         if withAuthentication:
-            config["user_mapping"] = {"/": {"tester": {"password": "secret",
-                                                       "description": "",
-                                                       "roles": [],
-                                                       },
-                                            },
-                                      }
+            config["user_mapping"] = {
+                "/": {"tester": {"password": "secret", "description": "", "roles": []}}
+            }
             config["accept_basic"] = True
             config["accept_digest"] = False
             config["default_to_digest"] = False
@@ -84,7 +83,8 @@ class ServerTest(unittest.TestCase):
     def testPreconditions(self):
         """Environment must be set."""
         self.assertTrue(
-            __debug__, "__debug__ must be True, otherwise asserts are ignored")
+            __debug__, "__debug__ must be True, otherwise asserts are ignored"
+        )
 
     def testDirBrowser(self):
         """Server must respond to GET on a collection."""
@@ -140,11 +140,13 @@ class ServerTest(unittest.TestCase):
 
         # Request must not contain a body (expect '415 Media Type Not
         # Supported')
-        app.request("/file1.txt",
-                    method="GET",
-                    headers={"Content-Length": compat.to_native(len(data1))},
-                    body=data1,
-                    status=415)
+        app.request(
+            "/file1.txt",
+            method="GET",
+            headers={"Content-Length": compat.to_native(len(data1))},
+            body=data1,
+            status=415,
+        )
 
         # Delete existing resource (expect '204 No Content')
         app.delete("/file1.txt", status=204)
@@ -157,10 +159,12 @@ class ServerTest(unittest.TestCase):
     def testEncoding(self):
         """Handle special characters."""
         app = self.app
-        uniData = u"This is a file with special characters:\n" \
-            + u"Umlaute(äöüß)\n" \
-            + u"Euro(\u20AC)\n" \
+        uniData = (
+            u"This is a file with special characters:\n"
+            + u"Umlaute(äöüß)\n"
+            + u"Euro(\u20AC)\n"
             + u"Male(\u2642)"
+        )
 
         data = uniData.encode("utf8")
 
@@ -225,8 +229,7 @@ class ServerTest(unittest.TestCase):
         user = "tester"
         password = "secret"
         creds = util.calc_base64(user + ":" + password)
-        headers = {"Authorization": "Basic %s" % creds,
-                   }
+        headers = {"Authorization": "Basic %s" % creds}
         # Existing resource
         app.get("/file1.txt", headers=headers, status=200)
         # Non-existing resource (expect 404 NotFound)

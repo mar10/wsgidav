@@ -32,7 +32,7 @@ msOfficeTypeToExtMap = {
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
     "word": ("doc", "dot", "docm", "docx", "dotm", "dotx"),
     "visio": ("vsd", "vsdm", "vsdx", "vstm", "vstx"),
-    }
+}
 msOfficeExtToTypeMap = {}
 for t, el in msOfficeTypeToExtMap.items():
     for e in el:
@@ -61,39 +61,55 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if environ["wsgidav.provider"]:
             davres = environ["wsgidav.provider"].get_resource_inst(path, environ)
 
-        if environ["REQUEST_METHOD"] in ("GET", "HEAD") and davres and davres.is_collection:
+        if (
+            environ["REQUEST_METHOD"] in ("GET", "HEAD")
+            and davres
+            and davres.is_collection
+        ):
 
             if util.get_content_length(environ) != 0:
-                self._fail(HTTP_MEDIATYPE_NOT_SUPPORTED,
-                           "The server does not handle any body content.")
+                self._fail(
+                    HTTP_MEDIATYPE_NOT_SUPPORTED,
+                    "The server does not handle any body content.",
+                )
 
             if environ["REQUEST_METHOD"] == "HEAD":
                 return util.send_status_response(environ, start_response, HTTP_OK)
 
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
             dirConfig = environ["wsgidav.config"].get("dir_browser", {})
-            if dirConfig.get("davmount") and "davmount" in environ.get("QUERY_STRING", ""):
+            if dirConfig.get("davmount") and "davmount" in environ.get(
+                "QUERY_STRING", ""
+            ):
                 collectionUrl = util.make_complete_url(environ)
                 collectionUrl = collectionUrl.split("?", 1)[0]
                 res = compat.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
                 # TODO: support <dm:open>%s</dm:open>
 
-                start_response("200 OK", [("Content-Type", "application/davmount+xml"),
-                                          ("Content-Length", str(len(res))),
-                                          ("Cache-Control", "private"),
-                                          ("Date", util.get_rfc1123_time()),
-                                          ])
+                start_response(
+                    "200 OK",
+                    [
+                        ("Content-Type", "application/davmount+xml"),
+                        ("Content-Length", str(len(res))),
+                        ("Cache-Control", "private"),
+                        ("Date", util.get_rfc1123_time()),
+                    ],
+                )
                 return [res]
 
             context = self._get_context(environ, davres)
 
             res = self.template.render(**context)
             res = compat.to_bytes(res)
-            start_response("200 OK", [("Content-Type", "text/html"),
-                                      ("Content-Length", str(len(res))),
-                                      ("Cache-Control", "private"),
-                                      ("Date", util.get_rfc1123_time()),
-                                      ])
+            start_response(
+                "200 OK",
+                [
+                    ("Content-Type", "text/html"),
+                    ("Content-Length", str(len(res))),
+                    ("Cache-Control", "private"),
+                    ("Date", util.get_rfc1123_time()),
+                ],
+            )
             return [res]
 
         return self.next_app(environ, start_response)
@@ -102,8 +118,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
         """Wrapper to raise (and log) DAVError."""
         e = DAVError(value, contextinfo, srcexception, errcondition)
         if self.verbose >= 4:
-            _logger.warn("Raising DAVError {}".format(
-                    safe_re_encode(e.get_user_info(), sys.stdout.encoding)))
+            _logger.warn(
+                "Raising DAVError {}".format(
+                    safe_re_encode(e.get_user_info(), sys.stdout.encoding)
+                )
+            )
         raise e
 
     def _get_context(self, environ, davres):
@@ -124,7 +143,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "parentUrl": util.get_uri_parent(davres.get_href()),
             "config": dirConfig,
             "is_readonly": isReadOnly,
-            }
+        }
 
         trailer = dirConfig.get("response_trailer")
         if trailer is True:
@@ -133,7 +152,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if trailer:
             trailer = trailer.replace(
                 "${version}",
-                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a>".format(__version__))
+                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a>".format(
+                    __version__
+                ),
+            )
             trailer = trailer.replace("${time}", util.get_rfc1123_time())
 
         context["trailer"] = trailer
@@ -172,7 +194,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     "contentLength": res.get_content_length(),
                     "displayType": di.get("type"),
                     "displayTypeComment": di.get("typeComment"),
-                    }
+                }
 
                 dirInfoList.append(entry)
         #
@@ -208,11 +230,16 @@ class WsgiDavDirBrowser(BaseMiddleware):
         # sort
         sort = "name"
         if sort == "name":
-            rows.sort(key=lambda v:
-                      "{}{}".format(not v["is_collection"], v["displayName"].lower()))
+            rows.sort(
+                key=lambda v: "{}{}".format(
+                    not v["is_collection"], v["displayName"].lower()
+                )
+            )
 
         if "http_authenticator.username" in environ:
-            context["username"] = environ.get("http_authenticator.username") or "anonymous"
+            context["username"] = (
+                environ.get("http_authenticator.username") or "anonymous"
+            )
             context["realm"] = environ.get("http_authenticator.realm")
 
         return context

@@ -13,7 +13,6 @@ import requests
 
 from tests.util import WsgiDavTestServer
 
-
 _test_server = None
 
 

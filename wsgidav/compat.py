@@ -28,6 +28,7 @@ except NameError:
 
 try:
     from cStringIO import StringIO
+
     BytesIO = StringIO
     import Queue as queue
 except ImportError:
@@ -88,7 +89,8 @@ if PY2:
             s = unicode(s, encoding)
         return s
 
-else:   # Python 3
+
+else:  # Python 3
 
     from base64 import decodebytes as base64_decodebytes
     from base64 import encodebytes as base64_encodebytes
@@ -135,6 +137,7 @@ b_slash = to_bytes("/")
 
 
 # WSGI support
+
 
 def unicode_to_wsgi(u):
     """Convert an environment variable to a WSGI 'bytes-as-unicode' string."""

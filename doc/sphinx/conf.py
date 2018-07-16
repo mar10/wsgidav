@@ -16,6 +16,9 @@
 # Disable PEP 8 checks
 # flake8: noqa
 
+# Disable Black formatting
+# fmt: off
+
 import sys
 import os
 

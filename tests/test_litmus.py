@@ -12,10 +12,10 @@ import unittest
 
 from tests.util import WsgiDavTestServer
 
-
 # ========================================================================
 # WsgiDAVServerTest
 # ========================================================================
+
 
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Run litmus test suite against builtin server."""
@@ -38,7 +38,8 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         with WsgiDavTestServer(with_auth=True, with_ssl=False):
             try:
                 res = subprocess.call(
-                    ["litmus", "http://127.0.0.1:8080/", "tester", "secret"])
+                    ["litmus", "http://127.0.0.1:8080/", "tester", "secret"]
+                )
                 self.assertEqual(res, 0, "litmus suite failed: check the log")
             except OSError:
                 self._report_missing_litmus()
@@ -61,7 +62,8 @@ class WsgiDAVLitmusTest(unittest.TestCase):
         with WsgiDavTestServer(with_auth=True, with_ssl=True):
             try:
                 res = subprocess.call(
-                    ["litmus", "https://127.0.0.1:8080/", "tester", "secret"])
+                    ["litmus", "https://127.0.0.1:8080/", "tester", "secret"]
+                )
                 self.assertEqual(res, 0, "litmus suite failed: check the log")
             except OSError:
                 self._report_missing_litmus()

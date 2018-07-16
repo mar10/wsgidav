@@ -60,6 +60,7 @@ from __future__ import print_function
 
 import csv
 import hashlib
+
 # import md5
 import time
 
@@ -68,7 +69,7 @@ from wsgidav import compat, util
 from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
     DAVError,
-    PRECONDITION_CODE_ProtectedProperty
+    PRECONDITION_CODE_ProtectedProperty,
 )
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 
@@ -101,7 +102,7 @@ class MySQLBrowserResource(_DAVResource):
         displayTypeComment = ""
         contentType = "text/html"
 
-#        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
+        #        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
         if tableName is None:
             displayType = "Database"
         elif primKey is None:  # "database" and table name
@@ -118,18 +119,17 @@ class MySQLBrowserResource(_DAVResource):
         # Avoid calling is_collection, since it would call isExisting -> _init_connection
         is_collection = primKey is None
 
-        self._cache = {"contentLength": None,
-                       "contentType": contentType,
-                       "created": time.time(),
-                       "displayName": self.name,
-                       "etag": hashlib.md5().update(self.path).hexdigest(),
-                       # "etag": md5.new(self.path).hexdigest(),
-                       "modified": None,
-                       "support_ranges": False,
-                       "displayInfo": {"type": displayType,
-                                       "typeComment": displayTypeComment,
-                                       },
-                       }
+        self._cache = {
+            "contentLength": None,
+            "contentType": contentType,
+            "created": time.time(),
+            "displayName": self.name,
+            "etag": hashlib.md5().update(self.path).hexdigest(),
+            # "etag": md5.new(self.path).hexdigest(),
+            "modified": None,
+            "support_ranges": False,
+            "displayInfo": {"type": displayType, "typeComment": displayTypeComment},
+        }
 
         # Some resource-only infos:
         if not is_collection:
@@ -175,21 +175,36 @@ class MySQLBrowserResource(_DAVResource):
             if tableName is None:
                 retlist = self.provider._list_tables(conn)
                 for name in retlist:
-                    members.append(MySQLBrowserResource(self.provider,
-                                                        util.join_uri(self.path, name),
-                                                        True,
-                                                        self.environ))
+                    members.append(
+                        MySQLBrowserResource(
+                            self.provider,
+                            util.join_uri(self.path, name),
+                            True,
+                            self.environ,
+                        )
+                    )
             elif primKey is None:
                 pri_key = self.provider._find_primary_key(conn, tableName)
                 if pri_key is not None:
                     retlist = self.provider._list_fields(conn, tableName, pri_key)
                     for name in retlist:
-                        members.append(MySQLBrowserResource(
-                                self.provider, util.join_uri(self.path, name),
-                                False, self.environ))
-                members.insert(0, MySQLBrowserResource(
-                        self.provider, util.join_uri(self.path, "_ENTIRE_CONTENTS"),
-                        False, self.environ))
+                        members.append(
+                            MySQLBrowserResource(
+                                self.provider,
+                                util.join_uri(self.path, name),
+                                False,
+                                self.environ,
+                            )
+                        )
+                members.insert(
+                    0,
+                    MySQLBrowserResource(
+                        self.provider,
+                        util.join_uri(self.path, "_ENTIRE_CONTENTS"),
+                        False,
+                        self.environ,
+                    ),
+                )
         finally:
             conn.close()
         return members
@@ -270,7 +285,8 @@ class MySQLBrowserResource(_DAVResource):
                 fieldlist = self.provider._get_field_list(conn, tableName)
                 if localName in fieldlist:
                     val = self.provider._get_field_by_primary_key(
-                            conn, tableName, primKey, localName)
+                        conn, tableName, primKey, localName
+                    )
                     conn.close()
                     return val
                 conn.close()
@@ -282,8 +298,8 @@ class MySQLBrowserResource(_DAVResource):
 
         See DAVResource.set_property_value()
         """
-        raise DAVError(HTTP_FORBIDDEN,
-                       errcondition=PRECONDITION_CODE_ProtectedProperty)
+        raise DAVError(HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty)
+
 
 # ============================================================================
 # MySQLBrowserProvider
@@ -291,7 +307,6 @@ class MySQLBrowserResource(_DAVResource):
 
 
 class MySQLBrowserProvider(DAVProvider):
-
     def __init__(self, host, user, passwd, db):
         super(MySQLBrowserProvider, self).__init__()
         self._host = host
@@ -302,22 +317,25 @@ class MySQLBrowserProvider(DAVProvider):
 
     def __repr__(self):
         return "%s for db '%s' on '%s' (user: '%s')'" % (
-            self.__class__.__name__, self._db, self._host, self._user)
+            self.__class__.__name__,
+            self._db,
+            self._host,
+            self._user,
+        )
 
     def _split_path(self, path):
         """Return (tableName, primaryKey) tuple for a request path."""
         if path.strip() in (None, "", "/"):
             return (None, None)
         tableName, primKey = util.save_split(path.strip("/"), "/", 1)
-#        _logger.debug("'%s' -> ('%s', '%s')" % (path, tableName, primKey))
+        #        _logger.debug("'%s' -> ('%s', '%s')" % (path, tableName, primKey))
         return (tableName, primKey)
 
     def _init_connection(self):
         self._count_initConnection += 1
-        return MySQLdb.connect(host=self._host,
-                               user=self._user,
-                               passwd=self._passwd,
-                               db=self._db)
+        return MySQLdb.connect(
+            host=self._host, user=self._user, passwd=self._passwd, db=self._db
+        )
 
     def _get_field_list(self, conn, table_name):
         retlist = []
@@ -333,20 +351,22 @@ class MySQLBrowserProvider(DAVProvider):
         if datatype is None:
             return False
         # how many MySQL datatypes does it take to change a lig... I mean, store numbers
-        numerictypes = ["BIGINT",
-                        "INTT",
-                        "MEDIUMINT",
-                        "SMALLINT",
-                        "TINYINT",
-                        "BIT",
-                        "DEC",
-                        "DECIMAL",
-                        "DOUBLE",
-                        "FLOAT",
-                        "REAL",
-                        "DOUBLE PRECISION",
-                        "INTEGER",
-                        "NUMERIC"]
+        numerictypes = [
+            "BIGINT",
+            "INTT",
+            "MEDIUMINT",
+            "SMALLINT",
+            "TINYINT",
+            "BIT",
+            "DEC",
+            "DECIMAL",
+            "DOUBLE",
+            "FLOAT",
+            "REAL",
+            "DOUBLE PRECISION",
+            "INTEGER",
+            "NUMERIC",
+        ]
         datatype = datatype.upper()
         for numtype in numerictypes:
             if datatype.startswith(numtype):
@@ -372,11 +392,32 @@ class MySQLBrowserProvider(DAVProvider):
 
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         if isNumType:
-            cursor.execute("SELECT " + pri_key + " FROM " + self._db + "." +
-                           table_name + " WHERE " + pri_key + " = " + pri_key_value)
+            cursor.execute(
+                "SELECT "
+                + pri_key
+                + " FROM "
+                + self._db
+                + "."
+                + table_name
+                + " WHERE "
+                + pri_key
+                + " = "
+                + pri_key_value
+            )
         else:
-            cursor.execute("SELECT " + pri_key + " FROM " + self._db + "." +
-                           table_name + " WHERE " + pri_key + " = '" + pri_key_value + "'")
+            cursor.execute(
+                "SELECT "
+                + pri_key
+                + " FROM "
+                + self._db
+                + "."
+                + table_name
+                + " WHERE "
+                + pri_key
+                + " = '"
+                + pri_key_value
+                + "'"
+            )
         row = cursor.fetchone()
         if row is None:
             cursor.close()
@@ -403,11 +444,32 @@ class MySQLBrowserProvider(DAVProvider):
 
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         if isNumType:
-            cursor.execute("SELECT " + field_name + " FROM " + self._db + "." +
-                           table_name + " WHERE " + pri_key + " = " + pri_key_value)
+            cursor.execute(
+                "SELECT "
+                + field_name
+                + " FROM "
+                + self._db
+                + "."
+                + table_name
+                + " WHERE "
+                + pri_key
+                + " = "
+                + pri_key_value
+            )
         else:
-            cursor.execute("SELECT " + field_name + " FROM " + self._db + "." +
-                           table_name + " WHERE " + pri_key + " = '" + pri_key_value + "'")
+            cursor.execute(
+                "SELECT "
+                + field_name
+                + " FROM "
+                + self._db
+                + "."
+                + table_name
+                + " WHERE "
+                + pri_key
+                + " = '"
+                + pri_key_value
+                + "'"
+            )
         row = cursor.fetchone()
         if row is None:
             cursor.close()
@@ -436,11 +498,28 @@ class MySQLBrowserProvider(DAVProvider):
 
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         if isNumType:
-            cursor.execute("SELECT * FROM " + self._db + "." + table_name +
-                           " WHERE " + pri_key + " = " + pri_key_value)
+            cursor.execute(
+                "SELECT * FROM "
+                + self._db
+                + "."
+                + table_name
+                + " WHERE "
+                + pri_key
+                + " = "
+                + pri_key_value
+            )
         else:
-            cursor.execute("SELECT * FROM " + self._db + "." + table_name +
-                           " WHERE " + pri_key + " = '" + pri_key_value + "'")
+            cursor.execute(
+                "SELECT * FROM "
+                + self._db
+                + "."
+                + table_name
+                + " WHERE "
+                + pri_key
+                + " = '"
+                + pri_key_value
+                + "'"
+            )
         row = cursor.fetchone()
         if row is None:
             cursor.close()

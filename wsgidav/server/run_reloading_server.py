@@ -21,13 +21,14 @@ def run():
     try:
         serverpath = os.path.join(os.path.dirname(__file__), "server_cli.py")
         while True:
-            p = Popen(["python", serverpath] + args,
-                      # stdin=sys.stdin,
-                      # stdout=subprocess.PIPE,
-                      # stderr=subprocess.PIPE,
-                      # preexec_fn, close_fds, shell, cwd, env, universal_newlines, startupinfo,
-                      # creationflags
-                      )
+            p = Popen(
+                ["python", serverpath] + args,
+                # stdin=sys.stdin,
+                # stdout=subprocess.PIPE,
+                # stderr=subprocess.PIPE,
+                # preexec_fn, close_fds, shell, cwd, env, universal_newlines, startupinfo,
+                # creationflags
+            )
             sys.stdout = p.stdout
             sys.stderr = p.stderr
             p.wait()

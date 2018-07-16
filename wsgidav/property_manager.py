@@ -95,7 +95,9 @@ class PropertyManager(object):
             #            _logger.debug("{} checks ok {}".format(self.__class__.__name__, msg))
             return True
         except Exception:
-            _logger.exception("{} _check: ERROR {}".format(self.__class__.__name__, msg))
+            _logger.exception(
+                "{} _check: ERROR {}".format(self.__class__.__name__, msg)
+            )
             return False
 
     def _dump(self, msg=""):
@@ -143,19 +145,26 @@ class PropertyManager(object):
             try:
                 resourceprops = self._dict[normurl]
             except Exception as e:
-                _logger.exception("get_property({}, {}) failed : {}".format(normurl, propname, e))
+                _logger.exception(
+                    "get_property({}, {}) failed : {}".format(normurl, propname, e)
+                )
                 raise
             return resourceprops.get(propname)
         finally:
             self._lock.release()
 
-    def write_property(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
+    def write_property(
+        self, normurl, propname, propertyvalue, dryRun=False, environ=None
+    ):
         assert normurl and normurl.startswith("/")
         assert propname  # and propname.startswith("{")
         assert propertyvalue is not None
 
-        _logger.debug("write_property({}, {}, dryRun={}):\n\t{}"
-                      .format(normurl, propname, dryRun, propertyvalue))
+        _logger.debug(
+            "write_property({}, {}, dryRun={}):\n\t{}".format(
+                normurl, propname, dryRun, propertyvalue
+            )
+        )
         if dryRun:
             return  # TODO: can we check anything here?
 
@@ -180,7 +189,9 @@ class PropertyManager(object):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
-        _logger.debug("remove_property({}, {}, dryRun={})".format(normurl, propname, dryRun))
+        _logger.debug(
+            "remove_property({}, {}, dryRun={})".format(normurl, propname, dryRun)
+        )
         if dryRun:
             # TODO: can we check anything here?
             return
@@ -230,7 +241,9 @@ class PropertyManager(object):
             self._lock.release()
 
     def move_properties(self, srcurl, desturl, withChildren, environ=None):
-        _logger.debug("move_properties({}, {}, {})".format(srcurl, desturl, withChildren))
+        _logger.debug(
+            "move_properties({}, {}, {})".format(srcurl, desturl, withChildren)
+        )
         self._lock.acquire_write()
         try:
             if __debug__ and self._verbose >= 4:
@@ -259,6 +272,7 @@ class PropertyManager(object):
 # ShelvePropertyManager
 # ========================================================================
 
+
 class ShelvePropertyManager(PropertyManager):
     """
     A low performance property manager implementation using shelve
@@ -280,8 +294,7 @@ class ShelvePropertyManager(PropertyManager):
                 return True
             # Open with writeback=False, which is faster, but we have to be
             # careful to re-assign values to _dict after modifying them
-            self._dict = shelve.open(self._storagePath,
-                                     writeback=False)
+            self._dict = shelve.open(self._storagePath, writeback=False)
             self._loaded = True
             if __debug__ and self._verbose >= 4:
                 self._check("After shelve.open()")

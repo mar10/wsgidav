@@ -70,10 +70,14 @@ class MongoPropertyManager(object):
         # If credentials are passed, logon to the property storage db
         if opts.get("user"):
             if not self.db.authenticate(opts.get("user"), opts.get("pwd")):
-                raise RuntimeError("Failed to logon to db %s as user %s" %
-                                   (self.db.name, opts.get("user")))
-            _logger.info("Logged on to mongo db '%s' as user '%s'" %
-                         (self.db.name, opts.get("user")))
+                raise RuntimeError(
+                    "Failed to logon to db %s as user %s"
+                    % (self.db.name, opts.get("user"))
+                )
+            _logger.info(
+                "Logged on to mongo db '%s' as user '%s'"
+                % (self.db.name, opts.get("user"))
+            )
 
         self.collection = self.db["properties"]
         _logger.info("MongoPropertyManager connected %r" % self.collection)
@@ -114,29 +118,33 @@ class MongoPropertyManager(object):
         prop = doc.get(encode_mongo_key(propname))
         return prop
 
-    def write_property(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
+    def write_property(
+        self, normurl, propname, propertyvalue, dryRun=False, environ=None
+    ):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
         assert propname not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % propname
 
-        _logger.debug("write_property(%s, %s, dryRun=%s):\n\t%s" %
-                      (normurl, propname, dryRun, propertyvalue))
+        _logger.debug(
+            "write_property(%s, %s, dryRun=%s):\n\t%s"
+            % (normurl, propname, dryRun, propertyvalue)
+        )
         if dryRun:
             return  # TODO: can we check anything here?
 
         doc = self.collection.find_one({"_url": normurl})
         if not doc:
-            doc = {"_url": normurl,
-                   "_title": compat.quote(normurl),
-                   }
+            doc = {"_url": normurl, "_title": compat.quote(normurl)}
         doc[encode_mongo_key(propname)] = propertyvalue
         self.collection.save(doc)
 
     def remove_property(self, normurl, propname, dryRun=False, environ=None):
         """
         """
-        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
+        _logger.debug(
+            "remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun)
+        )
         if dryRun:
             # TODO: can we check anything here?
             return
@@ -157,7 +165,9 @@ class MongoPropertyManager(object):
     def copy_properties(self, srcUrl, destUrl, environ=None):
         doc = self.collection.find_one({"_url": srcUrl})
         if not doc:
-            _logger.debug("copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl))
+            _logger.debug(
+                "copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl)
+            )
             return
         _logger.debug("copy_properties(%s, %s)" % (srcUrl, destUrl))
         doc2 = doc.copy()
@@ -168,9 +178,7 @@ class MongoPropertyManager(object):
         if withChildren:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
             matchBegin = "^" + srcUrl.rstrip("/") + "/"
-            query = {"$or": [{"_url": srcUrl},
-                             {"_url": {"$regex": matchBegin}},
-                             ]}
+            query = {"$or": [{"_url": srcUrl}, {"_url": {"$regex": matchBegin}}]}
             docList = self.collection.find(query)
             for doc in docList:
                 newDest = doc["_url"].replace(srcUrl, destUrl)

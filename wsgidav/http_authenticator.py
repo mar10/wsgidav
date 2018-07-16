@@ -74,10 +74,10 @@ The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
 """
-from hashlib import md5
 import random
 import re
 import time
+from hashlib import md5
 
 from wsgidav import compat, util
 from wsgidav.domain_controller import WsgiDAVDomainController
@@ -141,7 +141,8 @@ class HTTPAuthenticator(BaseMiddleware):
         self._verbose = config.get("verbose", 3)
         self._user_mapping = config.get("user_mapping", {})
         self._domaincontroller = config.get(
-            "domain_controller") or WsgiDAVDomainController(self._user_mapping)
+            "domain_controller"
+        ) or WsgiDAVDomainController(self._user_mapping)
         auth_conf = config.get("http_authenticator", {})
         self._acceptbasic = auth_conf.get("accept_basic", True)
         self._acceptdigest = auth_conf.get("accept_digest", True)
@@ -160,17 +161,21 @@ class HTTPAuthenticator(BaseMiddleware):
             if self._acceptdigest or self._defaultdigest or not self._acceptbasic:
                 _logger.warn(
                     "{} requires basic authentication.\n\tSet accept_basic=True, "
-                    "accept_digest=False, default_to_digest=False".format(wdcName))
+                    "accept_digest=False, default_to_digest=False".format(wdcName)
+                )
 
     def get_domain_controller(self):
         return self._domaincontroller
 
     def allow_anonymous_access(self, share):
-        return (isinstance(self._domaincontroller, WsgiDAVDomainController)
-                and not self._user_mapping.get(share))
+        return isinstance(
+            self._domaincontroller, WsgiDAVDomainController
+        ) and not self._user_mapping.get(share)
 
     def __call__(self, environ, start_response):
-        realmname = self._domaincontroller.get_domain_realm(environ["PATH_INFO"], environ)
+        realmname = self._domaincontroller.get_domain_realm(
+            environ["PATH_INFO"], environ
+        )
 
         _logger.debug("realm '{}'".format(realmname))
         # _logger.debug("{}".format(environ))
@@ -180,7 +185,9 @@ class HTTPAuthenticator(BaseMiddleware):
             _logger.warning("No authorization required for OPTIONS method")
             force_allow = True
 
-        if force_allow or not self._domaincontroller.require_authentication(realmname, environ):
+        if force_allow or not self._domaincontroller.require_authentication(
+            realmname, environ
+        ):
             # no authentication needed
             _logger.debug("No authorization required for realm '{}'".format(realmname))
             environ["http_authenticator.realm"] = realmname
@@ -189,10 +196,17 @@ class HTTPAuthenticator(BaseMiddleware):
 
         if self._trusted_auth_header and environ.get(self._trusted_auth_header):
             # accept a username that was injected by a trusted upstream server
-            _logger.debug("Accept trusted username {}='{}'for realm '{}'".format(
-                    self._trusted_auth_header, environ.get(self._trusted_auth_header), realmname))
+            _logger.debug(
+                "Accept trusted username {}='{}'for realm '{}'".format(
+                    self._trusted_auth_header,
+                    environ.get(self._trusted_auth_header),
+                    realmname,
+                )
+            )
             environ["http_authenticator.realm"] = realmname
-            environ["http_authenticator.username"] = environ.get(self._trusted_auth_header)
+            environ["http_authenticator.username"] = environ.get(
+                self._trusted_auth_header
+            )
             return self.next_app(environ, start_response)
 
         if "HTTP_AUTHORIZATION" in environ:
@@ -215,12 +229,16 @@ class HTTPAuthenticator(BaseMiddleware):
             elif self._acceptbasic:
                 return self.send_basic_auth_response(environ, start_response)
 
-            _logger.warn("HTTPAuthenticator: respond with 400 Bad request; Auth-Method: {}"
-                         .format(authmethod))
+            _logger.warn(
+                "HTTPAuthenticator: respond with 400 Bad request; Auth-Method: {}".format(
+                    authmethod
+                )
+            )
 
-            start_response("400 Bad Request", [("Content-Length", "0"),
-                                               ("Date", util.get_rfc1123_time()),
-                                               ])
+            start_response(
+                "400 Bad Request",
+                [("Content-Length", "0"), ("Date", util.get_rfc1123_time())],
+            )
             return [""]
 
         if self._defaultdigest:
@@ -229,25 +247,31 @@ class HTTPAuthenticator(BaseMiddleware):
 
     def send_basic_auth_response(self, environ, start_response):
         realmname = self._domaincontroller.get_domain_realm(
-            environ["PATH_INFO"], environ)
+            environ["PATH_INFO"], environ
+        )
         _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realmname))
-        wwwauthheaders = "Basic realm=\"" + realmname + "\""
+        wwwauthheaders = 'Basic realm="' + realmname + '"'
 
         body = compat.to_bytes(self.get_error_message())
-        start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
-                                              ("Content-Type", "text/html"),
-                                              ("Content-Length", str(len(body))),
-                                              ("Date", util.get_rfc1123_time()),
-                                              ])
+        start_response(
+            "401 Not Authorized",
+            [
+                ("WWW-Authenticate", wwwauthheaders),
+                ("Content-Type", "text/html"),
+                ("Content-Length", str(len(body))),
+                ("Date", util.get_rfc1123_time()),
+            ],
+        )
         return [body]
 
     def auth_basic_auth_request(self, environ, start_response):
         realmname = self._domaincontroller.get_domain_realm(
-            environ["PATH_INFO"], environ)
+            environ["PATH_INFO"], environ
+        )
         authheader = environ["HTTP_AUTHORIZATION"]
         authvalue = ""
         try:
-            authvalue = authheader[len("Basic "):].strip()
+            authvalue = authheader[len("Basic ") :].strip()
         except Exception:
             authvalue = ""
         # authvalue = authvalue.strip().decode("base64")
@@ -255,7 +279,9 @@ class HTTPAuthenticator(BaseMiddleware):
         authvalue = compat.to_native(authvalue)
         username, password = authvalue.split(":", 1)
 
-        if self._domaincontroller.auth_domain_user(realmname, username, password, environ):
+        if self._domaincontroller.auth_domain_user(
+            realmname, username, password, environ
+        ):
             environ["http_authenticator.realm"] = realmname
             environ["http_authenticator.username"] = username
             return self.next_app(environ, start_response)
@@ -263,32 +289,43 @@ class HTTPAuthenticator(BaseMiddleware):
 
     def send_digest_auth_response(self, environ, start_response):
         realmname = self._domaincontroller.get_domain_realm(
-            environ["PATH_INFO"], environ)
+            environ["PATH_INFO"], environ
+        )
         random.seed()
         serverkey = hex(random.getrandbits(32))[2:]
         etagkey = calc_hexdigest(environ["PATH_INFO"])
         timekey = str(time.time())
-        nonce_source = timekey + \
-            calc_hexdigest(timekey + ":" + etagkey + ":" + serverkey)
+        nonce_source = timekey + calc_hexdigest(
+            timekey + ":" + etagkey + ":" + serverkey
+        )
         nonce = calc_base64(nonce_source)
-        wwwauthheaders = ('Digest realm="{}", nonce="{}", algorithm=MD5, qop="auth"'
-                          .format(realmname, nonce))
+        wwwauthheaders = 'Digest realm="{}", nonce="{}", algorithm=MD5, qop="auth"'.format(
+            realmname, nonce
+        )
 
-        _logger.debug("401 Not Authorized for realm '{}' (digest): {}"
-                      .format(realmname, wwwauthheaders))
+        _logger.debug(
+            "401 Not Authorized for realm '{}' (digest): {}".format(
+                realmname, wwwauthheaders
+            )
+        )
 
         body = compat.to_bytes(self.get_error_message())
-        start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
-                                              ("Content-Type", "text/html"),
-                                              ("Content-Length", str(len(body))),
-                                              ("Date", util.get_rfc1123_time()),
-                                              ])
+        start_response(
+            "401 Not Authorized",
+            [
+                ("WWW-Authenticate", wwwauthheaders),
+                ("Content-Type", "text/html"),
+                ("Content-Length", str(len(body))),
+                ("Date", util.get_rfc1123_time()),
+            ],
+        )
         return [body]
 
     def auth_digest_auth_request(self, environ, start_response):
 
         realmname = self._domaincontroller.get_domain_realm(
-            environ["PATH_INFO"], environ)
+            environ["PATH_INFO"], environ
+        )
 
         isinvalidreq = False
 
@@ -305,15 +342,20 @@ class HTTPAuthenticator(BaseMiddleware):
         authheaderlist = self._headerparser.findall(authheaders)
         authheaderfixlist = self._headerfixparser.findall(authheaders)
         if authheaderfixlist:
-            _logger.info("Fixing authheader comma-parsing: extend {} with {}"
-                         .format(authheaderlist, authheaderfixlist))
+            _logger.info(
+                "Fixing authheader comma-parsing: extend {} with {}".format(
+                    authheaderlist, authheaderfixlist
+                )
+            )
             authheaderlist += authheaderfixlist
         for authheader in authheaderlist:
             authheaderkey = authheader[0]
-            authheadervalue = authheader[1].strip().strip("\"")
+            authheadervalue = authheader[1].strip().strip('"')
             authheaderdict[authheaderkey] = authheadervalue
 
-        _logger.debug("auth_digest_auth_request: {}".format(environ["HTTP_AUTHORIZATION"]))
+        _logger.debug(
+            "auth_digest_auth_request: {}".format(environ["HTTP_AUTHORIZATION"])
+        )
         _logger.debug("  -> {}".format(authheaderdict))
 
         if "username" in authheaderdict:
@@ -325,10 +367,15 @@ class HTTPAuthenticator(BaseMiddleware):
             # but send the digest for the simple name ('DOMAIN\tester').
             if r"\\" in req_username:
                 req_username = req_username.replace("\\\\", "\\")
-                _logger.info("Fixing Windows name with double backslash: '{}' --> '{}'"
-                             .format(req_username_org, req_username))
+                _logger.info(
+                    "Fixing Windows name with double backslash: '{}' --> '{}'".format(
+                        req_username_org, req_username
+                    )
+                )
 
-            if not self._domaincontroller.is_realm_user(realmname, req_username, environ):
+            if not self._domaincontroller.is_realm_user(
+                realmname, req_username, environ
+            ):
                 isinvalidreq = True
         else:
             isinvalidreq = True
@@ -347,7 +394,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
         if "algorithm" in authheaderdict:
             if authheaderdict["algorithm"].upper() != "MD5":
-                isinvalidreq = True         # only MD5 supported
+                isinvalidreq = True  # only MD5 supported
 
         if "uri" in authheaderdict:
             req_uri = authheaderdict["uri"]
@@ -362,7 +409,7 @@ class HTTPAuthenticator(BaseMiddleware):
             req_hasqop = True
             req_qop = authheaderdict["qop"]
             if req_qop.lower() != "auth":
-                isinvalidreq = True   # only auth supported, auth-int not supported
+                isinvalidreq = True  # only auth supported, auth-int not supported
         else:
             req_qop = None
 
@@ -373,7 +420,7 @@ class HTTPAuthenticator(BaseMiddleware):
             if req_hasqop:
                 isinvalidreq = True
 
-        if "nc" in authheaderdict:    # is read but nonce-count checking not implemented
+        if "nc" in authheaderdict:  # is read but nonce-count checking not implemented
             req_nc = authheaderdict["nc"]
         else:
             req_nc = None
@@ -387,26 +434,48 @@ class HTTPAuthenticator(BaseMiddleware):
 
         if not isinvalidreq:
             req_password = self._domaincontroller.get_realm_user_password(
-                realmname, req_username, environ)
+                realmname, req_username, environ
+            )
 
             req_method = environ["REQUEST_METHOD"]
 
             required_digest = self.compute_digest_response(
-                req_username, realmname, req_password, req_method, req_uri, req_nonce, req_cnonce,
-                req_qop, req_nc)
+                req_username,
+                realmname,
+                req_password,
+                req_method,
+                req_uri,
+                req_nonce,
+                req_cnonce,
+                req_qop,
+                req_nc,
+            )
 
             if required_digest != req_response:
-                _logger.warning("compute_digest_response('{}', '{}', ...): {} != {}".format(
-                    realmname, req_username, required_digest, req_response))
+                _logger.warning(
+                    "compute_digest_response('{}', '{}', ...): {} != {}".format(
+                        realmname, req_username, required_digest, req_response
+                    )
+                )
                 if HOTFIX_WINXP_AcceptRootShareLogin:
                     # Hotfix: also accept '/' digest
                     root_digest = self.compute_digest_response(
-                        req_username, "/", req_password, req_method, req_uri, req_nonce,
-                        req_cnonce, req_qop, req_nc)
+                        req_username,
+                        "/",
+                        req_password,
+                        req_method,
+                        req_uri,
+                        req_nonce,
+                        req_cnonce,
+                        req_qop,
+                        req_nc,
+                    )
                     if root_digest == req_response:
                         _logger.warn(
-                            "auth_digest_auth_request: HOTFIX: accepting '/' login for '{}'."
-                            .format(realmname))
+                            "auth_digest_auth_request: HOTFIX: accepting '/' login for '{}'.".format(
+                                realmname
+                            )
+                        )
                     else:
                         isinvalidreq = True
                 else:
@@ -417,8 +486,11 @@ class HTTPAuthenticator(BaseMiddleware):
                 pass
 
         if isinvalidreq:
-            _logger.warn("Authentication failed for user '{}', realm '{}'"
-                         .format(req_username, realmname))
+            _logger.warn(
+                "Authentication failed for user '{}', realm '{}'".format(
+                    req_username, realmname
+                )
+            )
             return self.send_digest_auth_response(environ, start_response)
 
         environ["http_authenticator.realm"] = realmname
@@ -426,12 +498,15 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.next_app(environ, start_response)
 
     def compute_digest_response(
-            self, username, realm, password, method, uri, nonce, cnonce, qop, nc):
+        self, username, realm, password, method, uri, nonce, cnonce, qop, nc
+    ):
         A1 = username + ":" + realm + ":" + password
         A2 = method + ":" + uri
         if qop:
-            digestresp = self.md5kd(self.md5h(
-                A1), nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
+            digestresp = self.md5kd(
+                self.md5h(A1),
+                nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2),
+            )
         else:
             digestresp = self.md5kd(self.md5h(A1), nonce + ":" + self.md5h(A2))
         return digestresp

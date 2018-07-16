@@ -24,10 +24,10 @@ def main():
         "user_mapping": {},
         "verbose": 1,
         "enable_loggers": [],
-        "property_manager": True,      # True: use property_manager.PropertyManager
-        "lock_manager": True,      # True: use lock_manager.LockManager
+        "property_manager": True,  # True: use property_manager.PropertyManager
+        "lock_manager": True,  # True: use lock_manager.LockManager
         "domain_controller": None,  # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        }
+    }
     app = WsgiDAVApp(config)
 
     # For an example, use CherryPy
@@ -37,7 +37,7 @@ def main():
         bind_addr=(config["host"], config["port"]),
         wsgi_app=app,
         server_name="WsgiDAV/{} {}".format(__version__, CherryPyWSGIServer.version),
-        )
+    )
 
     try:
         server.start()
@@ -48,6 +48,8 @@ def main():
 
     # For an example, use paste.httpserver
     # (See http://pythonpaste.org/modules/httpserver.html for more options)
+
+
 #    from paste import httpserver
 #    httpserver.serve(app,
 #                     host="localhost",

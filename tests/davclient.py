@@ -34,8 +34,10 @@ PY2 = sys.version_info < (3, 0)
 if PY2:
     from base64 import encodestring as base64_encodebytes
     from cStringIO import StringIO
+
     BytesIO = StringIO
     from urlparse import urlparse, urljoin
+
     is_bytes = lambda s: isinstance(s, str)  # noqa: E731
     is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731, F821
     to_native = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
@@ -43,6 +45,7 @@ else:
     from base64 import encodebytes as base64_encodebytes
     from io import StringIO, BytesIO
     from urllib.parse import urlparse, urljoin
+
     xrange = range
     is_bytes = lambda s: isinstance(s, bytes)  # noqa: E731
     is_unicode = lambda s: isinstance(s, str)  # noqa: E731
@@ -79,8 +82,7 @@ def object_to_etree(parent, obj, namespace=""):
         # recusively
         for key, value in obj.items():
             if key.startswith("{") is False:
-                key_etree = ElementTree.SubElement(
-                    parent, "{%s}%s" % (namespace, key))
+                key_etree = ElementTree.SubElement(parent, "{%s}%s" % (namespace, key))
                 object_to_etree(key_etree, value, namespace=namespace)
             else:
                 key_etree = ElementTree.SubElement(parent, key)
@@ -102,7 +104,6 @@ def object_to_etree(parent, obj, namespace=""):
 
 
 class DAVClient(object):
-
     def __init__(self, url="http://localhost:8080", logger=None):
         """Initialization"""
 
@@ -110,8 +111,10 @@ class DAVClient(object):
         self.logger = logger
         self.logger_prefix = "DAVClient" if logger is True else str(logger)
 
-        self.headers = {"Host": self._url[1],
-                        "User-Agent": "python.davclient.DAVClient/0.1"}
+        self.headers = {
+            "Host": self._url[1],
+            "User-Agent": "python.davclient.DAVClient/0.1",
+        }
         self.response = None
         self.clear_basic_auth()
 
@@ -134,10 +137,7 @@ class DAVClient(object):
             headers = new_headers
 
         # keep request info for later checks
-        self.request = {"method": method,
-                        "path": path,
-                        "headers": headers,
-                        }
+        self.request = {"method": method, "path": path, "headers": headers}
         url = self._url.geturl()
         url = urljoin(url, path)
         res = requests.request(method, url, data=body, headers=headers)
@@ -216,7 +216,15 @@ class DAVClient(object):
         """Delete DAV resource"""
         self._request("DELETE", path=path, headers=headers)
 
-    def copy(self, source, destination, body=None, depth="infinity", overwrite=True, headers=None):
+    def copy(
+        self,
+        source,
+        destination,
+        body=None,
+        depth="infinity",
+        overwrite=True,
+        headers=None,
+    ):
         """Copy DAV resource"""
         # Set all proper headers
         assert body is None or is_bytes(body)
@@ -230,25 +238,43 @@ class DAVClient(object):
 
         self._request("COPY", source, body=body, headers=headers)
 
-    def copy_collection(self, source, destination, depth="infinity", overwrite=True, headers=None):
+    def copy_collection(
+        self, source, destination, depth="infinity", overwrite=True, headers=None
+    ):
         """Copy DAV collection.
 
         Note: support for the "propertybehavior" request body for COPY and MOVE
               has been removed with RFC4918
         """
-        body = (b'<?xml version="1.0" encoding="utf-8" ?>'
-                b'<d:propertybehavior xmlns:d="DAV:">'
-                b"<d:keepalive>*</d:keepalive></d:propertybehavior>")
+        body = (
+            b'<?xml version="1.0" encoding="utf-8" ?>'
+            b'<d:propertybehavior xmlns:d="DAV:">'
+            b"<d:keepalive>*</d:keepalive></d:propertybehavior>"
+        )
 
         # Add proper headers
         if headers is None:
             headers = {}
         headers["Content-Type"] = 'text/xml; charset="utf-8"'
 
-        self.copy(source, destination, body=body, depth=depth,
-                  overwrite=overwrite, headers=headers)
+        self.copy(
+            source,
+            destination,
+            body=body,
+            depth=depth,
+            overwrite=overwrite,
+            headers=headers,
+        )
 
-    def move(self, source, destination, body=None, depth="infinity", overwrite=True, headers=None):
+    def move(
+        self,
+        source,
+        destination,
+        body=None,
+        depth="infinity",
+        overwrite=True,
+        headers=None,
+    ):
         """Move DAV resource"""
         assert body is None or is_bytes(body)
         # Set all proper headers
@@ -262,25 +288,32 @@ class DAVClient(object):
 
         self._request("MOVE", source, body=body, headers=headers)
 
-    def move_collection(self, source, destination, depth="infinity", overwrite=True, headers=None):
+    def move_collection(
+        self, source, destination, depth="infinity", overwrite=True, headers=None
+    ):
         """Move DAV collection and copy all properties.
 
         Note: support for the "propertybehavior" request body for COPY and MOVE
               has been removed with RFC4918
         """
-        body = (b'<?xml version="1.0" encoding="utf-8" ?>'
-                b'<d:propertybehavior xmlns:d="DAV:">'
-                b"<d:keepalive>*</d:keepalive></d:propertybehavior>")
+        body = (
+            b'<?xml version="1.0" encoding="utf-8" ?>'
+            b'<d:propertybehavior xmlns:d="DAV:">'
+            b"<d:keepalive>*</d:keepalive></d:propertybehavior>"
+        )
 
         # Add proper headers
         if headers is None:
             headers = {}
         headers["Content-Type"] = 'text/xml; charset="utf-8"'
 
-        self.move(source, destination, body, depth=depth,
-                  overwrite=overwrite, headers=headers)
+        self.move(
+            source, destination, body, depth=depth, overwrite=overwrite, headers=headers
+        )
 
-    def propfind(self, path, properties="allprop", namespace="DAV:", depth=None, headers=None):
+    def propfind(
+        self, path, properties="allprop", namespace="DAV:", depth=None, headers=None
+    ):
         """Property find. If properties arg is unspecified it defaults to 'allprop'."""
         # Build propfind xml
         root = ElementTree.Element("{DAV:}propfind")
@@ -323,12 +356,13 @@ class DAVClient(object):
                     return property_dict
 
                 if property_href is not None and property_stat is not None:
-                    property_dict = parse_props(
-                        property_stat.find("{DAV:}prop"))
+                    property_dict = parse_props(property_stat.find("{DAV:}prop"))
                     property_responses[property_href.text] = property_dict
             return property_responses
 
-    def proppatch(self, path, set_props=None, remove_props=None, namespace="DAV:", headers=None):
+    def proppatch(
+        self, path, set_props=None, remove_props=None, namespace="DAV:", headers=None
+    ):
         """Patch properties on a DAV resource.
 
         If namespace is not specified, the DAV namespace is used for all properties.
@@ -357,12 +391,22 @@ class DAVClient(object):
 
         self._request("PROPPATCH", path, body=body, headers=headers)
 
-    def set_lock(self, path, owner, locktype="write", lockscope="exclusive",
-                 depth=None, headers=None):
+    def set_lock(
+        self,
+        path,
+        owner,
+        locktype="write",
+        lockscope="exclusive",
+        depth=None,
+        headers=None,
+    ):
         """Set a lock on a dav resource"""
         root = ElementTree.Element("{DAV:}lockinfo")
-        object_to_etree(root, {"locktype": locktype, "lockscope": lockscope, "owner": {
-                        "href": owner}}, namespace="DAV:")
+        object_to_etree(
+            root,
+            {"locktype": locktype, "lockscope": lockscope, "owner": {"href": owner}},
+            namespace="DAV:",
+        )
         tree = ElementTree.ElementTree(root)
 
         # Add proper headers
@@ -414,8 +458,10 @@ class DAVClient(object):
         # Check response Content_Length
         content_length = int(res.headers.get("content-length", 0))
         if content_length and len(res.content) != content_length:
-            raise AppError("Mismatch: Content_Length(%s) != len(content)(%s)" % (
-                content_length, len(res.content)))
+            raise AppError(
+                "Mismatch: Content_Length(%s) != len(content)(%s)"
+                % (content_length, len(res.content))
+            )
 
         # From paste.fixture:
         if status == "*":
@@ -424,16 +470,26 @@ class DAVClient(object):
             if res.status_code not in status:
                 # TODO: Py3: check usage of str:
                 raise AppError(
-                    "Bad response: {} (not one of {} for {} {})\n{}"
-                    .format(full_status, ", ".join(map(str, status)),
-                            self.request["method"], self.request["path"], res.content))
+                    "Bad response: {} (not one of {} for {} {})\n{}".format(
+                        full_status,
+                        ", ".join(map(str, status)),
+                        self.request["method"],
+                        self.request["path"],
+                        res.content,
+                    )
+                )
             return
         if status is None:
             if res.status_code >= 200 and res.status_code < 400:
                 return
             raise AssertionError(
-                "Bad response: {} (not 200 OK or 3xx redirect for {} {})\n{}"
-                .format(full_status, self.request["method"], self.request["path"], res.content))
+                "Bad response: {} (not 200 OK or 3xx redirect for {} {})\n{}".format(
+                    full_status,
+                    self.request["method"],
+                    self.request["path"],
+                    res.content,
+                )
+            )
         if status != res.status_code:
             raise AppError("Bad response: %s (not %s)" % (full_status, status))
 
@@ -461,5 +517,8 @@ class DAVClient(object):
             responses.setdefault(statuscode, []).append(href.text)
         for statuscode, hrefs in responses.items():
             if statuscode not in expect_status:
-                raise AppError("Invalid multistatus {} for {} (expected {})\n{}"
-                               .format(statuscode, hrefs, expect_status, responses))
+                raise AppError(
+                    "Invalid multistatus {} for {} (expected {})\n{}".format(
+                        statuscode, hrefs, expect_status, responses
+                    )
+                )

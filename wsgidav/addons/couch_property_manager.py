@@ -57,12 +57,16 @@ class CouchPropertyManager(object):
         dbName = opts.get("dbName", "wsgidav_props")
         if dbName in self.couch:
             self.db = self.couch[dbName]
-            _logger.info("CouchPropertyManager connected to %s v%s" %
-                         (self.db, self.couch.version()))
+            _logger.info(
+                "CouchPropertyManager connected to %s v%s"
+                % (self.db, self.couch.version())
+            )
         else:
             self.db = self.couch.create(dbName)
-            _logger.info("CouchPropertyManager created new db %s v%s" %
-                         (self.db, self.couch.version()))
+            _logger.info(
+                "CouchPropertyManager created new db %s v%s"
+                % (self.db, self.couch.version())
+            )
 
         # Ensure that we have a permanent view
         if "_design/properties" not in self.db:
@@ -79,18 +83,18 @@ class CouchPropertyManager(object):
                 "language": "javascript",
                 "views": {
                     "titles": {
-                        "map": ("function(doc) { emit(null, { 'id': doc._id, "
-                                "'title': doc.title }); }")
+                        "map": (
+                            "function(doc) { emit(null, { 'id': doc._id, "
+                            "'title': doc.title }); }"
+                        )
                     },
                     # http://127.0.0.1:5984/wsgidav_props/_design/properties/_view/by_url
-                    "by_url": {
-                        "map": map
-                    }
-                }
+                    "by_url": {"map": map},
+                },
             }
             self.db.save(designDoc)
 
-#        pprint(self.couch.stats())
+    #        pprint(self.couch.stats())
 
     def _disconnect(self):
         pass
@@ -126,7 +130,9 @@ class CouchPropertyManager(object):
                 if(doc.type === 'properties' && url.indexOf('%s') === 0) {
                     emit(doc.url, { 'id': doc._id, 'url': doc.url });
                 }
-            }""" % (url + "/")
+            }""" % (
+            url + "/"
+        )
         vr = self.db.query(map_fun, include_docs=True)
         for row in vr:
             yield row.doc
@@ -149,13 +155,17 @@ class CouchPropertyManager(object):
         prop = doc["properties"].get(propname)
         return prop
 
-    def write_property(self, normurl, propname, propertyvalue, dryRun=False, environ=None):
+    def write_property(
+        self, normurl, propname, propertyvalue, dryRun=False, environ=None
+    ):
         assert normurl and normurl.startswith("/")
         assert propname
         assert propertyvalue is not None
 
-        _logger.debug("write_property(%s, %s, dryRun=%s):\n\t%s" %
-                      (normurl, propname, dryRun, propertyvalue))
+        _logger.debug(
+            "write_property(%s, %s, dryRun=%s):\n\t%s"
+            % (normurl, propname, dryRun, propertyvalue)
+        )
         if dryRun:
             return  # TODO: can we check anything here?
 
@@ -163,16 +173,19 @@ class CouchPropertyManager(object):
         if doc:
             doc["properties"][propname] = propertyvalue
         else:
-            doc = {"_id": uuid4().hex,  # Documentation suggests to set the id
-                   "url": normurl,
-                   "title": compat.quote(normurl),
-                   "type": "properties",
-                   "properties": {propname: propertyvalue}
-                   }
+            doc = {
+                "_id": uuid4().hex,  # Documentation suggests to set the id
+                "url": normurl,
+                "title": compat.quote(normurl),
+                "type": "properties",
+                "properties": {propname: propertyvalue},
+            }
         self.db.save(doc)
 
     def remove_property(self, normurl, propname, dryRun=False, environ=None):
-        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun))
+        _logger.debug(
+            "remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun)
+        )
         if dryRun:
             # TODO: can we check anything here?
             return
@@ -193,16 +206,19 @@ class CouchPropertyManager(object):
     def copy_properties(self, srcUrl, destUrl, environ=None):
         doc = self._find(srcUrl)
         if not doc:
-            _logger.debug("copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl))
+            _logger.debug(
+                "copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl)
+            )
             return
         _logger.debug("copy_properties(%s, %s)" % (srcUrl, destUrl))
         assert not self._find(destUrl)
-        doc2 = {"_id": uuid4().hex,
-                "url": destUrl,
-                "title": compat.quote(destUrl),
-                "type": "properties",
-                "properties": doc["properties"],
-                }
+        doc2 = {
+            "_id": uuid4().hex,
+            "url": destUrl,
+            "title": compat.quote(destUrl),
+            "type": "properties",
+            "properties": doc["properties"],
+        }
         self.db.save(doc2)
 
     def move_properties(self, srcUrl, destUrl, withChildren, environ=None):
@@ -224,6 +240,7 @@ class CouchPropertyManager(object):
                 doc["url"] = destUrl
                 self.db.save(doc)
         return
+
 
 # ============================================================================
 #

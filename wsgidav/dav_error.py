@@ -6,10 +6,11 @@
 Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 import datetime
-# import traceback
 
 from wsgidav import __version__, compat, xml_tools
 from wsgidav.xml_tools import etree
+
+# import traceback
 
 
 __docformat__ = "reStructuredText"
@@ -95,7 +96,7 @@ ERROR_DESCRIPTIONS = {
     HTTP_INTERNAL_ERROR: "500 Internal Server Error",
     HTTP_NOT_IMPLEMENTED: "501 Not Implemented",
     HTTP_BAD_GATEWAY: "502 Bad Gateway",
-    }
+}
 
 # ========================================================================
 # if ERROR_RESPONSES exists for an error code, a html output will be sent as response
@@ -109,7 +110,7 @@ ERROR_RESPONSES = {
     HTTP_FORBIDDEN: "Access denied to the specified resource",
     HTTP_INTERNAL_ERROR: "An internal server error occurred",
     HTTP_NOT_IMPLEMENTED: "Not Implemented",
-    }
+}
 
 
 # ========================================================================
@@ -130,6 +131,7 @@ class DAVErrorCondition(object):
     Args:
         conditionCode (str): Should be PRECONDITION_CODE_...
     """
+
     def __init__(self, conditionCode):
         self.conditionCode = conditionCode
         self.hrefs = []
@@ -139,15 +141,18 @@ class DAVErrorCondition(object):
 
     def add_href(self, href):
         assert href.startswith("/")
-        assert self.conditionCode in (PRECONDITION_CODE_LockConflict,
-                                      PRECONDITION_CODE_MissingLockToken)
+        assert self.conditionCode in (
+            PRECONDITION_CODE_LockConflict,
+            PRECONDITION_CODE_MissingLockToken,
+        )
         if href not in self.hrefs:
             self.hrefs.append(href)
 
     def as_xml(self):
         if self.conditionCode == PRECONDITION_CODE_MissingLockToken:
-            assert len(
-                self.hrefs) > 0, "lock-token-submitted requires at least one href"
+            assert (
+                len(self.hrefs) > 0
+            ), "lock-token-submitted requires at least one href"
         errorEL = etree.Element("{DAV:}error")
         condEL = etree.SubElement(errorEL, self.conditionCode)
         for href in self.hrefs:
@@ -165,18 +170,18 @@ class DAVErrorCondition(object):
 #     as in paste.httpexceptions.  This way you can catch just the exceptions
 #     you want (or you can catch an abstract superclass to get any of them)
 
+
 class DAVError(Exception):
     """General error class that is used to signal HTTP and WEBDAV errors."""
+
     # TODO: Ian Bicking proposed to add an additional 'comment' arg, but
     #       couldn't we use the existing 'contextinfo'?
     # @@: This should also take some message value, for a detailed error message.
     #     This would be helpful for debugging.
 
-    def __init__(self,
-                 statusCode,
-                 contextinfo=None,
-                 srcexception=None,
-                 errcondition=None):
+    def __init__(
+        self, statusCode, contextinfo=None, srcexception=None, errcondition=None
+    ):
         # allow passing of Pre- and Postconditions, see
         # http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
         self.value = int(statusCode)
@@ -185,8 +190,7 @@ class DAVError(Exception):
         self.errcondition = errcondition
         if compat.is_native(errcondition):
             self.errcondition = DAVErrorCondition(errcondition)
-        assert self.errcondition is None or type(
-            self.errcondition) is DAVErrorCondition
+        assert self.errcondition is None or type(self.errcondition) is DAVErrorCondition
 
     def __repr__(self):
         return "DAVError({})".format(self.get_user_info())
@@ -217,26 +221,29 @@ class DAVError(Exception):
         """Return an tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response
         if self.errcondition:
-            return ("application/xml",
-                    compat.to_bytes(self.errcondition.as_string()))
+            return ("application/xml", compat.to_bytes(self.errcondition.as_string()))
 
         # Else return as HTML
         status = get_http_status_string(self)
         html = []
         html.append(
             "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' "
-            "'http://www.w3.org/TR/html4/strict.dtd'>")
+            "'http://www.w3.org/TR/html4/strict.dtd'>"
+        )
         html.append("<html><head>")
         html.append(
-            "  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>")
+            "  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>"
+        )
         html.append("  <title>{}</title>".format(status))
         html.append("</head><body>")
         html.append("  <h1>{}</h1>".format(status))
         html.append("  <p>{}</p>".format(compat.html_escape(self.get_user_info())))
         html.append("<hr/>")
-        html.append("<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}"
-                    .format(__version__,
-                            compat.html_escape(str(datetime.datetime.now()), "utf-8")))
+        html.append(
+            "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}".format(
+                __version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")
+            )
+        )
         html.append("</body></html>")
         html = "\n".join(html)
         return ("text/html", compat.to_bytes(html))

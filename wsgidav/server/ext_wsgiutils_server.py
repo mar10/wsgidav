@@ -100,9 +100,22 @@ SERVER_ERROR = """\
 
 class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-    _SUPPORTED_METHODS = ["HEAD", "GET", "PUT", "POST", "OPTIONS", "TRACE",
-                          "DELETE", "PROPFIND", "PROPPATCH", "MKCOL", "COPY",
-                          "MOVE", "LOCK", "UNLOCK"]
+    _SUPPORTED_METHODS = [
+        "HEAD",
+        "GET",
+        "PUT",
+        "POST",
+        "OPTIONS",
+        "TRACE",
+        "DELETE",
+        "PROPFIND",
+        "PROPPATCH",
+        "MKCOL",
+        "COPY",
+        "MOVE",
+        "LOCK",
+        "UNLOCK",
+    ]
 
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
@@ -111,29 +124,33 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         __version__,
         _version,
         BaseHTTPServer.BaseHTTPRequestHandler.server_version,
-        util.PYTHON_VERSION)
+        util.PYTHON_VERSION,
+    )
 
     def log_message(self, *args):
         pass
-#        BaseHTTPServer.BaseHTTPRequestHandler.log_message(self, *args)
+
+    #        BaseHTTPServer.BaseHTTPRequestHandler.log_message(self, *args)
 
     def log_request(self, *args):
         pass
-#        BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, *args)
+
+    #        BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, *args)
 
     def getApp(self):
         # We want fragments to be returned as part of <path>
         _protocol, _host, path, _parameters, query, _fragment = compat.urlparse(
-            "http://dummyhost{}".format(self.path), allow_fragments=False)
+            "http://dummyhost{}".format(self.path), allow_fragments=False
+        )
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
-            if (path.startswith(appPath)):
+            if path.startswith(appPath):
                 # We found the application to use - work out the scriptName and pathInfo
-                pathInfo = path[len(appPath):]
-                if (len(pathInfo) > 0):
-                    if (not pathInfo.startswith("/")):
+                pathInfo = path[len(appPath) :]
+                if len(pathInfo) > 0:
+                    if not pathInfo.startswith("/"):
                         pathInfo = "/" + pathInfo
-                if (appPath.endswith("/")):
+                if appPath.endswith("/"):
                     scriptName = appPath[:-1]
                 else:
                     scriptName = appPath
@@ -144,11 +161,12 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def handlerFunctionClosure(self, name):
         def handlerFunction(*args, **kwargs):
             self.do_method()
+
         return handlerFunction
 
     def do_method(self):
         app, scriptName, pathInfo, query = self.getApp()
-        if (not app):
+        if not app:
             self.send_error(404, "Application not found.")
             return
         self.runWSGIApp(app, scriptName, pathInfo, query)
@@ -169,24 +187,25 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.command == "PUT":
             pass  # breakpoint
 
-        env = {"wsgi.version": (1, 0),
-               "wsgi.url_scheme": "http",
-               "wsgi.input": self.rfile,
-               "wsgi.errors": sys.stderr,
-               "wsgi.multithread": 1,
-               "wsgi.multiprocess": 0,
-               "wsgi.run_once": 0,
-               "REQUEST_METHOD": self.command,
-               "SCRIPT_NAME": scriptName,
-               "PATH_INFO": pathInfo,
-               "QUERY_STRING": query,
-               "CONTENT_TYPE": self.headers.get("Content-Type", ""),
-               "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
-               "REMOTE_ADDR": self.client_address[0],
-               "SERVER_NAME": self.server.server_address[0],
-               "SERVER_PORT": compat.to_native(self.server.server_address[1]),
-               "SERVER_PROTOCOL": self.request_version,
-               }
+        env = {
+            "wsgi.version": (1, 0),
+            "wsgi.url_scheme": "http",
+            "wsgi.input": self.rfile,
+            "wsgi.errors": sys.stderr,
+            "wsgi.multithread": 1,
+            "wsgi.multiprocess": 0,
+            "wsgi.run_once": 0,
+            "REQUEST_METHOD": self.command,
+            "SCRIPT_NAME": scriptName,
+            "PATH_INFO": pathInfo,
+            "QUERY_STRING": query,
+            "CONTENT_TYPE": self.headers.get("Content-Type", ""),
+            "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
+            "REMOTE_ADDR": self.client_address[0],
+            "SERVER_NAME": self.server.server_address[0],
+            "SERVER_PORT": compat.to_native(self.server.server_address[1]),
+            "SERVER_PROTOCOL": self.request_version,
+        }
         for httpHeader, httpValue in self.headers.items():
             if not httpHeader.lower() in ("content-type", "content-length"):
                 env["HTTP_{}".format(httpHeader.replace("-", "_").upper())] = httpValue
@@ -215,7 +234,9 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             traceback.print_exc(file=errorMsg)
             logging.error(errorMsg.getvalue())
             if not self.wsgiSentHeaders:
-                self.wsgiStartResponse("500 Server Error", [("Content-type", "text/html")])
+                self.wsgiStartResponse(
+                    "500 Server Error", [("Content-type", "text/html")]
+                )
             self.wsgiWriteData(SERVER_ERROR)
 
         if not self.wsgiSentHeaders:
@@ -226,9 +247,12 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return
 
     def wsgiStartResponse(self, response_status, response_headers, exc_info=None):
-        _logger.debug("wsgiStartResponse({}, {}, {})"
-                      .format(response_status, response_headers, exc_info))
-        if (self.wsgiSentHeaders):
+        _logger.debug(
+            "wsgiStartResponse({}, {}, {})".format(
+                response_status, response_headers, exc_info
+            )
+        )
+        if self.wsgiSentHeaders:
             raise Exception("Headers already sent and start_response called again!")
         # Should really take a copy to avoid changes in the application....
         self.wsgiHeaders = (response_status, response_headers)
@@ -238,9 +262,11 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not self.wsgiSentHeaders:
             status, headers = self.wsgiHeaders
             # Need to send header prior to data
-            statusCode = status[:status.find(" ")]
-            statusMsg = status[status.find(" ") + 1:]
-            _logger.debug("wsgiWriteData: send headers '{!r}', {!r}".format(status, headers))
+            statusCode = status[: status.find(" ")]
+            statusMsg = status[status.find(" ") + 1 :]
+            _logger.debug(
+                "wsgiWriteData: send headers '{!r}', {!r}".format(status, headers)
+            )
             self.send_response(int(statusCode), statusMsg)
             for header, value in headers:
                 self.send_header(header, value)
@@ -248,8 +274,11 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wsgiSentHeaders = 1
         # Send the data
         # assert type(data) is str # If not, Content-Length is propably wrong!
-        _logger.debug("wsgiWriteData: write {} bytes: '{!r}'..."
-                      .format(len(data), compat.to_native(data[:50])))
+        _logger.debug(
+            "wsgiWriteData: write {} bytes: '{!r}'...".format(
+                len(data), compat.to_native(data[:50])
+            )
+        )
         if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
             _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
             # data = compat.wsgi_to_bytes(data)
@@ -267,8 +296,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 raise
 
 
-class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
-
+class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def handle_error(self, request, client_address):
         """Handle an error gracefully.  May be overridden.
 
@@ -286,20 +314,26 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
         _logger.error("-" * 40, file=sys.stderr)
-        _logger.error("<{}> Exception happened during processing of request from {}"
-                      .format(threading.currentThread().ident, client_address))
+        _logger.error(
+            "<{}> Exception happened during processing of request from {}".format(
+                threading.currentThread().ident, client_address
+            )
+        )
         _logger.error(client_address, file=sys.stderr)
         traceback.print_exc()
         _logger.error("-" * 40, file=sys.stderr)
         _logger.error(request, file=sys.stderr)
-#        BaseHTTPServer.HTTPServer.handle_error(self, request, client_address)
+
+    #        BaseHTTPServer.HTTPServer.handle_error(self, request, client_address)
 
     def stop_serve_forever(self):
         """Stop serve_forever_stoppable()."""
-        assert hasattr(self, "stop_request"), "serve_forever_stoppable() must be called before"
+        assert hasattr(
+            self, "stop_request"
+        ), "serve_forever_stoppable() must be called before"
         assert not self.stop_request, "stop_serve_forever() must only be called once"
 
-#        # Flag stop request
+        #        # Flag stop request
         self.stop_request = True
         time.sleep(.1)
         if self.stopped:
@@ -312,21 +346,22 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
             http://code.activestate.com/recipes/336012/
             """
-#            _logger.info "Handling do_SHUTDOWN request"
+            #            _logger.info "Handling do_SHUTDOWN request"
             self.send_response(200)
             self.end_headers()
             self.server.stop_request = True
+
         if not hasattr(ExtHandler, "do_SHUTDOWN"):
             setattr(ExtHandler, "do_SHUTDOWN", _shutdownHandler)
 
         # Send request, so socket is unblocked
         (host, port) = self.server_address
-#        _logger.info "stop_serve_forever() sending {}:{}/ SHUTDOWN...".format(host, port)
+        #        _logger.info "stop_serve_forever() sending {}:{}/ SHUTDOWN...".format(host, port)
         conn = http_client.HTTPConnection("{}:{}".format(host, port))
         conn.request("SHUTDOWN", "/")
-#        _logger.info "stop_serve_forever() sent SHUTDOWN request, reading response..."
+        #        _logger.info "stop_serve_forever() sent SHUTDOWN request, reading response..."
         conn.getresponse()
-#        _logger.info "stop_serve_forever() received SHUTDOWN response."
+        #        _logger.info "stop_serve_forever() received SHUTDOWN response."
         assert self.stop_request
 
     def serve_forever_stoppable(self):
@@ -340,7 +375,7 @@ class ExtServer (socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         while not self.stop_request:
             self.handle_request()
 
-#        _logger.info "serve_forever_stoppable() stopped."
+        #        _logger.info "serve_forever_stoppable() stopped."
         self.stopped = True
 
     def __init__(self, serverAddress, wsgiApplications, serveFiles=1):
@@ -361,12 +396,19 @@ def serve(conf, app):
     if conf.get("verbose") >= 1:
         _logger.info("Running {}".format(server_version))
         if host in ("", "0.0.0.0"):
-            (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(socket.gethostname())
-            _logger.info("Serving at {}, port {} (host='{}' {})..."
-                         .format(host, port, hostname, ipaddrlist))
+            (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(
+                socket.gethostname()
+            )
+            _logger.info(
+                "Serving at {}, port {} (host='{}' {})...".format(
+                    host, port, hostname, ipaddrlist
+                )
+            )
         else:
             _logger.info("Serving at {}, port {}...".format(host, port))
     server.serve_forever()
+
+
 #    server.serve_forever_stoppable()
 
 
