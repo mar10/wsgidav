@@ -22,6 +22,7 @@ This release contains **BREAKING CHANGES!**
 - Refactor code base:
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.
+  - Enforce [Black code style](https://github.com/ambv/black)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package
