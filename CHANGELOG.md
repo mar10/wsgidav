@@ -11,6 +11,7 @@ This release contains **BREAKING CHANGES!**
     override those.
   - Log format is configurable
   - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
+  - CLI supports `--server=gevent` (gevent must be installed separately)
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
