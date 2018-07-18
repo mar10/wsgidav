@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 88
+py36 = false  # don't strip 'u' from native strings
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.tox
+  | \.venv
+  | \.eggs
+  | \.cache
+  | build
+  | __pycache__
+  | dist
+  | \.*
+
+)/
+'''

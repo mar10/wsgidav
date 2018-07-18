@@ -76,7 +76,6 @@ from __future__ import print_function
 import win32net  # @UnresolvedImport
 import win32netcon  # @UnresolvedImport
 import win32security  # @UnresolvedImport
-
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
@@ -84,7 +83,6 @@ _logger = util.get_module_logger(__name__)
 
 
 class NTDomainController(object):
-
     def __init__(self, presetdomain=None, presetserver=None):
         self._presetdomain = presetdomain
         self._presetserver = presetserver
@@ -112,10 +110,10 @@ class NTDomainController(object):
         except Exception:
             _logger.exception("NetUserGetInfo")
             userdata = {}
-#        if "password" in userdata:
-#            if userdata["password"] != None:
-#                return userdata["password"]
-#        return None
+        #        if "password" in userdata:
+        #            if userdata["password"] != None:
+        #                return userdata["password"]
+        #        return None
         return userdata.get("password")
 
     def auth_domain_user(self, realmname, username, password, environ):
@@ -156,7 +154,8 @@ class NTDomainController(object):
                 resume = 0
             try:
                 users, _total, resume = win32net.NetUserEnum(
-                    server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0)
+                    server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0
+                )
                 # Make sure, we compare unicode
                 un = username.decode("utf8").lower()
                 for userinfo in users:
@@ -177,8 +176,12 @@ class NTDomainController(object):
 
         try:
             htoken = win32security.LogonUser(
-                username, domain, password, win32security.LOGON32_LOGON_NETWORK,
-                win32security.LOGON32_PROVIDER_DEFAULT)
+                username,
+                domain,
+                password,
+                win32security.LOGON32_LOGON_NETWORK,
+                win32security.LOGON32_PROVIDER_DEFAULT,
+            )
         except win32security.error as err:
             _logger.warning("LogonUser failed for user '%s': %s" % (username, err))
             return False

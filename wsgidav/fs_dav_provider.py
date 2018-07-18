@@ -120,10 +120,16 @@ class FileResource(DAVNonCollection):
         if propMan:
             destRes = self.provider.get_resource_inst(destPath, self.environ)
             if isMove:
-                propMan.move_properties(self.get_ref_url(), destRes.get_ref_url(),
-                                        withChildren=False, environ=self.environ)
+                propMan.move_properties(
+                    self.get_ref_url(),
+                    destRes.get_ref_url(),
+                    withChildren=False,
+                    environ=self.environ,
+                )
             else:
-                propMan.copy_properties(self.get_ref_url(), destRes.get_ref_url(), self.environ)
+                propMan.copy_properties(
+                    self.get_ref_url(), destRes.get_ref_url(), self.environ
+                )
 
     def support_recursive_move(self, destPath):
         """Return True, if move_recursive() is available (see comments there)."""
@@ -142,8 +148,12 @@ class FileResource(DAVNonCollection):
         # Move dead properties
         if self.provider.propManager:
             destRes = self.provider.get_resource_inst(destPath, self.environ)
-            self.provider.propManager.move_properties(self.get_ref_url(), destRes.get_ref_url(),
-                                                      withChildren=True, environ=self.environ)
+            self.provider.propManager.move_properties(
+                self.get_ref_url(),
+                destRes.get_ref_url(),
+                withChildren=True,
+                environ=self.environ,
+            )
 
     def set_last_modified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
@@ -166,7 +176,7 @@ class FolderResource(DAVCollection):
     def __init__(self, path, environ, filePath):
         super(FolderResource, self).__init__(path, environ)
         self._filePath = filePath
-#        self._dict = None
+        #        self._dict = None
         self.filestat = os.stat(self._filePath)
         # Setting the name from the file path should fix the case on Windows
         self.name = os.path.basename(self._filePath)
@@ -224,7 +234,7 @@ class FolderResource(DAVCollection):
         """
         assert compat.is_native(name), "{!r}".format(name)
         fp = os.path.join(self._filePath, compat.to_unicode(name))
-#        name = name.encode("utf8")
+        #        name = name.encode("utf8")
         path = util.join_uri(self.path, name)
         if os.path.isdir(fp):
             res = FolderResource(path, self.environ, fp)
@@ -295,10 +305,16 @@ class FolderResource(DAVCollection):
         if propMan:
             destRes = self.provider.get_resource_inst(destPath, self.environ)
             if isMove:
-                propMan.move_properties(self.get_ref_url(), destRes.get_ref_url(),
-                                        withChildren=False, environ=self.environ)
+                propMan.move_properties(
+                    self.get_ref_url(),
+                    destRes.get_ref_url(),
+                    withChildren=False,
+                    environ=self.environ,
+                )
             else:
-                propMan.copy_properties(self.get_ref_url(), destRes.get_ref_url(), self.environ)
+                propMan.copy_properties(
+                    self.get_ref_url(), destRes.get_ref_url(), self.environ
+                )
 
     def support_recursive_move(self, destPath):
         """Return True, if move_recursive() is available (see comments there)."""
@@ -317,8 +333,12 @@ class FolderResource(DAVCollection):
         # Move dead properties
         if self.provider.propManager:
             destRes = self.provider.get_resource_inst(destPath, self.environ)
-            self.provider.propManager.move_properties(self.get_ref_url(), destRes.get_ref_url(),
-                                                      withChildren=True, environ=self.environ)
+            self.provider.propManager.move_properties(
+                self.get_ref_url(),
+                destRes.get_ref_url(),
+                withChildren=True,
+                environ=self.environ,
+            )
 
     def set_last_modified(self, destPath, timeStamp, dryRun):
         """Set last modified time for destPath to timeStamp on epoch-format"""
@@ -333,7 +353,6 @@ class FolderResource(DAVCollection):
 # FilesystemProvider
 # ========================================================================
 class FilesystemProvider(DAVProvider):
-
     def __init__(self, rootFolderPath, readonly=False):
         # Expand leading '~' as user home dir; expand %VAR%, $Var, ..
         rootFolderPath = os.path.expandvars(os.path.expanduser(rootFolderPath))
@@ -350,7 +369,9 @@ class FilesystemProvider(DAVProvider):
         rw = "Read-Write"
         if self.readonly:
             rw = "Read-Only"
-        return "{} for path '{}' ({})".format(self.__class__.__name__, self.rootFolderPath, rw)
+        return "{} for path '{}' ({})".format(
+            self.__class__.__name__, self.rootFolderPath, rw
+        )
 
     def _loc_to_file_path(self, path, environ=None):
         """Convert resource path to a unicode absolute file path.
@@ -366,7 +387,10 @@ class FilesystemProvider(DAVProvider):
         file_path = os.path.abspath(os.path.join(root_path, *path_parts))
         if not file_path.startswith(root_path):
             raise RuntimeError(
-                "Security exception: tried to access file outside root: {}".format(file_path))
+                "Security exception: tried to access file outside root: {}".format(
+                    file_path
+                )
+            )
 
         # Convert to unicode
         file_path = util.toUnicode(file_path)

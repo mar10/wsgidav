@@ -47,8 +47,9 @@ class VirtualCollection(DAVCollection):
 
     def get_member(self, name):
         # raise NotImplementedError
-        return self.provider.get_resource_inst(util.join_uri(self.path, name),
-                                               self.environ)
+        return self.provider.get_resource_inst(
+            util.join_uri(self.path, name), self.environ
+        )
 
 
 # ============================================================================
@@ -83,6 +84,8 @@ class _VirtualNonCollection(DAVNonCollection):
 
     def support_ranges(self):
         return False
+
+
 #    def handle_delete(self):
 #        raise DAVError(HTTP_FORBIDDEN)
 #    def handle_move(self, destPath):
@@ -97,8 +100,7 @@ class _VirtualNonCollection(DAVNonCollection):
 class VirtualTextResource(_VirtualNonCollection):
     """A virtual file, containing a string."""
 
-    def __init__(self, path, environ, content,
-                 displayName=None, displayType=None):
+    def __init__(self, path, environ, content, displayName=None, displayType=None):
         _VirtualNonCollection.__init__(self, path, environ)
         self.content = content
         self.displayName = displayName
@@ -120,9 +122,10 @@ class VirtualTextResource(_VirtualNonCollection):
 
     def prevent_locking(self):
         return True
-#    def get_ref_url(self):
-#        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
-#        return compat.quote(self.provider.sharePath + refPath)
+
+    #    def get_ref_url(self):
+    #        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
+    #        return compat.quote(self.provider.sharePath + refPath)
 
     def get_content(self):
         return compat.StringIO(self.content)
@@ -133,6 +136,7 @@ class VirtualTextResource(_VirtualNonCollection):
 # ============================================================================
 class FileResource(_VirtualNonCollection):
     """Represents an existing file."""
+
     BUFFER_SIZE = 8192
 
     def __init__(self, path, environ, filePath):
@@ -148,10 +152,10 @@ class FileResource(_VirtualNonCollection):
     def get_content_type(self):
         if not os.path.isfile(self.filePath):
             return "text/html"
-#        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
-#        if not mimetype:
-#            mimetype = "application/octet-stream"
-#        return mimetype
+        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
+        #        if not mimetype:
+        #            mimetype = "application/octet-stream"
+        #        return mimetype
         return util.guess_mime_type(self.filePath)
 
     def get_creation_date(self):
@@ -164,9 +168,10 @@ class FileResource(_VirtualNonCollection):
     def get_last_modified(self):
         statresults = os.stat(self.filePath)
         return statresults[stat.ST_MTIME]
-#    def get_ref_url(self):
-#        refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.filePath))
-#        return compat.quote(self.provider.sharePath + refPath)
+
+    #    def get_ref_url(self):
+    #        refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.filePath))
+    #        return compat.quote(self.provider.sharePath + refPath)
 
     def get_content(self):
         # mime = self.get_content_type()

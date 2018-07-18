@@ -27,44 +27,35 @@ DEFAULT_VERBOSE = 3
 DEFAULT_CONFIG = {
     "server": "cheroot",
     "server_args": {},
-
     "host": "localhost",
     "port": 8080,
-
     "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
     "provider_mapping": {},
-
     "add_header_MS_Author_Via": True,
     "unquote_path_info": False,  # See issue #8
     "re_encode_path_info": None,  # (See issue #73) None: activate on Python 3
-
     "property_manager": None,  # True: use property_manager.PropertyManager
     "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
     "mutable_live_props": [],
-
     "lock_manager": True,  # True: use lock_manager.LockManager
-
     "middleware_stack": [
         WsgiDavDebugFilter,
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,
         RequestResolver,
-        ],
-
+    ],
     # HTTP Authentication Options
     "http_authenticator": {
-        "accept_basic": True,      # Allow basic authentication, True or False
-        "accept_digest": True,     # Allow digest authentication, True or False
-        "default_to_digest": True,    # True (default digest) or False (default basic)
+        "accept_basic": True,  # Allow basic authentication, True or False
+        "accept_digest": True,  # Allow digest authentication, True or False
+        "default_to_digest": True,  # True (default digest) or False (default basic)
         # Name of a header field that will be accepted as authorized user
         "trusted_auth_header": None,
-        },
-
+    },
     # None: domain_controller.WsgiDAVDomainController(user_mapping)
     "domain_controller": None,
     "user_mapping": {},
-
     # Verbose Output
     # 0 - no output
     # 1 - no output (excepting application exceptions)
@@ -74,22 +65,17 @@ DEFAULT_CONFIG = {
     # 5 - show full request/response header info (HTTP Logging)
     #     request body and GET response bodies not shown
     "verbose": DEFAULT_VERBOSE,
-
     # Error printer options
-    "error_printer": {
-        "catch_all": True,  # False,
-        },
-
+    "error_printer": {"catch_all": True},  # False,
     "enable_loggers": [],
-
     "dir_browser": {
-        # "enable": True,               # Render HTML listing for GET requests on collections
+        # "enable": True,  # Render HTML listing for GET requests on collections
         # List of fnmatch patterns:
         "ignore": [
             ".DS_Store",  # macOS folder meta data
             "._*",  # macOS hidden data files
             "Thumbs.db",  # Windows image previews
-            ],
+        ],
         "icon": True,
         "response_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
         "show_user": True,  # Show authenticated user an realm
@@ -99,5 +85,5 @@ DEFAULT_CONFIG = {
         "ms_mount": False,
         "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
         "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
-        },
+    },
 }

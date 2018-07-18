@@ -19,7 +19,7 @@ from wsgidav.lock_manager import (
     generate_lock_token,
     lock_string,
     normalize_lock_root,
-    validate_lock
+    validate_lock,
 )
 from wsgidav.rw_lock import ReadWriteLock
 
@@ -63,26 +63,31 @@ class LockStorageDict(object):
 
         { 'URL2TOKEN:/temp/litmus/lockme': ['opaquelocktoken:0x1d7b86...',
                                             'opaquelocktoken:0xd7d4c0...'],
-          'opaquelocktoken:0x1d7b86...': { 'depth': '0',
-                                           'owner': "<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">litmus test suite</owner>\\n",
-                                           'principal': 'tester',
-                                           'root': '/temp/litmus/lockme',
-                                           'scope': 'shared',
-                                           'expire': 1261328382.4530001,
-                                           'token': 'opaquelocktoken:0x1d7b86...',
-                                           'type': 'write',
-                                           },
-          'opaquelocktoken:0xd7d4c0...': { 'depth': '0',
-                                           'owner': '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">litmus: notowner_sharedlock</owner>\\n',
-                                           'principal': 'tester',
-                                           'root': '/temp/litmus/lockme',
-                                           'scope': 'shared',
-                                           'expire': 1261328381.6040001,
-                                           'token': 'opaquelocktoken:0xd7d4c0...',
-                                           'type': 'write'
-                                           },
+          'opaquelocktoken:0x1d7b86...': {
+            'depth': '0',
+            'owner': "<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">"
+                + "litmus test suite</owner>\\n",
+            'principal': 'tester',
+            'root': '/temp/litmus/lockme',
+            'scope': 'shared',
+            'expire': 1261328382.4530001,
+            'token': 'opaquelocktoken:0x1d7b86...',
+            'type': 'write',
+            },
+          'opaquelocktoken:0xd7d4c0...': {
+            'depth': '0',
+            'owner': '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\\n<owner xmlns="DAV:">'
+                + 'litmus: notowner_sharedlock</owner>\\n',
+            'principal': 'tester',
+            'root': '/temp/litmus/lockme',
+            'scope': 'shared',
+            'expire': 1261328381.6040001,
+            'token': 'opaquelocktoken:0xd7d4c0...',
+            'type': 'write'
+           },
          }
     """  # noqa
+
     LOCK_TIME_OUT_DEFAULT = 604800  # 1 week, in seconds
     LOCK_TIME_OUT_MAX = 4 * 604800  # 1 month, in seconds
 
@@ -143,7 +148,9 @@ class LockStorageDict(object):
                 return None
             expire = float(lock["expire"])
             if expire >= 0 and expire < time.time():
-                _logger.debug("Lock timed-out({}): {}".format(expire, lock_string(lock)))
+                _logger.debug(
+                    "Lock timed-out({}): {}".format(expire, lock_string(lock))
+                )
                 self.delete(token)
                 return None
             return lock
@@ -207,7 +214,9 @@ class LockStorageDict(object):
                 tokList.append(token)
                 self._dict[key] = tokList
             self._flush()
-            _logger.debug("LockStorageDict.set({!r}): {}".format(org_path, lock_string(lock)))
+            _logger.debug(
+                "LockStorageDict.set({!r}): {}".format(org_path, lock_string(lock))
+            )
             return lock
         finally:
             self._lock.release()
@@ -329,6 +338,7 @@ class LockStorageDict(object):
 # LockStorageShelve
 # ========================================================================
 
+
 class LockStorageShelve(LockStorageDict):
     """
     A low performance lock manager implementation using shelve.
@@ -370,9 +380,10 @@ class LockStorageShelve(LockStorageDict):
         # Open with writeback=False, which is faster, but we have to be
         # careful to re-assign values to _dict after modifying them
         self._dict = shelve.open(self._storagePath, writeback=False)
-#        if __debug__ and self._verbose >= 2:
-#                self._check("After shelve.open()")
-#            self._dump("After shelve.open()")
+
+    #        if __debug__ and self._verbose >= 2:
+    #                self._check("After shelve.open()")
+    #            self._dump("After shelve.open()")
 
     def close(self):
         _logger.debug("close()")

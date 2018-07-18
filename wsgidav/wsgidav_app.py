@@ -61,7 +61,11 @@ from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.property_manager import PropertyManager
-from wsgidav.util import safe_re_encode, dynamic_import_class, dynamic_instantiate_middleware
+from wsgidav.util import (
+    dynamic_import_class,
+    dynamic_instantiate_middleware,
+    safe_re_encode,
+)
 
 __docformat__ = "reStructuredText"
 
@@ -71,9 +75,7 @@ _logger = util.get_module_logger(__name__)
 def _check_config(config):
     errors = []
 
-    mandatory_fields = (
-        "provider_mapping",
-        )
+    mandatory_fields = ("provider_mapping",)
     for field in mandatory_fields:
         if field not in config:
             errors.append("Missing required option '{}'.".format(field))
@@ -90,7 +92,7 @@ def _check_config(config):
         "mutableLiveProps": "mutable_live_props",
         "locksmanager": "lock_manager",
         "catchall": "error_printer.catch_all",
-        }
+    }
     for old, new in deprecated_fields.items():
         if "." in old:
             k, v = old.split(".", 1)
@@ -111,7 +113,6 @@ def _check_config(config):
 # WsgiDAVApp
 # ========================================================================
 class WsgiDAVApp(object):
-
     def __init__(self, config):
 
         self.config = copy.deepcopy(DEFAULT_CONFIG)
@@ -122,7 +123,7 @@ class WsgiDAVApp(object):
         # Evaluate configuration and set defaults
         _check_config(config)
 
-#        response_trailer = config.get("response_trailer", "")
+        #        response_trailer = config.get("response_trailer", "")
         self.verbose = config.get("verbose", 3)
 
         lockStorage = config.get("lock_manager")
@@ -192,7 +193,9 @@ class WsgiDAVApp(object):
                 app = dynamic_instantiate_middleware(name, args, expand)
             elif inspect.isclass(mw):
                 # If a class is passed, assume BaseMiddleware (or compatible)
-                assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
+                assert issubclass(
+                    mw, BaseMiddleware
+                )  # TODO: remove this assert with 3.0
                 app = mw(self, self.application, config)
             else:
                 # Otherwise assume an initialized middleware instance
@@ -215,8 +218,11 @@ class WsgiDAVApp(object):
 
         # Print info
         if self.verbose >= 4:
-            _logger.info("Default encoding: {!r} (file system: {!r})".format(
-                    sys.getdefaultencoding(), sys.getfilesystemencoding()))
+            _logger.info(
+                "Default encoding: {!r} (file system: {!r})".format(
+                    sys.getdefaultencoding(), sys.getfilesystemencoding()
+                )
+            )
             _logger.info("Lock manager:      {}".format(self.locksManager))
             _logger.info("Property manager:  {}".format(self.propsManager))
             _logger.info("Domain controller: {}".format(domain_controller))
@@ -263,10 +269,7 @@ class WsgiDAVApp(object):
         provider.set_lock_manager(self.locksManager)
         provider.set_prop_manager(self.propsManager)
 
-        self.providerMap[share] = {
-            "provider": provider,
-            "allow_anonymous": False,
-            }
+        self.providerMap[share] = {"provider": provider, "allow_anonymous": False}
 
         # Store the list of share paths, ordered by length, so route lookups
         # will return the most specific match
@@ -339,7 +342,7 @@ class WsgiDAVApp(object):
             environ["PATH_INFO"] = path
         else:
             environ["SCRIPT_NAME"] += share
-            environ["PATH_INFO"] = path[len(share):]
+            environ["PATH_INFO"] = path[len(share) :]
 
         # assert isinstance(path, str)
         assert compat.is_native(path)
@@ -348,7 +351,9 @@ class WsgiDAVApp(object):
         # SCRIPT_NAME starts with '/' or is empty
         assert environ["SCRIPT_NAME"] == "" or environ["SCRIPT_NAME"].startswith("/")
         # SCRIPT_NAME must not have a trailing '/'
-        assert environ["SCRIPT_NAME"] in ("", "/") or not environ["SCRIPT_NAME"].endswith("/")
+        assert environ["SCRIPT_NAME"] in ("", "/") or not environ[
+            "SCRIPT_NAME"
+        ].endswith("/")
         # PATH_INFO starts with '/'
         assert environ["PATH_INFO"] == "" or environ["PATH_INFO"].startswith("/")
 
@@ -367,21 +372,27 @@ class WsgiDAVApp(object):
             forceCloseConnection = False
             currentContentLength = headerDict.get("content-length")
             statusCode = int(status.split(" ", 1)[0])
-            contentLengthRequired = (environ["REQUEST_METHOD"] != "HEAD"
-                                     and statusCode >= 200
-                                     and statusCode not in (204, 304))
-#            _logger.info(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
+            contentLengthRequired = (
+                environ["REQUEST_METHOD"] != "HEAD"
+                and statusCode >= 200
+                and statusCode not in (204, 304)
+            )
+            #            _logger.info(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
                 _logger.error(
-                    "Missing required Content-Length header in {}-response: closing connection"
-                    .format(statusCode))
+                    "Missing required Content-Length header in {}-response: closing connection".format(
+                        statusCode
+                    )
+                )
                 forceCloseConnection = True
             elif not type(currentContentLength) is str:
                 _logger.error(
-                        "Invalid Content-Length header in response ({!r}): closing connection"
-                        .format(headerDict.get("content-length")))
+                    "Invalid Content-Length header in response ({!r}): closing connection".format(
+                        headerDict.get("content-length")
+                    )
+                )
                 forceCloseConnection = True
 
             # HOTFIX for Vista and Windows 7 (GC issue 13, issue 23)
@@ -395,7 +406,9 @@ class WsgiDAVApp(object):
 
             # Make sure the socket is not reused, unless we are 100% sure all
             # current input was consumed
-            if util.get_content_length(environ) != 0 and not environ.get("wsgidav.all_input_read"):
+            if util.get_content_length(environ) != 0 and not environ.get(
+                "wsgidav.all_input_read"
+            ):
                 _logger.warn("Input stream not completely consumed: closing connection")
                 forceCloseConnection = True
 
@@ -422,30 +435,36 @@ class WsgiDAVApp(object):
                 if self.verbose >= 3 and "HTTP_EXPECT" in environ:
                     extra.append('expect="{}"'.format(environ.get("HTTP_EXPECT")))
                 if self.verbose >= 4 and "HTTP_CONNECTION" in environ:
-                    extra.append('connection="{}"'.format(environ.get("HTTP_CONNECTION")))
+                    extra.append(
+                        'connection="{}"'.format(environ.get("HTTP_CONNECTION"))
+                    )
                 if self.verbose >= 4 and "HTTP_USER_AGENT" in environ:
                     extra.append('agent="{}"'.format(environ.get("HTTP_USER_AGENT")))
                 if self.verbose >= 4 and "HTTP_TRANSFER_ENCODING" in environ:
-                    extra.append("transfer-enc={}".format(environ.get("HTTP_TRANSFER_ENCODING")))
+                    extra.append(
+                        "transfer-enc={}".format(environ.get("HTTP_TRANSFER_ENCODING"))
+                    )
                 if self.verbose >= 3:
                     extra.append("elap={:.3f}sec".format(time.time() - start_time))
                 extra = ", ".join(extra)
 
-#               This is the CherryPy format:
-#                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
-                _logger.info('{addr} - {user} - [{time}] "{method} {path}" {extra} -> {status}'
-                             .format(
-                                addr=environ.get("REMOTE_ADDR", ""),
-                                user=userInfo,
-                                time=util.get_log_time(),
-                                method=environ.get("REQUEST_METHOD"),
-                                path=safe_re_encode(environ.get("PATH_INFO", ""),
-                                                    sys.stdout.encoding),
-                                extra=extra,
-                                status=status,
-                                # response_headers.get(""), # response Content-Length
-                                # referer
-                                ))
+                #               This is the CherryPy format:
+                #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
+                _logger.info(
+                    '{addr} - {user} - [{time}] "{method} {path}" {extra} -> {status}'.format(
+                        addr=environ.get("REMOTE_ADDR", ""),
+                        user=userInfo,
+                        time=util.get_log_time(),
+                        method=environ.get("REQUEST_METHOD"),
+                        path=safe_re_encode(
+                            environ.get("PATH_INFO", ""), sys.stdout.encoding
+                        ),
+                        extra=extra,
+                        status=status,
+                        # response_headers.get(""), # response Content-Length
+                        # referer
+                    )
+                )
             return start_response(status, response_headers, exc_info)
 
         # Call first middleware

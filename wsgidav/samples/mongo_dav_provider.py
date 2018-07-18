@@ -140,10 +140,14 @@ class MongoResourceProvider(DAVProvider):
             db = self.conn["admin"]
             res = db.authenticate(options.get("user"), options.get("pwd"))
             if not res:
-                raise RuntimeError("Failed to logon to db %s as user %s" %
-                                   (db.name, options.get("user")))
-            _logger.info("Logged on to mongo db '%s' as user '%s'" %
-                         (db.name, options.get("user")))
+                raise RuntimeError(
+                    "Failed to logon to db %s as user %s"
+                    % (db.name, options.get("user"))
+                )
+            _logger.info(
+                "Logged on to mongo db '%s' as user '%s'"
+                % (db.name, options.get("user"))
+            )
         _logger.info("MongoResourceProvider connected to %s" % self.conn)
 
     def get_resource_inst(self, path, environ):
