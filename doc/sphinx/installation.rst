@@ -68,3 +68,10 @@ Basically the same as for `Unix / Linux`_
 
    MS Windows users that only need the command line interface may prefer the
    `MSI installer <https://github.com/mar10/wsgidav/releases>`_.
+
+
+Docker
+------
+
+An experimental Docker image is available here:
+https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
