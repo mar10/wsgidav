@@ -11,6 +11,7 @@ This release contains **BREAKING CHANGES!**
     override those.
   - Log format is configurable
   - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
+  - CLI supports `--server=gevent` (gevent must be installed separately)
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
@@ -22,6 +23,7 @@ This release contains **BREAKING CHANGES!**
 - Refactor code base:
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.
+  - Enforce [Black code style](https://github.com/ambv/black)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package

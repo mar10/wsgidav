@@ -147,15 +147,7 @@ See https://github.com/mar10/wsgidav for additional information.
     )
     parser.add_argument(
         "--server",
-        choices=(
-            "cheroot",
-            "cherrypy-wsgiserver",
-            "ext-wsgiutils",
-            "flup-fcgi",
-            "flup-fcgi-fork",
-            "paste",
-            "wsgiref",
-        ),
+        choices=SUPPORTED_SERVERS.keys(),
         default="cheroot",
         help="type of pre-installed WSGI server to use (default: %(default)s).",
     )
@@ -409,11 +401,11 @@ def _run_paste(app, config, mode):
 
         server.RequestHandlerClass.handle_one_request = handle_one_request
 
-        __handle = server.RequestHandlerClass.handle
+        # __handle = server.RequestHandlerClass.handle
 
-        def handle(self):
-            _logger.debug("open HTTP connection")
-            __handle(self)
+        # def handle(self):
+        #     _logger.debug("open HTTP connection")
+        #     __handle(self)
 
         server.RequestHandlerClass.handle_one_request = handle_one_request
 
@@ -426,6 +418,43 @@ def _run_paste(app, config, mode):
         _logger.info("Serving on {}://{}:{}".format("http", host, port))
     try:
         server.serve_forever()
+    except KeyboardInterrupt:
+        _logger.warn("Caught Ctrl-C, shutting down...")
+    return
+
+
+def _run_gevent(app, config, mode):
+    """Run WsgiDAV using gevent if gevent is installed.
+
+    See
+      https://github.com/gevent/gevent/blob/master/src/gevent/pywsgi.py#L1356
+      https://github.com/gevent/gevent/blob/master/src/gevent/server.py#L38
+     for more options
+    """
+    import gevent
+    import gevent.monkey
+
+    gevent.monkey.patch_all()
+    from gevent.pywsgi import WSGIServer
+
+    server_args = {
+        "bind_addr": (config["host"], config["port"]),
+        "wsgi_app": app,
+        # TODO: SSL support
+        "keyfile": None,
+        "certfile": None,
+    }
+    protocol = "http"
+    # Override or add custom args
+    server_args.update(config.get("server_args", {}))
+
+    dav_server = WSGIServer(server_args["bind_addr"], app)
+    _logger.info("Running {}".format(dav_server))
+    _logger.info(
+        "Serving on {}://{}:{} ...".format(protocol, config["host"], config["port"])
+    )
+    try:
+        gevent.spawn(dav_server.serve_forever())
     except KeyboardInterrupt:
         _logger.warn("Caught Ctrl-C, shutting down...")
     return
@@ -657,16 +686,19 @@ def _run_ext_wsgiutils(app, config, mode):
     return
 
 
+SUPPORTED_SERVERS = {
+    "paste": _run_paste,
+    "gevent": _run_gevent,
+    "cheroot": _run_cheroot,
+    "cherrypy": _run__cherrypy,
+    "ext-wsgiutils": _run_ext_wsgiutils,
+    "flup-fcgi": _run_flup,
+    "flup-fcgi_fork": _run_flup,
+    "wsgiref": _run_wsgiref,
+}
+
+
 def run():
-    SUPPORTED_SERVERS = {
-        "paste": _run_paste,
-        "cheroot": _run_cheroot,
-        "cherrypy": _run__cherrypy,
-        "ext-wsgiutils": _run_ext_wsgiutils,
-        "flup-fcgi": _run_flup,
-        "flup-fcgi_fork": _run_flup,
-        "wsgiref": _run_wsgiref,
-    }
     config = _init_config()
 
     util.init_logging(config)
