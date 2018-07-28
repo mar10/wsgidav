@@ -25,6 +25,8 @@ This release contains **BREAKING CHANGES!**
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package
+- Support Docker
+  https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
 - **TODO** #94: Use utf-8 as default
 - MSI setup uses Python 3.6
 - #112: Added limited support for Microsoft's Win32LastModified property.
