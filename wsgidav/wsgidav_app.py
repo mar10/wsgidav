@@ -49,10 +49,11 @@ For every request:
 """
 import copy
 import inspect
+import platform
 import sys
 import time
 
-from wsgidav import compat, util
+from wsgidav import compat, util, __version__
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.default_conf import DEFAULT_CONFIG
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -217,6 +218,11 @@ class WsgiDAVApp(object):
                 _logger.error("Could not add middleware {}.".format(mw))
 
         # Print info
+        _logger.info(
+            "WsgiDAV/{} Python/{} {}".format(
+                __version__, util.PYTHON_VERSION, platform.platform(aliased=True)
+            )
+        )
         if self.verbose >= 4:
             _logger.info(
                 "Default encoding: {!r} (file system: {!r})".format(

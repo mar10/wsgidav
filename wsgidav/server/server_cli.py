@@ -40,6 +40,7 @@ import io
 import json
 import logging
 import os
+import platform
 import sys
 import traceback
 from inspect import isfunction
@@ -212,10 +213,8 @@ See https://github.com/mar10/wsgidav for additional information.
 
     if args.version:
         if args.verbose >= 4:
-            import platform
-
             msg = "WsgiDAV/{} Python/{} {}".format(
-                __version__, util.PYTHON_VERSION, platform.platform()
+                __version__, util.PYTHON_VERSION, platform.platform(aliased=True)
             )
         else:
             msg = "{}".format(__version__)
