@@ -8,7 +8,8 @@ python:
     - "3.6"
     # See yaml/pyyaml#126.
 #    - "3.7-dev"  # Planned for 2018-06
-sudo: required
+
+#sudo: required
 before_install:
     # See issue #80: litmus fails to build on travis
     # The branch 'travis-litmus' still has this enabled to investigate...
