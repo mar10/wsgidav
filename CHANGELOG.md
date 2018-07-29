@@ -11,6 +11,7 @@ This release contains **BREAKING CHANGES!**
     override those.
   - Log format is configurable
   - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
+  - CLI supports `--server=gevent` (gevent must be installed separately)
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
@@ -26,6 +27,8 @@ This release contains **BREAKING CHANGES!**
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package
+- Support Docker
+  https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
 - **TODO** #94: Use utf-8 as default
 - MSI setup uses Python 3.6
 - #112: Added limited support for Microsoft's Win32LastModified property.
