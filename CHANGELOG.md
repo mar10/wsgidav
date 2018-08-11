@@ -24,6 +24,7 @@ This release contains **BREAKING CHANGES!**
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.
   - Enforce [Black code style](https://github.com/ambv/black)
+  - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package

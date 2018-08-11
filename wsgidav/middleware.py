@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Abstract base middleware class (optional use).
 """
