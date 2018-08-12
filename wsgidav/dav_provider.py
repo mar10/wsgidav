@@ -680,16 +680,10 @@ class _DAVResource(object):
 
         elif name.startswith("{DAV:}"):
             # Standard live property (raises HTTP_NOT_FOUND if not supported)
-            if (
-                name == "{DAV:}creationdate"
-                and self.get_creation_date() is not None
-            ):
+            if name == "{DAV:}creationdate" and self.get_creation_date() is not None:
                 # Note: uses RFC3339 format (ISO 8601)
                 return util.get_rfc3339_time(self.get_creation_date())
-            elif (
-                name == "{DAV:}getcontenttype"
-                and self.get_content_type() is not None
-            ):
+            elif name == "{DAV:}getcontenttype" and self.get_content_type() is not None:
                 return self.get_content_type()
             elif name == "{DAV:}resourcetype":
                 if self.is_collection:
@@ -698,8 +692,7 @@ class _DAVResource(object):
                     return resourcetypeEL
                 return ""
             elif (
-                name == "{DAV:}getlastmodified"
-                and self.get_last_modified() is not None
+                name == "{DAV:}getlastmodified" and self.get_last_modified() is not None
             ):
                 # Note: uses RFC1123 format
                 return util.get_rfc1123_time(self.get_last_modified())
@@ -711,9 +704,7 @@ class _DAVResource(object):
                 return str(self.get_content_length())
             elif name == "{DAV:}getetag" and self.get_etag() is not None:
                 return self.get_etag()
-            elif (
-                name == "{DAV:}displayname" and self.get_display_name() is not None
-            ):
+            elif name == "{DAV:}displayname" and self.get_display_name() is not None:
                 return self.get_display_name()
 
             # Unsupported, no persistence available, or property not found
