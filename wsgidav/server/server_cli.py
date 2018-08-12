@@ -282,15 +282,14 @@ def _read_config_file(config_file, verbose):
                 continue
             conf[k] = v
     except Exception:
-        exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value)
-        exceptiontext = ""
-        for einfo in exceptioninfo:
-            exceptiontext += einfo + "\n"
+        exc_type, exc_value = sys.exc_info()[:2]
+        exc_info_list = traceback.format_exception_only(exc_type, exc_value)
+        exc_text = "\n".join(exc_info_list)
         print(
             "Failed to read configuration file: "
             + config_file
             + "\nDue to "
-            + exceptiontext,
+            + exc_text,
             file=sys.stderr,
         )
         raise
