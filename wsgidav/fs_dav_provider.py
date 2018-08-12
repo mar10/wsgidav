@@ -394,7 +394,7 @@ class FilesystemProvider(DAVProvider):
             )
 
         # Convert to unicode
-        file_path = util.toUnicode(file_path)
+        file_path = util.to_unicode_safe(file_path)
         return file_path
 
     def is_readonly(self):
