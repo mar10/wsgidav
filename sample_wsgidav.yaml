@@ -22,28 +22,30 @@ port: 8080
 # Transfer block size in bytes
 block_size: 8192
 
-# Add the MS-Author-Via Response Header to OPTIONS command to allow editing
-# with Microsoft Office (default: true)
+#: Add the MS-Author-Via Response Header to OPTIONS command to allow editing
+#: with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
-unquote_path_info: false,  # See #8
-re_encode_path_info: null  # (See #73) None: activate on Python 3
+#: See issue #8
+unquote_path_info: false
+#: (See issue #73) Set null to activate on Python 3 only
+re_encode_path_info: null
 
 # ----------------------------------------------------------------------------
 # SSL Support
 
-# (The certificate should match the servers hostname, so the bogus certs will not
-# work in all scenarios.)
+#: The certificate should match the servers hostname, so the bogus certs will
+#: not work in all scenarios.
 
-# ssl_certificate = "wsgidav/server/sample_bogo_server.crt"
-# ssl_private_key = "wsgidav/server/sample_bogo_server.key"
-# ssl_certificate_chain = None
+# ssl_certificate: "wsgidav/server/sample_bogo_server.crt"
+# ssl_private_key: "wsgidav/server/sample_bogo_server.key"
+# ssl_certificate_chain: None
 
-# Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
-# ssl_adapter = "pyopenssl"
+#: Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
+# ssl_adapter: "pyopenssl"
 
 # ----------------------------------------------------------------------------
 
-# Modify to customize the WSGI application stack:
+#: Modify to customize the WSGI application stack:
 middleware_stack:
     - wsgidav.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
@@ -54,7 +56,8 @@ middleware_stack:
 # ==============================================================================
 # SHARES
 
-# Application root, e.g. <mount_path>/<share_name>/<res_path>
+#: Application root, applied before provider mapping shares,
+#: e.g. <mount_path>/<share_name>/<res_path>
 mount_path: null
 
 provider_mapping:
@@ -109,7 +112,7 @@ user_mapping:
 # Set verbosity level (but will be overridden by -v or -q arguments)
 verbose: 3
 
-logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d)> %(name)-27s %(levelname)-8s:  %(message)s"
+logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s"
 logger_date_format: "%H:%M:%S"
 
 catch_all: false
@@ -131,17 +134,30 @@ debug_litmus: []
 # WsgiDavDirBrowser
 
 dir_browser:
-    ignore:  # List of fnmatch patterns
+    #: List of fnmatch patterns that will be hidden in the directory listing
+    ignore:
         - ".DS_Store"  # macOS folder meta data
         - "Thumbs.db"  # Windows image previews
         - "._*"  # macOS hidden data files
-    icon: true  # Display WsgiDAV icon in header
-    response_trailer: true  # Raw HTML code, appended as footer
+    #: Display WsgiDAV icon in header
+    icon: true
+    #: Raw HTML code, appended as footer (true: use a default trailer)
+    response_trailer: true
+    #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
-    davmount: false  # Send <dm:mount> response if request URL contains '?davmount'
-    ms_mount: false # Invoke MS Offce documents for editing using WebDAV
-    ms_sharepoint_plugin: true  # Invoke MS Offce documents for editing using WebDAV
-    ms_sharepoint_urls: false  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+    #: Send <dm:mount> response if request URL contains '?davmount'
+    #: Also add a respective link at the top of the listing
+    #: (See https://tools.ietf.org/html/rfc4709)
+    davmount: false
+    #: Add an 'open as webfolder' link (requires Windows IE <= 7!)
+    ms_mount: false
+    #: Invoke MS Office documents for editing using WebDAV by adding JavaScript
+    #: code that invokes the SharePoint plugin ActiveXObject("SharePoint.OpenDocuments")
+    #: (Requires MS IE)
+    ms_sharepoint_plugin: false
+    #: Prepend 'ms-word:ofe|u|' to URLs for MS Office documents
+    #: (This option is ignored if ms_sharepoint_plugin is true.)
+    ms_sharepoint_urls: true
 
 
 # ----------------------------------------------------------------------------

@@ -23,6 +23,7 @@ Sphinx = "~=1.6"
 black = "*"
 isort = "*"
 pylint = "*"
+rope = "*"
 
 [packages]
 defusedxml = "~=0.5"

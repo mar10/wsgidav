@@ -6,6 +6,7 @@
  *
  * JSON formatted (JavaScript-style comments are allowed).
  *
+ * NOTE: the recommended configuration file format is YAML.
  * See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
  */
 {

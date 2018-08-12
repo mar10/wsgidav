@@ -173,22 +173,24 @@ class WsgiDavDirBrowser(BaseMiddleware):
             for res in childList:
                 di = res.get_display_info()
                 href = res.get_href()
-                classes = []
+                tr_classes = []
+                a_classes = []
                 if res.is_collection:
-                    classes.append("directory")
+                    tr_classes.append("directory")
 
                 if not isReadOnly and not res.is_collection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
                         if dirConfig.get("ms_sharepoint_plugin"):
-                            classes.append("msoffice")
+                            a_classes.append("msoffice")
                         elif dirConfig.get("ms_sharepoint_urls"):
                             href = "ms-{}:ofe|u|{}".format(officeType, href)
 
                 entry = {
                     "href": href,
-                    "class": " ".join(classes),
+                    "aClass": " ".join(a_classes),
+                    "trClass": " ".join(tr_classes),
                     "displayName": res.get_display_name(),
                     "lastModified": res.get_last_modified(),
                     "is_collection": res.is_collection,

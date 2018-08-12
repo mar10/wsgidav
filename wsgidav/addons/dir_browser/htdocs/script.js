@@ -23,7 +23,7 @@ function openWithSharePointPlugin(url) {
     // Get the most recent version of the SharePoint plugin
     if( window.ActiveXObject ){
         try {
-            control = new ActiveXObject("SharePoint.OpenDocuments.3"); // Office 2007
+            control = new ActiveXObject("SharePoint.OpenDocuments.3"); // Office 2007+
         } catch(e) {
             try {
                 control = new ActiveXObject("SharePoint.OpenDocuments.2"); // Office 2003
@@ -40,7 +40,7 @@ function openWithSharePointPlugin(url) {
             window.console && console.warn("Cannot instantiate the required ActiveX control to open the document. This is most likely because you do not have Office installed or you have an older version of Office.");
         }
     } else {
-        window.console && console.log("Non-IE: using FFWinPlugin Plug-in...");
+        window.console && console.log("Non-IE: trying FFWinPlugin Plug-in...");
         control = document.getElementById("winFirefoxPlugin");
         isFF = true;
     }
