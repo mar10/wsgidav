@@ -29,6 +29,7 @@ try:
     use_lxml = True
     _ElementType = etree._Element
 except ImportError:
+    # warnings.warn("Could not import lxml")  # , ImportWarning)
     # Try xml module (Python 2.5 or later) with safe defaults
     from defusedxml import ElementTree as etree
 

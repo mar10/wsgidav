@@ -712,10 +712,10 @@ def run():
             )
         )
 
-    if not use_lxml:  # and config["verbose"] >= 1:
+    if not use_lxml and config["verbose"] >= 3:
         _logger.warn(
-            "Could not import lxml: using xml instead (slower). "
-            "Consider installing lxml https://pypi.python.org/pypi/lxml."
+            "Could not import lxml: using xml instead (up to 10% slower). "
+            "Consider `pip install lxml`(see https://pypi.python.org/pypi/lxml)."
         )
 
     handler(app, config, server)
