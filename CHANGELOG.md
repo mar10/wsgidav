@@ -30,8 +30,7 @@ This release contains **BREAKING CHANGES!**
   - Move to `addons.dir_browser` package
 - Support Docker
   https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
-- **TODO** #94: Use utf-8 as default
-- MSI setup uses Python 3.6
+- MSI setup uses Cheroot/6.4 Python 3.6
 - #112: Added limited support for Microsoft's Win32LastModified property.
 
 

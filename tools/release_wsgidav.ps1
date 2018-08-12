@@ -9,6 +9,9 @@ $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
 # $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.7";
 
 
+$IGNORE_UNSTAGED_CHANGES = 0;
+$SKIP_TESTS = 0;
+
 # ----------------------------------------------------------------------------
 # Pre-checks
 
@@ -17,8 +20,12 @@ cd $ProjectRoot
 git status
 git diff --exit-code --quiet
 if($LastExitCode -ne 0) {
-   Write-Error "Unstaged changes: exiting."
-   Exit 1
+   if( $IGNORE_UNSTAGED_CHANGES ) {
+       Write-Warning "IGNORING UNSTAGED CHANGES!"
+   } else {
+       Write-Error "Unstaged changes: exiting."
+       Exit 1
+   }
 }
 
 
@@ -61,12 +68,16 @@ python -m pip install lxml
 #python -m pip list
 
 # Run tests
-python setup.py test
-
-if($LastExitCode -ne 0) {
-   Write-Error "Tests failed with exit code $LastExitCode"
-   Exit 1
+if( $SKIP_TESTS ) {
+    Write-Warning "SKIPPING TESTS!"
+} else {
+    python setup.py test
+    if($LastExitCode -ne 0) {
+        Write-Error "Tests failed with exit code $LastExitCode"
+        Exit 1
+    }
 }
+
 
 # (optional) Do a test release
 #python setup.py pypi_daily
