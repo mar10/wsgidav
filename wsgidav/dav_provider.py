@@ -539,7 +539,7 @@ class _DAVResource(object):
     def get_properties(self, mode, nameList=None):
         """Return properties as list of 2-tuples (name, value).
 
-        If mode is 'propname', then None is returned for the value.
+        If mode is 'name', then None is returned for the value.
 
         name
             the property name in Clark notation.
@@ -548,17 +548,17 @@ class _DAVResource(object):
             - string or unicode: for standard property values.
             - etree.Element: for complex values.
             - DAVError in case of errors.
-            - None: if mode == 'propname'.
+            - None: if mode == 'name'.
 
-        @param mode: "allprop", "propname", or "named"
+        @param mode: "allprop", "name", or "named"
         @param nameList: list of property names in Clark Notation (required for mode 'named')
 
         This default implementation basically calls self.get_property_names() to
         get the list of names, then call self.get_property_value on each of them.
         """
-        assert mode in ("allprop", "propname", "named")
+        assert mode in ("allprop", "name", "named")
 
-        if mode in ("allprop", "propname"):
+        if mode in ("allprop", "name"):
             # TODO: 'allprop' could have nameList, when <include> option is
             # implemented
             assert nameList is None
@@ -567,7 +567,7 @@ class _DAVResource(object):
             assert nameList is not None
 
         propList = []
-        namesOnly = mode == "propname"
+        namesOnly = mode == "name"
         for name in nameList:
             try:
                 if namesOnly:
@@ -584,10 +584,10 @@ class _DAVResource(object):
 
         return propList
 
-    def get_property_value(self, propname):
+    def get_property_value(self, name):
         """Return the value of a property.
 
-        propname:
+        name:
             the property name in Clark notation.
         return value:
             may have different types, depending on the status:
@@ -600,7 +600,7 @@ class _DAVResource(object):
         This default implementation handles ``{DAV:}lockdiscovery`` and
         ``{DAV:}supportedlock`` using the associated lock manager.
 
-        All other *live* properties (i.e. propname starts with ``{DAV:}``) are
+        All other *live* properties (i.e. name starts with ``{DAV:}``) are
         delegated to the self.xxx() getters.
 
         Finally, other properties are considered *dead*, and are handled  by
@@ -610,11 +610,11 @@ class _DAVResource(object):
 
         # lock properties
         lm = self.provider.lockManager
-        if lm and propname == "{DAV:}lockdiscovery":
+        if lm and name == "{DAV:}lockdiscovery":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present.
             # Correct?
             activelocklist = lm.get_url_lock_list(refUrl)
-            lockdiscoveryEL = etree.Element(propname)
+            lockdiscoveryEL = etree.Element(name)
             for lock in activelocklist:
                 activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
 
@@ -659,10 +659,10 @@ class _DAVResource(object):
 
             return lockdiscoveryEL
 
-        elif lm and propname == "{DAV:}supportedlock":
+        elif lm and name == "{DAV:}supportedlock":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
             # TODO: the lockmanager should decide about it's features
-            supportedlockEL = etree.Element(propname)
+            supportedlockEL = etree.Element(name)
 
             lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
             lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
@@ -678,41 +678,41 @@ class _DAVResource(object):
 
             return supportedlockEL
 
-        elif propname.startswith("{DAV:}"):
+        elif name.startswith("{DAV:}"):
             # Standard live property (raises HTTP_NOT_FOUND if not supported)
             if (
-                propname == "{DAV:}creationdate"
+                name == "{DAV:}creationdate"
                 and self.get_creation_date() is not None
             ):
                 # Note: uses RFC3339 format (ISO 8601)
                 return util.get_rfc3339_time(self.get_creation_date())
             elif (
-                propname == "{DAV:}getcontenttype"
+                name == "{DAV:}getcontenttype"
                 and self.get_content_type() is not None
             ):
                 return self.get_content_type()
-            elif propname == "{DAV:}resourcetype":
+            elif name == "{DAV:}resourcetype":
                 if self.is_collection:
-                    resourcetypeEL = etree.Element(propname)
+                    resourcetypeEL = etree.Element(name)
                     etree.SubElement(resourcetypeEL, "{DAV:}collection")
                     return resourcetypeEL
                 return ""
             elif (
-                propname == "{DAV:}getlastmodified"
+                name == "{DAV:}getlastmodified"
                 and self.get_last_modified() is not None
             ):
                 # Note: uses RFC1123 format
                 return util.get_rfc1123_time(self.get_last_modified())
             elif (
-                propname == "{DAV:}getcontentlength"
+                name == "{DAV:}getcontentlength"
                 and self.get_content_length() is not None
             ):
                 # Note: must be a numeric string
                 return str(self.get_content_length())
-            elif propname == "{DAV:}getetag" and self.get_etag() is not None:
+            elif name == "{DAV:}getetag" and self.get_etag() is not None:
                 return self.get_etag()
             elif (
-                propname == "{DAV:}displayname" and self.get_display_name() is not None
+                name == "{DAV:}displayname" and self.get_display_name() is not None
             ):
                 return self.get_display_name()
 
@@ -722,14 +722,14 @@ class _DAVResource(object):
         # Dead property
         pm = self.provider.propManager
         if pm:
-            value = pm.get_property(refUrl, propname, self.environ)
+            value = pm.get_property(refUrl, name, self.environ)
             if value is not None:
                 return xml_tools.string_to_xml(value)
 
         # No persistence available, or property not found
         raise DAVError(HTTP_NOT_FOUND)
 
-    def set_property_value(self, propname, value, dryRun=False):
+    def set_property_value(self, name, value, dryRun=False):
         """Set a property value or remove a property.
 
         value == None means 'remove property'.
@@ -758,7 +758,7 @@ class _DAVResource(object):
         """
         assert value is None or xml_tools.is_etree_element(value)
 
-        if propname in _lockPropertyNames:
+        if name in _lockPropertyNames:
             # Locking properties are always read-only
             raise DAVError(
                 HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty
@@ -769,16 +769,16 @@ class _DAVResource(object):
         mutableLiveProps = _config.get("mutable_live_props", [])
         # Accept custom live property updates on resources if configured.
         if (
-            propname.startswith("{DAV:}")
-            and propname in _standardLivePropNames
-            and propname in mutableLiveProps
+            name.startswith("{DAV:}")
+            and name in _standardLivePropNames
+            and name in mutableLiveProps
         ):
             # Please note that some properties should not be mutable according
             # to RFC4918. This includes the 'getlastmodified' property, which
             # it may still make sense to make mutable in order to support time
             # stamp changes from e.g. utime calls or the touch or rsync -a
             # commands.
-            if propname in ("{DAV:}getlastmodified", "{DAV:}lastmodified"):
+            if name in ("{DAV:}getlastmodified", "{DAV:}lastmodified"):
                 try:
                     return self.set_last_modified(self.path, value.text, dryRun)
                 except Exception:
@@ -794,28 +794,28 @@ class _DAVResource(object):
         # Handle MS Windows Win32LastModifiedTime, if enabled.
         # Note that the WebDAV client in Win7 and earler has issues and can't be used
         # with this so we ignore older clients. Others pre-Win10 should be tested.
-        if propname.startswith("{urn:schemas-microsoft-com:}"):
+        if name.startswith("{urn:schemas-microsoft-com:}"):
             agent = self.environ.get("HTTP_USER_AGENT", "None")
             win32_emu = _config.get("emulate_win32_lastmod", False)
             if win32_emu and "MiniRedir/6.1" not in agent:
-                if "Win32LastModifiedTime" in propname:
+                if "Win32LastModifiedTime" in name:
                     return self.set_last_modified(self.path, value.text, dryRun)
-                elif "Win32FileAttributes" in propname:
+                elif "Win32FileAttributes" in name:
                     return True
-                elif "Win32CreationTime" in propname:
+                elif "Win32CreationTime" in name:
                     return True
-                elif "Win32LastAccessTime" in propname:
+                elif "Win32LastAccessTime" in name:
                     return True
 
         # Dead property
         pm = self.provider.propManager
-        if pm and not propname.startswith("{DAV:}"):
+        if pm and not name.startswith("{DAV:}"):
             refUrl = self.get_ref_url()
             if value is None:
-                return pm.remove_property(refUrl, propname, dryRun, self.environ)
+                return pm.remove_property(refUrl, name, dryRun, self.environ)
             else:
                 value = etree.tostring(value)
-                return pm.write_property(refUrl, propname, value, dryRun, self.environ)
+                return pm.write_property(refUrl, name, value, dryRun, self.environ)
 
         raise DAVError(HTTP_FORBIDDEN)
 
