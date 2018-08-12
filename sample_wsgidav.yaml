@@ -109,12 +109,15 @@ user_mapping:
 # ==============================================================================
 # DEBUGGING
 
-# Set verbosity level (but will be overridden by -v or -q arguments)
+#: Set verbosity level (but will be overridden by -v or -q arguments)
 verbose: 3
 
-logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s"
+#: Set logging output format
+#: (see https://docs.python.org/3/library/logging.html#logging.Formatter)
+logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s: %(message)s"
 logger_date_format: "%H:%M:%S"
 
+#: Let ErrorPrinter middleware catch all exceptions to return as 500 Internal Error
 catch_all: false
 
 # Enable specific module loggers
