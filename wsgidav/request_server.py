@@ -1442,7 +1442,7 @@ class RequestServer(object):
             allow.extend(["HEAD", "GET", "PROPFIND"])
             # if provider.propManager is not None:
             #     allow.extend( [ "PROPFIND" ] )
-            if not provider.isReadOnly():
+            if not provider.is_readonly():
                 allow.extend(["DELETE", "COPY", "MOVE", "PROPPATCH"])
                 # if provider.propManager is not None:
                 #     allow.extend( [ "PROPPATCH" ] )
@@ -1453,7 +1453,7 @@ class RequestServer(object):
             allow.extend(["HEAD", "GET", "PROPFIND"])
             # if provider.propManager is not None:
             #     allow.extend( [ "PROPFIND" ] )
-            if not provider.isReadOnly():
+            if not provider.is_readonly():
                 allow.extend(["PUT", "DELETE", "COPY", "MOVE", "PROPPATCH"])
                 # if provider.propManager is not None:
                 #     allow.extend( [ "PROPPATCH" ] )
@@ -1465,7 +1465,7 @@ class RequestServer(object):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an
             # non-existing resource
-            if not provider.isReadOnly():
+            if not provider.is_readonly():
                 allow.extend(["PUT", "MKCOL"])
         else:
             self._fail(HTTP_NOT_FOUND)
