@@ -161,13 +161,6 @@ dir_browser:
     #:   https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ff407576(v%3Doffice.14)
     #: - Otherwise the Office URL prefix is used (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
     ms_sharepoint_support: true
-    # #: Invoke MS Office documents for editing using WebDAV by adding JavaScript
-    # #: code that invokes the SharePoint plugin ActiveXObject("SharePoint.OpenDocuments")
-    # #: (Requires MS IE 8-11, but not Edge)
-    # ms_sharepoint_plugin: false
-    # #: Prepend 'ms-word:ofe|u|' to URLs for MS Office documents
-    # #: (This option is ignored if ms_sharepoint_plugin is true.)
-    # ms_sharepoint_urls: false
 
 
 # ----------------------------------------------------------------------------

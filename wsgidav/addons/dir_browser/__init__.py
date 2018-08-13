@@ -186,10 +186,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
                         if dirConfig.get("ms_sharepoint_support"):
                             ofe_prefix = "ms-{}:ofe|u|".format(officeType)
                             a_classes.append("msoffice")
-                        elif dirConfig.get("ms_sharepoint_plugin"):
-                            a_classes.append("msoffice")
-                        elif dirConfig.get("ms_sharepoint_urls"):
-                            href = "ms-{}:ofe|u|{}".format(officeType, href)
+                        # elif dirConfig.get("ms_sharepoint_plugin"):
+                        #     a_classes.append("msoffice")
+                        # elif dirConfig.get("ms_sharepoint_urls"):
+                        #     href = "ms-{}:ofe|u|{}".format(officeType, href)
 
                 entry = {
                     "href": href,

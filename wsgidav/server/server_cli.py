@@ -343,6 +343,8 @@ def _init_config():
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
 
     if config["verbose"] >= 5:
+        # TODO: remove passwords from user_mapping
+        # config_cleaned = copy.deepcopy(config)
         print("Configuration({}):\n{}".format(cli_opts["config_file"], pformat(config)))
 
     if not config["provider_mapping"]:
