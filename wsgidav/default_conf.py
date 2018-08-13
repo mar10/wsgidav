@@ -84,7 +84,8 @@ DEFAULT_CONFIG = {
         "davmount": False,
         # Add an 'open as webfolder' link (requires Windows clients):
         "ms_mount": False,
-        "ms_sharepoint_plugin": True,  # Invoke MS Offce documents for editing using WebDAV
-        "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+        "ms_sharepoint_support": True,  # Invoke MS Offce documents for editing using WebDAV
+        # "ms_sharepoint_plugin": False,  # Invoke MS Offce documents for editing using WebDAV
+        # "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
     },
 }

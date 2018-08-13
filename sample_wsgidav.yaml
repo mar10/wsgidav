@@ -114,7 +114,7 @@ verbose: 3
 
 #: Set logging output format
 #: (see https://docs.python.org/3/library/logging.html#logging.Formatter)
-logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s: %(message)s"
+logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s: %(message)s"
 logger_date_format: "%H:%M:%S"
 
 #: Let ErrorPrinter middleware catch all exceptions to return as 500 Internal Error
@@ -154,13 +154,20 @@ dir_browser:
     davmount: false
     #: Add an 'open as webfolder' link (requires Windows IE <= 7!)
     ms_mount: false
-    #: Invoke MS Office documents for editing using WebDAV by adding JavaScript
-    #: code that invokes the SharePoint plugin ActiveXObject("SharePoint.OpenDocuments")
-    #: (Requires MS IE)
-    ms_sharepoint_plugin: false
-    #: Prepend 'ms-word:ofe|u|' to URLs for MS Office documents
-    #: (This option is ignored if ms_sharepoint_plugin is true.)
-    ms_sharepoint_urls: true
+    #: Invoke MS Office documents for editing using WebDAV by adding a JavaScript
+    #: click handler.
+    #: - For IE 11 and below invokes the SharePoint ActiveXObject("SharePoint.OpenDocuments")
+    #: - If the custom legacy Firefox plugin is available, it will be used
+    #:   https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ff407576(v%3Doffice.14)
+    #: - Otherwise the Office URL prefix is used (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
+    ms_sharepoint_support: true
+    # #: Invoke MS Office documents for editing using WebDAV by adding JavaScript
+    # #: code that invokes the SharePoint plugin ActiveXObject("SharePoint.OpenDocuments")
+    # #: (Requires MS IE 8-11, but not Edge)
+    # ms_sharepoint_plugin: false
+    # #: Prepend 'ms-word:ofe|u|' to URLs for MS Office documents
+    # #: (This option is ignored if ms_sharepoint_plugin is true.)
+    # ms_sharepoint_urls: false
 
 
 # ----------------------------------------------------------------------------

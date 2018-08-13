@@ -28,8 +28,8 @@ This release contains **BREAKING CHANGES!**
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package
-- Support Docker
-  https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
+  - Option 'ms_sharepoint_support' replaces ms_sharepoint_plugin and ms_sharepoint_urls
+- Support [Docker image](https://hub.docker.com/r/mar10/wsgidav/)
 - MSI setup uses Cheroot/6.4 Python 3.6
 - #112: Added limited support for Microsoft's Win32LastModified property.
 

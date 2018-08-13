@@ -133,7 +133,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         assert davres.is_collection
 
         dirConfig = environ["wsgidav.config"].get("dir_browser", {})
-        isReadOnly = environ["wsgidav.provider"].is_readonly()
+        is_readonly = environ["wsgidav.provider"].is_readonly()
 
         context = {
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
@@ -143,7 +143,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "url": davres.get_href(),  # util.make_complete_url(environ),
             "parentUrl": util.get_uri_parent(davres.get_href()),
             "config": dirConfig,
-            "is_readonly": isReadOnly,
+            "is_readonly": is_readonly,
         }
 
         trailer = dirConfig.get("response_trailer")
@@ -173,22 +173,27 @@ class WsgiDavDirBrowser(BaseMiddleware):
             for res in childList:
                 di = res.get_display_info()
                 href = res.get_href()
+                ofe_prefix = None
                 tr_classes = []
                 a_classes = []
                 if res.is_collection:
                     tr_classes.append("directory")
 
-                if not isReadOnly and not res.is_collection:
+                if not is_readonly and not res.is_collection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
-                        if dirConfig.get("ms_sharepoint_plugin"):
+                        if dirConfig.get("ms_sharepoint_support"):
+                            ofe_prefix = "ms-{}:ofe|u|".format(officeType)
+                            a_classes.append("msoffice")
+                        elif dirConfig.get("ms_sharepoint_plugin"):
                             a_classes.append("msoffice")
                         elif dirConfig.get("ms_sharepoint_urls"):
                             href = "ms-{}:ofe|u|{}".format(officeType, href)
 
                 entry = {
                     "href": href,
+                    "ofe_prefix": ofe_prefix,
                     "aClass": " ".join(a_classes),
                     "trClass": " ".join(tr_classes),
                     "displayName": res.get_display_name(),

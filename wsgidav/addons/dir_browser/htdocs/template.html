@@ -71,7 +71,9 @@
       {% for row in rows %}
       <tr class="{{ row.trClass }}">
         <td>
-          <a class="{{ row.aClass }}" href="{{row.href}}">{{row.displayName}}</a>
+          <a class="{{ row.aClass }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
+              {{row.displayName}}
+          </a>
         </td>
         <td>{{ row.displayType }}</td>
         <td>{{ row.strSize }}</td>

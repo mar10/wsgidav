@@ -85,6 +85,8 @@ def _check_config(config):
     deprecated_fields = {
         "dir_browser.app_class": "middleware_stack",
         "dir_browser.enable": "middleware_stack",
+        "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
+        "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
         "domaincontroller": "domain_controller",
         "acceptbasic": "http_authenticator.accept_basic",
         "acceptdigest": "http_authenticator.accept_digest",
