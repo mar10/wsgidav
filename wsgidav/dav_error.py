@@ -110,7 +110,7 @@ ERROR_RESPONSES = {
     HTTP_NOT_FOUND: "The specified resource was not found",
     HTTP_FORBIDDEN: "Access denied to the specified resource",
     HTTP_INTERNAL_ERROR: "An internal server error occurred",
-    HTTP_NOT_IMPLEMENTED: "Not Implemented",
+    HTTP_NOT_IMPLEMENTED: "Not implemented",
 }
 
 
@@ -219,7 +219,7 @@ class DAVError(Exception):
         return s
 
     def get_response_page(self):
-        """Return an tuple (content-type, response page)."""
+        """Return a tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response
         if self.errcondition:
             return ("application/xml", compat.to_bytes(self.errcondition.as_string()))

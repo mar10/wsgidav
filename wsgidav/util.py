@@ -795,7 +795,7 @@ def parse_xml_body(environ, allowEmpty=False):
 #    return [ body ]
 
 
-def send_status_response(environ, start_response, e, add_headers=None):
+def send_status_response(environ, start_response, e, add_headers=None, is_head=False):
     """Start a WSGI response for a DAVError or status code."""
     status = get_http_status_string(e)
     headers = []
@@ -818,6 +818,8 @@ def send_status_response(environ, start_response, e, add_headers=None):
     assert isinstance(e, DAVError)
 
     content_type, body = e.get_response_page()
+    if is_head:
+        body = compat.b_empty
 
     assert compat.is_bytes(body), body  # If not, Content-Length is wrong!
     start_response(

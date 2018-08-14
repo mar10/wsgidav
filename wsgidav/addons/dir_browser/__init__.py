@@ -75,7 +75,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 )
 
             if environ["REQUEST_METHOD"] == "HEAD":
-                return util.send_status_response(environ, start_response, HTTP_OK)
+                return util.send_status_response(
+                    environ, start_response, HTTP_OK, is_head=True
+                )
 
             # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
             dirConfig = environ["wsgidav.config"].get("dir_browser", {})

@@ -115,6 +115,7 @@ verbose: 3
 #: Set logging output format
 #: (see https://docs.python.org/3/library/logging.html#logging.Formatter)
 logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s: %(message)s"
+#logger_format: "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s"
 logger_date_format: "%H:%M:%S"
 
 #: Let ErrorPrinter middleware catch all exceptions to return as 500 Internal Error

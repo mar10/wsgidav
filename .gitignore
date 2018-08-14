@@ -6,6 +6,7 @@
 .vscode
 .pytest_cache/
 build/
+_build/
 doc/sphinx/_autosummary/
 doc/sphinx/_build/
 doc/sphinx/_generated/
