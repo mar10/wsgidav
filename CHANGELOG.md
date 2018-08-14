@@ -23,11 +23,14 @@ This release contains **BREAKING CHANGES!**
 - Refactor code base:
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.
+  - **TODO:** **Rename methods arguments** according to PEP 8, e.g.
+    `provider.set_last_modified(self, destPath, timeStamp, dryRun)`
+    => `provider.set_last_modified(self, dest_path, time_stamp, dry_run)`
   - Enforce [Black code style](https://github.com/ambv/black)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package
-- Support Docker
+- Automated Docker builds (https://hub.docker.com/r/mar10/wsgidav/)
   https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
 - **TODO** #94: Use utf-8 as default
 - MSI setup uses Python 3.6
