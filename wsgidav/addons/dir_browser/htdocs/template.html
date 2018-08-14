@@ -22,11 +22,11 @@
   {% if config.davmount or config.ms_mount %}
   <p class="links">
     {%- if config.davmount %}
-      <a title="Open this folder in a WebDAV client." href="{{ url }}?davmount">Mount</a>
+      <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
     {% endif -%}
     {%- if config.ms_mount %}
       {% if config.davmount %} &#8211; {% endif %}
-      <a title="Open as Web Folder (requires Microsoft Internet Explorer)"
+      <a title="Open as Web Folder (requires Microsoft Internet Explorer 7 or older!)"
           href="" folder="{{ url }}">Open as Web Folder</a>
     {% endif %}
   </p>
@@ -69,9 +69,11 @@
       {% endif -%}
 
       {% for row in rows %}
-      <tr class="{{ row.class }}">
+      <tr class="{{ row.trClass }}">
         <td>
-          <a href="{{row.href}}">{{row.displayName}}</a>
+          <a class="{{ row.aClass }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
+              {{row.displayName}}
+          </a>
         </td>
         <td>{{ row.displayType }}</td>
         <td>{{ row.strSize }}</td>

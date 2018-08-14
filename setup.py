@@ -27,8 +27,8 @@ class ToxCommand(TestCommand):
         # Import here, cause outside the eggs aren't loaded
         import tox
 
-        errcode = tox.cmdline(self.test_args)
-        sys.exit(errcode)
+        # Raises SystemExit
+        tox.cmdline(self.test_args)
 
 
 # Add custom command 'setup.py sphinx'
@@ -78,7 +78,7 @@ install_requires = ["defusedxml", "jsmin", "Jinja2", "PyYAML"]
 
 # The Windows MSI Setup should include lxml and CherryPy
 if "bdist_msi" in sys.argv:
-    install_requires.extend(["cheroot", "lxml"])
+    install_requires.extend(["cheroot", "cheroot.ssl.builtin", "lxml"])
 
 tests_require = []
 

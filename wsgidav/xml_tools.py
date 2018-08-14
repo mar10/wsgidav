@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -28,6 +29,7 @@ try:
     use_lxml = True
     _ElementType = etree._Element
 except ImportError:
+    # warnings.warn("Could not import lxml")  # , ImportWarning)
     # Try xml module (Python 2.5 or later) with safe defaults
     from defusedxml import ElementTree as etree
 

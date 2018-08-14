@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -132,8 +133,8 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def get_property(self, normurl, propname, environ=None):
-        _logger.debug("get_property({}, {})".format(normurl, propname))
+    def get_property(self, normurl, name, environ=None):
+        _logger.debug("get_property({}, {})".format(normurl, name))
         self._lock.acquire_read()
         try:
             if not self._loaded:
@@ -146,23 +147,21 @@ class PropertyManager(object):
                 resourceprops = self._dict[normurl]
             except Exception as e:
                 _logger.exception(
-                    "get_property({}, {}) failed : {}".format(normurl, propname, e)
+                    "get_property({}, {}) failed : {}".format(normurl, name, e)
                 )
                 raise
-            return resourceprops.get(propname)
+            return resourceprops.get(name)
         finally:
             self._lock.release()
 
-    def write_property(
-        self, normurl, propname, propertyvalue, dryRun=False, environ=None
-    ):
+    def write_property(self, normurl, name, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
-        assert propname  # and propname.startswith("{")
+        assert name  # and name.startswith("{")
         assert propertyvalue is not None
 
         _logger.debug(
             "write_property({}, {}, dryRun={}):\n\t{}".format(
-                normurl, propname, dryRun, propertyvalue
+                normurl, name, dryRun, propertyvalue
             )
         )
         if dryRun:
@@ -176,7 +175,7 @@ class PropertyManager(object):
                 locatordict = self._dict[normurl]
             else:
                 locatordict = {}  # dict([])
-            locatordict[propname] = propertyvalue
+            locatordict[name] = propertyvalue
             # This re-assignment is important, so Shelve realizes the change:
             self._dict[normurl] = locatordict
             self._sync()
@@ -185,12 +184,12 @@ class PropertyManager(object):
         finally:
             self._lock.release()
 
-    def remove_property(self, normurl, propname, dryRun=False, environ=None):
+    def remove_property(self, normurl, name, dryRun=False, environ=None):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
         _logger.debug(
-            "remove_property({}, {}, dryRun={})".format(normurl, propname, dryRun)
+            "remove_property({}, {}, dryRun={})".format(normurl, name, dryRun)
         )
         if dryRun:
             # TODO: can we check anything here?
@@ -201,8 +200,8 @@ class PropertyManager(object):
                 self._lazy_open()
             if normurl in self._dict:
                 locatordict = self._dict[normurl]
-                if propname in locatordict:
-                    del locatordict[propname]
+                if name in locatordict:
+                    del locatordict[name]
                     # This re-assignment is important, so Shelve realizes the
                     # change:
                     self._dict[normurl] = locatordict

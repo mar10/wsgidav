@@ -22,28 +22,30 @@ port: 8080
 # Transfer block size in bytes
 block_size: 8192
 
-# Add the MS-Author-Via Response Header to OPTIONS command to allow editing
-# with Microsoft Office (default: true)
+#: Add the MS-Author-Via Response Header to OPTIONS command to allow editing
+#: with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
-unquote_path_info: false,  # See #8
-re_encode_path_info: null  # (See #73) None: activate on Python 3
+#: See issue #8
+unquote_path_info: false
+#: (See issue #73) Set null to activate on Python 3 only
+re_encode_path_info: null
 
 # ----------------------------------------------------------------------------
 # SSL Support
 
-# (The certificate should match the servers hostname, so the bogus certs will not
-# work in all scenarios.)
+#: The certificate should match the servers hostname, so the bogus certs will
+#: not work in all scenarios.
 
-# ssl_certificate = "wsgidav/server/sample_bogo_server.crt"
-# ssl_private_key = "wsgidav/server/sample_bogo_server.key"
-# ssl_certificate_chain = None
+# ssl_certificate: "wsgidav/server/sample_bogo_server.crt"
+# ssl_private_key: "wsgidav/server/sample_bogo_server.key"
+# ssl_certificate_chain: None
 
-# Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
-# ssl_adapter = "pyopenssl"
+#: Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
+# ssl_adapter: "pyopenssl"
 
 # ----------------------------------------------------------------------------
 
-# Modify to customize the WSGI application stack:
+#: Modify to customize the WSGI application stack:
 middleware_stack:
     - wsgidav.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
@@ -54,7 +56,8 @@ middleware_stack:
 # ==============================================================================
 # SHARES
 
-# Application root, e.g. <mount_path>/<share_name>/<res_path>
+#: Application root, applied before provider mapping shares,
+#: e.g. <mount_path>/<share_name>/<res_path>
 mount_path: null
 
 provider_mapping:
@@ -106,12 +109,15 @@ user_mapping:
 # ==============================================================================
 # DEBUGGING
 
-# Set verbosity level (but will be overridden by -v or -q arguments)
+#: Set verbosity level (but will be overridden by -v or -q arguments)
 verbose: 3
 
-logger_format: "%(asctime)s.%(msecs)03d - <%(thread)d)> %(name)-27s %(levelname)-8s:  %(message)s"
+#: Set logging output format
+#: (see https://docs.python.org/3/library/logging.html#logging.Formatter)
+logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s: %(message)s"
 logger_date_format: "%H:%M:%S"
 
+#: Let ErrorPrinter middleware catch all exceptions to return as 500 Internal Error
 catch_all: false
 
 # Enable specific module loggers
@@ -131,17 +137,30 @@ debug_litmus: []
 # WsgiDavDirBrowser
 
 dir_browser:
-    ignore:  # List of fnmatch patterns
+    #: List of fnmatch patterns that will be hidden in the directory listing
+    ignore:
         - ".DS_Store"  # macOS folder meta data
         - "Thumbs.db"  # Windows image previews
         - "._*"  # macOS hidden data files
-    icon: true  # Display WsgiDAV icon in header
-    response_trailer: true  # Raw HTML code, appended as footer
+    #: Display WsgiDAV icon in header
+    icon: true
+    #: Raw HTML code, appended as footer (true: use a default trailer)
+    response_trailer: true
+    #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
-    davmount: false  # Send <dm:mount> response if request URL contains '?davmount'
-    ms_mount: false # Invoke MS Offce documents for editing using WebDAV
-    ms_sharepoint_plugin: true  # Invoke MS Offce documents for editing using WebDAV
-    ms_sharepoint_urls: false  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
+    #: Send <dm:mount> response if request URL contains '?davmount'
+    #: Also add a respective link at the top of the listing
+    #: (See https://tools.ietf.org/html/rfc4709)
+    davmount: false
+    #: Add an 'open as webfolder' link (requires Windows IE <= 7!)
+    ms_mount: false
+    #: Invoke MS Office documents for editing using WebDAV by adding a JavaScript
+    #: click handler.
+    #: - For IE 11 and below invokes the SharePoint ActiveXObject("SharePoint.OpenDocuments")
+    #: - If the custom legacy Firefox plugin is available, it will be used
+    #:   https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ff407576(v%3Doffice.14)
+    #: - Otherwise the Office URL prefix is used (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
+    ms_sharepoint_support: true
 
 
 # ----------------------------------------------------------------------------

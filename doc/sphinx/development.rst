@@ -178,15 +178,23 @@ Hack, Hack, Hack
 
 .. note::
 
-    	Follow the Style Guide, basically `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
+      Follow the Style Guide, basically `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
 
-      We prefer to use double quotes and allow a max. line length of 99 characters.
+      Since version 3.x source formatting rules are delegated to the
+      `Black library <https://black.readthedocs.io/en/stable/>`_.
 
       Failing tests or not follwing PEP 8 will break builds on
       `travis <https://travis-ci.org/mar10/wsgidav>`_ and therefore be
-      automatically rejected.
+      automatically rejected:
 
-      Run ``$ flake8`` and ``$ tox`` frequently and before you commit!
+        - Run ``$ tox -e black`` to re-format the code, or
+          `look for plugins for your favorite editor <https://black.readthedocs.io/en/stable/editor_integration.html>`_
+          that format on-save.
+
+        - Run ``$ tox -e check`` frequently and before you commit.
+
+        - Don't forget to run ``$ tox`` to run the hole test suite before
+          you commit.
 
 
 Test, Test, Test

@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -362,29 +362,29 @@ class VirtualResource(DAVCollection):
         propNameList.extend(VirtualResource._supportedProps)
         return propNameList
 
-    def get_property_value(self, propname):
+    def get_property_value(self, name):
         """Return the value of a property.
 
         See get_property_value()
         """
         # Supported custom live properties
-        if propname == "{virtres:}key":
+        if name == "{virtres:}key":
             return self.data["key"]
-        elif propname == "{virtres:}title":
+        elif name == "{virtres:}title":
             return self.data["title"]
-        elif propname == "{virtres:}status":
+        elif name == "{virtres:}status":
             return self.data["status"]
-        elif propname == "{virtres:}orga":
+        elif name == "{virtres:}orga":
             return self.data["orga"]
-        elif propname == "{virtres:}tags":
+        elif name == "{virtres:}tags":
             # 'tags' is a string list
             return ",".join(self.data["tags"])
-        elif propname == "{virtres:}description":
+        elif name == "{virtres:}description":
             return self.data["description"]
         # Let base class implementation report live and dead properties
-        return super(VirtualResource, self).get_property_value(propname)
+        return super(VirtualResource, self).get_property_value(name)
 
-    def set_property_value(self, propname, value, dryRun=False):
+    def set_property_value(self, name, value, dryRun=False):
         """Set or remove property value.
 
         See DAVResource.set_property_value()
@@ -392,13 +392,13 @@ class VirtualResource(DAVCollection):
         if value is None:
             # We can never remove properties
             raise DAVError(HTTP_FORBIDDEN)
-        if propname == "{virtres:}tags":
+        if name == "{virtres:}tags":
             # value is of type etree.Element
             self.data["tags"] = value.text.split(",")
-        elif propname == "{virtres:}description":
+        elif name == "{virtres:}description":
             # value is of type etree.Element
             self.data["description"] = value.text
-        elif propname in VirtualResource._supportedProps:
+        elif name in VirtualResource._supportedProps:
             # Supported property, but read-only
             raise DAVError(
                 HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty

@@ -147,53 +147,49 @@ class CouchPropertyManager(object):
                 propNames.append(name)
         return propNames
 
-    def get_property(self, normurl, propname, environ=None):
-        _logger.debug("get_property(%s, %s)" % (normurl, propname))
+    def get_property(self, normurl, name, environ=None):
+        _logger.debug("get_property(%s, %s)" % (normurl, name))
         doc = self._find(normurl)
         if not doc:
             return None
-        prop = doc["properties"].get(propname)
+        prop = doc["properties"].get(name)
         return prop
 
-    def write_property(
-        self, normurl, propname, propertyvalue, dryRun=False, environ=None
-    ):
+    def write_property(self, normurl, name, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
-        assert propname
+        assert name
         assert propertyvalue is not None
 
         _logger.debug(
             "write_property(%s, %s, dryRun=%s):\n\t%s"
-            % (normurl, propname, dryRun, propertyvalue)
+            % (normurl, name, dryRun, propertyvalue)
         )
         if dryRun:
             return  # TODO: can we check anything here?
 
         doc = self._find(normurl)
         if doc:
-            doc["properties"][propname] = propertyvalue
+            doc["properties"][name] = propertyvalue
         else:
             doc = {
                 "_id": uuid4().hex,  # Documentation suggests to set the id
                 "url": normurl,
                 "title": compat.quote(normurl),
                 "type": "properties",
-                "properties": {propname: propertyvalue},
+                "properties": {name: propertyvalue},
             }
         self.db.save(doc)
 
-    def remove_property(self, normurl, propname, dryRun=False, environ=None):
-        _logger.debug(
-            "remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun)
-        )
+    def remove_property(self, normurl, name, dryRun=False, environ=None):
+        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, name, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
         doc = self._find(normurl)
         # Specifying the removal of a property that does not exist is NOT an error.
-        if not doc or doc["properties"].get(propname) is None:
+        if not doc or doc["properties"].get(name) is None:
             return
-        del doc["properties"][propname]
+        del doc["properties"][name]
         self.db.save(doc)
 
     def remove_properties(self, normurl, environ=None):

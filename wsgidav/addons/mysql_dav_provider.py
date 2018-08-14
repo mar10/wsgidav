@@ -264,7 +264,7 @@ class MySQLBrowserResource(_DAVResource):
             conn.close()
         return propNames
 
-    def get_property_value(self, propname):
+    def get_property_value(self, name):
         """Return the value of a property.
 
         The base implementation handles:
@@ -279,7 +279,7 @@ class MySQLBrowserResource(_DAVResource):
         # Return table field as property
         tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:
-            ns, localName = util.split_namespace(propname)
+            ns, localName = util.split_namespace(name)
             if ns == (tableName + ":"):
                 conn = self.provider._init_connection()
                 fieldlist = self.provider._get_field_list(conn, tableName)
@@ -291,9 +291,9 @@ class MySQLBrowserResource(_DAVResource):
                     return val
                 conn.close()
         # else, let default implementation return supported live and dead properties
-        return super(MySQLBrowserResource, self).get_property_value(propname)
+        return super(MySQLBrowserResource, self).get_property_value(name)
 
-    def set_property_value(self, propname, value, dryRun=False):
+    def set_property_value(self, name, value, dryRun=False):
         """Set or remove property value.
 
         See DAVResource.set_property_value()

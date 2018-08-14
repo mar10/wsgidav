@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -378,12 +379,14 @@ def split_namespace(clarkName):
     return ("", clarkName)
 
 
-def toUnicode(s):
+def to_unicode_safe(s):
     """Convert a binary string to Unicode using UTF-8 (fallback to ISO-8859-1)."""
     try:
         u = compat.to_unicode(s, "utf8")
     except ValueError:
-        _logger.error("toUnicode({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s))
+        _logger.error(
+            "to_unicode_safe({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s)
+        )
         u = compat.to_unicode(s, "ISO-8859-1")
     return u
 
@@ -920,7 +923,7 @@ def add_property_response(multistatusEL, href, propList):
                 # value must be string or unicode
                 #                log("{} value:{}".format(name, string_repr(value)))
                 #                etree.SubElement(propEL, name).text = value
-                etree.SubElement(propEL, name).text = toUnicode(value)
+                etree.SubElement(propEL, name).text = to_unicode_safe(value)
         # <status>
         etree.SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 {}".format(status)
 
@@ -958,7 +961,7 @@ def get_etag(filePath):
     # special characters, even if it is correctly UTF-8 encoded.
     # So we convert to unicode. On the other hand, md5() needs a byte string.
     if compat.is_bytes(filePath):
-        unicodeFilePath = toUnicode(filePath)
+        unicodeFilePath = to_unicode_safe(filePath)
     else:
         unicodeFilePath = filePath
         filePath = filePath.encode("utf8")

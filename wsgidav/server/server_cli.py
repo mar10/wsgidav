@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 """
 server_cli
 ==========
@@ -282,15 +282,14 @@ def _read_config_file(config_file, verbose):
                 continue
             conf[k] = v
     except Exception:
-        exceptioninfo = traceback.format_exception_only(sys.exc_type, sys.exc_value)
-        exceptiontext = ""
-        for einfo in exceptioninfo:
-            exceptiontext += einfo + "\n"
+        exc_type, exc_value = sys.exc_info()[:2]
+        exc_info_list = traceback.format_exception_only(exc_type, exc_value)
+        exc_text = "\n".join(exc_info_list)
         print(
             "Failed to read configuration file: "
             + config_file
             + "\nDue to "
-            + exceptiontext,
+            + exc_text,
             file=sys.stderr,
         )
         raise
@@ -344,6 +343,8 @@ def _init_config():
         config["provider_mapping"]["/"] = FilesystemProvider(root_path)
 
     if config["verbose"] >= 5:
+        # TODO: remove passwords from user_mapping
+        # config_cleaned = copy.deepcopy(config)
         print("Configuration({}):\n{}".format(cli_opts["config_file"], pformat(config)))
 
     if not config["provider_mapping"]:
@@ -713,10 +714,10 @@ def run():
             )
         )
 
-    if not use_lxml:  # and config["verbose"] >= 1:
+    if not use_lxml and config["verbose"] >= 3:
         _logger.warn(
-            "Could not import lxml: using xml instead (slower). "
-            "Consider installing lxml https://pypi.python.org/pypi/lxml."
+            "Could not import lxml: using xml instead (up to 10% slower). "
+            "Consider `pip install lxml`(see https://pypi.python.org/pypi/lxml)."
         )
 
     handler(app, config, server)

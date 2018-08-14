@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -313,7 +314,7 @@ class RequestServer(object):
         for pfnode in requestEL:
             if pfnode.tag == "{DAV:}allprop":
                 if propFindMode:
-                    # RFC: allprop and propname are mutually exclusive
+                    # RFC: allprop and name are mutually exclusive
                     self._fail(HTTP_BAD_REQUEST)
                 propFindMode = "allprop"
             # TODO: implement <include> option
@@ -323,12 +324,12 @@ class RequestServer(object):
             #                        "<include> element is only valid with 'allprop'.")
             #                for pfpnode in pfnode:
             #                    propNameList.append(pfpnode.tag)
-            elif pfnode.tag == "{DAV:}propname":
-                if propFindMode:  # RFC: allprop and propname are mutually exclusive
+            elif pfnode.tag == "{DAV:}name":
+                if propFindMode:  # RFC: allprop and name are mutually exclusive
                     self._fail(HTTP_BAD_REQUEST)
-                propFindMode = "propname"
+                propFindMode = "name"
             elif pfnode.tag == "{DAV:}prop":
-                # RFC: allprop and propname are mutually exclusive
+                # RFC: allprop and name are mutually exclusive
                 if propFindMode not in (None, "named"):
                     self._fail(HTTP_BAD_REQUEST)
                 propFindMode = "named"
@@ -348,8 +349,8 @@ class RequestServer(object):
 
             if propFindMode == "allprop":
                 propList = child.get_properties("allprop")
-            elif propFindMode == "propname":
-                propList = child.get_properties("propname")
+            elif propFindMode == "name":
+                propList = child.get_properties("name")
             else:
                 propList = child.get_properties("named", nameList=propNameList)
 
@@ -388,7 +389,7 @@ class RequestServer(object):
         if requestEL.tag != "{DAV:}propertyupdate":
             self._fail(HTTP_BAD_REQUEST)
 
-        # Create a list of update request tuples: (propname, value)
+        # Create a list of update request tuples: (name, value)
         propupdatelist = []
 
         for ppnode in requestEL:
@@ -423,19 +424,19 @@ class RequestServer(object):
 
                     propupdatelist.append((propertynode.tag, propvalue))
 
-        # Apply updates in SIMULATION MODE and create a result list (propname,
+        # Apply updates in SIMULATION MODE and create a result list (name,
         # result)
         successflag = True
         writeresultlist = []
 
-        for (propname, propvalue) in propupdatelist:
+        for (name, propvalue) in propupdatelist:
             try:
-                res.set_property_value(propname, propvalue, dryRun=True)
+                res.set_property_value(name, propvalue, dryRun=True)
             except Exception as e:
                 writeresult = as_DAVError(e)
             else:
                 writeresult = "200 OK"
-            writeresultlist.append((propname, writeresult))
+            writeresultlist.append((name, writeresult))
             successflag = successflag and writeresult == "200 OK"
 
         # Generate response list of 2-tuples (name, value)
@@ -445,25 +446,25 @@ class RequestServer(object):
 
         if not successflag:
             # If dry run failed: convert all OK to FAILED_DEPENDENCY.
-            for (propname, result) in writeresultlist:
+            for (name, result) in writeresultlist:
                 if result == "200 OK":
                     result = DAVError(HTTP_FAILED_DEPENDENCY)
                 elif isinstance(result, DAVError):
                     responsedescription.append(result.get_user_info())
-                propResponseList.append((propname, result))
+                propResponseList.append((name, result))
 
         else:
             # Dry-run succeeded: set properties again, this time in 'real' mode
             # In theory, there should be no exceptions thrown here, but this is
             # real live...
-            for (propname, propvalue) in propupdatelist:
+            for (name, propvalue) in propupdatelist:
                 try:
-                    res.set_property_value(propname, propvalue, dryRun=False)
+                    res.set_property_value(name, propvalue, dryRun=False)
                     # Set value to None, so the response xml contains empty tags
-                    propResponseList.append((propname, None))
+                    propResponseList.append((name, None))
                 except Exception as e:
                     e = as_DAVError(e)
-                    propResponseList.append((propname, e))
+                    propResponseList.append((name, e))
                     responsedescription.append(e.get_user_info())
 
         # Generate response XML
@@ -1441,7 +1442,7 @@ class RequestServer(object):
             allow.extend(["HEAD", "GET", "PROPFIND"])
             # if provider.propManager is not None:
             #     allow.extend( [ "PROPFIND" ] )
-            if not provider.isReadOnly():
+            if not provider.is_readonly():
                 allow.extend(["DELETE", "COPY", "MOVE", "PROPPATCH"])
                 # if provider.propManager is not None:
                 #     allow.extend( [ "PROPPATCH" ] )
@@ -1452,7 +1453,7 @@ class RequestServer(object):
             allow.extend(["HEAD", "GET", "PROPFIND"])
             # if provider.propManager is not None:
             #     allow.extend( [ "PROPFIND" ] )
-            if not provider.isReadOnly():
+            if not provider.is_readonly():
                 allow.extend(["PUT", "DELETE", "COPY", "MOVE", "PROPPATCH"])
                 # if provider.propManager is not None:
                 #     allow.extend( [ "PROPPATCH" ] )
@@ -1464,7 +1465,7 @@ class RequestServer(object):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an
             # non-existing resource
-            if not provider.isReadOnly():
+            if not provider.is_readonly():
                 allow.extend(["PUT", "MKCOL"])
         else:
             self._fail(HTTP_NOT_FOUND)

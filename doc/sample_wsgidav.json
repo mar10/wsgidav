@@ -6,6 +6,7 @@
  *
  * JSON formatted (JavaScript-style comments are allowed).
  *
+ * NOTE: the recommended configuration file format is YAML.
  * See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
  */
 {
@@ -37,7 +38,6 @@
         "response_trailer": "",
         "davmount": false,
         "ms_mount": false,
-        "ms_sharepoint_plugin": true,
-        "ms_sharepoint_urls": false
+        "ms_sharepoint_support": true
     }
 }

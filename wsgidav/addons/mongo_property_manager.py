@@ -110,25 +110,23 @@ class MongoPropertyManager(object):
                     propNames.append(decode_mongo_key(name))
         return propNames
 
-    def get_property(self, normurl, propname, environ=None):
-        _logger.debug("get_property(%s, %s)" % (normurl, propname))
+    def get_property(self, normurl, name, environ=None):
+        _logger.debug("get_property(%s, %s)" % (normurl, name))
         doc = self.collection.find_one({"_url": normurl})
         if not doc:
             return None
-        prop = doc.get(encode_mongo_key(propname))
+        prop = doc.get(encode_mongo_key(name))
         return prop
 
-    def write_property(
-        self, normurl, propname, propertyvalue, dryRun=False, environ=None
-    ):
+    def write_property(self, normurl, name, propertyvalue, dryRun=False, environ=None):
         assert normurl and normurl.startswith("/")
-        assert propname
+        assert name
         assert propertyvalue is not None
-        assert propname not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % propname
+        assert name not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % name
 
         _logger.debug(
             "write_property(%s, %s, dryRun=%s):\n\t%s"
-            % (normurl, propname, dryRun, propertyvalue)
+            % (normurl, name, dryRun, propertyvalue)
         )
         if dryRun:
             return  # TODO: can we check anything here?
@@ -136,23 +134,21 @@ class MongoPropertyManager(object):
         doc = self.collection.find_one({"_url": normurl})
         if not doc:
             doc = {"_url": normurl, "_title": compat.quote(normurl)}
-        doc[encode_mongo_key(propname)] = propertyvalue
+        doc[encode_mongo_key(name)] = propertyvalue
         self.collection.save(doc)
 
-    def remove_property(self, normurl, propname, dryRun=False, environ=None):
+    def remove_property(self, normurl, name, dryRun=False, environ=None):
         """
         """
-        _logger.debug(
-            "remove_property(%s, %s, dryRun=%s)" % (normurl, propname, dryRun)
-        )
+        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, name, dryRun))
         if dryRun:
             # TODO: can we check anything here?
             return
         doc = self.collection.find_one({"_url": normurl})
         # Specifying the removal of a property that does not exist is NOT an error.
-        if not doc or doc.get(encode_mongo_key(propname)) is None:
+        if not doc or doc.get(encode_mongo_key(name)) is None:
             return
-        del doc[encode_mongo_key(propname)]
+        del doc[encode_mongo_key(name)]
         self.collection.save(doc)
 
     def remove_properties(self, normurl, environ=None):

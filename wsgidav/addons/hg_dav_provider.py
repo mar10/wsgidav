@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -241,30 +241,30 @@ class HgResource(_DAVResource):
             )
         return propNameList
 
-    def get_property_value(self, propname):
+    def get_property_value(self, name):
         """Return the value of a property.
 
         See get_property_value()
         """
         # Supported custom live properties
-        if propname == "{hg:}branch":
+        if name == "{hg:}branch":
             return self.fctx.branch()
-        elif propname == "{hg:}date":
+        elif name == "{hg:}date":
             # (secs, tz-ofs)
             return compat.to_native(self.fctx.date()[0])
-        elif propname == "{hg:}description":
+        elif name == "{hg:}description":
             return self.fctx.description()
-        elif propname == "{hg:}filerev":
+        elif name == "{hg:}filerev":
             return compat.to_native(self.fctx.filerev())
-        elif propname == "{hg:}rev":
+        elif name == "{hg:}rev":
             return compat.to_native(self.fctx.rev())
-        elif propname == "{hg:}user":
+        elif name == "{hg:}user":
             return compat.to_native(self.fctx.user())
 
         # Let base class implementation report live and dead properties
-        return super(HgResource, self).get_property_value(propname)
+        return super(HgResource, self).get_property_value(name)
 
-    def set_property_value(self, propname, value, dryRun=False):
+    def set_property_value(self, name, value, dryRun=False):
         """Set or remove property value.
 
         See DAVResource.set_property_value()

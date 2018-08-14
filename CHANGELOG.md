@@ -27,13 +27,13 @@ This release contains **BREAKING CHANGES!**
     `provider.set_last_modified(self, destPath, timeStamp, dryRun)`
     => `provider.set_last_modified(self, dest_path, time_stamp, dry_run)`
   - Enforce [Black code style](https://github.com/ambv/black)
+  - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `addons.dir_browser` package
-- Automated Docker builds (https://hub.docker.com/r/mar10/wsgidav/)
-  https://cloud.docker.com/swarm/mar10/repository/docker/mar10/wsgidav/
-- **TODO** #94: Use utf-8 as default
-- MSI setup uses Python 3.6
+- Automated [Docker builds](https://hub.docker.com/r/mar10/wsgidav/)
+- Option 'dir_browser.ms_sharepoint_support' replaces ms_sharepoint_plugin and ms_sharepoint_urls
+- MSI setup uses Cheroot/6.4 Python 3.6
 - #112: Added limited support for Microsoft's Win32LastModified property.
 
 
