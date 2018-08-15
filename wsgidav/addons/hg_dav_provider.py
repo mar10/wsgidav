@@ -140,7 +140,7 @@ class HgResource(_DAVResource):
         return os.path.join(self.provider.repo.root, *parts)
 
     def _commit(self, message):
-        user = self.environ.get("http_authenticator.username") or "Anonymous"
+        user = self.environ.get("http_authenticator.user_name") or "Anonymous"
         commands.commit(
             self.provider.ui,
             self.provider.repo,
@@ -171,7 +171,7 @@ class HgResource(_DAVResource):
         return util.guess_mime_type(self.path)
 
     def get_creation_date(self):
-        # statresults = os.stat(self._filePath)
+        # statresults = os.stat(self._file_path)
         # return statresults[stat.ST_CTIME]
         return None  # TODO
 
@@ -220,13 +220,13 @@ class HgResource(_DAVResource):
             return {"type": "Directory"}
         return {"type": "File"}
 
-    def get_property_names(self, isAllProp):
+    def get_property_names(self, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super(HgResource, self).get_property_names(isAllProp)
+        propNameList = super(HgResource, self).get_property_names(is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
         if self.fctx:
             propNameList.extend(
@@ -264,7 +264,7 @@ class HgResource(_DAVResource):
         # Let base class implementation report live and dead properties
         return super(HgResource, self).get_property_value(name)
 
-    def set_property_value(self, name, value, dryRun=False):
+    def set_property_value(self, name, value, dry_run=False):
         """Set or remove property value.
 
         See DAVResource.set_property_value()
@@ -326,7 +326,7 @@ class HgResource(_DAVResource):
         d = self.fctx.data()
         return compat.StringIO(d)
 
-    def begin_write(self, contentType=None):
+    def begin_write(self, content_type=None):
         """Open content as a stream for writing.
 
         See DAVResource.begin_write()
@@ -339,12 +339,12 @@ class HgResource(_DAVResource):
         #            mode = "w"
         return open(self.absFilePath, mode, BUFFER_SIZE)
 
-    def end_write(self, withErrors):
+    def end_write(self, with_errors):
         """Called when PUT has finished writing.
 
         See DAVResource.end_write()
         """
-        if not withErrors:
+        if not with_errors:
             commands.add(self.provider.ui, self.provider.repo, self.localHgPath)
 
     #    def handle_delete(self):
@@ -365,11 +365,11 @@ class HgResource(_DAVResource):
         filepath = self._getFilePath()
         commands.remove(self.provider.ui, self.provider.repo, filepath, force=True)
 
-    def handle_copy(self, destPath, depthInfinity):
+    def handle_copy(self, dest_path, depth_infinity):
         """Handle a COPY request natively.
 
         """
-        destType, destHgPath = util.pop_path(destPath)
+        destType, destHgPath = util.pop_path(dest_path)
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
@@ -380,17 +380,17 @@ class HgResource(_DAVResource):
         elif self.rev is None and destType == "released":
             # COPY /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
-            self._commit("WsgiDAV commit (COPY %s -> %s)" % (self.path, destPath))
+            self._commit("WsgiDAV commit (COPY %s -> %s)" % (self.path, dest_path))
         else:
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
         return True
 
-    def handle_move(self, destPath):
+    def handle_move(self, dest_path):
         """Handle a MOVE request natively.
 
         """
-        destType, destHgPath = util.pop_path(destPath)
+        destType, destHgPath = util.pop_path(dest_path)
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
@@ -401,7 +401,7 @@ class HgResource(_DAVResource):
         elif self.rev is None and destType == "released":
             # MOVE /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
-            self._commit("WsgiDAV commit (MOVE %s -> %s)" % (self.path, destPath))
+            self._commit("WsgiDAV commit (MOVE %s -> %s)" % (self.path, dest_path))
         else:
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
@@ -441,7 +441,8 @@ class HgResourceProvider(DAVProvider):
         print("Status:")
         pprint(self.repo.status())
         self.repo.ui.status(
-            "the default username to be used in commits: %s\n" % self.repo.ui.username()
+            "the default user_name to be used in commits: %s\n"
+            % self.repo.ui.user_name()
         )
         #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
         self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
@@ -580,7 +581,7 @@ class HgResourceProvider(DAVProvider):
 
         See DAVProvider.get_resource_inst()
         """
-        self._count_getResourceInst += 1
+        self._count_get_resource_inst += 1
 
         # HG expects the resource paths without leading '/'
         localHgPath = path.strip("/")

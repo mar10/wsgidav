@@ -146,17 +146,17 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
             if path.startswith(appPath):
-                # We found the application to use - work out the scriptName and pathInfo
-                pathInfo = path[len(appPath) :]
-                if len(pathInfo) > 0:
-                    if not pathInfo.startswith("/"):
-                        pathInfo = "/" + pathInfo
+                # We found the application to use - work out the script_name and path_info
+                path_info = path[len(appPath) :]
+                if len(path_info) > 0:
+                    if not path_info.startswith("/"):
+                        path_info = "/" + path_info
                 if appPath.endswith("/"):
-                    scriptName = appPath[:-1]
+                    script_name = appPath[:-1]
                 else:
-                    scriptName = appPath
+                    script_name = appPath
                 # Return all this
-                return app, scriptName, pathInfo, query
+                return app, script_name, path_info, query
         return None, None, None, None
 
     def handlerFunctionClosure(self, name):
@@ -166,11 +166,11 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return handlerFunction
 
     def do_method(self):
-        app, scriptName, pathInfo, query = self.getApp()
+        app, script_name, path_info, query = self.getApp()
         if not app:
             self.send_error(404, "Application not found.")
             return
-        self.runWSGIApp(app, scriptName, pathInfo, query)
+        self.runWSGIApp(app, script_name, path_info, query)
 
     def __getattr__(self, name):
         if len(name) > 3 and name[0:3] == "do_" and name[3:] in self._SUPPORTED_METHODS:
@@ -181,9 +181,9 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_error(501, "Method Not Implemented.")
         return
 
-    def runWSGIApp(self, application, scriptName, pathInfo, query):
+    def runWSGIApp(self, application, script_name, path_info, query):
         # logging.info ("Running application with SCRIPT_NAME {} PATH_INFO {}".format(
-        #     scriptName, pathInfo))
+        #     script_name, path_info))
 
         if self.command == "PUT":
             pass  # breakpoint
@@ -197,8 +197,8 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "wsgi.multiprocess": 0,
             "wsgi.run_once": 0,
             "REQUEST_METHOD": self.command,
-            "SCRIPT_NAME": scriptName,
-            "PATH_INFO": pathInfo,
+            "SCRIPT_NAME": script_name,
+            "PATH_INFO": path_info,
             "QUERY_STRING": query,
             "CONTENT_TYPE": self.headers.get("Content-Type", ""),
             "CONTENT_LENGTH": self.headers.get("Content-Length", ""),

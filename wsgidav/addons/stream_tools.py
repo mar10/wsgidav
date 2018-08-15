@@ -11,7 +11,7 @@ Usage: return an instance of this class to`begin_write` and pass it to the
 consumer at the same time::
 
     def begin_write(self, contentType=None):
-        queue = FileLikeQueue(maxsize=1)
+        queue = FileLikeQueue(max_size=1)
         requests.post(..., data=queue)
         return queue
 
@@ -40,16 +40,16 @@ class FileLikeQueue(object):
 
     def begin_write(self, contentType=None):
         # Create a proxy buffer
-        queue = FileLikeQueue(maxsize=1)
+        queue = FileLikeQueue(max_size=1)
         # ... and use it as source for the consumer:
         requests.post(..., data=queue)
         # pass it to the PUT handler as target
         return queue
     """
 
-    def __init__(self, maxsize=0):
+    def __init__(self, max_size=0):
         self.is_closed = False
-        self.queue = compat.queue.Queue(maxsize)
+        self.queue = compat.queue.Queue(max_size)
         self.unread = ""
 
     def read(self, size=0):
@@ -84,7 +84,7 @@ class FileLikeQueue(object):
     def write(self, chunk):
         """Put a chunk of bytes (or an iterable) to the queue.
 
-        May block if maxsize number of chunks is reached.
+        May block if max_size number of chunks is reached.
         """
         if self.is_closed:
             raise ValueError("Cannot write to closed object")

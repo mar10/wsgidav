@@ -14,7 +14,7 @@ Usage::
     MySQLBrowserProvider(host, user, passwd, db)
 
     host - host of database server
-    user - username to access database
+    user - user_name to access database
     passwd - passwd to access database
     db - name of database on database server
 
@@ -93,42 +93,42 @@ class MySQLBrowserResource(_DAVResource):
 
         See DAVResource._init()
         """
-        # TODO: recalc self.path from <self._filePath>, to fix correct file system case
+        # TODO: recalc self.path from <self._file_path>, to fix correct file system case
         #       On windows this would lead to correct URLs
-        self.provider._count_getResourceInstInit += 1
+        self.provider._count_get_resource_inst_init += 1
         tableName, primKey = self.provider._split_path(self.path)
 
-        displayType = "Unknown"
+        display_type = "Unknown"
         displayTypeComment = ""
         contentType = "text/html"
 
         #        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
         if tableName is None:
-            displayType = "Database"
+            display_type = "Database"
         elif primKey is None:  # "database" and table name
-            displayType = "Database Table"
+            display_type = "Database Table"
         else:
             contentType = "text/csv"
             if primKey == "_ENTIRE_CONTENTS":
-                displayType = "Database Table Contents"
+                display_type = "Database Table Contents"
                 displayTypeComment = "CSV Representation of Table Contents"
             else:
-                displayType = "Database Record"
+                display_type = "Database Record"
                 displayTypeComment = "Attributes available as properties"
 
         # Avoid calling is_collection, since it would call isExisting -> _init_connection
         is_collection = primKey is None
 
         self._cache = {
-            "contentLength": None,
+            "content_length": None,
             "contentType": contentType,
             "created": time.time(),
-            "displayName": self.name,
+            "display_name": self.name,
             "etag": hashlib.md5().update(self.path).hexdigest(),
             # "etag": md5.new(self.path).hexdigest(),
             "modified": None,
             "support_ranges": False,
-            "displayInfo": {"type": displayType, "typeComment": displayTypeComment},
+            "display_info": {"type": display_type, "typeComment": displayTypeComment},
         }
 
         # Some resource-only infos:
@@ -143,7 +143,7 @@ class MySQLBrowserResource(_DAVResource):
 
     # Getter methods for standard live properties
     def get_content_length(self):
-        return self._get_info("contentLength")
+        return self._get_info("content_length")
 
     def get_content_type(self):
         return self._get_info("contentType")
@@ -155,7 +155,7 @@ class MySQLBrowserResource(_DAVResource):
         return self.name
 
     def get_display_info(self):
-        return self._get_info("displayInfo")
+        return self._get_info("display_info")
 
     def get_etag(self):
         return self._get_info("etag")
@@ -245,7 +245,7 @@ class MySQLBrowserResource(_DAVResource):
         filestream.seek(0)
         return filestream
 
-    def get_property_names(self, isAllProp):
+    def get_property_names(self, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         Return supported live and dead properties. (See also DAVProvider.get_property_names().)
@@ -253,7 +253,7 @@ class MySQLBrowserResource(_DAVResource):
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super(MySQLBrowserResource, self).get_property_names(isAllProp)
+        propNames = super(MySQLBrowserResource, self).get_property_names(is_allprop)
         # Add fieldnames as properties
         tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:
@@ -293,12 +293,14 @@ class MySQLBrowserResource(_DAVResource):
         # else, let default implementation return supported live and dead properties
         return super(MySQLBrowserResource, self).get_property_value(name)
 
-    def set_property_value(self, name, value, dryRun=False):
+    def set_property_value(self, name, value, dry_run=False):
         """Set or remove property value.
 
         See DAVResource.set_property_value()
         """
-        raise DAVError(HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty)
+        raise DAVError(
+            HTTP_FORBIDDEN, err_condition=PRECONDITION_CODE_ProtectedProperty
+        )
 
 
 # ============================================================================
@@ -572,8 +574,8 @@ class MySQLBrowserProvider(DAVProvider):
         """
         # TODO: calling exists() makes directory browsing VERY slow.
         #       At least compared to PyFileServer, which simply used string
-        #       functions to get displayType and displayTypeComment
-        self._count_getResourceInst += 1
+        #       functions to get display_type and displayTypeComment
+        self._count_get_resource_inst += 1
         if not self.exists(path, environ):
             return None
         _tableName, primKey = self._split_path(path)

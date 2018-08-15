@@ -283,19 +283,19 @@ class LockStorageDict(object):
             self._lock.release()
         return True
 
-    def get_lock_list(self, path, includeRoot, includeChildren, tokenOnly):
+    def get_lock_list(self, path, include_root, include_children, token_only):
         """Return a list of direct locks for <path>.
 
         Expired locks are *not* returned (but may be purged).
 
         path:
             Normalized path (utf8 encoded string, no trailing '/')
-        includeRoot:
-            False: don't add <path> lock (only makes sense, when includeChildren
+        include_root:
+            False: don't add <path> lock (only makes sense, when include_children
             is True).
-        includeChildren:
+        include_children:
             True: Also check all sub-paths for existing locks.
-        tokenOnly:
+        token_only:
             True: only a list of token is returned. This may be implemented
             more efficiently by some providers.
         Returns:
@@ -303,15 +303,15 @@ class LockStorageDict(object):
         """
         assert compat.is_native(path)
         assert path and path.startswith("/")
-        assert includeRoot or includeChildren
+        assert include_root or include_children
 
         def __appendLocks(toklist):
             # Since we can do this quickly, we use self.get() even if
-            # tokenOnly is set, so expired locks are purged.
+            # token_only is set, so expired locks are purged.
             for token in toklist:
                 lock = self.get(token)
                 if lock:
-                    if tokenOnly:
+                    if token_only:
                         lockList.append(lock["token"])
                     else:
                         lockList.append(lock)
@@ -322,10 +322,10 @@ class LockStorageDict(object):
             key = "URL2TOKEN:{}".format(path)
             tokList = self._dict.get(key, [])
             lockList = []
-            if includeRoot:
+            if include_root:
                 __appendLocks(tokList)
 
-            if includeChildren:
+            if include_children:
                 for u, ltoks in self._dict.items():
                     if util.is_child_uri(key, u):
                         __appendLocks(ltoks)
@@ -345,12 +345,12 @@ class LockStorageShelve(LockStorageDict):
     A low performance lock manager implementation using shelve.
     """
 
-    def __init__(self, storagePath):
+    def __init__(self, storage_path):
         super(LockStorageShelve, self).__init__()
-        self._storagePath = os.path.abspath(storagePath)
+        self._storage_path = os.path.abspath(storage_path)
 
     def __repr__(self):
-        return "LockStorageShelve({!r})".format(self._storagePath)
+        return "LockStorageShelve({!r})".format(self._storage_path)
 
     def _flush(self):
         """Write persistent dictionary to disc."""
@@ -377,10 +377,10 @@ class LockStorageShelve(LockStorageDict):
             self._lock.release()
 
     def open(self):
-        _logger.debug("open({!r})".format(self._storagePath))
+        _logger.debug("open({!r})".format(self._storage_path))
         # Open with writeback=False, which is faster, but we have to be
         # careful to re-assign values to _dict after modifying them
-        self._dict = shelve.open(self._storagePath, writeback=False)
+        self._dict = shelve.open(self._storage_path, writeback=False)
 
     #        if __debug__ and self._verbose >= 2:
     #                self._check("After shelve.open()")

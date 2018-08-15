@@ -130,21 +130,21 @@ class WsgiDAVApp(object):
         #        response_trailer = config.get("response_trailer", "")
         self.verbose = config.get("verbose", 3)
 
-        lockStorage = config.get("lock_manager")
-        if lockStorage is True:
-            lockStorage = LockStorageDict()
+        lock_storage = config.get("lock_manager")
+        if lock_storage is True:
+            lock_storage = LockStorageDict()
 
-        if not lockStorage:
-            self.locksManager = None
+        if not lock_storage:
+            self.lock_manager = None
         else:
-            self.locksManager = LockManager(lockStorage)
+            self.lock_manager = LockManager(lock_storage)
 
-        self.propsManager = config.get("property_manager")
-        if not self.propsManager:
+        self.prop_manager = config.get("property_manager")
+        if not self.prop_manager:
             # Normalize False, 0 to None
-            self.propsManager = None
-        elif self.propsManager is True:
-            self.propsManager = PropertyManager()
+            self.prop_manager = None
+        elif self.prop_manager is True:
+            self.prop_manager = PropertyManager()
 
         self.mount_path = config.get("mount_path")
 
@@ -159,8 +159,8 @@ class WsgiDAVApp(object):
 
         provider_mapping = self.config["provider_mapping"]
 
-        self.providerMap = {}
-        self.sortedShareList = None
+        self.provider_map = {}
+        self.sorted_share_list = None
         for share, provider in provider_mapping.items():
             self.add_provider(share, provider)
 
@@ -209,7 +209,7 @@ class WsgiDAVApp(object):
             if isinstance(app, HTTPAuthenticator):
                 domain_controller = app.get_domain_controller()
                 # Check anonymous access
-                for share, data in self.providerMap.items():
+                for share, data in self.provider_map.items():
                     if app.allow_anonymous_access(share):
                         data["allow_anonymous"] = True
 
@@ -232,8 +232,8 @@ class WsgiDAVApp(object):
                     sys.getdefaultencoding(), sys.getfilesystemencoding()
                 )
             )
-            _logger.info("Lock manager:      {}".format(self.locksManager))
-            _logger.info("Property manager:  {}".format(self.propsManager))
+            _logger.info("Lock manager:      {}".format(self.lock_manager))
+            _logger.info("Property manager:  {}".format(self.prop_manager))
             _logger.info("Domain controller: {}".format(domain_controller))
 
             # We traversed the stack in reverse order. Now revert again, so
@@ -243,22 +243,22 @@ class WsgiDAVApp(object):
                 _logger.info("  - {}".format(mw))
 
             _logger.info("Registered DAV providers by route:")
-            for share in self.sortedShareList:
-                data = self.providerMap[share]
+            for share in self.sorted_share_list:
+                data = self.provider_map[share]
                 hint = " (anonymous)" if data["allow_anonymous"] else ""
                 _logger.info("  - '{}': {}{}".format(share, data["provider"], hint))
 
-        for share, data in self.providerMap.items():
+        for share, data in self.provider_map.items():
             if data["allow_anonymous"]:
                 # TODO: we should only warn here, if --no-auth is not given
                 _logger.warn("Share '{}' will allow anonymous access.".format(share))
         return
 
     def add_provider(self, share, provider, readonly=False):
-        """Add a provider to the providerMap."""
+        """Add a provider to the provider_map."""
         # Make sure share starts with, or is '/'
         share = "/" + share.strip("/")
-        assert share not in self.providerMap
+        assert share not in self.provider_map
         # We allow a simple string as 'provider'. In this case we interpret
         # it as a file system root folder that is published.
         if compat.is_basestring(provider):
@@ -275,15 +275,15 @@ class WsgiDAVApp(object):
 
         # TODO: someday we may want to configure different lock/prop
         # managers per provider
-        provider.set_lock_manager(self.locksManager)
-        provider.set_prop_manager(self.propsManager)
+        provider.set_lock_manager(self.lock_manager)
+        provider.set_prop_manager(self.prop_manager)
 
-        self.providerMap[share] = {"provider": provider, "allow_anonymous": False}
+        self.provider_map[share] = {"provider": provider, "allow_anonymous": False}
 
         # Store the list of share paths, ordered by length, so route lookups
         # will return the most specific match
-        self.sortedShareList = [s.lower() for s in self.providerMap.keys()]
-        self.sortedShareList = sorted(self.sortedShareList, key=len, reverse=True)
+        self.sorted_share_list = [s.lower() for s in self.provider_map.keys()]
+        self.sorted_share_list = sorted(self.sorted_share_list, key=len, reverse=True)
 
         return provider
 
@@ -326,7 +326,7 @@ class WsgiDAVApp(object):
         # Find DAV provider that matches the share
         share = None
         lower_path = path.lower()
-        for r in self.sortedShareList:
+        for r in self.sorted_share_list:
             # @@: Case sensitivity should be an option of some sort here;
             # os.path.normpath might give the preferred case for a filename.
             if r == "/":
@@ -340,7 +340,7 @@ class WsgiDAVApp(object):
         #       must still be handled.
         #       All other requests will result in '404 Not Found'
         if share is not None:
-            share_data = self.providerMap.get(share)
+            share_data = self.provider_map.get(share)
             environ["wsgidav.provider"] = share_data["provider"]
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
@@ -427,7 +427,7 @@ class WsgiDAVApp(object):
 
             # Log request
             if self.verbose >= 3:
-                userInfo = environ.get("http_authenticator.username")
+                userInfo = environ.get("http_authenticator.user_name")
                 if not userInfo:
                     userInfo = "(anonymous)"
                 extra = []

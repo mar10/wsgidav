@@ -299,11 +299,11 @@ class VirtualResource(DAVCollection):
     def get_member(self, name):
         if name in self._artifactNames:
             return VirtualArtifact(join_uri(self.path, name), self.environ, self.data)
-        for filePath in self.data["resPathList"]:
-            fname = os.path.basename(filePath)
+        for file_path in self.data["resPathList"]:
+            fname = os.path.basename(file_path)
             if fname == name:
                 return VirtualResFile(
-                    join_uri(self.path, name), self.environ, self.data, filePath
+                    join_uri(self.path, name), self.environ, self.data, file_path
                 )
         return None
 
@@ -319,29 +319,29 @@ class VirtualResource(DAVCollection):
         self.data["tags"].remove(tag)
         return True  # OK
 
-    def handle_copy(self, destPath, depthInfinity):
+    def handle_copy(self, dest_path, depth_infinity):
         """Change semantic of COPY to add resource tags."""
         # destPath must be '/by_tag/<tag>/<resname>'
-        if "/by_tag/" not in destPath:
+        if "/by_tag/" not in dest_path:
             raise DAVError(HTTP_FORBIDDEN)
-        catType, tag, _rest = util.save_split(destPath.strip("/"), "/", 2)
+        catType, tag, _rest = util.save_split(dest_path.strip("/"), "/", 2)
         assert catType == "by_tag"
         if tag not in self.data["tags"]:
             self.data["tags"].append(tag)
         return True  # OK
 
-    def handle_move(self, destPath):
+    def handle_move(self, dest_path):
         """Change semantic of MOVE to change resource tags."""
         # path and destPath must be '/by_tag/<tag>/<resname>'
         if "/by_tag/" not in self.path:
             raise DAVError(HTTP_FORBIDDEN)
-        if "/by_tag/" not in destPath:
+        if "/by_tag/" not in dest_path:
             raise DAVError(HTTP_FORBIDDEN)
         catType, tag, _rest = util.save_split(self.path.strip("/"), "/", 2)
         assert catType == "by_tag"
         assert tag in self.data["tags"]
         self.data["tags"].remove(tag)
-        catType, tag, _rest = util.save_split(destPath.strip("/"), "/", 2)
+        catType, tag, _rest = util.save_split(dest_path.strip("/"), "/", 2)
         assert catType == "by_tag"
         if tag not in self.data["tags"]:
             self.data["tags"].append(tag)
@@ -351,13 +351,13 @@ class VirtualResource(DAVCollection):
         refPath = "/by_key/%s" % self.data["key"]
         return compat.quote(self.provider.sharePath + refPath)
 
-    def get_property_names(self, isAllProp):
+    def get_property_names(self, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super(VirtualResource, self).get_property_names(isAllProp)
+        propNameList = super(VirtualResource, self).get_property_names(is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
         propNameList.extend(VirtualResource._supportedProps)
         return propNameList
@@ -384,7 +384,7 @@ class VirtualResource(DAVCollection):
         # Let base class implementation report live and dead properties
         return super(VirtualResource, self).get_property_value(name)
 
-    def set_property_value(self, name, value, dryRun=False):
+    def set_property_value(self, name, value, dry_run=False):
         """Set or remove property value.
 
         See DAVResource.set_property_value()
@@ -401,7 +401,7 @@ class VirtualResource(DAVCollection):
         elif name in VirtualResource._supportedProps:
             # Supported property, but read-only
             raise DAVError(
-                HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty
+                HTTP_FORBIDDEN, err_condition=PRECONDITION_CODE_ProtectedProperty
             )
         else:
             # Unsupported property
@@ -545,47 +545,47 @@ class VirtualArtifact(_VirtualNonCollection):
 class VirtualResFile(_VirtualNonCollection):
     """Represents an existing file, that is a member of a VirtualResource."""
 
-    def __init__(self, path, environ, data, filePath):
-        if not os.path.exists(filePath):
-            _logger.error("VirtualResFile(%r) does not exist." % filePath)
+    def __init__(self, path, environ, data, file_path):
+        if not os.path.exists(file_path):
+            _logger.error("VirtualResFile(%r) does not exist." % file_path)
         _VirtualNonCollection.__init__(self, path, environ)
         self.data = data
-        self.filePath = filePath
+        self.file_path = file_path
 
     def get_content_length(self):
-        statresults = os.stat(self.filePath)
+        statresults = os.stat(self.file_path)
         return statresults[stat.ST_SIZE]
 
     def get_content_type(self):
-        if not os.path.isfile(self.filePath):
+        if not os.path.isfile(self.file_path):
             return "text/html"
-        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.filePath)
+        #        (mimetype, _mimeencoding) = mimetypes.guess_type(self.file_path)
         #        if not mimetype:
         #            mimetype = "application/octet-stream"
         #        return mimetype
-        return util.guess_mime_type(self.filePath)
+        return util.guess_mime_type(self.file_path)
 
     def get_creation_date(self):
-        statresults = os.stat(self.filePath)
+        statresults = os.stat(self.file_path)
         return statresults[stat.ST_CTIME]
 
     def get_display_info(self):
         return {"type": "Content file"}
 
     def get_last_modified(self):
-        statresults = os.stat(self.filePath)
+        statresults = os.stat(self.file_path)
         return statresults[stat.ST_MTIME]
 
     def get_ref_url(self):
-        refPath = "/by_key/%s/%s" % (self.data["key"], os.path.basename(self.filePath))
+        refPath = "/by_key/%s/%s" % (self.data["key"], os.path.basename(self.file_path))
         return compat.quote(self.provider.sharePath + refPath)
 
     def get_content(self):
         # mime = self.get_content_type()
         # GC issue 57: always store as binary
         # if mime.startswith("text"):
-        #     return open(self.filePath, "r", BUFFER_SIZE)
-        return open(self.filePath, "rb", BUFFER_SIZE)
+        #     return open(self.file_path, "r", BUFFER_SIZE)
+        return open(self.file_path, "rb", BUFFER_SIZE)
 
 
 # ============================================================================
@@ -611,7 +611,7 @@ class VirtualResourceProvider(DAVProvider):
         See DAVProvider.get_resource_inst()
         """
         _logger.info("get_resource_inst('%s')" % path)
-        self._count_getResourceInst += 1
+        self._count_get_resource_inst += 1
         root = RootCollection(environ)
         return root.resolve("", path)
 
@@ -636,7 +636,7 @@ class VirtualResourceProvider(DAVProvider):
 #
 #        See DAVProvider.get_resource_inst()
 #        """
-#        self._count_getResourceInst += 1
+#        self._count_get_resource_inst += 1
 #
 #        catType, cat, resName, artifactName = util.save_split(path.strip("/"), "/", 3)
 #

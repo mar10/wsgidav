@@ -100,9 +100,9 @@ class MongoPropertyManager(object):
     def _dump(self, msg="", out=None):
         pass
 
-    def get_properties(self, normurl, environ=None):
-        _logger.debug("get_properties(%s)" % normurl)
-        doc = self.collection.find_one({"_url": normurl})
+    def get_properties(self, norm_url, environ=None):
+        _logger.debug("get_properties(%s)" % norm_url)
+        doc = self.collection.find_one({"_url": norm_url})
         propNames = []
         if doc:
             for name in doc.keys():
@@ -110,50 +110,52 @@ class MongoPropertyManager(object):
                     propNames.append(decode_mongo_key(name))
         return propNames
 
-    def get_property(self, normurl, name, environ=None):
-        _logger.debug("get_property(%s, %s)" % (normurl, name))
-        doc = self.collection.find_one({"_url": normurl})
+    def get_property(self, norm_url, name, environ=None):
+        _logger.debug("get_property(%s, %s)" % (norm_url, name))
+        doc = self.collection.find_one({"_url": norm_url})
         if not doc:
             return None
         prop = doc.get(encode_mongo_key(name))
         return prop
 
-    def write_property(self, normurl, name, propertyvalue, dryRun=False, environ=None):
-        assert normurl and normurl.startswith("/")
+    def write_property(
+        self, norm_url, name, property_value, dry_run=False, environ=None
+    ):
+        assert norm_url and norm_url.startswith("/")
         assert name
-        assert propertyvalue is not None
+        assert property_value is not None
         assert name not in HIDDEN_KEYS, "MongoDB key is protected: '%s'" % name
 
         _logger.debug(
-            "write_property(%s, %s, dryRun=%s):\n\t%s"
-            % (normurl, name, dryRun, propertyvalue)
+            "write_property(%s, %s, dry_run=%s):\n\t%s"
+            % (norm_url, name, dry_run, property_value)
         )
-        if dryRun:
+        if dry_run:
             return  # TODO: can we check anything here?
 
-        doc = self.collection.find_one({"_url": normurl})
+        doc = self.collection.find_one({"_url": norm_url})
         if not doc:
-            doc = {"_url": normurl, "_title": compat.quote(normurl)}
-        doc[encode_mongo_key(name)] = propertyvalue
+            doc = {"_url": norm_url, "_title": compat.quote(norm_url)}
+        doc[encode_mongo_key(name)] = property_value
         self.collection.save(doc)
 
-    def remove_property(self, normurl, name, dryRun=False, environ=None):
+    def remove_property(self, norm_url, name, dry_run=False, environ=None):
         """
         """
-        _logger.debug("remove_property(%s, %s, dryRun=%s)" % (normurl, name, dryRun))
-        if dryRun:
+        _logger.debug("remove_property(%s, %s, dry_run=%s)" % (norm_url, name, dry_run))
+        if dry_run:
             # TODO: can we check anything here?
             return
-        doc = self.collection.find_one({"_url": normurl})
+        doc = self.collection.find_one({"_url": norm_url})
         # Specifying the removal of a property that does not exist is NOT an error.
         if not doc or doc.get(encode_mongo_key(name)) is None:
             return
         del doc[encode_mongo_key(name)]
         self.collection.save(doc)
 
-    def remove_properties(self, normurl, environ=None):
-        _logger.debug("remove_properties(%s)" % normurl)
-        doc = self.collection.find_one({"_url": normurl})
+    def remove_properties(self, norm_url, environ=None):
+        _logger.debug("remove_properties(%s)" % norm_url)
+        doc = self.collection.find_one({"_url": norm_url})
         if doc:
             self.collection.remove(doc)
         return
@@ -169,9 +171,9 @@ class MongoPropertyManager(object):
         doc2 = doc.copy()
         self.collection.insert(doc2)
 
-    def move_properties(self, srcUrl, destUrl, withChildren, environ=None):
-        _logger.debug("move_properties(%s, %s, %s)" % (srcUrl, destUrl, withChildren))
-        if withChildren:
+    def move_properties(self, srcUrl, destUrl, with_children, environ=None):
+        _logger.debug("move_properties(%s, %s, %s)" % (srcUrl, destUrl, with_children))
+        if with_children:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
             matchBegin = "^" + srcUrl.rstrip("/") + "/"
             query = {"$or": [{"_url": srcUrl}, {"_url": {"$regex": matchBegin}}]}

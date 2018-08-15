@@ -48,25 +48,25 @@ class BasicTest(unittest.TestCase):
     def _acquire(
         self,
         url,
-        locktype,
-        lockscope,
-        lockdepth,
-        lockowner,
+        lock_type,
+        lock_scope,
+        lock_depth,
+        lock_owner,
         timeout,
         principal,
-        tokenList,
+        token_list,
     ):
         """Wrapper for lm.acquire, that returns None instead of raising DAVError."""
         try:
             return self.lm.acquire(
                 url,
-                locktype,
-                lockscope,
-                lockdepth,
-                lockowner,
+                lock_type,
+                lock_scope,
+                lock_depth,
+                lock_owner,
                 timeout,
                 principal,
-                tokenList,
+                token_list,
             )
         except DAVError:
             return None
@@ -79,7 +79,7 @@ class BasicTest(unittest.TestCase):
         return True
 
     def _isLockResultOK(self, resultTupleList):
-        """Return True, if result is [ (lockDict, None) ]."""
+        """Return True, if result is [ (lock_dict, None) ]."""
         try:
             return (
                 len(resultTupleList) == 1
@@ -192,7 +192,7 @@ class BasicTest(unittest.TestCase):
         lm = self.lm
         url = "/dav/res"
         # Create a new lock
-        lockDict = lm._generate_lock(
+        lock_dict = lm._generate_lock(
             self.principal,
             "write",
             "exclusive",
@@ -202,27 +202,27 @@ class BasicTest(unittest.TestCase):
             self.timeout,
         )
         # Check returned dictionary
-        assert lockDict is not None
-        assert lockDict["root"] == url
-        assert lockDict["type"] == "write"
-        assert lockDict["scope"] == "exclusive"
-        assert lockDict["depth"] == "infinity"
-        assert lockDict["owner"] == self.owner
-        assert lockDict["principal"] == self.principal
+        assert lock_dict is not None
+        assert lock_dict["root"] == url
+        assert lock_dict["type"] == "write"
+        assert lock_dict["scope"] == "exclusive"
+        assert lock_dict["depth"] == "infinity"
+        assert lock_dict["owner"] == self.owner
+        assert lock_dict["principal"] == self.principal
 
         # Test lookup
-        tok = lockDict.get("token")
+        tok = lock_dict.get("token")
         assert lm.get_lock(tok, "root") == url
 
-        lockDict = lm.get_lock(tok)
+        lock_dict = lm.get_lock(tok)
 
-        assert lockDict is not None
-        assert lockDict["root"] == url
-        assert lockDict["type"] == "write"
-        assert lockDict["scope"] == "exclusive"
-        assert lockDict["depth"] == "infinity"
-        assert lockDict["owner"] == self.owner
-        assert lockDict["principal"] == self.principal
+        assert lock_dict is not None
+        assert lock_dict["root"] == url
+        assert lock_dict["type"] == "write"
+        assert lock_dict["scope"] == "exclusive"
+        assert lock_dict["depth"] == "infinity"
+        assert lock_dict["owner"] == self.owner
+        assert lock_dict["principal"] == self.principal
 
         # We locked "/dav/res", did we?
         assert lm.is_token_locked_by_user(tok, self.principal)
@@ -236,10 +236,10 @@ class BasicTest(unittest.TestCase):
 
         assert lm.is_url_locked_by_token(
             "/dav/res", tok
-        ), "url not directly locked by locktoken."
+        ), "url not directly locked by lock_token."
         assert lm.is_url_locked_by_token(
             "/dav/res/", tok
-        ), "url not directly locked by locktoken."
+        ), "url not directly locked by lock_token."
         assert lm.is_url_locked_by_token(
             "/dav/res/sub", tok
         ), "child url not indirectly locked"
@@ -258,7 +258,7 @@ class BasicTest(unittest.TestCase):
         """Locks should be purged after expiration date."""
         lm = self.lm
         timeout = 1
-        lockDict = lm._generate_lock(
+        lock_dict = lm._generate_lock(
             self.principal,
             "write",
             "exclusive",
@@ -268,21 +268,21 @@ class BasicTest(unittest.TestCase):
             timeout,
         )
 
-        assert lockDict is not None
-        tok = lockDict.get("token")
+        assert lock_dict is not None
+        tok = lock_dict.get("token")
         assert lm.get_lock(tok, "root") == self.root
 
         sleep(timeout - 0.5)
-        lockDict = lm.get_lock(tok)
-        assert lockDict is not None, "Lock expired too early"
+        lock_dict = lm.get_lock(tok)
+        assert lock_dict is not None, "Lock expired too early"
 
         sleep(1)
-        lockDict = lm.get_lock(tok)
-        assert lockDict is None, "Lock has not expired"
+        lock_dict = lm.get_lock(tok)
+        assert lock_dict is None, "Lock has not expired"
 
     def testConflict(self):
         """Locks should prevent conflicts."""
-        tokenList = []
+        token_list = []
 
         # Create a lock for '/dav/res/'
         lock = self._acquire(
@@ -293,7 +293,7 @@ class BasicTest(unittest.TestCase):
             self.owner,
             self.timeout,
             self.principal,
-            tokenList,
+            token_list,
         )
         assert lock, "Could not acquire lock"
 
@@ -306,7 +306,7 @@ class BasicTest(unittest.TestCase):
             self.owner,
             self.timeout,
             "another principal",
-            tokenList,
+            token_list,
         )
         assert lock is None, "Could acquire a conflicting lock"
 
@@ -319,7 +319,7 @@ class BasicTest(unittest.TestCase):
             self.owner,
             self.timeout,
             "another principal",
-            tokenList,
+            token_list,
         )
         assert lock is None, "Could acquire a conflicting lock"
 
@@ -332,7 +332,7 @@ class BasicTest(unittest.TestCase):
             self.owner,
             self.timeout,
             "another principal",
-            tokenList,
+            token_list,
         )
         assert lock is None, "Could acquire a conflicting child lock"
 
@@ -345,7 +345,7 @@ class BasicTest(unittest.TestCase):
             self.owner,
             self.timeout,
             self.principal,
-            tokenList,
+            token_list,
         )
         assert lock is None, "Could acquire a conflicting parent lock"
 
@@ -358,7 +358,7 @@ class BasicTest(unittest.TestCase):
             self.owner,
             self.timeout,
             self.principal,
-            tokenList,
+            token_list,
         )
         assert lock is None, "Could acquire a conflicting child lock (same principal)"
 

@@ -63,15 +63,15 @@ DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
 _logger = logging.getLogger("wsgidav")
 
 
-def _get_checked_path(path, mustExist=True, allowNone=True):
+def _get_checked_path(path, must_exist=True, allow_none=True):
     """Convert path to absolute if not None."""
     if path in (None, ""):
-        if allowNone:
+        if allow_none:
             return None
         else:
             raise ValueError("Invalid path {!r}".format(path))
     path = os.path.abspath(path)
-    if mustExist and not os.path.exists(path):
+    if must_exist and not os.path.exists(path):
         raise ValueError("Invalid path {!r}".format(path))
     return path
 

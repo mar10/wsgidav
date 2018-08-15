@@ -130,19 +130,19 @@ class DAVErrorCondition(object):
     """May be embedded in :class:`DAVError` instances to store additional data.
 
     Args:
-        conditionCode (str): Should be PRECONDITION_CODE_...
+        condition_code (str): Should be PRECONDITION_CODE_...
     """
 
-    def __init__(self, conditionCode):
-        self.conditionCode = conditionCode
+    def __init__(self, condition_code):
+        self.condition_code = condition_code
         self.hrefs = []
 
     def __str__(self):
-        return "{}({})".format(self.conditionCode, self.hrefs)
+        return "{}({})".format(self.condition_code, self.hrefs)
 
     def add_href(self, href):
         assert href.startswith("/")
-        assert self.conditionCode in (
+        assert self.condition_code in (
             PRECONDITION_CODE_LockConflict,
             PRECONDITION_CODE_MissingLockToken,
         )
@@ -150,15 +150,15 @@ class DAVErrorCondition(object):
             self.hrefs.append(href)
 
     def as_xml(self):
-        if self.conditionCode == PRECONDITION_CODE_MissingLockToken:
+        if self.condition_code == PRECONDITION_CODE_MissingLockToken:
             assert (
                 len(self.hrefs) > 0
             ), "lock-token-submitted requires at least one href"
-        errorEL = etree.Element("{DAV:}error")
-        condEL = etree.SubElement(errorEL, self.conditionCode)
+        error_el = etree.Element("{DAV:}error")
+        cond_el = etree.SubElement(error_el, self.condition_code)
         for href in self.hrefs:
-            etree.SubElement(condEL, "{DAV:}href").text = href
-        return errorEL
+            etree.SubElement(cond_el, "{DAV:}href").text = href
+        return error_el
 
     def as_string(self):
         return compat.to_native(xml_tools.xml_to_bytes(self.as_xml(), True))
@@ -176,22 +176,24 @@ class DAVError(Exception):
     """General error class that is used to signal HTTP and WEBDAV errors."""
 
     # TODO: Ian Bicking proposed to add an additional 'comment' arg, but
-    #       couldn't we use the existing 'contextinfo'?
+    #       couldn't we use the existing 'context_info'?
     # @@: This should also take some message value, for a detailed error message.
     #     This would be helpful for debugging.
 
     def __init__(
-        self, statusCode, contextinfo=None, srcexception=None, errcondition=None
+        self, status_code, context_info=None, src_exception=None, err_condition=None
     ):
         # allow passing of Pre- and Postconditions, see
         # http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
-        self.value = int(statusCode)
-        self.contextinfo = contextinfo
-        self.srcexception = srcexception
-        self.errcondition = errcondition
-        if compat.is_native(errcondition):
-            self.errcondition = DAVErrorCondition(errcondition)
-        assert self.errcondition is None or type(self.errcondition) is DAVErrorCondition
+        self.value = int(status_code)
+        self.context_info = context_info
+        self.src_exception = src_exception
+        self.err_condition = err_condition
+        if compat.is_native(err_condition):
+            self.err_condition = DAVErrorCondition(err_condition)
+        assert (
+            self.err_condition is None or type(self.err_condition) is DAVErrorCondition
+        )
 
     def __repr__(self):
         return "DAVError({})".format(self.get_user_info())
@@ -206,23 +208,23 @@ class DAVError(Exception):
         else:
             s = "{}".format(self.value)
 
-        if self.contextinfo:
-            s += ": {}".format(self.contextinfo)
+        if self.context_info:
+            s += ": {}".format(self.context_info)
         elif self.value in ERROR_RESPONSES:
             s += ": {}".format(ERROR_RESPONSES[self.value])
 
-        if self.srcexception:
-            s += "\n    Source exception: '{}'".format(self.srcexception)
+        if self.src_exception:
+            s += "\n    Source exception: '{}'".format(self.src_exception)
 
-        if self.errcondition:
-            s += "\n    Error condition: '{}'".format(self.errcondition)
+        if self.err_condition:
+            s += "\n    Error condition: '{}'".format(self.err_condition)
         return s
 
     def get_response_page(self):
         """Return a tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response
-        if self.errcondition:
-            return ("application/xml", compat.to_bytes(self.errcondition.as_string()))
+        if self.err_condition:
+            return ("application/xml", compat.to_bytes(self.err_condition.as_string()))
 
         # Else return as HTML
         status = get_http_status_string(self)
@@ -282,6 +284,6 @@ def as_DAVError(e):
         return e
     elif isinstance(e, Exception):
         # traceback.print_exc()
-        return DAVError(HTTP_INTERNAL_ERROR, srcexception=e)
+        return DAVError(HTTP_INTERNAL_ERROR, src_exception=e)
     else:
         return DAVError(HTTP_INTERNAL_ERROR, "{}".format(e))

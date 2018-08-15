@@ -238,8 +238,8 @@ class ServerTest(unittest.TestCase):
         locks = client.set_lock(
             "/test/lock-0",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="infinity",
         )
         client.check_response(201)  # created
@@ -409,8 +409,8 @@ class ServerTest(unittest.TestCase):
         locks = client1.set_lock(
             "/test/a",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="infinity",
         )
         client1.check_response(200)
@@ -431,8 +431,8 @@ class ServerTest(unittest.TestCase):
         locks = client2.set_lock(
             "/test/a/b/c",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="0",
         )
         client2.check_response(423)
@@ -440,8 +440,8 @@ class ServerTest(unittest.TestCase):
         locks = client2.set_lock(
             "/test/a/b/d",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="infinity",
         )
         client2.check_response(423)
@@ -449,8 +449,8 @@ class ServerTest(unittest.TestCase):
         locks = client2.set_lock(
             "/test/a/b/c",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="0",
         )
         client2.check_response(423)
@@ -460,8 +460,8 @@ class ServerTest(unittest.TestCase):
         # TODO: correct?
         #        locks = client1.set_lock("/test/a/b/d",
         #                                 owner="test-bench",
-        #                                 locktype="write",
-        #                                 lockscope="exclusive",
+        #                                 lock_type="write",
+        #                                 lock_scope="exclusive",
         #                                 depth="0")
         #        client1.check_response(200)
         #        assert len(locks) == 1, "Locking inside below locked collection failed"
@@ -475,8 +475,8 @@ class ServerTest(unittest.TestCase):
         locks = client1.set_lock(
             "/test/a",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="0",
         )
         client1.check_response(200)
@@ -510,8 +510,8 @@ class ServerTest(unittest.TestCase):
         locks = client1.set_lock(
             "/test/a/b/d",
             owner="test-bench",
-            locktype="write",
-            lockscope="exclusive",
+            lock_type="write",
+            lock_scope="exclusive",
             depth="0",
         )
         client1.check_response(200)
