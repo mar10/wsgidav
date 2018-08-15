@@ -35,6 +35,7 @@ This release contains **BREAKING CHANGES!**
 - Option 'dir_browser.ms_sharepoint_support' replaces ms_sharepoint_plugin and ms_sharepoint_urls
 - MSI setup uses Cheroot/6.4 Python 3.6
 - #112: Added limited support for Microsoft's Win32LastModified property.
+- Fix #123: HEAD request on DirBrowser folder
 
 
 ## 2.4.1 / 2018-06-16
