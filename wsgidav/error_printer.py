@@ -98,7 +98,7 @@ class ErrorPrinter(BaseMiddleware):
                     "Caught HTTPRequestException(HTTP_INTERNAL_ERROR)\n{}".format(tb)
                 )
                 # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stdout)
-                _logger.error("e.srcexception:\n{}".format(e.srcexception))
+                _logger.error("e.src_exception:\n{}".format(e.src_exception))
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
                 # _logger.warn("Forcing empty error response for {}".format(e.value))
                 # See paste.lint: these code don't have content

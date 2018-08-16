@@ -76,25 +76,25 @@ def is_lock_expired(lock):
     return expire >= 0 and expire < time.time()
 
 
-def lock_string(lockDict):
+def lock_string(lock_dict):
     """Return readable rep."""
-    if not lockDict:
+    if not lock_dict:
         return "Lock: None"
 
-    if lockDict["expire"] < 0:
-        expire = "Infinite ({})".format(lockDict["expire"])
+    if lock_dict["expire"] < 0:
+        expire = "Infinite ({})".format(lock_dict["expire"])
     else:
         expire = "{} (in {} seconds)".format(
-            util.get_log_time(lockDict["expire"]), lockDict["expire"] - time.time()
+            util.get_log_time(lock_dict["expire"]), lock_dict["expire"] - time.time()
         )
 
     return "Lock(<{}..>, '{}', {}, {}, depth-{}, until {}".format(
         # first 4 significant token characters
-        lockDict.get("token", "?" * 30)[18:22],
-        lockDict.get("root"),
-        lockDict.get("principal"),
-        lockDict.get("scope"),
-        lockDict.get("depth"),
+        lock_dict.get("token", "?" * 30)[18:22],
+        lock_dict.get("root"),
+        lock_dict.get("principal"),
+        lock_dict.get("scope"),
+        lock_dict.get("depth"),
         expire,
     )
 
@@ -150,7 +150,7 @@ class LockManager(object):
         _logger.info("{}: {}".format(self, msg))
 
         for lock in self.storage.get_lock_list(
-            "/", includeRoot=True, includeChildren=True, tokenOnly=False
+            "/", include_root=True, include_children=True, token_only=False
         ):
             tok = lock["token"]
             tokenDict[tok] = lock_string(lock)
@@ -176,19 +176,19 @@ class LockManager(object):
             )
 
     def _generate_lock(
-        self, principal, locktype, lockscope, lockdepth, lockowner, path, timeout
+        self, principal, lock_type, lock_scope, lock_depth, lock_owner, path, timeout
     ):
-        """Acquire lock and return lockDict.
+        """Acquire lock and return lock_dict.
 
         principal
             Name of the principal.
-        locktype
+        lock_type
             Must be 'write'.
-        lockscope
+        lock_scope
             Must be 'shared' or 'exclusive'.
-        lockdepth
+        lock_depth
             Must be '0' or 'infinity'.
-        lockowner
+        lock_owner
             String identifying the owner.
         path
             Resource URL.
@@ -202,29 +202,29 @@ class LockManager(object):
         elif timeout < 0:
             timeout = -1
 
-        lockDict = {
+        lock_dict = {
             "root": path,
-            "type": locktype,
-            "scope": lockscope,
-            "depth": lockdepth,
-            "owner": lockowner,
+            "type": lock_type,
+            "scope": lock_scope,
+            "depth": lock_depth,
+            "owner": lock_owner,
             "timeout": timeout,
             "principal": principal,
         }
         #
-        self.storage.create(path, lockDict)
-        return lockDict
+        self.storage.create(path, lock_dict)
+        return lock_dict
 
     def acquire(
         self,
         url,
-        locktype,
-        lockscope,
-        lockdepth,
-        lockowner,
+        lock_type,
+        lock_scope,
+        lock_depth,
+        lock_owner,
         timeout,
         principal,
-        tokenList,
+        token_list,
     ):
         """Check for permissions and acquire a lock.
 
@@ -236,10 +236,10 @@ class LockManager(object):
         try:
             # Raises DAVError on conflict:
             self._check_lock_permission(
-                url, locktype, lockscope, lockdepth, tokenList, principal
+                url, lock_type, lock_scope, lock_depth, token_list, principal
             )
             return self._generate_lock(
-                principal, locktype, lockscope, lockdepth, lockowner, url, timeout
+                principal, lock_type, lock_scope, lock_depth, lock_owner, url, timeout
             )
         finally:
             self._lock.release()
@@ -251,7 +251,7 @@ class LockManager(object):
         return self.storage.refresh(token, timeout)
 
     def get_lock(self, token, key=None):
-        """Return lockDict, or None, if not found or invalid.
+        """Return lock_dict, or None, if not found or invalid.
 
         Side effect: if lock is expired, it will be purged and None is returned.
 
@@ -283,13 +283,13 @@ class LockManager(object):
         return self.get_lock(token, "principal") == principal
 
     def get_url_lock_list(self, url):
-        """Return list of lockDict, if <url> is protected by at least one direct, valid lock.
+        """Return list of lock_dict, if <url> is protected by at least one direct, valid lock.
 
         Side effect: expired locks for this url are purged.
         """
         url = normalize_lock_root(url)
         lockList = self.storage.get_lock_list(
-            url, includeRoot=True, includeChildren=False, tokenOnly=False
+            url, include_root=True, include_children=False, token_only=False
         )
         return lockList
 
@@ -304,13 +304,13 @@ class LockManager(object):
         u = url
         while u:
             ll = self.storage.get_lock_list(
-                u, includeRoot=True, includeChildren=False, tokenOnly=False
+                u, include_root=True, include_children=False, token_only=False
             )
             for l in ll:
                 if u != url and l["depth"] != "infinity":
                     continue  # We only consider parents with Depth: infinity
                 # TODO: handle shared locks in some way?
-                #                if (l["scope"] == "shared" and lockscope == "shared"
+                #                if (l["scope"] == "shared" and lock_scope == "shared"
                 #                   and principal != l["principal"]):
                 # continue  # Only compatible with shared locks by other users
                 if principal is None or principal == l["principal"]:
@@ -323,9 +323,9 @@ class LockManager(object):
         lockList = self.get_url_lock_list(url)
         return len(lockList) > 0
 
-    def is_url_locked_by_token(self, url, locktoken):
-        """Check, if url (or any of it's parents) is locked by locktoken."""
-        lockUrl = self.get_lock(locktoken, "root")
+    def is_url_locked_by_token(self, url, lock_token):
+        """Check, if url (or any of it's parents) is locked by lock_token."""
+        lockUrl = self.get_lock(lock_token, "root")
         return lockUrl and util.is_equal_or_child_uri(lockUrl, url)
 
     def remove_all_locks_from_url(self, url):
@@ -338,7 +338,7 @@ class LockManager(object):
             self._lock.release()
 
     def _check_lock_permission(
-        self, url, locktype, lockscope, lockdepth, tokenList, principal
+        self, url, lock_type, lock_scope, lock_depth, token_list, principal
     ):
         """Check, if <principal> can lock <url>, otherwise raise an error.
 
@@ -364,21 +364,21 @@ class LockManager(object):
           principal.
 
         @param url: URL that shall be locked
-        @param locktype: "write"
-        @param lockscope: "shared"|"exclusive"
-        @param lockdepth: "0"|"infinity"
-        @param tokenList: list of lock tokens, that the user submitted in If: header
+        @param lock_type: "write"
+        @param lock_scope: "shared"|"exclusive"
+        @param lock_depth: "0"|"infinity"
+        @param token_list: list of lock tokens, that the user submitted in If: header
         @param principal: name of the principal requesting a lock
 
         @return: None (or raise)
         """
-        assert locktype == "write"
-        assert lockscope in ("shared", "exclusive")
-        assert lockdepth in ("0", "infinity")
+        assert lock_type == "write"
+        assert lock_scope in ("shared", "exclusive")
+        assert lock_depth in ("0", "infinity")
 
         _logger.debug(
             "checkLockPermission({}, {}, {}, {})".format(
-                url, lockscope, lockdepth, principal
+                url, lock_scope, lock_depth, principal
             )
         )
 
@@ -396,7 +396,7 @@ class LockManager(object):
                     if u != url and l["depth"] != "infinity":
                         # We only consider parents with Depth: infinity
                         continue
-                    elif l["scope"] == "shared" and lockscope == "shared":
+                    elif l["scope"] == "shared" and lock_scope == "shared":
                         # Only compatible with shared locks (even by same
                         # principal)
                         continue
@@ -407,10 +407,10 @@ class LockManager(object):
                     errcond.add_href(l["root"])
                 u = util.get_uri_parent(u)
 
-            if lockdepth == "infinity":
+            if lock_depth == "infinity":
                 # Check child URLs for conflicting locks
                 childLocks = self.storage.get_lock_list(
-                    url, includeRoot=False, includeChildren=True, tokenOnly=False
+                    url, include_root=False, include_children=True, token_only=False
                 )
 
                 for l in childLocks:
@@ -426,10 +426,10 @@ class LockManager(object):
         # If there were conflicts, raise HTTP_LOCKED for <url>, and pass
         # conflicting resource with 'no-conflicting-lock' precondition
         if len(errcond.hrefs) > 0:
-            raise DAVError(HTTP_LOCKED, errcondition=errcond)
+            raise DAVError(HTTP_LOCKED, err_condition=errcond)
         return
 
-    def check_write_permission(self, url, depth, tokenList, principal):
+    def check_write_permission(self, url, depth, token_list, principal):
         """Check, if <principal> can modify <url>, otherwise raise HTTP_LOCKED.
 
         If modifying <url> is prevented by a lock, DAVError(HTTP_LOCKED) is
@@ -452,7 +452,7 @@ class LockManager(object):
 
         @param url: URL that shall be modified, created, moved, or deleted
         @param depth: "0"|"infinity"
-        @param tokenList: list of lock tokens, that the principal submitted in If: header
+        @param token_list: list of lock tokens, that the principal submitted in If: header
         @param principal: name of the principal requesting a lock
 
         @return: None or raise error
@@ -461,7 +461,7 @@ class LockManager(object):
         assert depth in ("0", "infinity")
         _logger.debug(
             "check_write_permission({}, {}, {}, {})".format(
-                url, depth, tokenList, principal
+                url, depth, token_list, principal
             )
         )
 
@@ -480,7 +480,7 @@ class LockManager(object):
                     if u != url and l["depth"] != "infinity":
                         # We only consider parents with Depth: inifinity
                         continue
-                    elif principal == l["principal"] and l["token"] in tokenList:
+                    elif principal == l["principal"] and l["token"] in token_list:
                         # User owns this lock
                         continue
                     else:
@@ -494,7 +494,7 @@ class LockManager(object):
             if depth == "infinity":
                 # Check child URLs for conflicting locks
                 childLocks = self.storage.get_lock_list(
-                    url, includeRoot=False, includeChildren=True, tokenOnly=False
+                    url, include_root=False, include_children=True, token_only=False
                 )
 
                 for l in childLocks:
@@ -510,5 +510,5 @@ class LockManager(object):
         # If there were conflicts, raise HTTP_LOCKED for <url>, and pass
         # conflicting resource with 'no-conflicting-lock' precondition
         if len(errcond.hrefs) > 0:
-            raise DAVError(HTTP_LOCKED, errcondition=errcond)
+            raise DAVError(HTTP_LOCKED, err_condition=errcond)
         return

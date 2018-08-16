@@ -293,7 +293,7 @@ class _DAVResource(object):
         """
         return None
 
-    def set_last_modified(self, destPath, timeStamp, dryRun):
+    def set_last_modified(self, dest_path, time_stamp, dry_run):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         raise NotImplementedError
 
@@ -438,19 +438,19 @@ class _DAVResource(object):
         self,
         collections=True,
         resources=True,
-        depthFirst=False,
+        depth_first=False,
         depth="infinity",
-        addSelf=False,
+        add_self=False,
     ):
         """Return a list _DAVResource objects of a collection (children,
         grand-children, ...).
 
         This default implementation calls self.get_member_list() recursively.
 
-        This function may also be called for non-collections (with addSelf=True).
+        This function may also be called for non-collections (with add_self=True).
 
         :Parameters:
-            depthFirst : bool
+            depth_first : bool
                 use <False>, to list containers before content.
                 (e.g. when moving / copying branches.)
                 Use <True>, to list content before containers.
@@ -460,7 +460,7 @@ class _DAVResource(object):
         """
         assert depth in ("0", "1", "infinity")
         res = []
-        if addSelf and not depthFirst:
+        if add_self and not depth_first:
             res.append(self)
         if depth != "0" and self.is_collection:
             for child in self.get_member_list():
@@ -469,23 +469,23 @@ class _DAVResource(object):
                 want = (collections and child.is_collection) or (
                     resources and not child.is_collection
                 )
-                if want and not depthFirst:
+                if want and not depth_first:
                     res.append(child)
                 if child.is_collection and depth == "infinity":
                     res.extend(
                         child.get_descendants(
-                            collections, resources, depthFirst, depth, addSelf=False
+                            collections, resources, depth_first, depth, add_self=False
                         )
                     )
-                if want and depthFirst:
+                if want and depth_first:
                     res.append(child)
-        if addSelf and depthFirst:
+        if add_self and depth_first:
             res.append(self)
         return res
 
     # --- Properties ---------------------------------------------------------
 
-    def get_property_names(self, isAllProp):
+    def get_property_names(self, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         Note that 'allprop', despite its name, which remains for
@@ -536,7 +536,7 @@ class _DAVResource(object):
 
         return propNameList
 
-    def get_properties(self, mode, nameList=None):
+    def get_properties(self, mode, name_list=None):
         """Return properties as list of 2-tuples (name, value).
 
         If mode is 'name', then None is returned for the value.
@@ -551,7 +551,7 @@ class _DAVResource(object):
             - None: if mode == 'name'.
 
         @param mode: "allprop", "name", or "named"
-        @param nameList: list of property names in Clark Notation (required for mode 'named')
+        @param name_list: list of property names in Clark Notation (required for mode 'named')
 
         This default implementation basically calls self.get_property_names() to
         get the list of names, then call self.get_property_value on each of them.
@@ -561,14 +561,14 @@ class _DAVResource(object):
         if mode in ("allprop", "name"):
             # TODO: 'allprop' could have nameList, when <include> option is
             # implemented
-            assert nameList is None
-            nameList = self.get_property_names(mode == "allprop")
+            assert name_list is None
+            name_list = self.get_property_names(mode == "allprop")
         else:
-            assert nameList is not None
+            assert name_list is not None
 
         propList = []
         namesOnly = mode == "name"
-        for name in nameList:
+        for name in name_list:
             try:
                 if namesOnly:
                     propList.append((name, None))
@@ -618,11 +618,11 @@ class _DAVResource(object):
             for lock in activelocklist:
                 activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
 
-                locktypeEL = etree.SubElement(activelockEL, "{DAV:}locktype")
+                locktypeEL = etree.SubElement(activelockEL, "{DAV:}lock_type")
                 # Note: make sure `{DAV:}` is not handled as format tag:
                 etree.SubElement(locktypeEL, "{}{}".format("{DAV:}", lock["type"]))
 
-                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lockscope")
+                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lock_scope")
                 # Note: make sure `{DAV:}` is not handled as format tag:
                 etree.SubElement(lockscopeEL, "{}{}".format("{DAV:}", lock["scope"]))
 
@@ -642,7 +642,7 @@ class _DAVResource(object):
                     timeout = "Second-" + str(int(expire - time.time()))
                 etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
 
-                locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
+                locktokenEL = etree.SubElement(activelockEL, "{DAV:}lock_token")
                 etree.SubElement(locktokenEL, "{DAV:}href").text = lock["token"]
 
                 # TODO: this is ugly:
@@ -665,15 +665,15 @@ class _DAVResource(object):
             supportedlockEL = etree.Element(name)
 
             lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
+            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lock_scope")
             etree.SubElement(lockscopeEL, "{DAV:}exclusive")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
+            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}lock_type")
             etree.SubElement(locktypeEL, "{DAV:}write")
 
             lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
+            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lock_scope")
             etree.SubElement(lockscopeEL, "{DAV:}shared")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
+            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}lock_type")
             etree.SubElement(locktypeEL, "{DAV:}write")
 
             return supportedlockEL
@@ -720,13 +720,13 @@ class _DAVResource(object):
         # No persistence available, or property not found
         raise DAVError(HTTP_NOT_FOUND)
 
-    def set_property_value(self, name, value, dryRun=False):
+    def set_property_value(self, name, value, dry_run=False):
         """Set a property value or remove a property.
 
         value == None means 'remove property'.
         Raise HTTP_FORBIDDEN if property is read-only, or not supported.
 
-        When dryRun is True, this function should raise errors, as in a real
+        When dry_run is True, this function should raise errors, as in a real
         run, but MUST NOT change any data.
 
         This default implementation
@@ -752,7 +752,7 @@ class _DAVResource(object):
         if name in _lockPropertyNames:
             # Locking properties are always read-only
             raise DAVError(
-                HTTP_FORBIDDEN, errcondition=PRECONDITION_CODE_ProtectedProperty
+                HTTP_FORBIDDEN, err_condition=PRECONDITION_CODE_ProtectedProperty
             )
 
         # Live property
@@ -769,9 +769,9 @@ class _DAVResource(object):
             # it may still make sense to make mutable in order to support time
             # stamp changes from e.g. utime calls or the touch or rsync -a
             # commands.
-            if name in ("{DAV:}getlastmodified", "{DAV:}lastmodified"):
+            if name in ("{DAV:}getlastmodified", "{DAV:}last_modified"):
                 try:
-                    return self.set_last_modified(self.path, value.text, dryRun)
+                    return self.set_last_modified(self.path, value.text, dry_run)
                 except Exception:
                     _logger.warn(
                         "Provider does not support set_last_modified on {}.".format(
@@ -790,7 +790,7 @@ class _DAVResource(object):
             win32_emu = _config.get("emulate_win32_lastmod", False)
             if win32_emu and "MiniRedir/6.1" not in agent:
                 if "Win32LastModifiedTime" in name:
-                    return self.set_last_modified(self.path, value.text, dryRun)
+                    return self.set_last_modified(self.path, value.text, dry_run)
                 elif "Win32FileAttributes" in name:
                     return True
                 elif "Win32CreationTime" in name:
@@ -803,10 +803,10 @@ class _DAVResource(object):
         if pm and not name.startswith("{DAV:}"):
             refUrl = self.get_ref_url()
             if value is None:
-                return pm.remove_property(refUrl, name, dryRun, self.environ)
+                return pm.remove_property(refUrl, name, dry_run, self.environ)
             else:
                 value = etree.tostring(value)
-                return pm.write_property(refUrl, name, value, dryRun, self.environ)
+                return pm.write_property(refUrl, name, value, dry_run, self.environ)
 
         raise DAVError(HTTP_FORBIDDEN)
 
@@ -888,7 +888,7 @@ class _DAVResource(object):
         assert not self.is_collection
         raise NotImplementedError
 
-    def begin_write(self, contentType=None):
+    def begin_write(self, content_type=None):
         """Open content as a stream for writing.
 
         This method MUST be implemented by all providers that support write
@@ -897,7 +897,7 @@ class _DAVResource(object):
         assert not self.is_collection
         raise DAVError(HTTP_FORBIDDEN)
 
-    def end_write(self, withErrors):
+    def end_write(self, with_errors):
         """Called when PUT has finished writing.
 
         This is only a notification. that MAY be handled.
@@ -982,7 +982,7 @@ class _DAVResource(object):
         """
         raise NotImplementedError
 
-    def handle_copy(self, destPath, depthInfinity):
+    def handle_copy(self, dest_path, depth_infinity):
         """Handle a COPY request natively.
 
         This method is called by the COPY handler after checking for valid
@@ -1019,7 +1019,7 @@ class _DAVResource(object):
         """
         return False
 
-    def copy_move_single(self, destPath, isMove):
+    def copy_move_single(self, dest_path, is_move):
         """Copy or move this resource to destPath (non-recursive).
 
         Preconditions (ensured by caller):
@@ -1043,7 +1043,7 @@ class _DAVResource(object):
           - raises HTTP_FORBIDDEN for read-only providers
           - raises HTTP_INTERNAL_ERROR on error
 
-        When isMove is True,
+        When is_move is True,
 
           - Live properties should be moved too (e.g. creationdate)
           - Non-collections must be moved, not copied
@@ -1057,7 +1057,7 @@ class _DAVResource(object):
         """
         raise NotImplementedError
 
-    def handle_move(self, destPath):
+    def handle_move(self, dest_path):
         """Handle a MOVE request natively.
 
         This method is called by the MOVE handler after checking for valid
@@ -1095,12 +1095,12 @@ class _DAVResource(object):
         """
         return False
 
-    def support_recursive_move(self, destPath):
+    def support_recursive_move(self, dest_path):
         """Return True, if move_recursive() is available (see comments there)."""
         assert self.is_collection
         raise NotImplementedError
 
-    def move_recursive(self, destPath):
+    def move_recursive(self, dest_path):
         """Move this resource and members to destPath.
 
         This method is only called, when support_recursive_move() returns True.
@@ -1145,16 +1145,16 @@ class _DAVResource(object):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def resolve(self, scriptName, pathInfo):
+    def resolve(self, script_name, path_info):
         """Return a _DAVResource object for the path (None, if not found).
 
-        `pathInfo`: is a URL relative to this object.
+        `path_info`: is a URL relative to this object.
 
         DAVCollection.resolve() provides an implementation.
         """
         raise NotImplementedError
 
-    def finalize_headers(self, environ, responseHeaders):
+    def finalize_headers(self, environ, response_headers):
         """Perform custom operations on the response headers.
 
         This gets called before the response is started.
@@ -1216,7 +1216,7 @@ class DAVNonCollection(_DAVResource):
         """
         return False
 
-    def begin_write(self, contentType=None):
+    def begin_write(self, content_type=None):
         """Open content as a stream for writing.
 
         This method MUST be implemented by all providers that support write
@@ -1224,20 +1224,20 @@ class DAVNonCollection(_DAVResource):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def end_write(self, withErrors):
+    def end_write(self, with_errors):
         """Called when PUT has finished writing.
 
         This is only a notification that MAY be handled.
         """
         pass
 
-    def resolve(self, scriptName, pathInfo):
+    def resolve(self, script_name, path_info):
         """Return a _DAVResource object for the path (None, if not found).
 
         Since non-collection don't have members, we return None if path is not
         empty.
         """
-        if pathInfo in ("", "/"):
+        if path_info in ("", "/"):
             return self
         return None
 
@@ -1374,7 +1374,7 @@ class DAVCollection(_DAVResource):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def copy_move_single(self, destPath, isMove):
+    def copy_move_single(self, dest_path, is_move):
         """Copy or move this resource to destPath (non-recursive).
 
         This method MUST be implemented if resource allows write access.
@@ -1383,30 +1383,30 @@ class DAVCollection(_DAVResource):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def support_recursive_move(self, destPath):
+    def support_recursive_move(self, dest_path):
         """Return True, if move_recursive() is available (see comments there)."""
         return False
 
-    def move_recursive(self, destPath):
+    def move_recursive(self, dest_path):
         """Move this resource and members to destPath.
 
         This method MAY be implemented in order to improve performance.
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def resolve(self, scriptName, pathInfo):
+    def resolve(self, script_name, path_info):
         """Return a _DAVResource object for the path (None, if not found).
 
-        `pathInfo`: is a URL relative to this object.
+        `path_info`: is a URL relative to this object.
         """
-        if pathInfo in ("", "/"):
+        if path_info in ("", "/"):
             return self
-        assert pathInfo.startswith("/")
-        name, rest = util.pop_path(pathInfo)
+        assert path_info.startswith("/")
+        name, rest = util.pop_path(path_info)
         res = self.get_member(name)
         if res is None or rest in ("", "/"):
             return res
-        return res.resolve(util.join_uri(scriptName, name), rest)
+        return res.resolve(util.join_uri(script_name, name), rest)
 
 
 # ========================================================================
@@ -1427,8 +1427,8 @@ class DAVProvider(object):
         self.propManager = None
         self.verbose = 3
 
-        self._count_getResourceInst = 0
-        self._count_getResourceInstInit = 0
+        self._count_get_resource_inst = 0
+        self._count_get_resource_inst_init = 0
 
     #        self.caseSensitiveUrls = True
 
@@ -1438,45 +1438,45 @@ class DAVProvider(object):
     def is_readonly(self):
         return False
 
-    def set_mount_path(self, mountPath):
+    def set_mount_path(self, mount_path):
         """Set application root for this resource provider.
 
         This is the value of SCRIPT_NAME, when WsgiDAVApp is called.
         """
-        assert mountPath in ("", "/") or not mountPath.endswith("/")
-        self.mountPath = mountPath
+        assert mount_path in ("", "/") or not mount_path.endswith("/")
+        self.mountPath = mount_path
 
-    def set_share_path(self, sharePath):
+    def set_share_path(self, share_path):
         """Set application location for this resource provider.
 
-        @param sharePath: a UTF-8 encoded, unquoted byte string.
+        @param share_path: a UTF-8 encoded, unquoted byte string.
         """
         # if isinstance(sharePath, unicode):
         #     sharePath = sharePath.encode("utf8")
-        assert sharePath == "" or sharePath.startswith("/")
-        if sharePath == "/":
-            sharePath = ""  # This allows to code 'absPath = sharePath + path'
-        assert sharePath in ("", "/") or not sharePath.endswith("/")
-        self.sharePath = sharePath
+        assert share_path == "" or share_path.startswith("/")
+        if share_path == "/":
+            share_path = ""  # This allows to code 'absPath = sharePath + path'
+        assert share_path in ("", "/") or not share_path.endswith("/")
+        self.sharePath = share_path
 
-    def set_lock_manager(self, lockManager):
-        assert not lockManager or hasattr(
-            lockManager, "check_write_permission"
+    def set_lock_manager(self, lock_manager):
+        assert not lock_manager or hasattr(
+            lock_manager, "check_write_permission"
         ), "Must be compatible with wsgidav.lock_manager.LockManager"
-        self.lockManager = lockManager
+        self.lockManager = lock_manager
 
-    def set_prop_manager(self, propManager):
-        assert not propManager or hasattr(
-            propManager, "copy_properties"
+    def set_prop_manager(self, prop_manager):
+        assert not prop_manager or hasattr(
+            prop_manager, "copy_properties"
         ), "Must be compatible with wsgidav.property_manager.PropertyManager"
-        self.propManager = propManager
+        self.propManager = prop_manager
 
-    def ref_url_to_path(self, refUrl):
+    def ref_url_to_path(self, ref_url):
         """Convert a refUrl to a path, by stripping the share prefix.
 
         Used to calculate the <path> from a storage key by inverting get_ref_url().
         """
-        return "/" + compat.unquote(util.lstripstr(refUrl, self.sharePath)).lstrip("/")
+        return "/" + compat.unquote(util.lstripstr(ref_url, self.sharePath)).lstrip("/")
 
     def get_resource_inst(self, path, environ):
         """Return a _DAVResource object for path.

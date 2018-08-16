@@ -37,9 +37,9 @@ class MockProxyResource(DAVNonCollection):
         self.target_path = target_path
         self.worker = None
 
-    def begin_write(self, contentType=None):
+    def begin_write(self, content_type=None):
         # print("begin_write: {}".format(self.target_path))
-        queue = FileLikeQueue(maxsize=1)
+        queue = FileLikeQueue(max_size=1)
 
         # Simulate an asynchrounous consumer. We use a file, so we can check
         # the result from the parent unittest process. In real live this could be
@@ -62,7 +62,7 @@ class MockProxyResource(DAVNonCollection):
         self.worker.start()
         return queue
 
-    def end_write(self, withErrors):
+    def end_write(self, with_errors):
         print("end_write: {}".format(self.target_path))
         self.worker.join()
 

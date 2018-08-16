@@ -165,15 +165,15 @@ class DAVClient(object):
         assert is_bytes(body)
         return body
 
-    def set_basic_auth(self, username, password):
+    def set_basic_auth(self, user_name, password):
         """Set basic authentication"""
-        u_p = ("%s:%s" % (username, password)).encode("utf8")
+        u_p = ("%s:%s" % (user_name, password)).encode("utf8")
         b64 = base64_encodebytes(u_p)
         # encodestring() returns a bytestring. We want a native str on Python 3
         if not type(b64) is str:
             b64 = b64.decode("utf8")
         auth = "Basic %s" % b64.strip()
-        self._username = username
+        self._username = user_name
         self._password = password
         self.headers["Authorization"] = auth
 
@@ -396,8 +396,8 @@ class DAVClient(object):
         self,
         path,
         owner,
-        locktype="write",
-        lockscope="exclusive",
+        lock_type="write",
+        lock_scope="exclusive",
         depth=None,
         headers=None,
     ):
@@ -405,7 +405,7 @@ class DAVClient(object):
         root = ElementTree.Element("{DAV:}lockinfo")
         object_to_etree(
             root,
-            {"locktype": locktype, "lockscope": lockscope, "owner": {"href": owner}},
+            {"lock_type": lock_type, "lock_scope": lock_scope, "owner": {"href": owner}},
             namespace="DAV:",
         )
         tree = ElementTree.ElementTree(root)
@@ -422,7 +422,7 @@ class DAVClient(object):
 
         self._request("LOCK", path, body=body, headers=headers)
 
-        locks = self.response.tree.findall(".//{DAV:}locktoken")
+        locks = self.response.tree.findall(".//{DAV:}lock_token")
         lock_list = []
         for lock in locks:
             lock_list.append(lock[0].text.strip().strip("\n"))

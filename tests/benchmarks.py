@@ -192,8 +192,8 @@ def _bench_script(opts):
             locks = client.set_lock(
                 "/test/lock-0",
                 owner="test-bench",
-                locktype="write",
-                lockscope="exclusive",
+                lock_type="write",
+                lock_scope="exclusive",
                 depth="infinity",
             )
             token = locks[0]

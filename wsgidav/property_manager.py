@@ -119,129 +119,131 @@ class PropertyManager(object):
         except Exception as e:
             _logger.error("PropertyManager._dump()  ERROR: {}".format(e))
 
-    def get_properties(self, normurl, environ=None):
-        _logger.debug("get_properties({})".format(normurl))
+    def get_properties(self, norm_url, environ=None):
+        _logger.debug("get_properties({})".format(norm_url))
         self._lock.acquire_read()
         try:
             if not self._loaded:
                 self._lazy_open()
             returnlist = []
-            if normurl in self._dict:
-                for propdata in self._dict[normurl].keys():
+            if norm_url in self._dict:
+                for propdata in self._dict[norm_url].keys():
                     returnlist.append(propdata)
             return returnlist
         finally:
             self._lock.release()
 
-    def get_property(self, normurl, name, environ=None):
-        _logger.debug("get_property({}, {})".format(normurl, name))
+    def get_property(self, norm_url, name, environ=None):
+        _logger.debug("get_property({}, {})".format(norm_url, name))
         self._lock.acquire_read()
         try:
             if not self._loaded:
                 self._lazy_open()
-            if normurl not in self._dict:
+            if norm_url not in self._dict:
                 return None
             # TODO: sometimes we get exceptions here: (catch or otherwise make
             # more robust?)
             try:
-                resourceprops = self._dict[normurl]
+                resourceprops = self._dict[norm_url]
             except Exception as e:
                 _logger.exception(
-                    "get_property({}, {}) failed : {}".format(normurl, name, e)
+                    "get_property({}, {}) failed : {}".format(norm_url, name, e)
                 )
                 raise
             return resourceprops.get(name)
         finally:
             self._lock.release()
 
-    def write_property(self, normurl, name, propertyvalue, dryRun=False, environ=None):
-        assert normurl and normurl.startswith("/")
+    def write_property(
+        self, norm_url, name, property_value, dry_run=False, environ=None
+    ):
+        assert norm_url and norm_url.startswith("/")
         assert name  # and name.startswith("{")
-        assert propertyvalue is not None
+        assert property_value is not None
 
         _logger.debug(
-            "write_property({}, {}, dryRun={}):\n\t{}".format(
-                normurl, name, dryRun, propertyvalue
+            "write_property({}, {}, dry_run={}):\n\t{}".format(
+                norm_url, name, dry_run, property_value
             )
         )
-        if dryRun:
+        if dry_run:
             return  # TODO: can we check anything here?
 
         self._lock.acquire_write()
         try:
             if not self._loaded:
                 self._lazy_open()
-            if normurl in self._dict:
-                locatordict = self._dict[normurl]
+            if norm_url in self._dict:
+                locatordict = self._dict[norm_url]
             else:
                 locatordict = {}  # dict([])
-            locatordict[name] = propertyvalue
+            locatordict[name] = property_value
             # This re-assignment is important, so Shelve realizes the change:
-            self._dict[normurl] = locatordict
+            self._dict[norm_url] = locatordict
             self._sync()
             if __debug__ and self._verbose >= 4:
                 self._check()
         finally:
             self._lock.release()
 
-    def remove_property(self, normurl, name, dryRun=False, environ=None):
+    def remove_property(self, norm_url, name, dry_run=False, environ=None):
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
         _logger.debug(
-            "remove_property({}, {}, dryRun={})".format(normurl, name, dryRun)
+            "remove_property({}, {}, dry_run={})".format(norm_url, name, dry_run)
         )
-        if dryRun:
+        if dry_run:
             # TODO: can we check anything here?
             return
         self._lock.acquire_write()
         try:
             if not self._loaded:
                 self._lazy_open()
-            if normurl in self._dict:
-                locatordict = self._dict[normurl]
+            if norm_url in self._dict:
+                locatordict = self._dict[norm_url]
                 if name in locatordict:
                     del locatordict[name]
                     # This re-assignment is important, so Shelve realizes the
                     # change:
-                    self._dict[normurl] = locatordict
+                    self._dict[norm_url] = locatordict
                     self._sync()
             if __debug__ and self._verbose >= 4:
                 self._check()
         finally:
             self._lock.release()
 
-    def remove_properties(self, normurl, environ=None):
-        _logger.debug("remove_properties({})".format(normurl))
+    def remove_properties(self, norm_url, environ=None):
+        _logger.debug("remove_properties({})".format(norm_url))
         self._lock.acquire_write()
         try:
             if not self._loaded:
                 self._lazy_open()
-            if normurl in self._dict:
-                del self._dict[normurl]
+            if norm_url in self._dict:
+                del self._dict[norm_url]
                 self._sync()
         finally:
             self._lock.release()
 
-    def copy_properties(self, srcurl, desturl, environ=None):
-        _logger.debug("copy_properties({}, {})".format(srcurl, desturl))
+    def copy_properties(self, src_url, dest_url, environ=None):
+        _logger.debug("copy_properties({}, {})".format(src_url, dest_url))
         self._lock.acquire_write()
         try:
             if __debug__ and self._verbose >= 4:
                 self._check()
             if not self._loaded:
                 self._lazy_open()
-            if srcurl in self._dict:
-                self._dict[desturl] = self._dict[srcurl].copy()
+            if src_url in self._dict:
+                self._dict[dest_url] = self._dict[src_url].copy()
                 self._sync()
             if __debug__ and self._verbose >= 4:
                 self._check("after copy")
         finally:
             self._lock.release()
 
-    def move_properties(self, srcurl, desturl, withChildren, environ=None):
+    def move_properties(self, src_url, dest_url, with_children, environ=None):
         _logger.debug(
-            "move_properties({}, {}, {})".format(srcurl, desturl, withChildren)
+            "move_properties({}, {}, {})".format(src_url, dest_url, with_children)
         )
         self._lock.acquire_write()
         try:
@@ -249,17 +251,17 @@ class PropertyManager(object):
                 self._check()
             if not self._loaded:
                 self._lazy_open()
-            if withChildren:
-                # Move srcurl\*
+            if with_children:
+                # Move src_url\*
                 for url in self._dict.keys():
-                    if util.is_equal_or_child_uri(srcurl, url):
-                        d = url.replace(srcurl, desturl)
+                    if util.is_equal_or_child_uri(src_url, url):
+                        d = url.replace(src_url, dest_url)
                         self._dict[d] = self._dict[url]
                         del self._dict[url]
-            elif srcurl in self._dict:
-                # Move srcurl only
-                self._dict[desturl] = self._dict[srcurl]
-                del self._dict[srcurl]
+            elif src_url in self._dict:
+                # Move src_url only
+                self._dict[dest_url] = self._dict[src_url]
+                del self._dict[src_url]
             self._sync()
             if __debug__ and self._verbose >= 4:
                 self._check("after move")
@@ -277,15 +279,15 @@ class ShelvePropertyManager(PropertyManager):
     A low performance property manager implementation using shelve
     """
 
-    def __init__(self, storagePath):
-        self._storagePath = os.path.abspath(storagePath)
+    def __init__(self, storage_path):
+        self._storage_path = os.path.abspath(storage_path)
         super(ShelvePropertyManager, self).__init__()
 
     def __repr__(self):
-        return "ShelvePropertyManager({})".format(self._storagePath)
+        return "ShelvePropertyManager({})".format(self._storage_path)
 
     def _lazy_open(self):
-        _logger.debug("_lazy_open({})".format(self._storagePath))
+        _logger.debug("_lazy_open({})".format(self._storage_path))
         self._lock.acquire_write()
         try:
             # Test again within the critical section
@@ -293,7 +295,7 @@ class ShelvePropertyManager(PropertyManager):
                 return True
             # Open with writeback=False, which is faster, but we have to be
             # careful to re-assign values to _dict after modifying them
-            self._dict = shelve.open(self._storagePath, writeback=False)
+            self._dict = shelve.open(self._storage_path, writeback=False)
             self._loaded = True
             if __debug__ and self._verbose >= 4:
                 self._check("After shelve.open()")
