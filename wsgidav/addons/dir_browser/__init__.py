@@ -141,9 +141,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
             "rows": [],
             "version": __version__,
-            "displaypath": compat.unquote(dav_res.get_href()),
+            "display_path": compat.unquote(dav_res.get_href()),
             "url": dav_res.get_href(),  # util.make_complete_url(environ),
-            "parentUrl": util.get_uri_parent(dav_res.get_href()),
+            "parent_url": util.get_uri_parent(dav_res.get_href()),
             "config": dirConfig,
             "is_readonly": is_readonly,
         }
@@ -196,14 +196,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 entry = {
                     "href": href,
                     "ofe_prefix": ofe_prefix,
-                    "aClass": " ".join(a_classes),
-                    "trClass": " ".join(tr_classes),
+                    "a_class": " ".join(a_classes),
+                    "tr_class": " ".join(tr_classes),
                     "display_name": res.get_display_name(),
                     "last_modified": res.get_last_modified(),
                     "is_collection": res.is_collection,
                     "content_length": res.get_content_length(),
                     "display_type": di.get("type"),
-                    "displayTypeComment": di.get("typeComment"),
+                    "display_type_comment": di.get("typeComment"),
                 }
 
                 dirInfoList.append(entry)
@@ -225,15 +225,15 @@ class WsgiDavDirBrowser(BaseMiddleware):
             #
             last_modified = entry.get("last_modified")
             if last_modified is None:
-                entry["strModified"] = ""
+                entry["str_modified"] = ""
             else:
-                entry["strModified"] = util.get_rfc1123_time(last_modified)
+                entry["str_modified"] = util.get_rfc1123_time(last_modified)
 
-            entry["strSize"] = "-"
+            entry["str_size"] = "-"
             if not entry.get("is_collection"):
                 content_length = entry.get("content_length")
                 if content_length is not None:
-                    entry["strSize"] = util.byte_number_string(content_length)
+                    entry["str_size"] = util.byte_number_string(content_length)
 
             rows.append(entry)
 

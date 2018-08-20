@@ -48,14 +48,15 @@ DEFAULT_CONFIG = {
     ],
     # HTTP Authentication Options
     "http_authenticator": {
+        # None: domain_controller.SimpleDomainController(user_mapping)
+        "domain_controller": None,
         "accept_basic": True,  # Allow basic authentication, True or False
         "accept_digest": True,  # Allow digest authentication, True or False
         "default_to_digest": True,  # True (default digest) or False (default basic)
         # Name of a header field that will be accepted as authorized user
         "trusted_auth_header": None,
     },
-    # None: domain_controller.WsgiDAVDomainController(user_mapping)
-    "domain_controller": None,
+    #: Used by SimpleDomainController
     "user_mapping": {},
     # Verbose Output
     # 0 - no output

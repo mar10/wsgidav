@@ -153,7 +153,7 @@ interface is implemented.
 :ref:`~wsgidav.addons.nt_domain_controller` is an example for such an extension.
 
 
-:class:`~wsgidav.domain_controller.WsgiDAVDomainController`
+:class:`~wsgidav.domain_controller.SimpleDomainController`
     Default implementation of a domain controller as used by ``HTTPAuthenticator``.
 
 

@@ -87,7 +87,8 @@ def _check_config(config):
         "dir_browser.enable": "middleware_stack",
         "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
-        "domaincontroller": "domain_controller",
+        "domaincontroller": "http_authenticator.domain_controller",
+        "domain_controller": "http_authenticator.domain_controller",
         "acceptbasic": "http_authenticator.accept_basic",
         "acceptdigest": "http_authenticator.accept_digest",
         "defaultdigest": "http_authenticator.default_to_digest",
@@ -164,6 +165,23 @@ class WsgiDAVApp(object):
         for share, provider in provider_mapping.items():
             self.add_provider(share, provider)
 
+        # Figure out the domain controller, used by http_authenticator
+        # dc = config.get("http_authenticator", {}).get("domain_controller")
+        # if dc is True or not dc:
+        #     # True or null:
+        #     dc = SimpleDomainController
+
+        # if compat.is_basestring(dc):
+        #     # If a plain string is passed, try to import it as class
+        #     dc = dynamic_import_class(dc)
+
+        # if inspect.isclass(dc):
+        #     # If a class is passed, instantiate that
+        #     # assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
+        #     dc = dc(config)
+
+        # domain_controller = dc
+        # print(domain_controller)
         domain_controller = None
 
         # Define WSGI application stack
@@ -205,7 +223,7 @@ class WsgiDAVApp(object):
                 # Otherwise assume an initialized middleware instance
                 app = mw
 
-            # TODO: We should try to generalize this specific code:
+            # FIXME: We should try to generalize this specific code:
             if isinstance(app, HTTPAuthenticator):
                 domain_controller = app.get_domain_controller()
                 # Check anonymous access

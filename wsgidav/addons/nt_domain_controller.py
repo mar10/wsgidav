@@ -83,9 +83,21 @@ _logger = util.get_module_logger(__name__)
 
 
 class NTDomainController(object):
-    def __init__(self, presetdomain=None, presetserver=None):
-        self._presetdomain = presetdomain
-        self._presetserver = presetserver
+    def __init__(self, config):
+        # def __init__(self, presetdomain=None, presetserver=None):
+        auth_opts = config["http_authenticator"]
+        self._presetdomain = auth_opts.get("preset_domain")
+        self._presetserver = auth_opts.get("preset_server")
+
+        if (
+            auth_opts["accept_digest"]
+            or auth_opts["default_to_digest"]
+            or not auth_opts["accept_basic"]
+        ):
+            _logger.warn(
+                "NTDomainController requires basic authentication.\n\tSet accept_basic=True, "
+                "accept_digest=False, default_to_digest=False"
+            )
 
     def __repr__(self):
         return self.__class__.__name__
@@ -157,7 +169,8 @@ class NTDomainController(object):
                     server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0
                 )
                 # Make sure, we compare unicode
-                un = user_name.decode("utf8").lower()
+                un = compat.to_unicode(user_name).lower()
+                # un = user_name.decode("utf8").lower()
                 for userinfo in users:
                     uiname = userinfo.get("name")
                     assert uiname

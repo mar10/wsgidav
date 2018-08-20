@@ -75,15 +75,16 @@ The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
 """
+import inspect
 import random
 import re
 import time
 from hashlib import md5
 
 from wsgidav import compat, util
-from wsgidav.domain_controller import WsgiDAVDomainController
+from wsgidav.domain_controller import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
-from wsgidav.util import calc_base64, calc_hexdigest
+from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
 
 __docformat__ = "reStructuredText"
 
@@ -101,34 +102,23 @@ HOTFIX_WINXP_AcceptRootShareLogin = True
 HOTFIX_WIN_AcceptAnonymousOptions = False
 
 
-class SimpleDomainController(object):
-    """SimpleDomainController : Simple domain controller for HTTPAuthenticator."""
+def make_domain_controller(config):
+    dc = config.get("http_authenticator", {}).get("domain_controller")
+    if dc is True or not dc:
+        # True or null:
+        dc = SimpleDomainController
 
-    def __init__(self, dict_users=None, realm_name="SimpleDomain"):
-        if dict_users is None:
-            self._users = dict({"John Smith": "YouNeverGuessMe"})
-        else:
-            self._users = dict_users
-        self._realmname = realm_name
+    if compat.is_basestring(dc):
+        # If a plain string is passed, try to import it as class
+        dc = dynamic_import_class(dc)
 
-    def get_domain_realm(self, input_relative_url, environ):
-        return self._realmname
+    if inspect.isclass(dc):
+        # If a class is passed, instantiate that
+        # assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
+        dc = dc(config)
 
-    def require_authentication(self, realm_name, environ):
-        return True
-
-    def is_realm_user(self, realm_name, user_name, environ):
-        return user_name in self._users
-
-    def get_realm_user_password(self, realm_name, user_name, environ):
-        if user_name in self._users:
-            return self._users[user_name]
-        return None
-
-    def auth_domain_user(self, realm_name, user_name, password, environ):
-        if user_name in self._users:
-            return self._users[user_name] == password
-        return False
+    print("make_domain_controller", dc)
+    return dc
 
 
 # ========================================================================
@@ -140,15 +130,21 @@ class HTTPAuthenticator(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
         super(HTTPAuthenticator, self).__init__(wsgidav_app, next_app, config)
         self._verbose = config.get("verbose", 3)
-        self._user_mapping = config.get("user_mapping", {})
-        self._domain_controller = config.get(
-            "domain_controller"
-        ) or WsgiDAVDomainController(self._user_mapping)
         auth_conf = config.get("http_authenticator", {})
+
+        self.domain_controller = make_domain_controller(config)
+        # self.domain_controller = dc = auth_conf.get("domain_controller")
+        # if not dc or not callable(getattr(dc, "auth_domain_user")):
+        #     raise RuntimeError("Invalid domain controller {}".format(dc))
+        # self._user_mapping = config.get("user_mapping", {})
+        # self.domain_controller = config.get(
+        #     "domain_controller"
+        # ) or SimpleDomainController(self._user_mapping)
         self._accept_basic = auth_conf.get("accept_basic", True)
         self._accept_digest = auth_conf.get("accept_digest", True)
         self._default_digest = auth_conf.get("default_to_digest", True)
         self._trusted_auth_header = auth_conf.get("trusted_auth_header", None)
+
         self._nonce_dict = dict([])
 
         self._header_parser = re.compile(r"([\w]+)=([^,]*),")
@@ -157,24 +153,16 @@ class HTTPAuthenticator(BaseMiddleware):
         self._header_fix_parser = re.compile(r'([\w]+)=("[^"]*,[^"]*"),')
         self._header_method = re.compile(r"^([\w]+)")
 
-        wdcName = "NTDomainController"
-        if self._domain_controller.__class__.__name__ == wdcName:
-            if self._accept_digest or self._default_digest or not self._accept_basic:
-                _logger.warn(
-                    "{} requires basic authentication.\n\tSet accept_basic=True, "
-                    "accept_digest=False, default_to_digest=False".format(wdcName)
-                )
-
     def get_domain_controller(self):
-        return self._domain_controller
+        return self.domain_controller
 
     def allow_anonymous_access(self, share):
         return isinstance(
-            self._domain_controller, WsgiDAVDomainController
+            self.domain_controller, SimpleDomainController
         ) and not self._user_mapping.get(share)
 
     def __call__(self, environ, start_response):
-        realm_name = self._domain_controller.get_domain_realm(
+        realm_name = self.domain_controller.get_domain_realm(
             environ["PATH_INFO"], environ
         )
 
@@ -186,7 +174,7 @@ class HTTPAuthenticator(BaseMiddleware):
             _logger.warning("No authorization required for OPTIONS method")
             force_allow = True
 
-        if force_allow or not self._domain_controller.require_authentication(
+        if force_allow or not self.domain_controller.require_authentication(
             realm_name, environ
         ):
             # no authentication needed
@@ -247,7 +235,7 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.send_basic_auth_response(environ, start_response)
 
     def send_basic_auth_response(self, environ, start_response):
-        realm_name = self._domain_controller.get_domain_realm(
+        realm_name = self.domain_controller.get_domain_realm(
             environ["PATH_INFO"], environ
         )
         _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realm_name))
@@ -266,7 +254,7 @@ class HTTPAuthenticator(BaseMiddleware):
         return [body]
 
     def auth_basic_auth_request(self, environ, start_response):
-        realm_name = self._domain_controller.get_domain_realm(
+        realm_name = self.domain_controller.get_domain_realm(
             environ["PATH_INFO"], environ
         )
         authheader = environ["HTTP_AUTHORIZATION"]
@@ -280,7 +268,7 @@ class HTTPAuthenticator(BaseMiddleware):
         authvalue = compat.to_native(authvalue)
         user_name, password = authvalue.split(":", 1)
 
-        if self._domain_controller.auth_domain_user(
+        if self.domain_controller.auth_domain_user(
             realm_name, user_name, password, environ
         ):
             environ["http_authenticator.realm"] = realm_name
@@ -289,7 +277,7 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.send_basic_auth_response(environ, start_response)
 
     def send_digest_auth_response(self, environ, start_response):
-        realm_name = self._domain_controller.get_domain_realm(
+        realm_name = self.domain_controller.get_domain_realm(
             environ["PATH_INFO"], environ
         )
         random.seed()
@@ -324,7 +312,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
     def auth_digest_auth_request(self, environ, start_response):
 
-        realm_name = self._domain_controller.get_domain_realm(
+        realm_name = self.domain_controller.get_domain_realm(
             environ["PATH_INFO"], environ
         )
 
@@ -374,7 +362,7 @@ class HTTPAuthenticator(BaseMiddleware):
                     )
                 )
 
-            if not self._domain_controller.is_realm_user(
+            if not self.domain_controller.is_realm_user(
                 realm_name, req_username, environ
             ):
                 isinvalidreq = True
@@ -434,7 +422,7 @@ class HTTPAuthenticator(BaseMiddleware):
             isinvalidreq = True
 
         if not isinvalidreq:
-            req_password = self._domain_controller.get_realm_user_password(
+            req_password = self.domain_controller.get_realm_user_password(
                 realm_name, req_username, environ
             )
 
