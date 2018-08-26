@@ -3,20 +3,18 @@
 
 $ProjectRoot = "C:\Prj\git\wsgidav";
 
-#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.4";
-#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.5";
 $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
 # $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.7";
 
 
-$IGNORE_UNSTAGED_CHANGES = 0;
-$SKIP_TESTS = 0;
+$IGNORE_UNSTAGED_CHANGES = 1;
+$SKIP_TESTS = 1;
 
 # ----------------------------------------------------------------------------
 # Pre-checks
 
 # Working directory must be clean
-cd $ProjectRoot
+Set-Location $ProjectRoot
 git status
 git diff --exit-code --quiet
 if($LastExitCode -ne 0) {
@@ -32,15 +30,13 @@ if($LastExitCode -ne 0) {
 # ----------------------------------------------------------------------------
 # Create and activate a fresh build environment
 
-cd $ProjectRoot
+Set-Location $ProjectRoot
 
 "Removing venv folder $BuildEnvRoot..."
 Remove-Item $BuildEnvRoot -Force -Recurse -ErrorAction SilentlyContinue
 
 
 "Creating venv folder $BuildEnvRoot..."
-#py -3.4 -m venv "$BuildEnvRoot"
-#py -3.5 -m venv "$BuildEnvRoot"
 py -3.6 -m venv "$BuildEnvRoot"
 # py -3.7 -m venv "$BuildEnvRoot"
 
@@ -63,9 +59,15 @@ python -m pip install tools/cx_Freeze-5.1.1-cp36-cp36m-win32.whl
 
 python -m pip install -r requirements-dev.txt
 #python -m pip list
+
+# We want to add lxml enhancements to MSI
 python -m pip install lxml
+
+# We want to need pywin32 for NTDomainController in MSI
+#python -m pip install pypiwin32
+
 #python -m pip install cx_freeze cheroot defusedxml wheel
-#python -m pip list
+python -m pip list
 
 # Run tests
 if( $SKIP_TESTS ) {

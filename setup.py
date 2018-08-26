@@ -76,9 +76,16 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 
 install_requires = ["defusedxml", "jsmin", "Jinja2", "PyYAML"]
 
-# The Windows MSI Setup should include lxml and CherryPy
+# The Windows MSI Setup should include lxml, pywin32, and CherryPy
 if "bdist_msi" in sys.argv:
-    install_requires.extend(["cheroot", "cheroot.ssl.builtin", "lxml"])
+    install_requires.extend(
+        [
+            "cheroot",
+            "cheroot.ssl.builtin",
+            "lxml",
+            "wsgidav.addons.nt_domain_controller",
+        ]
+    )
 
 tests_require = []
 
@@ -140,15 +147,16 @@ build_exe_options = {
     "includes": install_requires,
     "include_files": [
         # https://stackoverflow.com/a/43034479/19166
-        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
-        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
+        # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
+        # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
     ],
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.addons.dir_browser",
+        # "wsgidav.addons.nt_domain_controller",
         "jinja2",
     ],
-    "excludes": [],
+    "excludes": ["tcl", "tk"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
 }

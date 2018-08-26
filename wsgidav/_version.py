@@ -10,5 +10,8 @@ Examples
         '3.0.0'
     Developmental release (to mark 3.0.0 as 'used'. Don't publish this):
         '3.0.0.dev1'
+NOTE:
+    When pywin32 is installed, number must be a.b.c for MSI builds?
+    "3.0.0a4" seems not to work in this case!
 """
 __version__ = "3.0.0a4"

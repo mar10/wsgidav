@@ -148,6 +148,7 @@ class WsgiDAVApp(object):
             self.prop_manager = PropertyManager()
 
         self.mount_path = config.get("mount_path")
+        auth_conf = config.get("http_authenticator", {})
 
         # Instantiate DAV resource provider objects for every share
         # provider_mapping may contain the args that are passed to a `FilesystemProvider`
@@ -265,6 +266,11 @@ class WsgiDAVApp(object):
                 data = self.provider_map[share]
                 hint = " (anonymous)" if data["allow_anonymous"] else ""
                 _logger.info("  - '{}': {}{}".format(share, data["provider"], hint))
+
+        if auth_conf.get("accept_basic") and not config.get("ssl_certificate"):
+            _logger.warn(
+                "Basic authentication is enabled: It is highly recommended to enable SSL."
+            )
 
         for share, data in self.provider_map.items():
             if data["allow_anonymous"]:

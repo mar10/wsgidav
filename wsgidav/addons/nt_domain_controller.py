@@ -86,8 +86,8 @@ class NTDomainController(object):
     def __init__(self, config):
         # def __init__(self, presetdomain=None, presetserver=None):
         auth_opts = config["http_authenticator"]
-        self._presetdomain = auth_opts.get("preset_domain")
-        self._presetserver = auth_opts.get("preset_server")
+        self._preset_domain = auth_opts.get("preset_domain")
+        self._preset_server = auth_opts.get("preset_server")
 
         if (
             auth_opts["accept_digest"]
@@ -95,8 +95,8 @@ class NTDomainController(object):
             or not auth_opts["accept_basic"]
         ):
             _logger.warn(
-                "NTDomainController requires basic authentication.\n\tSet accept_basic=True, "
-                "accept_digest=False, default_to_digest=False"
+                "NTDomainController requires basic authentication:\n"
+                "Set accept_basic=True, accept_digest=False, default_to_digest=False"
             )
 
     def __repr__(self):
@@ -122,10 +122,6 @@ class NTDomainController(object):
         except Exception:
             _logger.exception("NetUserGetInfo")
             userdata = {}
-        #        if "password" in userdata:
-        #            if userdata["password"] != None:
-        #                return userdata["password"]
-        #        return None
         return userdata.get("password")
 
     def auth_domain_user(self, realm_name, user_name, password, environ):
@@ -142,14 +138,14 @@ class NTDomainController(object):
             domain = userdata[0]
             user_name = userdata[1]
 
-        if self._presetdomain is not None:
-            domain = self._presetdomain
+        if self._preset_domain is not None:
+            domain = self._preset_domain
 
         return (domain, user_name)
 
     def _get_domain_controller_name(self, domain):
-        if self._presetserver is not None:
-            return self._presetserver
+        if self._preset_server is not None:
+            return self._preset_server
 
         try:
             # execute this on the localhost
@@ -170,7 +166,6 @@ class NTDomainController(object):
                 )
                 # Make sure, we compare unicode
                 un = compat.to_unicode(user_name).lower()
-                # un = user_name.decode("utf8").lower()
                 for userinfo in users:
                     uiname = userinfo.get("name")
                     assert uiname

@@ -130,6 +130,7 @@ class HTTPAuthenticator(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
         super(HTTPAuthenticator, self).__init__(wsgidav_app, next_app, config)
         self._verbose = config.get("verbose", 3)
+        self.config = config
         auth_conf = config.get("http_authenticator", {})
 
         self.domain_controller = make_domain_controller(config)
@@ -157,9 +158,11 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.domain_controller
 
     def allow_anonymous_access(self, share):
+        # FIXME: use DC
+        # return self.domain_controller.require_authentication(share)
         return isinstance(
             self.domain_controller, SimpleDomainController
-        ) and not self._user_mapping.get(share)
+        ) and not self.config["user_mapping"].get(share)
 
     def __call__(self, environ, start_response):
         realm_name = self.domain_controller.get_domain_realm(
