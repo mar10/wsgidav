@@ -11,19 +11,19 @@ Purpose
 Usage::
 
    from wsgidav.addons.nt_domain_controller import NTDomainController
-   domain_controller = NTDomainController(presetdomain=None, presetserver=None)
+   domain_controller = NTDomainController(preset_domain=None, preset_server=None)
 
 where:
 
 + domain_controller object corresponds to that in ``wsgidav.conf`` or
   as input into ``wsgidav.http_authenticator.HTTPAuthenticator``.
 
-+ presetdomain allows the admin to specify a domain to be used (instead of any domain that
++ preset_domain allows the admin to specify a domain to be used (instead of any domain that
   may come as part of the user_name in domain\\user). This is useful only if there
   is one domain to be authenticated against and you want to spare users from typing the
   domain name
 
-+ presetserver allows the admin to specify the NETBIOS name of the domain controller to
++ preset_server allows the admin to specify the NETBIOS name of the domain controller to
   be used (complete with the preceding \\\\). if absent, it will look for trusted
   domain controllers on the localhost.
 
@@ -83,9 +83,9 @@ _logger = util.get_module_logger(__name__)
 
 
 class NTDomainController(object):
-    def __init__(self, presetdomain=None, presetserver=None):
-        self._presetdomain = presetdomain
-        self._presetserver = presetserver
+    def __init__(self, preset_domain=None, preset_server=None):
+        self._preset_domain = preset_domain
+        self._preset_server = preset_server
 
     def __repr__(self):
         return self.__class__.__name__
@@ -130,14 +130,14 @@ class NTDomainController(object):
             domain = userdata[0]
             user_name = userdata[1]
 
-        if self._presetdomain is not None:
-            domain = self._presetdomain
+        if self._preset_domain is not None:
+            domain = self._preset_domain
 
         return (domain, user_name)
 
     def _get_domain_controller_name(self, domain):
-        if self._presetserver is not None:
-            return self._presetserver
+        if self._preset_server is not None:
+            return self._preset_server
 
         try:
             # execute this on the localhost
