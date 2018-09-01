@@ -128,7 +128,7 @@ instead of the instantiated object.
 The built-in middleware derives from :class:`~wsgidav.middleware.BaseMiddleware`, so we can
 simplify as::
 
-    from wsgidav.addons.dir_browser import WsgiDavDirBrowser
+    from wsgidav.dir_browser import WsgiDavDirBrowser
     from wsgidav.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
@@ -151,7 +151,7 @@ directory browser, and adds a third-party debugging tool::
 
     import dozer
 
-    # from wsgidav.addons.dir_browser import WsgiDavDirBrowser
+    # from wsgidav.dir_browser import WsgiDavDirBrowser
     from wsgidav.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
@@ -193,7 +193,7 @@ explicitly listed::
         - wsgidav.debug_filter.WsgiDavDebugFilter
         - wsgidav.error_printer.ErrorPrinter
         - wsgidav.http_authenticator.HTTPAuthenticator
-        - wsgidav.addons.dir_browser.WsgiDavDirBrowser
+        - wsgidav.dir_browser.WsgiDavDirBrowser
         - wsgidav.request_resolver.RequestResolver
 
 Note that the external middleware must be available, for example by calling

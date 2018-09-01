@@ -75,7 +75,7 @@ class SimpleDomainController(object):
     def __init__(self, opts):
         #        self.dc_opts = opts.get("domain_controller", {})
         self.user_map = opts.get("user_mapping")
-        if not self.user_map:
+        if self.user_map is None:
             raise RuntimeError("Missing option: user_mapping")
         # self.allowAnonymous = allowAnonymous
 

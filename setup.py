@@ -189,7 +189,7 @@ build_exe_options = {
     ],
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
-        "wsgidav.addons.dir_browser",
+        "wsgidav.dir_browser",
         # "wsgidav.addons.nt_domain_controller",
     ],
     "excludes": ["tkinter"],
@@ -244,7 +244,7 @@ setup(
     package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
-        "wsgidav.addons.dir_browser": ["htdocs/*.*"]
+        "wsgidav.dir_browser": ["htdocs/*.*"]
     },
     install_requires=install_requires,
     setup_requires=setup_requires,

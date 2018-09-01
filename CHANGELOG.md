@@ -30,7 +30,7 @@ This release contains **BREAKING CHANGES!**
   - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
-  - Move to `addons.dir_browser` package
+  - Move to `wsgidav.dir_browser` package
   - Option 'dir_browser.ms_sharepoint_support' replaces ms_sharepoint_plugin and ms_sharepoint_urls
 - Automated [Docker builds](https://hub.docker.com/r/mar10/wsgidav/)
 - MSI installer
