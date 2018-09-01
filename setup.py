@@ -16,6 +16,8 @@ from setuptools.command.test import test as TestCommand
 from wsgidav._version import __version__
 
 
+version = __version__
+
 # Override 'setup.py test' command
 class ToxCommand(TestCommand):
     def finalize_options(self):
@@ -97,6 +99,9 @@ for cmd in ["bdist_msi"]:
         use_cx_freeze = True
         break
 
+
+# Only import cx_Freeze, when 'bdist_msi' command was used, because cx_Freeze
+# seems to sabotage wheel creation
 if use_cx_freeze:
     try:
         # cx_Freeze seems to be confused by module name 'PyYAML' which
@@ -104,6 +109,14 @@ if use_cx_freeze:
         # be listed as 'PyYAML' in the requirements.txt and be installed!
         install_requires.remove("PyYAML")
         install_requires.append("yaml")
+
+        # See also build_exe_options below:
+        install_requires.remove("Jinja2")
+        # install_requires.append("jinja2")
+
+        # TODO: check if `version` is compatible with `a.b.c.d`
+        # when pywin32 is installed, because then cx_Freeze creates
+        # a version resource that is not compatible with '1.2.3a2'
 
         from cx_Freeze import setup, Executable  # noqa F811
 
@@ -149,14 +162,23 @@ build_exe_options = {
         # https://stackoverflow.com/a/43034479/19166
         # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
         # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
+        # NOTE: this seems to fix a problem where Jinja2 package
+        # was copied as `<project>\build\exe.win32-3.6\lib\Jinja2` with a
+        # capital 'J'.
+        # Hotfix: we remove it from the dependencies (see above) and
+        # copy it manually from a vendored source.
+        # See
+        #     https://github.com/anthony-tuininga/cx_Freeze/issues/418
+        ("vendor/jinja2", "lib/jinja2")
     ],
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.addons.dir_browser",
+        # "jinja2",
         # "wsgidav.addons.nt_domain_controller",
-        "jinja2",
+        # "Jinja2",
     ],
-    "excludes": ["tcl", "tk"],
+    "excludes": ["tkinter"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
@@ -165,15 +187,11 @@ build_exe_options = {
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
-    # TODO: configure target dir
-    # "initial_target_dir": r"[ProgramFilesFolder]\%s\%s" % (company_name, product_name),
-    # TODO: configure shortcuts:
-    # http://stackoverflow.com/a/15736406/19166
 }
 
 setup(
     name="WsgiDAV",
-    version=__version__,
+    version=version,
     author="Martin Wendt, Ho Chun Wei",
     author_email="wsgidav@wwwendt.de",
     maintainer="Martin Wendt",

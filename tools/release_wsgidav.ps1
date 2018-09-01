@@ -4,12 +4,12 @@
 $ProjectRoot = "C:\Prj\git\wsgidav";
 
 $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
-# $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.7";
+$BuildFolder = "$ProjectRoot\build";
 
 
-$IGNORE_UNSTAGED_CHANGES = 0;
-$IGNORE_NON_MASTER_BRANCH = 0;
-$SKIP_TESTS = 0;
+$IGNORE_UNSTAGED_CHANGES = 1;
+$IGNORE_NON_MASTER_BRANCH = 1;
+$SKIP_TESTS = 1;
 
 # ----------------------------------------------------------------------------
 # Pre-checks
@@ -53,7 +53,7 @@ py -3.6 -m venv "$BuildEnvRoot"
 
 Invoke-Expression "& ""$BuildEnvRoot\Scripts\Activate.ps1"""
 
-# TODO: Check for 3.7
+# TODO: Check for 3.6
 python --version
 
 python -m pip install --upgrade pip
@@ -65,8 +65,10 @@ python -m pip install --pre black
 #    See https://www.lfd.uci.edu/~gohlke/pythonlibs/#cx_freeze
 # 2. cx_freeze has a Bug with 3.7
 #    https://stackoverflow.com/questions/51314105/cx-freeze-crashing-python3-7-0
-python -m pip install tools/cx_Freeze-5.1.1-cp36-cp36m-win32.whl
-#python -m pip install tools/cx_Freeze-5.1.1-cp37-cp37m-win32.whl
+python -m pip install vendor/cx_Freeze-5.1.1-cp36-cp36m-win32.whl
+#python -m pip install vendor/cx_Freeze-5.1.1-cp37-cp37m-win32.whl
+
+#python -m pip install -e Jinja2
 
 python -m pip install -r requirements-dev.txt
 #python -m pip list
@@ -94,6 +96,12 @@ if( $SKIP_TESTS ) {
 
 # (optional) Do a test release
 #python setup.py pypi_daily
+
+# --- Clear old build cache.
+# (not neccessarily required, but may prevent confusion, like jinja2 vs. Jinja2)
+"Removing build cache folder $BuildFolder..."
+Remove-Item $BuildFolder -Force -Recurse -ErrorAction SilentlyContinue
+
 
 
 #--- Create MSI installer

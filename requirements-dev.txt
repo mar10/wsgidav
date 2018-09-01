@@ -15,7 +15,7 @@ pytest~=2.7
 pytest-cov~=1.8
 recommonmark
 requests
-setuptools~=38.6
+setuptools~=40.2
 sphinx_rtd_theme
 sphinx~=1.6
 tox~=3.2

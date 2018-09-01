@@ -5,10 +5,10 @@
 """
 WSGI middleware that handles GET requests on collections to display directories.
 """
+from fnmatch import fnmatch
 import os
 import sys
 
-from fnmatch import fnmatch
 from jinja2 import Environment, FileSystemLoader
 
 from wsgidav import __version__, compat, util
