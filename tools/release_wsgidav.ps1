@@ -7,11 +7,22 @@ $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
 # $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.7";
 
 
-$IGNORE_UNSTAGED_CHANGES = 1;
-$SKIP_TESTS = 1;
+$IGNORE_UNSTAGED_CHANGES = 0;
+$IGNORE_NON_MASTER_BRANCH = 0;
+$SKIP_TESTS = 0;
 
 # ----------------------------------------------------------------------------
 # Pre-checks
+
+$CUR_BRANCH = git rev-parse --abbrev-ref HEAD
+if ($CUR_BRANCH -ne "master") {
+    if( $IGNORE_UNSTAGED_CHANGES ) {
+        Write-Warning "RELEASING NON-MASTER BRANCH: $CUR_BRANCH"
+    } else {
+        Write-Error "Not on master branch: $CUR_BRANCH!"
+        Exit 1
+    }
+}
 
 # Working directory must be clean
 Set-Location $ProjectRoot

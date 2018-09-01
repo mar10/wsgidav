@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  wsgidav:
+    build: .
+    image: mar10/wsgidav
+    container_name: "wsgidav"
+    ports:
+      - "8080:8080"
+    networks:
+      - local
+    volumes:
+      - ./wsgidav_data:/var/wsgidav-root
+    restart: always
+
+networks:
+  local:
+    driver: bridge

@@ -159,6 +159,7 @@ build_exe_options = {
     "excludes": ["tcl", "tk"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
+    "include_msvcr": True,
 }
 
 bdist_msi_options = {
