@@ -73,9 +73,9 @@ ml
 """
 from __future__ import print_function
 
-import win32net  # @UnresolvedImport
-import win32netcon  # @UnresolvedImport
-import win32security  # @UnresolvedImport
+import win32net
+import win32netcon
+import win32security
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"

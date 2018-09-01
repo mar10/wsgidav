@@ -10,6 +10,7 @@ $BuildFolder = "$ProjectRoot\build";
 $IGNORE_UNSTAGED_CHANGES = 1;
 $IGNORE_NON_MASTER_BRANCH = 1;
 $SKIP_TESTS = 1;
+$DELETE_BUILD_CACHE = 0;
 
 # ----------------------------------------------------------------------------
 # Pre-checks
@@ -43,11 +44,11 @@ if($LastExitCode -ne 0) {
 
 Set-Location $ProjectRoot
 
-"Removing venv folder $BuildEnvRoot..."
+"Removing virtual environment folder $BuildEnvRoot..."
 Remove-Item $BuildEnvRoot -Force -Recurse -ErrorAction SilentlyContinue
 
 
-"Creating venv folder $BuildEnvRoot..."
+"Creating virtual environment folder $BuildEnvRoot..."
 py -3.6 -m venv "$BuildEnvRoot"
 # py -3.7 -m venv "$BuildEnvRoot"
 
@@ -68,18 +69,15 @@ python -m pip install --pre black
 python -m pip install vendor/cx_Freeze-5.1.1-cp36-cp36m-win32.whl
 #python -m pip install vendor/cx_Freeze-5.1.1-cp37-cp37m-win32.whl
 
-#python -m pip install -e Jinja2
-
+# cheroot defusedxml wheel, ...
 python -m pip install -r requirements-dev.txt
-#python -m pip list
 
 # We want to add lxml enhancements to MSI
 python -m pip install lxml
 
-# We want to need pywin32 for NTDomainController in MSI
-#python -m pip install pypiwin32
+# We want pywin32 for NTDomainController in MSI
+python -m pip install pypiwin32
 
-#python -m pip install cx_freeze cheroot defusedxml wheel
 python -m pip list
 
 # Run tests
@@ -94,14 +92,14 @@ if( $SKIP_TESTS ) {
 }
 
 
-# (optional) Do a test release
-#python setup.py pypi_daily
-
 # --- Clear old build cache.
 # (not neccessarily required, but may prevent confusion, like jinja2 vs. Jinja2)
-"Removing build cache folder $BuildFolder..."
-Remove-Item $BuildFolder -Force -Recurse -ErrorAction SilentlyContinue
-
+if( $DELETE_BUILD_CACHE ) {
+    "Removing build cache folder $BuildFolder..."
+    Remove-Item $BuildFolder -Force -Recurse -ErrorAction SilentlyContinue
+} else {
+    Write-Warning "Keeping build cache $BuildFolder..."
+}
 
 
 #--- Create MSI installer
@@ -115,8 +113,6 @@ if($LastExitCode -ne 0) {
 #--- Create source distribution and Wheel
 #    This call causes setup.py to NOT import and use cx_Freeze:
 
-#python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
-#python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal register upload --sign --identity="Martin Wendt"
 python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
 
 if($LastExitCode -ne 0) {

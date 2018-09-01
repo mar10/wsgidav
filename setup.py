@@ -2,12 +2,9 @@
 
 from __future__ import print_function
 
+from datetime import datetime
 import os
 import sys
-
-# If true, then the DVCS revision won't be used to calculate the
-# revision (set to True for real releases)
-# RELEASE = False
 
 from setuptools import setup, find_packages
 from setuptools import Command
@@ -69,6 +66,12 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
     print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
 
+use_cx_freeze = False
+for cmd in ["bdist_msi"]:
+    if cmd in sys.argv:
+        use_cx_freeze = True
+        break
+
 # CherryPy is required for the tests and benchmarks. It is also the preferrred
 # server for the stand-alone mode (`wsgidav.server.server_cli.py`).
 # We currently do not add it as an installation requirement, because
@@ -77,33 +80,53 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 #   3. there may already cherrypy versions installed
 
 install_requires = ["defusedxml", "jsmin", "Jinja2", "PyYAML"]
+setup_requires = install_requires
+tests_require = []
 
-# The Windows MSI Setup should include lxml, pywin32, and CherryPy
-if "bdist_msi" in sys.argv:
+if use_cx_freeze:
+    # The Windows MSI Setup should include lxml, pywin32, and CherryPy
     install_requires.extend(
         [
             "cheroot",
             "cheroot.ssl.builtin",
             "lxml",
+            # "win32",
             "wsgidav.addons.nt_domain_controller",
         ]
     )
-
-tests_require = []
-
-setup_requires = install_requires
-
-use_cx_freeze = False
-for cmd in ["bdist_msi"]:
-    if cmd in sys.argv:
-        use_cx_freeze = True
-        break
-
-
-# Only import cx_Freeze, when 'bdist_msi' command was used, because cx_Freeze
-# seems to sabotage wheel creation
-if use_cx_freeze:
+    # Since we included pywin32 extensions, cx_Freeze tries to create a
+    # version resource. This only supports the 'a.b.c[.d]' format:
     try:
+        int_version = list(map(int, version.split(".")))
+    except ValueError:
+        # version = "0.0.0.{}".format(datetime.now().strftime("%Y%m%d"))
+        version = "0.0.0"
+
+    try:
+        # Only import cx_Freeze, when 'bdist_msi' command was used, because
+        # cx_Freeze seems to sabotage wheel creation:
+        from cx_Freeze import setup, Executable  # noqa F811
+
+        from cx_Freeze import hooks
+
+        assert not hasattr(hooks, "load_Jinja2")
+
+        def load_Jinja2(finder, module):
+            # TODO: rename folder?
+            # finder.IncludeModule("pywintypes")
+            print("* " * 40)
+            print("load_Jinja2")
+
+        hooks.load_Jinja2 = load_Jinja2
+
+        assert not hasattr(hooks, "load_jinja2")
+
+        def load_jinja2(finder, module):
+            print("* " * 40)
+            print("load_jinja2")
+
+        hooks.load_jinja2 = load_jinja2
+
         # cx_Freeze seems to be confused by module name 'PyYAML' which
         # must be imported as 'yaml', so we rename here. However it must
         # be listed as 'PyYAML' in the requirements.txt and be installed!
@@ -112,13 +135,6 @@ if use_cx_freeze:
 
         # See also build_exe_options below:
         install_requires.remove("Jinja2")
-        # install_requires.append("jinja2")
-
-        # TODO: check if `version` is compatible with `a.b.c.d`
-        # when pywin32 is installed, because then cx_Freeze creates
-        # a version resource that is not compatible with '1.2.3a2'
-
-        from cx_Freeze import setup, Executable  # noqa F811
 
         executables = [
             Executable(
@@ -174,9 +190,7 @@ build_exe_options = {
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.addons.dir_browser",
-        # "jinja2",
         # "wsgidav.addons.nt_domain_controller",
-        # "Jinja2",
     ],
     "excludes": ["tkinter"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
@@ -215,7 +229,7 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
-        #        "Programming Language :: Python :: 3.7",
+        # "Programming Language :: Python :: 3.7",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
@@ -226,12 +240,6 @@ setup(
     ],
     keywords="web wsgi webdav application server",
     license="MIT",
-    # packages=[
-    #     "wsgidav",
-    #     "wsgidav.addons.dir_browser",
-    #     "wsgidav.server.server_cli",
-    #     ],
-    # packages=find_packages("wsgidav"),
     packages=find_packages(exclude=["tests"]),
     package_data={
         # If any package contains *.txt files, include them:
