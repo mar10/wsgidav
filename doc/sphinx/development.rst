@@ -193,7 +193,7 @@ Hack, Hack, Hack
 
         - Run ``$ tox -e check`` frequently and before you commit.
 
-        - Don't forget to run ``$ tox`` to run the hole test suite before
+        - Don't forget to run ``$ tox`` to run the whole test suite before
           you commit.
 
 

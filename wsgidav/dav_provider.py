@@ -62,7 +62,7 @@ propertyManager
    PropertyManagers must provide the methods as described in
    ``wsgidav.interfaces.propertymanagerinterface``
 
-   See property_manager.PropertyManager for a sample implementation
+   See prop_man.property_manager.PropertyManager for a sample implementation
    using shelve.
 
 lockManager
@@ -1468,7 +1468,7 @@ class DAVProvider(object):
     def set_prop_manager(self, prop_manager):
         assert not prop_manager or hasattr(
             prop_manager, "copy_properties"
-        ), "Must be compatible with wsgidav.property_manager.PropertyManager"
+        ), "Must be compatible with wsgidav.prop_man.property_manager.PropertyManager"
         self.propManager = prop_manager
 
     def ref_url_to_path(self, ref_url):

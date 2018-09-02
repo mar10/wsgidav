@@ -88,8 +88,8 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "host": "127.0.0.1",
         "port": 8080,
         "provider_mapping": {"/": provider},
-        # None: domain_controller.WsgiDAVDomainController(user_mapping)
-        "domain_controller": None,
+        # None: dc.domain_controller.SimpleDomainController(user_mapping)
+        "http_authenticator": {"domain_controller": None},
         "user_mapping": {},
         "verbose": 1,
         "enable_loggers": [],

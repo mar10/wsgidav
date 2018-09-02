@@ -4,7 +4,7 @@
 # http://www.opensource.org/licenses/mit-license.php
 
 """
-Unit tests for wsgidav.addons.stream_tools.FileLikeQueue
+Unit tests for wsgidav.stream_tools.FileLikeQueue
 """
 
 import os
@@ -16,7 +16,7 @@ import requests
 
 from tests.util import Timing, WsgiDavTestServer, write_test_file
 from wsgidav import compat
-from wsgidav.addons.stream_tools import FileLikeQueue
+from wsgidav.stream_tools import FileLikeQueue
 from wsgidav.dav_provider import DAVNonCollection, DAVProvider
 
 # ----------------------------------------------------------------------------

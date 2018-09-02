@@ -23,17 +23,19 @@ This release contains **BREAKING CHANGES!**
 - Refactor code base:
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.
-  - **TODO:** **Rename methods arguments** according to PEP 8, e.g.
+  - **Rename methods arguments** according to PEP 8, e.g.
     `provider.set_last_modified(self, destPath, timeStamp, dryRun)`
     => `provider.set_last_modified(self, dest_path, time_stamp, dry_run)`
   - Enforce [Black code style](https://github.com/ambv/black)
   - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
-  - Move to `addons.dir_browser` package
+  - Move to `wsgidav.dir_browser` package
+  - Option 'dir_browser.ms_sharepoint_support' replaces ms_sharepoint_plugin and ms_sharepoint_urls
 - Automated [Docker builds](https://hub.docker.com/r/mar10/wsgidav/)
-- Option 'dir_browser.ms_sharepoint_support' replaces ms_sharepoint_plugin and ms_sharepoint_urls
-- MSI setup uses Cheroot/6.4 Python 3.6
+- MSI installer
+  - uses Cheroot/6.4 Python 3.6
+  - Includes NTDomainController
 - #112: Added limited support for Microsoft's Win32LastModified property.
 - Fix #123: HEAD request on DirBrowser folder
 

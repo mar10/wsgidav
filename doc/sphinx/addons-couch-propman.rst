@@ -6,4 +6,4 @@ CouchDB property manager
 
 Module Description
 ------------------
-.. automodule::  wsgidav.addons.couch_property_manager
+.. automodule::  wsgidav.prop_man.couch_property_manager

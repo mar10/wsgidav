@@ -89,7 +89,7 @@ your own custom DAV providers (see also :doc:`user_guide_custom_providers`).
 Property Managers
 -----------------
 
-.. inheritance-diagram:: wsgidav.property_manager
+.. inheritance-diagram:: wsgidav.prop_man.property_manager
    :parts: 2
    :private-bases:
 
@@ -99,11 +99,11 @@ properties*.
 WsgiDAV comes with two default implementations, one based on a in-memory
 dictionary, and a persistent one based on shelve::
 
-    property_manager.PropertyManager
-    property_manager.ShelvePropertyManager
+    prop_man.property_manager.PropertyManager
+    prop_man.property_manager.ShelvePropertyManager
 
-:class:`~wsgidav.property_manager.PropertyManager` is used by default,
-but :class:`~wsgidav.property_manager.ShelvePropertyManager` can be enabled by
+:class:`~wsgidav.prop_man.property_manager.PropertyManager` is used by default,
+but :class:`~wsgidav.prop_man.property_manager.ShelvePropertyManager` can be enabled by
 uncommenting two lines in the configuration file.
 
 In addition, this may be replaced by a custom version, as long as the required
@@ -137,7 +137,7 @@ interface is implemented.
 Domain Controllers
 ------------------
 
-.. inheritance-diagram:: wsgidav.http_authenticator wsgidav.domain_controller wsgidav.addons.nt_domain_controller
+.. inheritance-diagram:: wsgidav.http_authenticator wsgidav.domain_controller wsgidav.dc.nt_domain_controller
    :parts: 2
    :private-bases:
 
@@ -150,10 +150,10 @@ the config file.
 However, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
-:ref:`~wsgidav.addons.nt_domain_controller` is an example for such an extension.
+:ref:`~wsgidav.dc.nt_domain_controller` is an example for such an extension.
 
 
-:class:`~wsgidav.domain_controller.WsgiDAVDomainController`
+:class:`~wsgidav.dc.domain_controller.SimpleDomainController`
     Default implementation of a domain controller as used by ``HTTPAuthenticator``.
 
 

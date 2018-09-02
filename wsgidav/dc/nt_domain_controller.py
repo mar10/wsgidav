@@ -10,8 +10,8 @@ Purpose
 
 Usage::
 
-   from wsgidav.addons.nt_domain_controller import NTDomainController
-   domain_controller = NTDomainController(preset_domain=None, preset_server=None)
+   from wsgidav.dc.nt_domain_controller import NTDomainController
+   domain_controller = NTDomainController(config)
 
 where:
 
@@ -73,9 +73,10 @@ ml
 """
 from __future__ import print_function
 
-import win32net  # @UnresolvedImport
-import win32netcon  # @UnresolvedImport
-import win32security  # @UnresolvedImport
+import win32net
+import win32netcon
+import win32security
+
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
@@ -83,9 +84,20 @@ _logger = util.get_module_logger(__name__)
 
 
 class NTDomainController(object):
-    def __init__(self, preset_domain=None, preset_server=None):
-        self._preset_domain = preset_domain
-        self._preset_server = preset_server
+    def __init__(self, config):
+        auth_opts = config["http_authenticator"]
+        self._preset_domain = auth_opts.get("preset_domain")
+        self._preset_server = auth_opts.get("preset_server")
+
+        if (
+            auth_opts["accept_digest"]
+            or auth_opts["default_to_digest"]
+            or not auth_opts["accept_basic"]
+        ):
+            _logger.warn(
+                "NTDomainController requires basic authentication:\n"
+                "Set accept_basic=True, accept_digest=False, default_to_digest=False"
+            )
 
     def __repr__(self):
         return self.__class__.__name__
@@ -110,10 +122,6 @@ class NTDomainController(object):
         except Exception:
             _logger.exception("NetUserGetInfo")
             userdata = {}
-        #        if "password" in userdata:
-        #            if userdata["password"] != None:
-        #                return userdata["password"]
-        #        return None
         return userdata.get("password")
 
     def auth_domain_user(self, realm_name, user_name, password, environ):
@@ -157,7 +165,7 @@ class NTDomainController(object):
                     server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0
                 )
                 # Make sure, we compare unicode
-                un = user_name.decode("utf8").lower()
+                un = compat.to_unicode(user_name).lower()
                 for userinfo in users:
                     uiname = userinfo.get("name")
                     assert uiname

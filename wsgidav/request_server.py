@@ -48,7 +48,7 @@ class RequestServer(object):
         self.allow_propfind_infinite = True
         self._verbose = 3
         self.block_size = DEFAULT_BLOCK_SIZE
-        _logger.debug("RequestServer: __init__")
+        # _logger.debug("RequestServer: __init__")
 
         self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
         # if self._davProvider.propManager is not None:
@@ -63,7 +63,8 @@ class RequestServer(object):
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
     def __del__(self):
-        _logger.debug("RequestServer: __del__")
+        # _logger.debug("RequestServer: __del__")
+        pass
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ

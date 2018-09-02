@@ -11,8 +11,8 @@ class IDAVProvider(object):
         wsgidav.DAVProvider  (abstract base class)
         wsgidav.fs_dav_provider.ReadOnlyFilesystemProvider
         wsgidav.fs_dav_provider.FilesystemProvider
-        wsgidav.addons.mysql_dav_provider.MySQLBrowserProvider
-        wsgidav.addons.VirtualResourceProvider
+        wsgidav.samples.mysql_dav_provider.MySQLBrowserProvider
+        wsgidav.samples.VirtualResourceProvider
 
     All methods must be implemented.
 

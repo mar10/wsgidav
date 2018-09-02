@@ -2,12 +2,9 @@
 
 from __future__ import print_function
 
+from datetime import datetime
 import os
 import sys
-
-# If true, then the DVCS revision won't be used to calculate the
-# revision (set to True for real releases)
-# RELEASE = False
 
 from setuptools import setup, find_packages
 from setuptools import Command
@@ -15,6 +12,8 @@ from setuptools.command.test import test as TestCommand
 
 from wsgidav._version import __version__
 
+
+version = __version__
 
 # Override 'setup.py test' command
 class ToxCommand(TestCommand):
@@ -67,6 +66,12 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
     print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
 
+use_cx_freeze = False
+for cmd in ["bdist_msi"]:
+    if cmd in sys.argv:
+        use_cx_freeze = True
+        break
+
 # CherryPy is required for the tests and benchmarks. It is also the preferrred
 # server for the stand-alone mode (`wsgidav.server.server_cli.py`).
 # We currently do not add it as an installation requirement, because
@@ -75,30 +80,61 @@ if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 #   3. there may already cherrypy versions installed
 
 install_requires = ["defusedxml", "jsmin", "Jinja2", "PyYAML"]
-
-# The Windows MSI Setup should include lxml and CherryPy
-if "bdist_msi" in sys.argv:
-    install_requires.extend(["cheroot", "cheroot.ssl.builtin", "lxml"])
-
+setup_requires = install_requires
 tests_require = []
 
-setup_requires = install_requires
-
-use_cx_freeze = False
-for cmd in ["bdist_msi"]:
-    if cmd in sys.argv:
-        use_cx_freeze = True
-        break
-
 if use_cx_freeze:
+    # The Windows MSI Setup should include lxml, pywin32, and CherryPy
+    install_requires.extend(
+        [
+            "cheroot",
+            "cheroot.ssl.builtin",
+            "lxml",
+            # "win32",
+            "wsgidav.dc.nt_domain_controller",
+        ]
+    )
+    # Since we included pywin32 extensions, cx_Freeze tries to create a
+    # version resource. This only supports the 'a.b.c[.d]' format:
     try:
+        int_version = list(map(int, version.split(".")))
+    except ValueError:
+        # version = "0.0.0.{}".format(datetime.now().strftime("%Y%m%d"))
+        version = "0.0.0"
+
+    try:
+        # Only import cx_Freeze, when 'bdist_msi' command was used, because
+        # cx_Freeze seems to sabotage wheel creation:
+        from cx_Freeze import setup, Executable  # noqa F811
+
+        from cx_Freeze import hooks
+
+        assert not hasattr(hooks, "load_Jinja2")
+
+        def load_Jinja2(finder, module):
+            # TODO: rename folder?
+            # finder.IncludeModule("pywintypes")
+            print("* " * 40)
+            print("load_Jinja2")
+
+        hooks.load_Jinja2 = load_Jinja2
+
+        assert not hasattr(hooks, "load_jinja2")
+
+        def load_jinja2(finder, module):
+            print("* " * 40)
+            print("load_jinja2")
+
+        hooks.load_jinja2 = load_jinja2
+
         # cx_Freeze seems to be confused by module name 'PyYAML' which
         # must be imported as 'yaml', so we rename here. However it must
         # be listed as 'PyYAML' in the requirements.txt and be installed!
         install_requires.remove("PyYAML")
         install_requires.append("yaml")
 
-        from cx_Freeze import setup, Executable  # noqa F811
+        # See also build_exe_options below:
+        install_requires.remove("Jinja2")
 
         executables = [
             Executable(
@@ -140,15 +176,23 @@ build_exe_options = {
     "includes": install_requires,
     "include_files": [
         # https://stackoverflow.com/a/43034479/19166
-        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
-        os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
+        # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
+        # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
+        # NOTE: this seems to fix a problem where Jinja2 package
+        # was copied as `<project>\build\exe.win32-3.6\lib\Jinja2` with a
+        # capital 'J'.
+        # Hotfix: we remove it from the dependencies (see above) and
+        # copy it manually from a vendored source.
+        # See
+        #     https://github.com/anthony-tuininga/cx_Freeze/issues/418
+        ("vendor/jinja2", "lib/jinja2")
     ],
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
-        "wsgidav.addons.dir_browser",
-        "jinja2",
+        "wsgidav.dir_browser",
+        # "wsgidav.dc.nt_domain_controller",
     ],
-    "excludes": [],
+    "excludes": ["tkinter"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
@@ -157,15 +201,11 @@ build_exe_options = {
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
-    # TODO: configure target dir
-    # "initial_target_dir": r"[ProgramFilesFolder]\%s\%s" % (company_name, product_name),
-    # TODO: configure shortcuts:
-    # http://stackoverflow.com/a/15736406/19166
 }
 
 setup(
     name="WsgiDAV",
-    version=__version__,
+    version=version,
     author="Martin Wendt, Ho Chun Wei",
     author_email="wsgidav@wwwendt.de",
     maintainer="Martin Wendt",
@@ -189,7 +229,7 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
-        #        "Programming Language :: Python :: 3.7",
+        # "Programming Language :: Python :: 3.7",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
@@ -200,17 +240,11 @@ setup(
     ],
     keywords="web wsgi webdav application server",
     license="MIT",
-    # packages=[
-    #     "wsgidav",
-    #     "wsgidav.addons.dir_browser",
-    #     "wsgidav.server.server_cli",
-    #     ],
-    # packages=find_packages("wsgidav"),
     packages=find_packages(exclude=["tests"]),
     package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
-        "wsgidav.addons.dir_browser": ["htdocs/*.*"]
+        "wsgidav.dir_browser": ["htdocs/*.*"]
     },
     install_requires=install_requires,
     setup_requires=setup_requires,

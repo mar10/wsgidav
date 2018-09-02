@@ -3,7 +3,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="generator" content="WsgiDAV/{{ version }}">
-  <title>WsgiDAV - Index of {{ displaypath }} </title>
+  <title>WsgiDAV - Index of {{ display_path }} </title>
   <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico">
   <link rel="stylesheet" href="{{ htdocs }}/style.css" />
   <script defer src="{{ htdocs }}/script.js"></script>
@@ -16,7 +16,7 @@
     {%- if config.icon %}
     <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png">
     {% endif -%}
-    Index of {{ displaypath }}
+    Index of {{ display_path }}
   </h1>
 
   {% if config.davmount or config.ms_mount %}
@@ -32,8 +32,8 @@
   </p>
   {% endif %}
 
-  {%- if username and config.show_user %}
-  <p class="auth-user">Authenticated user: "{{username}}", realm: "{{realm}}".</p>
+  {%- if user_name and config.show_user %}
+  <p class="auth-user">Authenticated user: "{{user_name}}", realm: "{{realm}}".</p>
   {% endif -%}
 
   <hr>
@@ -57,10 +57,10 @@
     </thead>
 
     <tbody>
-      {%- if parentUrl %}
+      {%- if parent_url %}
       <tr class="directory">
           <td>
-            <a href="{{ parentUrl }}">..</a>
+            <a href="{{ parent_url }}">..</a>
           </td>
         <td>Directory</td>
         <td>-</td>
@@ -69,15 +69,15 @@
       {% endif -%}
 
       {% for row in rows %}
-      <tr class="{{ row.trClass }}">
+      <tr class="{{ row.tr_class }}">
         <td>
-          <a class="{{ row.aClass }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
-              {{row.displayName}}
+          <a class="{{ row.a_class }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
+              {{row.display_name}}
           </a>
         </td>
-        <td>{{ row.displayType }}</td>
-        <td>{{ row.strSize }}</td>
-        <td>{{ row.strModified }}</td>
+        <td>{{ row.display_type }}</td>
+        <td>{{ row.str_size }}</td>
+        <td>{{ row.str_modified }}</td>
       </tr>
       {% endfor %}
     </tbody>

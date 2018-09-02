@@ -3,15 +3,14 @@
 
 $ProjectRoot = "C:\Prj\git\wsgidav";
 
-#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.4";
-#$BuildEnvRoot = "C:\prj\env\wsgidav_build_3.5";
 $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
-# $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.7";
+$BuildFolder = "$ProjectRoot\build";
 
 
-$IGNORE_UNSTAGED_CHANGES = 0;
-$IGNORE_NON_MASTER_BRANCH = 0;
-$SKIP_TESTS = 0;
+$IGNORE_UNSTAGED_CHANGES = 1;
+$IGNORE_NON_MASTER_BRANCH = 1;
+$SKIP_TESTS = 1;
+$DELETE_BUILD_CACHE = 0;
 
 # ----------------------------------------------------------------------------
 # Pre-checks
@@ -27,7 +26,7 @@ if ($CUR_BRANCH -ne "master") {
 }
 
 # Working directory must be clean
-cd $ProjectRoot
+Set-Location $ProjectRoot
 git status
 git diff --exit-code --quiet
 if($LastExitCode -ne 0) {
@@ -43,21 +42,19 @@ if($LastExitCode -ne 0) {
 # ----------------------------------------------------------------------------
 # Create and activate a fresh build environment
 
-cd $ProjectRoot
+Set-Location $ProjectRoot
 
-"Removing venv folder $BuildEnvRoot..."
+"Removing virtual environment folder $BuildEnvRoot..."
 Remove-Item $BuildEnvRoot -Force -Recurse -ErrorAction SilentlyContinue
 
 
-"Creating venv folder $BuildEnvRoot..."
-#py -3.4 -m venv "$BuildEnvRoot"
-#py -3.5 -m venv "$BuildEnvRoot"
+"Creating virtual environment folder $BuildEnvRoot..."
 py -3.6 -m venv "$BuildEnvRoot"
 # py -3.7 -m venv "$BuildEnvRoot"
 
 Invoke-Expression "& ""$BuildEnvRoot\Scripts\Activate.ps1"""
 
-# TODO: Check for 3.7
+# TODO: Check for 3.6
 python --version
 
 python -m pip install --upgrade pip
@@ -69,14 +66,19 @@ python -m pip install --pre black
 #    See https://www.lfd.uci.edu/~gohlke/pythonlibs/#cx_freeze
 # 2. cx_freeze has a Bug with 3.7
 #    https://stackoverflow.com/questions/51314105/cx-freeze-crashing-python3-7-0
-python -m pip install tools/cx_Freeze-5.1.1-cp36-cp36m-win32.whl
-#python -m pip install tools/cx_Freeze-5.1.1-cp37-cp37m-win32.whl
+python -m pip install vendor/cx_Freeze-5.1.1-cp36-cp36m-win32.whl
+#python -m pip install vendor/cx_Freeze-5.1.1-cp37-cp37m-win32.whl
 
+# cheroot defusedxml wheel, ...
 python -m pip install -r requirements-dev.txt
-#python -m pip list
+
+# We want to add lxml enhancements to MSI
 python -m pip install lxml
-#python -m pip install cx_freeze cheroot defusedxml wheel
-#python -m pip list
+
+# We want pywin32 for NTDomainController in MSI
+python -m pip install pypiwin32
+
+python -m pip list
 
 # Run tests
 if( $SKIP_TESTS ) {
@@ -90,8 +92,14 @@ if( $SKIP_TESTS ) {
 }
 
 
-# (optional) Do a test release
-#python setup.py pypi_daily
+# --- Clear old build cache.
+# (not neccessarily required, but may prevent confusion, like jinja2 vs. Jinja2)
+if( $DELETE_BUILD_CACHE ) {
+    "Removing build cache folder $BuildFolder..."
+    Remove-Item $BuildFolder -Force -Recurse -ErrorAction SilentlyContinue
+} else {
+    Write-Warning "Keeping build cache $BuildFolder..."
+}
 
 
 #--- Create MSI installer
@@ -105,8 +113,6 @@ if($LastExitCode -ne 0) {
 #--- Create source distribution and Wheel
 #    This call causes setup.py to NOT import and use cx_Freeze:
 
-#python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
-#python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal register upload --sign --identity="Martin Wendt"
 python -m setup egg_info --tag-build="" -D sdist bdist_wheel --universal
 
 if($LastExitCode -ne 0) {
