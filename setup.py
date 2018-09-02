@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from datetime import datetime
+# from datetime import datetime
 import os
 import sys
 
@@ -14,6 +14,7 @@ from wsgidav._version import __version__
 
 
 version = __version__
+
 
 # Override 'setup.py test' command
 class ToxCommand(TestCommand):
@@ -91,7 +92,7 @@ if use_cx_freeze:
             "cheroot.ssl.builtin",
             "lxml",
             # "win32",
-            "wsgidav.dc.nt_domain_controller",
+            "wsgidav.dc.nt_dc",
         ]
     )
     # Since we included pywin32 extensions, cx_Freeze tries to create a
@@ -190,7 +191,7 @@ build_exe_options = {
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.dir_browser",
-        # "wsgidav.dc.nt_domain_controller",
+        # "wsgidav.dc.nt_dc",
     ],
     "excludes": ["tkinter"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",

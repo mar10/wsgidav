@@ -10,7 +10,7 @@ Purpose
 
 Usage::
 
-   from wsgidav.dc.nt_domain_controller import NTDomainController
+   from wsgidav.dc.nt_dc import NTDomainController
    domain_controller = NTDomainController(config)
 
 where:

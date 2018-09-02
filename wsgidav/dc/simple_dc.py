@@ -41,36 +41,6 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-# class SimpleDomainController(object):
-#     """SimpleDomainController : Simple domain controller for HTTPAuthenticator."""
-
-#     def __init__(self, dict_users=None, realm_name="SimpleDomain"):
-#         if dict_users is None:
-#             self._users = dict({"John Smith": "YouNeverGuessMe"})
-#         else:
-#             self._users = dict_users
-#         self._realmname = realm_name
-
-#     def get_domain_realm(self, input_relative_url, environ):
-#         return self._realmname
-
-#     def require_authentication(self, realm_name, environ):
-#         return True
-
-#     def is_realm_user(self, realm_name, user_name, environ):
-#         return user_name in self._users
-
-#     def get_realm_user_password(self, realm_name, user_name, environ):
-#         if user_name in self._users:
-#             return self._users[user_name]
-#         return None
-
-#     def auth_domain_user(self, realm_name, user_name, password, environ):
-#         if user_name in self._users:
-#             return self._users[user_name] == password
-#         return False
-
-
 class SimpleDomainController(object):
     def __init__(self, opts):
         #        self.dc_opts = opts.get("domain_controller", {})

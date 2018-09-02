@@ -49,8 +49,8 @@ Package ``wsgidav.dc``
 .. autosummary::
    :toctree: _autosummary
 
-   wsgidav.dc.domain_controller
-   wsgidav.dc.nt_domain_controller
+   wsgidav.dc.simple_dc
+   wsgidav.dc.nt_dc
 
 
 Package ``wsgidav.prop_man``

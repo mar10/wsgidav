@@ -60,7 +60,7 @@ and password (value) string pairs
 
 Usage::
 
-   from wsgidav.dc.domain_controller import SimpleDomainController
+   from wsgidav.dc.simple_dc import SimpleDomainController
    users = dict(({'John Smith': 'YouNeverGuessMe', 'Dan Brown': 'DontGuessMeEither'})
    realm = 'Sample Realm'
    domain_controller = SimpleDomainController(users, realm)
@@ -82,7 +82,7 @@ import time
 from hashlib import md5
 
 from wsgidav import compat, util
-from wsgidav.dc.domain_controller import SimpleDomainController
+from wsgidav.dc.simple_dc import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
 
@@ -114,10 +114,9 @@ def make_domain_controller(config):
 
     if inspect.isclass(dc):
         # If a class is passed, instantiate that
-        # assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
         dc = dc(config)
 
-    print("make_domain_controller", dc)
+    # print("make_domain_controller", dc)
     return dc
 
 

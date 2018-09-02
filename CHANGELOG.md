@@ -12,6 +12,7 @@ This release contains **BREAKING CHANGES!**
   - Log format is configurable
   - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
   - CLI supports `--server=gevent` (gevent must be installed separately)
+  - SSL paths are evalated relative to the config file, if any
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
@@ -27,7 +28,10 @@ This release contains **BREAKING CHANGES!**
     `provider.set_last_modified(self, destPath, timeStamp, dryRun)`
     => `provider.set_last_modified(self, dest_path, time_stamp, dry_run)`
   - Enforce [Black code style](https://github.com/ambv/black)
+  - Move some modules to separate packages
   - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
+- Refactor domain_controller:
+  - ...
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `wsgidav.dir_browser` package

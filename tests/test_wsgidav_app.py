@@ -58,7 +58,7 @@ class ServerTest(unittest.TestCase):
             "enable_loggers": [],
             "property_manager": None,  # None: no property manager
             "lock_manager": True,  # True: use lock_manager.LockManager
-            # None: dc.domain_controller.SimpleDomainController(user_mapping)
+            # None: dc.simple_dc.SimpleDomainController(user_mapping)
             # "domain_controller": None,
         }
 

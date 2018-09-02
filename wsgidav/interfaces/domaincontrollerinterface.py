@@ -8,8 +8,8 @@ class IDomainController(object):
     This class is an interface for a domain controller.
     Implementations in WsgiDAV include::
 
-        wsgidav.dc.domain_controller.SimpleDomainController
-        wsgidav.dc.nt_domain_controller.NTDomainController
+        wsgidav.dc.simple_dc.SimpleDomainController
+        wsgidav.dc.nt_dc.NTDomainController
 
     All methods must be implemented.
 

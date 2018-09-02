@@ -63,14 +63,18 @@ DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
 _logger = logging.getLogger("wsgidav")
 
 
-def _get_checked_path(path, must_exist=True, allow_none=True):
+def _get_checked_path(path, config, must_exist=True, allow_none=True):
     """Convert path to absolute if not None."""
     if path in (None, ""):
         if allow_none:
             return None
-        else:
-            raise ValueError("Invalid path {!r}".format(path))
-    path = os.path.abspath(path)
+        raise ValueError("Invalid path {!r}".format(path))
+    # Evaluate path relative to the folder of the config file (if any)
+    config_file = config.get("_config_file")
+    if config_file and not os.path.isabs(path):
+        path = os.path.normpath(os.path.join(os.path.dirname(config_file), path))
+    else:
+        path = os.path.abspath(path)
     if must_exist and not os.path.exists(path):
         raise ValueError("Invalid path {!r}".format(path))
     return path
@@ -256,6 +260,8 @@ See https://github.com/mar10/wsgidav for additional information.
 def _read_config_file(config_file, verbose):
     """Read configuration file options into a dictionary."""
 
+    config_file = os.path.abspath(config_file)
+
     if not os.path.exists(config_file):
         raise RuntimeError("Couldn't open configuration file '{}'.".format(config_file))
 
@@ -263,37 +269,39 @@ def _read_config_file(config_file, verbose):
         with io.open(config_file, mode="r", encoding="utf-8") as json_file:
             # Minify the JSON file to strip embedded comments
             minified = jsmin(json_file.read())
-        return json.loads(minified)
+        conf = json.loads(minified)
 
     elif config_file.endswith(".yaml"):
         with io.open(config_file, mode="r", encoding="utf-8") as yaml_file:
-            return yaml.safe_load(yaml_file)
+            conf = yaml.safe_load(yaml_file)
 
-    try:
-        import imp
+    else:
+        try:
+            import imp
 
-        conf = {}
-        configmodule = imp.load_source("configuration_module", config_file)
+            conf = {}
+            configmodule = imp.load_source("configuration_module", config_file)
 
-        for k, v in vars(configmodule).items():
-            if k.startswith("__"):
-                continue
-            elif isfunction(v):
-                continue
-            conf[k] = v
-    except Exception:
-        exc_type, exc_value = sys.exc_info()[:2]
-        exc_info_list = traceback.format_exception_only(exc_type, exc_value)
-        exc_text = "\n".join(exc_info_list)
-        print(
-            "Failed to read configuration file: "
-            + config_file
-            + "\nDue to "
-            + exc_text,
-            file=sys.stderr,
-        )
-        raise
+            for k, v in vars(configmodule).items():
+                if k.startswith("__"):
+                    continue
+                elif isfunction(v):
+                    continue
+                conf[k] = v
+        except Exception:
+            exc_type, exc_value = sys.exc_info()[:2]
+            exc_info_list = traceback.format_exception_only(exc_type, exc_value)
+            exc_text = "\n".join(exc_info_list)
+            print(
+                "Failed to read configuration file: "
+                + config_file
+                + "\nDue to "
+                + exc_text,
+                file=sys.stderr,
+            )
+            raise
 
+    conf["_config_file"] = config_file
     return conf
 
 
@@ -494,9 +502,11 @@ def _run__cherrypy(app, config, mode):
     wsgiserver.CherryPyWSGIServer.version = server_name
 
     # Support SSL
-    ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
-    ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
-    ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
+    ssl_certificate = _get_checked_path(config.get("ssl_certificate"), config)
+    ssl_private_key = _get_checked_path(config.get("ssl_private_key"), config)
+    ssl_certificate_chain = _get_checked_path(
+        config.get("ssl_certificate_chain"), config
+    )
     protocol = "http"
     if ssl_certificate:
         assert ssl_private_key
@@ -566,9 +576,11 @@ def _run_cheroot(app, config, mode):
     wsgi.Server.version = server_name
 
     # Support SSL
-    ssl_certificate = _get_checked_path(config.get("ssl_certificate"))
-    ssl_private_key = _get_checked_path(config.get("ssl_private_key"))
-    ssl_certificate_chain = _get_checked_path(config.get("ssl_certificate_chain"))
+    ssl_certificate = _get_checked_path(config.get("ssl_certificate"), config)
+    ssl_private_key = _get_checked_path(config.get("ssl_private_key"), config)
+    ssl_certificate_chain = _get_checked_path(
+        config.get("ssl_certificate_chain"), config
+    )
     ssl_adapter = config.get("ssl_adapter", "builtin")
     protocol = "http"
     if ssl_certificate and ssl_private_key:

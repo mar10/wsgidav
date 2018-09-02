@@ -48,7 +48,7 @@ DEFAULT_CONFIG = {
     ],
     # HTTP Authentication Options
     "http_authenticator": {
-        # None: dc.domain_controller.SimpleDomainController(user_mapping)
+        # None: dc.simple_dc.SimpleDomainController(user_mapping)
         "domain_controller": None,
         "accept_basic": True,  # Allow basic authentication, True or False
         "accept_digest": True,  # Allow digest authentication, True or False

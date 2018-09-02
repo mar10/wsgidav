@@ -35,6 +35,7 @@ re_encode_path_info: null
 
 #: The certificate should match the servers hostname, so the bogus certs will
 #: not work in all scenarios.
+#: (Paths can be absolute or relative to this config file.)
 
 # ssl_certificate: "wsgidav/server/sample_bogo_server.crt"
 # ssl_private_key: "wsgidav/server/sample_bogo_server.key"
@@ -71,7 +72,7 @@ provider_mapping:
 # AUTHENTICATION
 http_authenticator:
     #: Domain controller that is used to resolve realms and authorization.
-    #: Default null: wsgidav.dc.domain_controller.SimpleDomainController,
+    #: Default null: wsgidav.dc.simple_dc.SimpleDomainController,
     #: which uses the `user_mapping` option below.
     #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
     #: for an example of NT domain controller, etc.)

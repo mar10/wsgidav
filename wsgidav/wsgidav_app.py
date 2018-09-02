@@ -251,16 +251,20 @@ class WsgiDAVApp(object):
                     sys.getdefaultencoding(), sys.getfilesystemencoding()
                 )
             )
+
+        if self.verbose >= 3:
             _logger.info("Lock manager:      {}".format(self.lock_manager))
             _logger.info("Property manager:  {}".format(self.prop_manager))
             _logger.info("Domain controller: {}".format(domain_controller))
 
+        if self.verbose >= 4:
             # We traversed the stack in reverse order. Now revert again, so
             # we see the order that was configured:
             _logger.info("Middleware stack:")
             for mw in reversed(mw_list):
                 _logger.info("  - {}".format(mw))
 
+        if self.verbose >= 3:
             _logger.info("Registered DAV providers by route:")
             for share in self.sorted_share_list:
                 data = self.provider_map[share]

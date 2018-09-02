@@ -1,10 +1,8 @@
 [run]
 omit =
     tests/*
-    wsgidav/addons/couch_property_manager.py
-    wsgidav/addons/hg_dav_provider.py
-    wsgidav/addons/mongo_property_manager.py
-    wsgidav/addons/mysql_dav_provider.py
+    wsgidav/prop_man/couch_property_manager.py
+    wsgidav/prop_man/mongo_property_manager.py
     wsgidav/samples/*
     wsgidav/server/run_reloading_server.py
     wsgidav/server/server_sample.py

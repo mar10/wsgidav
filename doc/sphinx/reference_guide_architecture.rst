@@ -137,7 +137,7 @@ interface is implemented.
 Domain Controllers
 ------------------
 
-.. inheritance-diagram:: wsgidav.http_authenticator wsgidav.domain_controller wsgidav.dc.nt_domain_controller
+.. inheritance-diagram:: wsgidav.http_authenticator wsgidav.domain_controller wsgidav.dc.nt_dc
    :parts: 2
    :private-bases:
 
@@ -150,10 +150,10 @@ the config file.
 However, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
-:ref:`~wsgidav.dc.nt_domain_controller` is an example for such an extension.
+:ref:`~wsgidav.dc.nt_dc` is an example for such an extension.
 
 
-:class:`~wsgidav.dc.domain_controller.SimpleDomainController`
+:class:`~wsgidav.dc.simple_dc.SimpleDomainController`
     Default implementation of a domain controller as used by ``HTTPAuthenticator``.
 
 

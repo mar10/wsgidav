@@ -7,10 +7,10 @@ $BuildEnvRoot = "C:\prj\env\wsgidav_build_3.6";
 $BuildFolder = "$ProjectRoot\build";
 
 
-$IGNORE_UNSTAGED_CHANGES = 1;
-$IGNORE_NON_MASTER_BRANCH = 1;
-$SKIP_TESTS = 1;
-$DELETE_BUILD_CACHE = 0;
+$IGNORE_UNSTAGED_CHANGES = 0;
+$IGNORE_NON_MASTER_BRANCH = 0;
+$SKIP_TESTS = 0;
+$REUSE_BUILD_CACHE = 0;
 
 # ----------------------------------------------------------------------------
 # Pre-checks
@@ -94,11 +94,11 @@ if( $SKIP_TESTS ) {
 
 # --- Clear old build cache.
 # (not neccessarily required, but may prevent confusion, like jinja2 vs. Jinja2)
-if( $DELETE_BUILD_CACHE ) {
+if( $REUSE_BUILD_CACHE ) {
+    Write-Warning "Re-using build cache: Strange things may happen: $BuildFolder..."
+} else {
     "Removing build cache folder $BuildFolder..."
     Remove-Item $BuildFolder -Force -Recurse -ErrorAction SilentlyContinue
-} else {
-    Write-Warning "Keeping build cache $BuildFolder..."
 }
 
 
