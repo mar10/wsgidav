@@ -12,7 +12,7 @@ This release contains **BREAKING CHANGES!**
   - Log format is configurable
   - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
   - CLI supports `--server=gevent` (gevent must be installed separately)
-  - SSL paths are evalated relative to the config file, if any
+  - SSL paths are evaluated relative to the config file, if any
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
