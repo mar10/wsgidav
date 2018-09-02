@@ -17,7 +17,7 @@ $REUSE_BUILD_CACHE = 0;
 
 $CUR_BRANCH = git rev-parse --abbrev-ref HEAD
 if ($CUR_BRANCH -ne "master") {
-    if( $IGNORE_UNSTAGED_CHANGES ) {
+    if( $IGNORE_NON_MASTER_BRANCH ) {
         Write-Warning "RELEASING NON-MASTER BRANCH: $CUR_BRANCH"
     } else {
         Write-Error "Not on master branch: $CUR_BRANCH!"
