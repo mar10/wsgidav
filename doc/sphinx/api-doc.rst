@@ -30,14 +30,12 @@ Package ``wsgidav``
    wsgidav.dav_provider
    wsgidav.debug_filter
    wsgidav.dir_browser
-   wsgidav.domain_controller
    wsgidav.error_printer
    wsgidav.fs_dav_provider
    wsgidav.http_authenticator
    wsgidav.lock_manager
    wsgidav.lock_storage
    wsgidav.middleware
-   wsgidav.property_manager
    wsgidav.request_resolver
    wsgidav.request_server
    wsgidav.rw_lock
@@ -46,16 +44,23 @@ Package ``wsgidav``
    wsgidav.xml_tools
 
 
-Package ``wsgidav.addons``
+Package ``wsgidav.dc``
 --------------------------
 .. autosummary::
    :toctree: _autosummary
 
-   wsgidav.addons.couch_property_manager
-   wsgidav.addons.hg_dav_provider
-   wsgidav.addons.mongo_property_manager
-   wsgidav.addons.mysql_dav_provider
-   wsgidav.addons.nt_domain_controller
+   wsgidav.dc.domain_controller
+   wsgidav.dc.nt_domain_controller
+
+
+Package ``wsgidav.prop_man``
+--------------------------
+.. autosummary::
+   :toctree: _autosummary
+
+   wsgidav.prop_man.property_manager
+   wsgidav.prop_man.couch_property_manager
+   wsgidav.prop_man.mongo_property_manager
 
 
 Package ``wsgidav.samples``
@@ -64,7 +69,9 @@ Package ``wsgidav.samples``
    :toctree: _autosummary
 
    wsgidav.samples.dav_provider_tools
+   wsgidav.samples.hg_dav_provider
    wsgidav.samples.mongo_dav_provider
+   wsgidav.samples.mysql_dav_provider
    wsgidav.samples.virtual_dav_provider
 
 

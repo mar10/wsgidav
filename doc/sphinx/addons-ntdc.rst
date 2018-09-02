@@ -13,4 +13,4 @@ TODO
 
 Module description
 ------------------
-.. automodule::  wsgidav.addons.nt_domain_controller
+.. automodule::  wsgidav.dc.nt_domain_controller

@@ -62,7 +62,7 @@ from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
-from wsgidav.property_manager import PropertyManager
+from wsgidav.prop_man.property_manager import PropertyManager
 from wsgidav.util import (
     dynamic_import_class,
     dynamic_instantiate_middleware,

@@ -122,7 +122,7 @@ dir_browser = {
 # Property Manager
 
 # Example: Use PERSISTENT shelve based property manager
-#from wsgidav.property_manager import ShelvePropertyManager
+#from wsgidav.prop_man.property_manager import ShelvePropertyManager
 #property_manager = ShelvePropertyManager("wsgidav-props.shelve")
 
 ### Use in-memory property manager (NOT persistent)
@@ -172,7 +172,7 @@ trusted_auth_header = None
 #          Note: NTDomainController requires basic authentication:
 #                Set accept_basic=True, accept_digest=False, default_to_digest=False
 
-# from wsgidav.addons.nt_domain_controller import NTDomainController
+# from wsgidav.dc.nt_domain_controller import NTDomainController
 # domain_controller = NTDomainController(presetdomain=None, presetserver=None)
 # accept_basic = True
 # accept_digest = False

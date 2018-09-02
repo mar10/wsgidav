@@ -516,7 +516,7 @@ class HgResourceProvider(DAVProvider):
                            },
              'files': ['.hgignore',
                        'ADDONS.txt',
-                       'wsgidav/addons/mysql_dav_provider.py',
+                       'wsgidav/samples/mysql_dav_provider.py',
                        ...
                        ],
              'filedict': {'.hgignore': True,

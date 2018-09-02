@@ -91,7 +91,7 @@ if use_cx_freeze:
             "cheroot.ssl.builtin",
             "lxml",
             # "win32",
-            "wsgidav.addons.nt_domain_controller",
+            "wsgidav.dc.nt_domain_controller",
         ]
     )
     # Since we included pywin32 extensions, cx_Freeze tries to create a
@@ -190,7 +190,7 @@ build_exe_options = {
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.dir_browser",
-        # "wsgidav.addons.nt_domain_controller",
+        # "wsgidav.dc.nt_domain_controller",
     ],
     "excludes": ["tkinter"],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2018 Martin Wendt'",

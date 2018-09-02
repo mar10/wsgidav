@@ -10,7 +10,7 @@ Purpose
 
 Usage::
 
-   from wsgidav.addons.nt_domain_controller import NTDomainController
+   from wsgidav.dc.nt_domain_controller import NTDomainController
    domain_controller = NTDomainController(config)
 
 where:
@@ -76,6 +76,7 @@ from __future__ import print_function
 import win32net
 import win32netcon
 import win32security
+
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"

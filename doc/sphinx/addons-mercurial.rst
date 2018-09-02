@@ -3,25 +3,25 @@ Mercurial WebDAV provider
 
 Examples
 --------
-This screenshot shows how a Mercurial repository appears in Microsoft Windows 
+This screenshot shows how a Mercurial repository appears in Microsoft Windows
 File Explorer:
-   
+
 .. image:: _static/img/Explorer_Mercurial.png
 
 Some new live properties are available:
 
 .. image:: _static/img/DAVExplorer_Mercurial.png
- 
+
 
 Usage
 -----
 .. note:: This is **not** production code.
 
-To publish a Mercurial repository by the share name 'hg', simply add thes lines  
+To publish a Mercurial repository by the share name 'hg', simply add thes lines
 to the configuration file::
 
     # Publish a Mercurial repository
-    from wsgidav.addons.hg_dav_provider import HgResourceProvider
+    from wsgidav.samples.hg_dav_provider import HgResourceProvider
     addShare("hg", HgResourceProvider("REPO_PATH_OR_URL"))
 
 
@@ -42,10 +42,10 @@ released:
     This folder is read-only.
 archive:
     Contains the last 10 revisions as sub-folders.
-    This folder is read-only.    
+    This folder is read-only.
 
 Sample layout::
-    
+
     /<share>/
         edit/
             server/
@@ -66,10 +66,10 @@ Supported features:
    result in a ``hg commit``.
    Note that the destination path is ignored, instead the source path is used.
    So a user can drag a file or folder from somewhere under the ``edit/..``
-   directory and drop it directly on the ``released`` directory to commit 
-   changes.   
-#. To commit all changes, simply drag'n'drop the ``/edit`` folder on the 
-   ``/released`` folder.   
+   directory and drop it directly on the ``released`` directory to commit
+   changes.
+#. To commit all changes, simply drag'n'drop the ``/edit`` folder on the
+   ``/released`` folder.
 #. Creating new collections results in creation of a file called ``.directory``,
    which is then ``hg add`` ed since Mercurial doesn't track directories.
 #. Some attributes are published as live properties, such as ``{hg:}date``.
@@ -80,13 +80,13 @@ Known limitations:
 #. This 'commit by drag-and-drop' only works, if the WebDAV clients produces
    MOVE or COPY requests. Alas, some clients will send PUT, MKCOL, ... sequences
    instead.
-#. Adding and then removing a file without committing after the 'add' will 
+#. Adding and then removing a file without committing after the 'add' will
    leave this file on disk (untracked)
-   This happens for example whit lock files that Open Office Write and other 
-   applications will create.   
+   This happens for example whit lock files that Open Office Write and other
+   applications will create.
 #. Dragging the 'edit' folder onto 'released' with Windows File Explorer will
    remove the folder in the explorer view, although WsgiDAV did not delete it.
-   This seems to be done by the client.    
+   This seems to be done by the client.
 
 
 See:

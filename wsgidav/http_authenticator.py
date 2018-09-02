@@ -60,7 +60,7 @@ and password (value) string pairs
 
 Usage::
 
-   from http_authenticator import SimpleDomainController
+   from wsgidav.dc.domain_controller import SimpleDomainController
    users = dict(({'John Smith': 'YouNeverGuessMe', 'Dan Brown': 'DontGuessMeEither'})
    realm = 'Sample Realm'
    domain_controller = SimpleDomainController(users, realm)
@@ -82,7 +82,7 @@ import time
 from hashlib import md5
 
 from wsgidav import compat, util
-from wsgidav.domain_controller import SimpleDomainController
+from wsgidav.dc.domain_controller import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
 

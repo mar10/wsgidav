@@ -10,7 +10,7 @@ http://packages.python.org/CouchDB/views.html
 
 Usage: add this lines to wsgidav.conf::
 
-    from wsgidav.addons.couch_property_manager import CouchPropertyManager
+    from wsgidav.prop_man.couch_property_manager import CouchPropertyManager
     prop_man_opts = {}
     property_manager = CouchPropertyManager(prop_man_opts)
 

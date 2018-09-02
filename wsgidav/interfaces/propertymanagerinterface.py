@@ -8,8 +8,8 @@ class PropertyManagerInterface(object):
     This class is an interface for a PropertyManager.
     Implementations of a property manager in WsgiDAV include::
 
-        <wsgidav.property_manager.PropertyManager>_
-        wsgidav.property_manager.ShelvePropertyManager
+        <wsgidav.prop_man.property_manager.PropertyManager>_
+        wsgidav.prop_man.property_manager.ShelvePropertyManager
 
     All methods must be implemented.
 

@@ -87,7 +87,7 @@ You will find this terms / naming conventions in the source:
       "Marketing Department"
       "Windows Domain Authentication"
 
-  The ``domain_controller.SimpleDomainController`` implementation uses the
+  The ``dc.domain_controller.SimpleDomainController`` implementation uses the
   mount path as realm name.
 
 

@@ -5,4 +5,4 @@ MongoDB property manager
 
 Module description
 ------------------
-.. automodule::  wsgidav.addons.mongo_property_manager
+.. automodule::  wsgidav.prop_man.mongo_property_manager

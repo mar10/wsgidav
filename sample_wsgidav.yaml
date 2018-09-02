@@ -71,7 +71,7 @@ provider_mapping:
 # AUTHENTICATION
 http_authenticator:
     #: Domain controller that is used to resolve realms and authorization.
-    #: Default null: wsgidav.domain_controller.SimpleDomainController,
+    #: Default null: wsgidav.dc.domain_controller.SimpleDomainController,
     #: which uses the `user_mapping` option below.
     #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
     #: for an example of NT domain controller, etc.)
@@ -177,7 +177,7 @@ property_manager: true
 
 # Example:
 # Use PERSISTENT shelve based property manager
-# from wsgidav.property_manager import ShelvePropertyManager
+# from wsgidav.prop_man.property_manager import ShelvePropertyManager
 # property_manager: ShelvePropertyManager("wsgidav-props.shelve")
 
 # Optional additional live property modification

@@ -27,7 +27,7 @@ def main():
         "enable_loggers": [],
         "property_manager": True,  # True: use property_manager.PropertyManager
         "lock_manager": True,  # True: use lock_manager.LockManager
-        "domain_controller": None,  # None: domain_controller.SimpleDomainController(user_mapping)
+        "domain_controller": None,  # None: dc.domain_controller.SimpleDomainController(user_mapping)
     }
     app = WsgiDAVApp(config)
 

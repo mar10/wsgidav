@@ -219,10 +219,10 @@ Domain Controller
 Example:
 use a domain controller that allows users to authenticate against a
 Windows NT domain or a local computer.
-The :class:`~wsgidav.addons.nt_domain_controller.NTDomainController`
+The :class:`~wsgidav.dc.nt_domain_controller.NTDomainController`
 requires basic authentication::
 
-    from wsgidav.addons.nt_domain_controller import NTDomainController
+    from wsgidav.dc.nt_domain_controller import NTDomainController
     domain_controller = NTDomainController(presetdomain=None, presetserver=None)
     http_authenticator = {
         "accept_basic": True,
