@@ -4,6 +4,8 @@
 [![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Code Quality: Python](https://img.shields.io/lgtm/grade/python/g/mar10/wsgidav.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mar10/wsgidav/context:python)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/mar10/wsgidav.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mar10/wsgidav/alerts)
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
