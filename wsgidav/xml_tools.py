@@ -90,23 +90,23 @@ def xml_to_bytes(element, pretty_print=False):
 
 
 def make_multistatus_el():
-    """Wrapper for etree.Element, that takes care of unsupported ns_map option."""
+    """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
     if use_lxml:
-        return etree.Element("{DAV:}multistatus", ns_map={"D": "DAV:"})
+        return etree.Element("{DAV:}multistatus", nsmap={"D": "DAV:"})
     return etree.Element("{DAV:}multistatus")
 
 
 def make_prop_el():
-    """Wrapper for etree.Element, that takes care of unsupported ns_map option."""
+    """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
     if use_lxml:
-        return etree.Element("{DAV:}prop", ns_map={"D": "DAV:"})
+        return etree.Element("{DAV:}prop", nsmap={"D": "DAV:"})
     return etree.Element("{DAV:}prop")
 
 
-def make_sub_element(parent, tag, ns_map=None):
-    """Wrapper for etree.SubElement, that takes care of unsupported ns_map option."""
+def make_sub_element(parent, tag, nsmap=None):
+    """Wrapper for etree.SubElement, that takes care of unsupported nsmap option."""
     if use_lxml:
-        return etree.SubElement(parent, tag, ns_map=ns_map)
+        return etree.SubElement(parent, tag, nsmap=nsmap)
     return etree.SubElement(parent, tag)
 
 
