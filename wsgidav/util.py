@@ -904,7 +904,7 @@ def add_property_response(multistatusEL, href, propList):
         propDict.setdefault(status, []).append((name, value))
 
     # <response>
-    responseEL = make_sub_element(multistatusEL, "{DAV:}response", ns_map=nsMap)
+    responseEL = make_sub_element(multistatusEL, "{DAV:}response", nsmap=nsMap)
 
     #    log("href value:{}".format(string_repr(href)))
     #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
