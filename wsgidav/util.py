@@ -1222,7 +1222,7 @@ def parse_if_header_dict(environ):
                         )
                     else:
                         listTagContents.append(
-                            (testflag, "lock_token", listitem.strip("<>"))
+                            (testflag, "locktoken", listitem.strip("<>"))
                         )
                         ifLockList.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"
@@ -1262,7 +1262,7 @@ def test_if_header_dict(dav_res, dictIf, fullurl, locktokenlist, entitytag):
                 testresult = entitytag == checkvalue
             elif checkstyle == "entity":
                 testresult = testflag
-            elif checkstyle == "lock_token":
+            elif checkstyle == "locktoken":
                 testresult = checkvalue in locktokenlist
             else:  # unknown
                 testresult = True

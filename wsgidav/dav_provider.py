@@ -618,11 +618,11 @@ class _DAVResource(object):
             for lock in activelocklist:
                 activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
 
-                locktypeEL = etree.SubElement(activelockEL, "{DAV:}lock_type")
+                locktypeEL = etree.SubElement(activelockEL, "{DAV:}locktype")
                 # Note: make sure `{DAV:}` is not handled as format tag:
                 etree.SubElement(locktypeEL, "{}{}".format("{DAV:}", lock["type"]))
 
-                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lock_scope")
+                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lockscope")
                 # Note: make sure `{DAV:}` is not handled as format tag:
                 etree.SubElement(lockscopeEL, "{}{}".format("{DAV:}", lock["scope"]))
 
@@ -642,7 +642,7 @@ class _DAVResource(object):
                     timeout = "Second-" + str(int(expire - time.time()))
                 etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
 
-                locktokenEL = etree.SubElement(activelockEL, "{DAV:}lock_token")
+                locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
                 etree.SubElement(locktokenEL, "{DAV:}href").text = lock["token"]
 
                 # TODO: this is ugly:
@@ -665,15 +665,15 @@ class _DAVResource(object):
             supportedlockEL = etree.Element(name)
 
             lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lock_scope")
+            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
             etree.SubElement(lockscopeEL, "{DAV:}exclusive")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}lock_type")
+            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
             etree.SubElement(locktypeEL, "{DAV:}write")
 
             lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lock_scope")
+            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
             etree.SubElement(lockscopeEL, "{DAV:}shared")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}lock_type")
+            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
             etree.SubElement(locktypeEL, "{DAV:}write")
 
             return supportedlockEL
