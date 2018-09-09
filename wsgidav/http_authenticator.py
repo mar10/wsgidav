@@ -201,17 +201,17 @@ class HTTPAuthenticator(BaseMiddleware):
             return self.next_app(environ, start_response)
 
         if "HTTP_AUTHORIZATION" in environ:
-            authheader = environ["HTTP_AUTHORIZATION"]
-            authmatch = self._header_method.search(authheader)
-            authmethod = "None"
-            if authmatch:
-                authmethod = authmatch.group(1).lower()
+            auth_header = environ["HTTP_AUTHORIZATION"]
+            auth_match = self._header_method.search(auth_header)
+            auth_method = "None"
+            if auth_match:
+                auth_method = auth_match.group(1).lower()
 
-            if authmethod == "digest" and self._accept_digest:
+            if auth_method == "digest" and self._accept_digest:
                 return self.auth_digest_auth_request(environ, start_response)
-            elif authmethod == "digest" and self._accept_basic:
+            elif auth_method == "digest" and self._accept_basic:
                 return self.send_basic_auth_response(environ, start_response)
-            elif authmethod == "basic" and self._accept_basic:
+            elif auth_method == "basic" and self._accept_basic:
                 return self.auth_basic_auth_request(environ, start_response)
 
             # The requested auth method is not supported.
@@ -222,7 +222,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
             _logger.warn(
                 "HTTPAuthenticator: respond with 400 Bad request; Auth-Method: {}".format(
-                    authmethod
+                    auth_method
                 )
             )
 
@@ -259,10 +259,10 @@ class HTTPAuthenticator(BaseMiddleware):
         realm_name = self.domain_controller.get_domain_realm(
             environ["PATH_INFO"], environ
         )
-        authheader = environ["HTTP_AUTHORIZATION"]
+        auth_header = environ["HTTP_AUTHORIZATION"]
         authvalue = ""
         try:
-            authvalue = authheader[len("Basic ") :].strip()
+            authvalue = auth_header[len("Basic ") :].strip()
         except Exception:
             authvalue = ""
         # authvalue = authvalue.strip().decode("base64")
@@ -318,39 +318,40 @@ class HTTPAuthenticator(BaseMiddleware):
             environ["PATH_INFO"], environ
         )
 
-        isinvalidreq = False
+        is_invalid_req = False
 
-        authheaderdict = dict([])
-        authheaders = environ["HTTP_AUTHORIZATION"] + ","
-        if not authheaders.lower().strip().startswith("digest"):
-            isinvalidreq = True
+        auth_header_dict = {}
+        auth_headers = environ["HTTP_AUTHORIZATION"] + ","
+        if not auth_headers.lower().strip().startswith("digest"):
+            is_invalid_req = True
         # Hotfix for Windows file manager and OSX Finder:
         # Some clients don't urlencode paths in auth header, so uri value may
         # contain commas, which break the usual regex headerparser. Example:
         # Digest user_name="user",realm="/",uri="a,b.txt",nc=00000001, ...
         # -> [..., ('uri', '"a'), ('nc', '00000001'), ...]
         # Override any such values with carefully extracted ones.
-        authheaderlist = self._header_parser.findall(authheaders)
-        authheaderfixlist = self._header_fix_parser.findall(authheaders)
-        if authheaderfixlist:
+        auth_header_list = self._header_parser.findall(auth_headers)
+        auth_header_fixlist = self._header_fix_parser.findall(auth_headers)
+        if auth_header_fixlist:
             _logger.info(
-                "Fixing authheader comma-parsing: extend {} with {}".format(
-                    authheaderlist, authheaderfixlist
+                "Fixing auth_header comma-parsing: extend {} with {}".format(
+                    auth_header_list, auth_header_fixlist
                 )
             )
-            authheaderlist += authheaderfixlist
-        for authheader in authheaderlist:
-            authheaderkey = authheader[0]
-            authheadervalue = authheader[1].strip().strip('"')
-            authheaderdict[authheaderkey] = authheadervalue
+            auth_header_list += auth_header_fixlist
+        for auth_header in auth_header_list:
+            authheaderkey = auth_header[0]
+            authheadervalue = auth_header[1].strip().strip('"')
+            auth_header_dict[authheaderkey] = authheadervalue
 
         _logger.debug(
             "auth_digest_auth_request: {}".format(environ["HTTP_AUTHORIZATION"])
         )
-        _logger.debug("  -> {}".format(authheaderdict))
+        _logger.debug("  -> {}".format(auth_header_dict))
 
-        if "user_name" in authheaderdict:
-            req_username = authheaderdict["user_name"]
+        req_username = None
+        if "user_name" in auth_header_dict:
+            req_username = auth_header_dict["user_name"]
             req_username_org = req_username
             # Hotfix for Windows XP:
             #   net use W: http://127.0.0.1/dav /USER:DOMAIN\tester tester
@@ -367,63 +368,63 @@ class HTTPAuthenticator(BaseMiddleware):
             if not self.domain_controller.is_realm_user(
                 realm_name, req_username, environ
             ):
-                isinvalidreq = True
+                is_invalid_req = True
         else:
-            isinvalidreq = True
+            is_invalid_req = True
 
         # TODO: Chun added this comments, but code was commented out
         # Do not do realm checking - a hotfix for WinXP using some other realm's
         # auth details for this realm - if user/password match
-        if "realm" in authheaderdict:
-            if authheaderdict["realm"].upper() != realm_name.upper():
+        if "realm" in auth_header_dict:
+            if auth_header_dict["realm"].upper() != realm_name.upper():
                 if HOTFIX_WINXP_AcceptRootShareLogin:
                     # Hotfix: also accept '/'
-                    if authheaderdict["realm"].upper() != "/":
-                        isinvalidreq = True
+                    if auth_header_dict["realm"].upper() != "/":
+                        is_invalid_req = True
                 else:
-                    isinvalidreq = True
+                    is_invalid_req = True
 
-        if "algorithm" in authheaderdict:
-            if authheaderdict["algorithm"].upper() != "MD5":
-                isinvalidreq = True  # only MD5 supported
+        if "algorithm" in auth_header_dict:
+            if auth_header_dict["algorithm"].upper() != "MD5":
+                is_invalid_req = True  # only MD5 supported
 
-        if "uri" in authheaderdict:
-            req_uri = authheaderdict["uri"]
+        if "uri" in auth_header_dict:
+            req_uri = auth_header_dict["uri"]
 
-        if "nonce" in authheaderdict:
-            req_nonce = authheaderdict["nonce"]
+        if "nonce" in auth_header_dict:
+            req_nonce = auth_header_dict["nonce"]
         else:
-            isinvalidreq = True
+            is_invalid_req = True
 
-        req_hasqop = False
-        if "qop" in authheaderdict:
-            req_hasqop = True
-            req_qop = authheaderdict["qop"]
+        req_has_qop = False
+        if "qop" in auth_header_dict:
+            req_has_qop = True
+            req_qop = auth_header_dict["qop"]
             if req_qop.lower() != "auth":
-                isinvalidreq = True  # only auth supported, auth-int not supported
+                is_invalid_req = True  # only auth supported, auth-int not supported
         else:
             req_qop = None
 
-        if "cnonce" in authheaderdict:
-            req_cnonce = authheaderdict["cnonce"]
+        if "cnonce" in auth_header_dict:
+            req_cnonce = auth_header_dict["cnonce"]
         else:
             req_cnonce = None
-            if req_hasqop:
-                isinvalidreq = True
+            if req_has_qop:
+                is_invalid_req = True
 
-        if "nc" in authheaderdict:  # is read but nonce-count checking not implemented
-            req_nc = authheaderdict["nc"]
+        if "nc" in auth_header_dict:  # is read but nonce-count checking not implemented
+            req_nc = auth_header_dict["nc"]
         else:
             req_nc = None
-            if req_hasqop:
-                isinvalidreq = True
+            if req_has_qop:
+                is_invalid_req = True
 
-        if "response" in authheaderdict:
-            req_response = authheaderdict["response"]
+        if "response" in auth_header_dict:
+            req_response = auth_header_dict["response"]
         else:
-            isinvalidreq = True
+            is_invalid_req = True
 
-        if not isinvalidreq:
+        if not is_invalid_req:
             req_password = self.domain_controller.get_realm_user_password(
                 realm_name, req_username, environ
             )
@@ -468,15 +469,15 @@ class HTTPAuthenticator(BaseMiddleware):
                             )
                         )
                     else:
-                        isinvalidreq = True
+                        is_invalid_req = True
                 else:
-                    isinvalidreq = True
+                    is_invalid_req = True
             else:
                 # _logger.debug("digest succeeded for realm '{}', user '{}'"
                 #               .format(realm_name, req_username))
                 pass
 
-        if isinvalidreq:
+        if is_invalid_req:
             _logger.warn(
                 "Authentication failed for user '{}', realm '{}'".format(
                     req_username, realm_name

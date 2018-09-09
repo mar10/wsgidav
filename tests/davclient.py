@@ -405,11 +405,7 @@ class DAVClient(object):
         root = ElementTree.Element("{DAV:}lockinfo")
         object_to_etree(
             root,
-            {
-                "locktype": lock_type,
-                "lockscope": lock_scope,
-                "owner": {"href": owner},
-            },
+            {"locktype": lock_type, "lockscope": lock_scope, "owner": {"href": owner}},
             namespace="DAV:",
         )
         tree = ElementTree.ElementTree(root)

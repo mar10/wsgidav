@@ -1,0 +1,78 @@
+server: "cheroot"
+server_args: {}
+
+host: 192.168.178.44
+# host: 0.0.0.0
+port: 8080
+
+ssl_certificate: "../wsgidav/server/sample_bogo_server.crt"
+ssl_private_key: "../wsgidav/server/sample_bogo_server.key"
+
+# ----------------------------------------------------------------------------
+
+# Modify to customize the WSGI application stack:
+middleware_stack:
+    - wsgidav.debug_filter.WsgiDavDebugFilter
+    - wsgidav.error_printer.ErrorPrinter
+    - wsgidav.http_authenticator.HTTPAuthenticator
+    - wsgidav.dir_browser.WsgiDavDirBrowser
+    - wsgidav.request_resolver.RequestResolver
+
+provider_mapping:
+    "/": "/temp"
+
+
+# ==============================================================================
+# AUTHENTICATION
+
+http_authenticator:
+    #: Domain controller that is used to resolve realms and authorization.
+    #: Default null: wsgidav.domain_controller.SimpleDomainController,
+    #: which uses the `user_mapping` option below.
+    #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+    #: for an example of NT domain controller, etc.)
+    domain_controller: null
+    # domain_controller: null
+    #: Allow basic authentication
+    accept_basic: true
+    #: Allow digest authentication
+    accept_digest: false
+    # accept_digest: true
+    #: true (default digest) or false (default basic)
+    default_to_digest: false
+    # default_to_digest: true
+
+# Access control per share, used by the default SimpleDomainController.
+# These routes must match the provider mapping.
+# NOTE: Provider routes without a matching entry here, are open for
+# anonymous access!
+
+user_mapping:
+    "/":
+        "tester":
+            password: "secret"
+
+verbose: 3
+
+#logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s:  %(message)s"
+#logger_date_format: "%H:%M:%S"
+
+#catch_all: false
+
+# Enable max. logging for certain http methods
+# E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
+debug_methods: []
+
+# Enable max. logging during  litmus suite tests that contain certain strings
+# E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
+debug_litmus: []
+
+property_manager: true
+
+# Optional additional live property modification
+mutable_live_props:
+    # Enable to allow clients to use e.g. the touch or cp / rsync commands with the
+    # preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
+    - "{DAV:}getlastmodified"
+
+lock_manager: true

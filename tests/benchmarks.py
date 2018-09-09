@@ -84,7 +84,12 @@ except ImportError:
 
 try:
     try:
-        from cherrypy import __version__ as cp_version
+        # from cherrypy import __version__ as cp_version
+
+        from cheroot import wsgi
+
+        cp_version = wsgi.Server.version
+
     except ImportError:
         # Bundled CherryPy wsgiserver in WsgDAV 1.x
         server_folder = os.path.abspath(

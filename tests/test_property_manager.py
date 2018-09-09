@@ -48,7 +48,12 @@ class BasicTest(unittest.TestCase):
         """Property manager should be lazy opening on first access."""
         pm = self.pm
         assert not pm._loaded, "PM must be closed until first access"
-        pm.get_properties(self.respath)
+        print(pm, self.respath)
+        try:
+            pm.get_properties(self.respath)
+        except Exception:
+            print("NOTE: if this fails, try to delete the temp files: {}".format(pm))
+            raise
         assert pm._loaded, "PM must be opened after first access"
 
     def testValidation(self):
