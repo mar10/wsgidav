@@ -1249,14 +1249,14 @@ class RequestServer(object):
         lock_depth = environ.setdefault("HTTP_DEPTH", "infinity")
 
         for linode in lockinfoEL:
-            if linode.tag == "{DAV:}lock_scope":
+            if linode.tag == "{DAV:}lockscope":
                 for lsnode in linode:
                     if lsnode.tag == "{DAV:}exclusive":
                         lock_scope = "exclusive"
                     elif lsnode.tag == "{DAV:}shared":
                         lock_scope = "shared"
                     break
-            elif linode.tag == "{DAV:}lock_type":
+            elif linode.tag == "{DAV:}locktype":
                 for ltnode in linode:
                     if ltnode.tag == "{DAV:}write":
                         lock_type = "write"  # only type accepted
@@ -1270,9 +1270,9 @@ class RequestServer(object):
                 self._fail(HTTP_BAD_REQUEST, "Invalid node '{}'.".format(linode.tag))
 
         if not lock_scope:
-            self._fail(HTTP_BAD_REQUEST, "Missing or invalid lock_scope.")
+            self._fail(HTTP_BAD_REQUEST, "Missing or invalid lockscope.")
         if not lock_type:
-            self._fail(HTTP_BAD_REQUEST, "Missing or invalid lock_type.")
+            self._fail(HTTP_BAD_REQUEST, "Missing or invalid locktype.")
 
         if environ.get("wsgidav.debug_break"):
             pass  # break point
