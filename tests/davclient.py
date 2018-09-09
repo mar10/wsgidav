@@ -406,8 +406,8 @@ class DAVClient(object):
         object_to_etree(
             root,
             {
-                "lock_type": lock_type,
-                "lock_scope": lock_scope,
+                "locktype": lock_type,
+                "lockscope": lock_scope,
                 "owner": {"href": owner},
             },
             namespace="DAV:",
@@ -426,7 +426,7 @@ class DAVClient(object):
 
         self._request("LOCK", path, body=body, headers=headers)
 
-        locks = self.response.tree.findall(".//{DAV:}lock_token")
+        locks = self.response.tree.findall(".//{DAV:}locktoken")
         lock_list = []
         for lock in locks:
             lock_list.append(lock[0].text.strip().strip("\n"))
