@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # make version accessible as 'wsgidav.__version__'
 
 from wsgidav._version import __version__  # noqa: F401
