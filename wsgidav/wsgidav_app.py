@@ -48,13 +48,9 @@ For every request:
     Note: The OPTIONS method for the '*' path is handled directly.
 
 """
-import copy
-import inspect
-import platform
-import sys
-import time
-
-from wsgidav import compat, util, __version__
+from wsgidav import __version__
+from wsgidav import compat
+from wsgidav import util
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.default_conf import DEFAULT_CONFIG
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -63,11 +59,16 @@ from wsgidav.lock_manager import LockManager
 from wsgidav.lock_storage import LockStorageDict
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.prop_man.property_manager import PropertyManager
-from wsgidav.util import (
-    dynamic_import_class,
-    dynamic_instantiate_middleware,
-    safe_re_encode,
-)
+from wsgidav.util import dynamic_import_class
+from wsgidav.util import dynamic_instantiate_middleware
+from wsgidav.util import safe_re_encode
+
+import copy
+import inspect
+import platform
+import sys
+import time
+
 
 __docformat__ = "reStructuredText"
 

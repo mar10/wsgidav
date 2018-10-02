@@ -32,9 +32,10 @@ domaincontrollerinterface_
 .. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
 
 """
+from wsgidav import util
+
 import sys
 
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

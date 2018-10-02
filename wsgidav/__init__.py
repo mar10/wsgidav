@@ -7,6 +7,7 @@ from wsgidav._version import __version__  # noqa: F401
 # https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library
 import logging
 
+
 _base_logger = logging.getLogger(__name__)
 _base_logger.addHandler(logging.NullHandler())
 _base_logger.propagate = False

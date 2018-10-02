@@ -76,25 +76,20 @@ lockManager
 
 See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """
+from wsgidav import compat
+from wsgidav import util
+from wsgidav import xml_tools
+from wsgidav.dav_error import as_DAVError
+from wsgidav.dav_error import DAVError
+from wsgidav.dav_error import HTTP_FORBIDDEN
+from wsgidav.dav_error import HTTP_NOT_FOUND
+from wsgidav.dav_error import PRECONDITION_CODE_ProtectedProperty
+from wsgidav.util import etree
+
 import os
 import sys
 import time
 import traceback
-
-from wsgidav import compat, util, xml_tools
-from wsgidav.dav_error import (
-    HTTP_FORBIDDEN,
-    HTTP_NOT_FOUND,
-    DAVError,
-    PRECONDITION_CODE_ProtectedProperty,
-    as_DAVError,
-)
-
-# Trick PyDev to do intellisense and don't produce warnings:
-from wsgidav.util import etree  # noqa
-
-if False:
-    from xml.etree import ElementTree as etree  # noqa
 
 
 __docformat__ = "reStructuredText"

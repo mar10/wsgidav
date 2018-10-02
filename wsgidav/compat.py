@@ -11,6 +11,7 @@ Inspired by six https://pythonhosted.org/six/
 
 import sys
 
+
 __docformat__ = "reStructuredText"
 
 #: True if we are running on Python 2.x

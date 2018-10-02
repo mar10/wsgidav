@@ -22,9 +22,11 @@ Valid options are (sample shows defaults)::
 
 """
 from __future__ import print_function
+from wsgidav import compat
+from wsgidav import util
 
 import pymongo
-from wsgidav import compat, util
+
 
 __docformat__ = "reStructuredText"
 

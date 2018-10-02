@@ -11,18 +11,18 @@ Two alternative lock storage classes are defined here: one in-memory
 
 See :class:`~wsgidav.lock_manager.LockManager`
 """
+from wsgidav import compat
+from wsgidav import util
+from wsgidav.lock_manager import generate_lock_token
+from wsgidav.lock_manager import lock_string
+from wsgidav.lock_manager import normalize_lock_root
+from wsgidav.lock_manager import validate_lock
+from wsgidav.rw_lock import ReadWriteLock
+
 import os
 import shelve
 import time
 
-from wsgidav import compat, util
-from wsgidav.lock_manager import (
-    generate_lock_token,
-    lock_string,
-    normalize_lock_root,
-    validate_lock,
-)
-from wsgidav.rw_lock import ReadWriteLock
 
 __docformat__ = "reStructuredText"
 

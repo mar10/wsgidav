@@ -6,6 +6,25 @@
 """
 Miscellaneous support functions for WsgiDAV.
 """
+from email.utils import formatdate
+from email.utils import parsedate
+from hashlib import md5
+from pprint import pformat
+from wsgidav import compat
+from wsgidav.dav_error import as_DAVError
+from wsgidav.dav_error import DAVError
+from wsgidav.dav_error import get_http_status_string
+from wsgidav.dav_error import HTTP_BAD_REQUEST
+from wsgidav.dav_error import HTTP_CREATED
+from wsgidav.dav_error import HTTP_NO_CONTENT
+from wsgidav.dav_error import HTTP_NOT_MODIFIED
+from wsgidav.dav_error import HTTP_OK
+from wsgidav.dav_error import HTTP_PRECONDITION_FAILED
+from wsgidav.xml_tools import etree
+from wsgidav.xml_tools import is_etree_element
+from wsgidav.xml_tools import make_sub_element
+from wsgidav.xml_tools import xml_to_bytes
+
 import base64
 import calendar
 import collections
@@ -17,23 +36,7 @@ import socket
 import stat
 import sys
 import time
-from email.utils import formatdate, parsedate
-from hashlib import md5
-from pprint import pformat
 
-from wsgidav import compat
-from wsgidav.dav_error import (
-    HTTP_BAD_REQUEST,
-    HTTP_CREATED,
-    HTTP_NO_CONTENT,
-    HTTP_NOT_MODIFIED,
-    HTTP_OK,
-    HTTP_PRECONDITION_FAILED,
-    DAVError,
-    as_DAVError,
-    get_http_status_string,
-)
-from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
 __docformat__ = "reStructuredText"
 

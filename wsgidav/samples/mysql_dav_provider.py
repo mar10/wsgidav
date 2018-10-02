@@ -57,21 +57,19 @@ its limitations:
 
 """
 from __future__ import print_function
+from wsgidav import compat
+from wsgidav import util
+from wsgidav.dav_error import DAVError
+from wsgidav.dav_error import HTTP_FORBIDDEN
+from wsgidav.dav_error import PRECONDITION_CODE_ProtectedProperty
+from wsgidav.dav_provider import _DAVResource
+from wsgidav.dav_provider import DAVProvider
 
 import csv
 import hashlib
-
-# import md5
+import MySQLdb  # @UnresolvedImport
 import time
 
-import MySQLdb  # @UnresolvedImport
-from wsgidav import compat, util
-from wsgidav.dav_error import (
-    HTTP_FORBIDDEN,
-    DAVError,
-    PRECONDITION_CODE_ProtectedProperty,
-)
-from wsgidav.dav_provider import DAVProvider, _DAVResource
 
 __docformat__ = "reStructuredText"
 

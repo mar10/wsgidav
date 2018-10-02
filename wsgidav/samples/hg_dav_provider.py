@@ -72,17 +72,20 @@ Requirements:
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 """
 from __future__ import print_function
+from hashlib import md5
+from pprint import pprint
+from wsgidav import compat
+from wsgidav import util
+from wsgidav.dav_error import DAVError
+from wsgidav.dav_error import HTTP_FORBIDDEN
+from wsgidav.dav_provider import _DAVResource
+from wsgidav.dav_provider import DAVProvider
+from wsgidav.samples.dav_provider_tools import VirtualCollection
 
 import os
 import sys
 import time
-from hashlib import md5
-from pprint import pprint
 
-from wsgidav import compat, util
-from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
-from wsgidav.dav_provider import DAVProvider, _DAVResource
-from wsgidav.samples.dav_provider_tools import VirtualCollection
 
 try:
     import mercurial.ui

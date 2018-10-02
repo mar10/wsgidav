@@ -8,9 +8,10 @@ Small wrapper for different etree packages.
 """
 # from __future__ import print_function
 
+from wsgidav import compat
+
 import logging
 
-from wsgidav import compat
 
 __docformat__ = "reStructuredText"
 

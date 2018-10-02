@@ -6,31 +6,32 @@
 """
 WSGI application that handles one single WebDAV request.
 """
-from wsgidav import compat, util, xml_tools
-from wsgidav.dav_error import (
-    HTTP_BAD_GATEWAY,
-    HTTP_BAD_REQUEST,
-    HTTP_CONFLICT,
-    HTTP_CREATED,
-    HTTP_FAILED_DEPENDENCY,
-    HTTP_FORBIDDEN,
-    HTTP_INTERNAL_ERROR,
-    HTTP_LENGTH_REQUIRED,
-    HTTP_MEDIATYPE_NOT_SUPPORTED,
-    HTTP_METHOD_NOT_ALLOWED,
-    HTTP_NO_CONTENT,
-    HTTP_NOT_FOUND,
-    HTTP_NOT_IMPLEMENTED,
-    HTTP_OK,
-    HTTP_PRECONDITION_FAILED,
-    HTTP_RANGE_NOT_SATISFIABLE,
-    DAVError,
-    PRECONDITION_CODE_LockTokenMismatch,
-    PRECONDITION_CODE_PropfindFiniteDepth,
-    as_DAVError,
-    get_http_status_string,
-)
+from wsgidav import compat
+from wsgidav import util
+from wsgidav import xml_tools
+from wsgidav.dav_error import as_DAVError
+from wsgidav.dav_error import DAVError
+from wsgidav.dav_error import get_http_status_string
+from wsgidav.dav_error import HTTP_BAD_GATEWAY
+from wsgidav.dav_error import HTTP_BAD_REQUEST
+from wsgidav.dav_error import HTTP_CONFLICT
+from wsgidav.dav_error import HTTP_CREATED
+from wsgidav.dav_error import HTTP_FAILED_DEPENDENCY
+from wsgidav.dav_error import HTTP_FORBIDDEN
+from wsgidav.dav_error import HTTP_INTERNAL_ERROR
+from wsgidav.dav_error import HTTP_LENGTH_REQUIRED
+from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED
+from wsgidav.dav_error import HTTP_METHOD_NOT_ALLOWED
+from wsgidav.dav_error import HTTP_NO_CONTENT
+from wsgidav.dav_error import HTTP_NOT_FOUND
+from wsgidav.dav_error import HTTP_NOT_IMPLEMENTED
+from wsgidav.dav_error import HTTP_OK
+from wsgidav.dav_error import HTTP_PRECONDITION_FAILED
+from wsgidav.dav_error import HTTP_RANGE_NOT_SATISFIABLE
+from wsgidav.dav_error import PRECONDITION_CODE_LockTokenMismatch
+from wsgidav.dav_error import PRECONDITION_CODE_PropfindFiniteDepth
 from wsgidav.util import etree
+
 
 __docformat__ = "reStructuredText"
 

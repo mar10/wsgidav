@@ -6,10 +6,13 @@
 """
 Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
+from wsgidav import __version__
+from wsgidav import compat
+from wsgidav import xml_tools
+from wsgidav.xml_tools import etree
+
 import datetime
 
-from wsgidav import __version__, compat, xml_tools
-from wsgidav.xml_tools import etree
 
 # import traceback
 

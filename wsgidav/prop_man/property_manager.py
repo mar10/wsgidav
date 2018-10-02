@@ -18,11 +18,12 @@ The properties dictionaray is built like::
       }
 
 """
+from wsgidav import util
+from wsgidav.rw_lock import ReadWriteLock
+
 import os
 import shelve
 
-from wsgidav import util
-from wsgidav.rw_lock import ReadWriteLock
 
 # TODO: comment's from Ian Bicking (2005)
 # @@: Use of shelve means this is only really useful in a threaded environment.

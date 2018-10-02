@@ -4,11 +4,14 @@
 """
 Tools that make it easier to implement custom WsgiDAV providers.
 """
+from wsgidav import compat
+from wsgidav import util
+from wsgidav.dav_provider import DAVCollection
+from wsgidav.dav_provider import DAVNonCollection
+
 import os
 import stat
 
-from wsgidav import compat, util
-from wsgidav.dav_provider import DAVCollection, DAVNonCollection
 
 __docformat__ = "reStructuredText en"
 

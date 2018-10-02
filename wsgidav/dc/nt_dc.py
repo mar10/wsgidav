@@ -72,12 +72,13 @@ Testability and caveats
 ml
 """
 from __future__ import print_function
+from wsgidav import compat
+from wsgidav import util
 
 import win32net
 import win32netcon
 import win32security
 
-from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)

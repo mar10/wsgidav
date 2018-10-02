@@ -14,11 +14,12 @@
 
 Default confguration.
 """
-from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.debug_filter import WsgiDavDebugFilter
+from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.request_resolver import RequestResolver
+
 
 __docformat__ = "reStructuredText"
 

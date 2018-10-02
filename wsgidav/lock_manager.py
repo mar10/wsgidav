@@ -36,18 +36,18 @@ The lock data model is a dictionary with these fields:
         Automatically generated unique token.
 
 """
+from pprint import pformat
+from wsgidav import compat
+from wsgidav import util
+from wsgidav.dav_error import DAVError
+from wsgidav.dav_error import DAVErrorCondition
+from wsgidav.dav_error import HTTP_LOCKED
+from wsgidav.dav_error import PRECONDITION_CODE_LockConflict
+from wsgidav.rw_lock import ReadWriteLock
+
 import random
 import time
-from pprint import pformat
 
-from wsgidav import compat, util
-from wsgidav.dav_error import (
-    HTTP_LOCKED,
-    DAVError,
-    DAVErrorCondition,
-    PRECONDITION_CODE_LockConflict,
-)
-from wsgidav.rw_lock import ReadWriteLock
 
 __docformat__ = "reStructuredText"
 

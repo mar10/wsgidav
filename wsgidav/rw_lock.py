@@ -15,8 +15,11 @@ Released under the BSD-license.
 # Imports
 # -------
 
-from threading import Condition, Lock, currentThread
+from threading import Condition
+from threading import currentThread
+from threading import Lock
 from time import time
+
 
 # Read write lock
 # ---------------

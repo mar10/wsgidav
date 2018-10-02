@@ -3,14 +3,16 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """Unit test for lock_manager.py"""
+from tempfile import gettempdir
+from time import sleep
+from wsgidav import lock_manager
+from wsgidav import lock_storage
+from wsgidav.dav_error import DAVError
+
 import os
 import sys
 import unittest
-from tempfile import gettempdir
-from time import sleep
 
-from wsgidav import lock_manager, lock_storage
-from wsgidav.dav_error import DAVError
 
 # ========================================================================
 # BasicTest
