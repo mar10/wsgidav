@@ -1,21 +1,40 @@
-# EditorConfig is awesome: http://EditorConfig.org
+# EditorConfig Configurtaion file, for more details see:
+# http://EditorConfig.org
+# EditorConfig is a convention description, that could be interpreted
+# by multiple editors to enforce common coding conventions for specific
+# file types
 
-# top-most EditorConfig file
+# top-most EditorConfig file:
+# Will ignore other EditorConfig files in Home directory or upper tree level.
 root = true
 
-[*]
 
-; See https://github.com/editorconfig/editorconfig/issues/226
-;end_of_line = lf
-
+[*]  # For All Files
+# Unix-style newlines with a newline ending every file
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-
-# 4 space indentation
-[*.py]
+# Set default charset
+charset = utf-8
+# Indent style default
 indent_style = space
+# Max Line Length - a hard line wrap, should be disabled
+max_line_length = off
+
+[*.{py,cfg,ini}]
+# 4 space indentation
 indent_size = 4
 
-; Tab indentation (no size specified)
-[*.js]
-indent_style = tab 
+[*.{yml}]
+# 2 space indentation
+indent_size = 2
+
+[*.{js}]
+# Tab indentation (no size specified)
+indent_style = tab
+
+[{Makefile,.gitmodules}]
+# Tab indentation (no size specified, but view as 4 spaces)
+indent_style = tab
+indent_size = unset
+tab_width = unset

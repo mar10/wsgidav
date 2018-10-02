@@ -1,8 +1,0 @@
-[run]
-omit =
-    tests/*
-    wsgidav/prop_man/couch_property_manager.py
-    wsgidav/prop_man/mongo_property_manager.py
-    wsgidav/samples/*
-    wsgidav/server/run_reloading_server.py
-    wsgidav/server/server_sample.py
