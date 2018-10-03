@@ -53,6 +53,8 @@ can copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and us
 run the application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate
 paste configuration.
 """
+from wsgidav import __version__, compat, util
+
 import logging
 import socket
 import sys
@@ -60,7 +62,6 @@ import threading
 import time
 import traceback
 
-from wsgidav import __version__, compat, util
 
 __docformat__ = "reStructuredText"
 
@@ -336,7 +337,7 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
         #        # Flag stop request
         self.stop_request = True
-        time.sleep(.1)
+        time.sleep(0.1)
         if self.stopped:
             # _logger.info "stop_serve_forever() 'stopped'."
             return

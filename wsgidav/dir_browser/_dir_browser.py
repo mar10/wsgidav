@@ -6,15 +6,15 @@
 WSGI middleware that handles GET requests on collections to display directories.
 """
 from fnmatch import fnmatch
+from jinja2 import Environment, FileSystemLoader
+from wsgidav import __version__, compat, util
+from wsgidav.dav_error import DAVError, HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK
+from wsgidav.middleware import BaseMiddleware
+from wsgidav.util import safe_re_encode
+
 import os
 import sys
 
-from jinja2 import Environment, FileSystemLoader
-
-from wsgidav import __version__, compat, util
-from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
-from wsgidav.middleware import BaseMiddleware
-from wsgidav.util import safe_re_encode
 
 __docformat__ = "reStructuredText"
 

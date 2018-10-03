@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Current WsgiDAV version number.
 

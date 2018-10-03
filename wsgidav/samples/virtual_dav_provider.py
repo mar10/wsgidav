@@ -95,18 +95,19 @@ When accessed using WebDAV, the following URLs both return the same resource
     <share>/by_tag/hot/My doc 1
     <share>/by_key/1
 """
-import os
-import stat
-
 from wsgidav import compat, util
 from wsgidav.dav_error import (
+    DAVError,
     HTTP_FORBIDDEN,
     HTTP_INTERNAL_ERROR,
-    DAVError,
     PRECONDITION_CODE_ProtectedProperty,
 )
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import join_uri
+
+import os
+import stat
+
 
 __docformat__ = "reStructuredText en"
 

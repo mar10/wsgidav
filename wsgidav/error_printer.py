@@ -7,18 +7,19 @@
 WSGI middleware to catch application thrown DAVErrors and return proper
 responses.
 """
-import traceback
-
 from wsgidav import util
 from wsgidav.dav_error import (
+    as_DAVError,
+    DAVError,
+    get_http_status_string,
     HTTP_INTERNAL_ERROR,
     HTTP_NO_CONTENT,
     HTTP_NOT_MODIFIED,
-    DAVError,
-    as_DAVError,
-    get_http_status_string,
 )
 from wsgidav.middleware import BaseMiddleware
+
+import traceback
+
 
 __docformat__ = "reStructuredText"
 

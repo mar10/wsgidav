@@ -24,13 +24,14 @@ Valid options are (sample shows defaults)::
             }
 
 """
-from pprint import pformat
-
-import pymongo
 from bson.objectid import ObjectId
+from pprint import pformat
 from wsgidav import compat, util
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import join_uri
+
+import pymongo
+
 
 __docformat__ = "reStructuredText"
 

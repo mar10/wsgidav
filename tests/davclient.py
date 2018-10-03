@@ -26,9 +26,9 @@
 # - Use requests instead of http.client / httplib
 
 import copy
+import requests
 import sys
 
-import requests
 
 PY2 = sys.version_info < (3, 0)
 

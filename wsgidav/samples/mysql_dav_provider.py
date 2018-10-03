@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
@@ -57,21 +58,19 @@ its limitations:
 
 """
 from __future__ import print_function
+from wsgidav import compat, util
+from wsgidav.dav_error import (
+    DAVError,
+    HTTP_FORBIDDEN,
+    PRECONDITION_CODE_ProtectedProperty,
+)
+from wsgidav.dav_provider import _DAVResource, DAVProvider
 
 import csv
 import hashlib
-
-# import md5
+import MySQLdb  # @UnresolvedImport
 import time
 
-import MySQLdb  # @UnresolvedImport
-from wsgidav import compat, util
-from wsgidav.dav_error import (
-    HTTP_FORBIDDEN,
-    DAVError,
-    PRECONDITION_CODE_ProtectedProperty,
-)
-from wsgidav.dav_provider import DAVProvider, _DAVResource
 
 __docformat__ = "reStructuredText"
 

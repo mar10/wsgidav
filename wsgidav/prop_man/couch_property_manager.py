@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # (c) 2009-2018 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -22,11 +23,11 @@ Valid options are (sample shows defaults)::
 
 """
 from __future__ import print_function
-
 from uuid import uuid4
+from wsgidav import compat, util
 
 import couchdb
-from wsgidav import compat, util
+
 
 __docformat__ = "reStructuredText"
 

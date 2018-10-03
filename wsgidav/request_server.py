@@ -8,6 +8,9 @@ WSGI application that handles one single WebDAV request.
 """
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (
+    as_DAVError,
+    DAVError,
+    get_http_status_string,
     HTTP_BAD_GATEWAY,
     HTTP_BAD_REQUEST,
     HTTP_CONFLICT,
@@ -24,13 +27,11 @@ from wsgidav.dav_error import (
     HTTP_OK,
     HTTP_PRECONDITION_FAILED,
     HTTP_RANGE_NOT_SATISFIABLE,
-    DAVError,
     PRECONDITION_CODE_LockTokenMismatch,
     PRECONDITION_CODE_PropfindFiniteDepth,
-    as_DAVError,
-    get_http_status_string,
 )
 from wsgidav.util import etree
+
 
 __docformat__ = "reStructuredText"
 

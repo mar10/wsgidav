@@ -21,6 +21,8 @@ debug.log
 wsgidav.conf
 wsgidav.json
 dist
+coverage.xml
+.coverage*
 
 *.prefs
 *.project

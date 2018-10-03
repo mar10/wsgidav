@@ -7,11 +7,11 @@
 
     This test suite uses requests to generate HTTP requests.
 """
-import unittest
+from tests.util import WsgiDavTestServer
 
 import requests
+import unittest
 
-from tests.util import WsgiDavTestServer
 
 _test_server = None
 

@@ -1,16 +1,15 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 from __future__ import print_function
+from setuptools import Command, find_packages, setup
+from setuptools.command.test import test as TestCommand
+from wsgidav._version import __version__
 
 # from datetime import datetime
 import os
 import sys
-
-from setuptools import setup, find_packages
-from setuptools import Command
-from setuptools.command.test import test as TestCommand
-
-from wsgidav._version import __version__
 
 
 version = __version__

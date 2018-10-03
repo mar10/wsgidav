@@ -15,14 +15,15 @@ This provider creates instances of :class:`~wsgidav.fs_dav_provider.FileResource
 and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
 directories respectively.
 """
+from wsgidav import compat, util
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
+
 import os
 import shutil
 import stat
 import sys
 
-from wsgidav import compat, util
-from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
-from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 
 __docformat__ = "reStructuredText"
 
