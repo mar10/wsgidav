@@ -76,13 +76,10 @@ all methods of the domain controller as a means for developers to pass informati
 from previous middleware or server config (if required).
 """
 from hashlib import md5
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 from wsgidav.dc.simple_dc import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
-from wsgidav.util import calc_base64
-from wsgidav.util import calc_hexdigest
-from wsgidav.util import dynamic_import_class
+from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
 
 import inspect
 import random

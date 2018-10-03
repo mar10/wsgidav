@@ -3,9 +3,7 @@
 
 
 from __future__ import print_function
-from setuptools import Command
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as TestCommand
 from wsgidav._version import __version__
 

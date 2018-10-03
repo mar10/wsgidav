@@ -76,14 +76,14 @@ lockManager
 
 See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """
-from wsgidav import compat
-from wsgidav import util
-from wsgidav import xml_tools
-from wsgidav.dav_error import as_DAVError
-from wsgidav.dav_error import DAVError
-from wsgidav.dav_error import HTTP_FORBIDDEN
-from wsgidav.dav_error import HTTP_NOT_FOUND
-from wsgidav.dav_error import PRECONDITION_CODE_ProtectedProperty
+from wsgidav import compat, util, xml_tools
+from wsgidav.dav_error import (
+    as_DAVError,
+    DAVError,
+    HTTP_FORBIDDEN,
+    HTTP_NOT_FOUND,
+    PRECONDITION_CODE_ProtectedProperty,
+)
 from wsgidav.util import etree
 
 import os

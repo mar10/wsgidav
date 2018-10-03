@@ -36,10 +36,8 @@ from __future__ import print_function
 from inspect import isfunction
 from jsmin import jsmin
 from pprint import pformat
-from wsgidav import __version__
-from wsgidav import util
-from wsgidav.default_conf import DEFAULT_CONFIG
-from wsgidav.default_conf import DEFAULT_VERBOSE
+from wsgidav import __version__, util
+from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 from wsgidav.xml_tools import use_lxml

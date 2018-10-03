@@ -23,8 +23,7 @@ Valid options are (sample shows defaults)::
 
 """
 from __future__ import print_function
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 import pymongo
 

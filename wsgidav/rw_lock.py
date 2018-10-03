@@ -15,9 +15,7 @@ Released under the BSD-license.
 # Imports
 # -------
 
-from threading import Condition
-from threading import currentThread
-from threading import Lock
+from threading import Condition, currentThread, Lock
 from time import time
 
 

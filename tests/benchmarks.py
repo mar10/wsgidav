@@ -49,8 +49,7 @@ Test cases
         file10-10-1.txt -> 1k
 """
 from __future__ import print_function
-from tests.util import Timing
-from tests.util import WsgiDavTestServer
+from tests.util import Timing, WsgiDavTestServer
 from wsgidav import __version__
 from wsgidav.xml_tools import use_lxml
 

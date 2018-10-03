@@ -5,15 +5,17 @@
 """Unit tests for wsgidav.util"""
 from __future__ import print_function
 from wsgidav.compat import StringIO
-from wsgidav.util import BASE_LOGGER_NAME
-from wsgidav.util import get_module_logger
-from wsgidav.util import init_logging
-from wsgidav.util import is_child_uri
-from wsgidav.util import is_equal_or_child_uri
-from wsgidav.util import join_uri
-from wsgidav.util import lstripstr
-from wsgidav.util import pop_path
-from wsgidav.util import shift_path
+from wsgidav.util import (
+    BASE_LOGGER_NAME,
+    get_module_logger,
+    init_logging,
+    is_child_uri,
+    is_equal_or_child_uri,
+    join_uri,
+    lstripstr,
+    pop_path,
+    shift_path,
+)
 
 import logging
 import logging.handlers

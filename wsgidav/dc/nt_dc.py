@@ -73,8 +73,7 @@ Testability and caveats
 ml
 """
 from __future__ import print_function
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 
 import win32net
 import win32netcon

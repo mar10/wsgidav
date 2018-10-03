@@ -51,8 +51,7 @@ These configuration settings are evaluated:
         debug_litmus = ["notowner_modify", "props: 16", ]
 
 """
-from wsgidav import compat
-from wsgidav import util
+from wsgidav import compat, util
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import safe_re_encode
 

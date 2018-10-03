@@ -4,10 +4,8 @@
 """
 Tools that make it easier to implement custom WsgiDAV providers.
 """
-from wsgidav import compat
-from wsgidav import util
-from wsgidav.dav_provider import DAVCollection
-from wsgidav.dav_provider import DAVNonCollection
+from wsgidav import compat, util
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection
 
 import os
 import stat

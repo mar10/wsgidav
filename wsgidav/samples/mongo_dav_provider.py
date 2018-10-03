@@ -26,11 +26,8 @@ Valid options are (sample shows defaults)::
 """
 from bson.objectid import ObjectId
 from pprint import pformat
-from wsgidav import compat
-from wsgidav import util
-from wsgidav.dav_provider import DAVCollection
-from wsgidav.dav_provider import DAVNonCollection
-from wsgidav.dav_provider import DAVProvider
+from wsgidav import compat, util
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import join_uri
 
 import pymongo
