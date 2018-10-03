@@ -768,7 +768,7 @@ class _DAVResource(object):
                 try:
                     return self.set_last_modified(self.path, value.text, dry_run)
                 except Exception:
-                    _logger.warn(
+                    _logger.warning(
                         "Provider does not support set_last_modified on {}.".format(
                             self.path
                         )

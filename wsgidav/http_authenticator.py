@@ -221,7 +221,7 @@ class HTTPAuthenticator(BaseMiddleware):
             elif self._accept_basic:
                 return self.send_basic_auth_response(environ, start_response)
 
-            _logger.warn(
+            _logger.warning(
                 "HTTPAuthenticator: respond with 400 Bad request; Auth-Method: {}".format(
                     auth_method
                 )
@@ -464,7 +464,7 @@ class HTTPAuthenticator(BaseMiddleware):
                         req_nc,
                     )
                     if root_digest == req_response:
-                        _logger.warn(
+                        _logger.warning(
                             "auth_digest_auth_request: HOTFIX: accepting '/' login for '{}'.".format(
                                 realm_name
                             )
@@ -479,7 +479,7 @@ class HTTPAuthenticator(BaseMiddleware):
                 pass
 
         if is_invalid_req:
-            _logger.warn(
+            _logger.warning(
                 "Authentication failed for user '{}', realm '{}'".format(
                     req_username, realm_name
                 )

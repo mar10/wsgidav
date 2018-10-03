@@ -101,7 +101,7 @@ class ErrorPrinter(BaseMiddleware):
                 # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stdout)
                 _logger.error("e.src_exception:\n{}".format(e.src_exception))
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
-                # _logger.warn("Forcing empty error response for {}".format(e.value))
+                # _logger.warning("Forcing empty error response for {}".format(e.value))
                 # See paste.lint: these code don't have content
                 start_response(
                     status, [("Content-Length", "0"), ("Date", util.get_rfc1123_time())]

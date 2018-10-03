@@ -426,7 +426,7 @@ def _run_paste(app, config, mode):
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     return
 
 
@@ -463,7 +463,7 @@ def _run_gevent(app, config, mode):
     try:
         gevent.spawn(dav_server.serve_forever())
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     return
 
 
@@ -475,12 +475,12 @@ def _run__cherrypy(app, config, mode):
         from cherrypy import wsgiserver
         from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 
-        _logger.warn("WARNING: cherrypy.wsgiserver is deprecated.")
-        _logger.warn(
+        _logger.warning("WARNING: cherrypy.wsgiserver is deprecated.")
+        _logger.warning(
             "         Starting with CherryPy 9.0 the functionality from cherrypy.wsgiserver"
         )
-        _logger.warn("         was moved to the cheroot project.")
-        _logger.warn("         Consider using --server=cheroot.")
+        _logger.warning("         was moved to the cheroot project.")
+        _logger.warning("         Consider using --server=cheroot.")
     except ImportError:
         _logger.error("*" * 78)
         _logger.error("ERROR: Could not import cherrypy.wsgiserver.")
@@ -547,7 +547,7 @@ def _run__cherrypy(app, config, mode):
     try:
         server.start()
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     finally:
         server.stop()
     return
@@ -628,7 +628,7 @@ def _run_cheroot(app, config, mode):
     try:
         server.start()
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     finally:
         server.stop()
 
@@ -658,7 +658,7 @@ def _run_flup(app, config, mode):
     try:
         server.run()
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     return
 
 
@@ -669,14 +669,14 @@ def _run_wsgiref(app, config, mode):
 
     version = "WsgiDAV/{} {}".format(__version__, software_version)
     _logger.info("Running {}...".format(version))
-    _logger.warn(
+    _logger.warning(
         "WARNING: This single threaded server (wsgiref) is not meant for production."
     )
     httpd = make_server(config["host"], config["port"], app)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     return
 
 
@@ -687,13 +687,13 @@ def _run_ext_wsgiutils(app, config, mode):
     _logger.info(
         "Running WsgiDAV {} on wsgidav.ext_wsgiutils_server...".format(__version__)
     )
-    _logger.warn(
+    _logger.warning(
         "WARNING: This single threaded server (ext-wsgiutils) is not meant for production."
     )
     try:
         ext_wsgiutils_server.serve(config, app)
     except KeyboardInterrupt:
-        _logger.warn("Caught Ctrl-C, shutting down...")
+        _logger.warning("Caught Ctrl-C, shutting down...")
     return
 
 
@@ -726,7 +726,7 @@ def run():
         )
 
     if not use_lxml and config["verbose"] >= 3:
-        _logger.warn(
+        _logger.warning(
             "Could not import lxml: using xml instead (up to 10% slower). "
             "Consider `pip install lxml`(see https://pypi.python.org/pypi/lxml)."
         )

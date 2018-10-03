@@ -74,7 +74,7 @@ class RequestServer(object):
         # is not installed
         #        assert "http_authenticator.user_name" in environ
         if "http_authenticator.user_name" not in environ:
-            _logger.warn("Missing 'http_authenticator.user_name' in environ")
+            _logger.warning("Missing 'http_authenticator.user_name' in environ")
 
         environ["wsgidav.user_name"] = environ.get(
             "http_authenticator.user_name", "anonymous"
@@ -122,26 +122,26 @@ class RequestServer(object):
             return
 
         # Run requesthandler (provider may override, #55)
-        # _logger.warn("#1...")
+        # _logger.warning("#1...")
         app_iter = provider.custom_request_handler(environ, start_response, method)
-        # _logger.warn("#1... 2")
+        # _logger.warning("#1... 2")
         try:
-            # _logger.warn("#1... 3")
+            # _logger.warning("#1... 3")
             for v in app_iter:
-                # _logger.warn("#1... 4")
+                # _logger.warning("#1... 4")
                 yield v
-            # _logger.warn("#1... 5")
+            # _logger.warning("#1... 5")
         # except Exception:
-        #     _logger.warn("#1... 6")
+        #     _logger.warning("#1... 6")
         #     _logger.exception("")
         #     status = "500 Oops"
         #     response_headers = [("content-type", "text/plain")]
         #     start_response(status, response_headers, sys.exc_info())
         #     return ["error body goes here"]
         finally:
-            # _logger.warn("#1... 7")
+            # _logger.warning("#1... 7")
             if hasattr(app_iter, "close"):
-                # _logger.warn("#1... 8")
+                # _logger.warning("#1... 8")
                 app_iter.close()
         return
 

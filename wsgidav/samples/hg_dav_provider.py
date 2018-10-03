@@ -434,7 +434,7 @@ class HgResourceProvider(DAVProvider):
         os.chdir(self.repo.root)
 
         # Verify integrity of the repository
-        _logger.warn("Verify repository '%s' tree..." % self.repo.root)
+        _logger.warning("Verify repository '%s' tree..." % self.repo.root)
         commands.verify(self.ui, self.repo)
 
         #        self.ui.status("Changelog: %s\n" % self.repo.changelog)

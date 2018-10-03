@@ -273,14 +273,14 @@ class WsgiDAVApp(object):
                 _logger.info("  - '{}': {}{}".format(share, data["provider"], hint))
 
         if auth_conf.get("accept_basic") and not config.get("ssl_certificate"):
-            _logger.warn(
+            _logger.warning(
                 "Basic authentication is enabled: It is highly recommended to enable SSL."
             )
 
         for share, data in self.provider_map.items():
             if data["allow_anonymous"]:
                 # TODO: we should only warn here, if --no-auth is not given
-                _logger.warn("Share '{}' will allow anonymous access.".format(share))
+                _logger.warning("Share '{}' will allow anonymous access.".format(share))
         return
 
     def add_provider(self, share, provider, readonly=False):
@@ -343,7 +343,7 @@ class WsgiDAVApp(object):
             path = compat.unquote(environ["PATH_INFO"])
         # GC issue 22: Pylons sends root as u'/'
         if not compat.is_native(path):
-            _logger.warn("Got non-native PATH_INFO: {!r}".format(path))
+            _logger.warning("Got non-native PATH_INFO: {!r}".format(path))
             # path = path.encode("utf8")
             path = compat.to_native(path)
 
@@ -447,11 +447,11 @@ class WsgiDAVApp(object):
             if util.get_content_length(environ) != 0 and not environ.get(
                 "wsgidav.all_input_read"
             ):
-                _logger.warn("Input stream not completely consumed: closing connection")
+                _logger.warning("Input stream not completely consumed: closing connection")
                 forceCloseConnection = True
 
             if forceCloseConnection and headerDict.get("connection") != "close":
-                _logger.warn("Adding 'Connection: close' header")
+                _logger.warning("Adding 'Connection: close' header")
                 response_headers.append(("Connection", "close"))
 
             # Log request

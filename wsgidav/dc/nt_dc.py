@@ -95,7 +95,7 @@ class NTDomainController(object):
             or auth_opts["default_to_digest"]
             or not auth_opts["accept_basic"]
         ):
-            _logger.warn(
+            _logger.warning(
                 "NTDomainController requires basic authentication:\n"
                 "Set accept_basic=True, accept_digest=False, default_to_digest=False"
             )
