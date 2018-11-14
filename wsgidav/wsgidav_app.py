@@ -447,7 +447,9 @@ class WsgiDAVApp(object):
             if util.get_content_length(environ) != 0 and not environ.get(
                 "wsgidav.all_input_read"
             ):
-                _logger.warning("Input stream not completely consumed: closing connection")
+                _logger.warning(
+                    "Input stream not completely consumed: closing connection"
+                )
                 forceCloseConnection = True
 
             if forceCloseConnection and headerDict.get("connection") != "close":
