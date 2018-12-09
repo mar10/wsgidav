@@ -154,6 +154,10 @@ class HTTPAuthenticator(BaseMiddleware):
         self._header_fix_parser = re.compile(r'([\w]+)=("[^"]*,[^"]*"),')
         self._header_method = re.compile(r"^([\w]+)")
 
+        # if True (default False), DomainController Interface
+        # must implement optional get_realm_user_digest_hash
+        self._implements_realm_user_digest_hash = auth_conf.get("implements_realm_user_digest_hash", False)
+
     def get_domain_controller(self):
         return self.domain_controller
 
@@ -490,18 +494,33 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["http_authenticator.user_name"] = req_username
         return self.next_app(environ, start_response)
 
-    def compute_digest_response(
-        self, user_name, realm, password, method, uri, nonce, cnonce, qop, nc
-    ):
-        A1 = user_name + ":" + realm + ":" + password
-        A2 = method + ":" + uri
-        if qop:
-            digestresp = self.md5kd(
-                self.md5h(A1),
-                nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2),
-            )
+    def compute_digest_response(self, user_name, realm, password, method, uri, nonce, cnonce, qop, nc):
+        """
+        computes digest hash. computes A1 (HA1) from parameters in default user_map
+        or if enabled, gets user hash from optional dc interface method get_realm_user_digest_hash.
+        :param user_name: string
+        :param realm: string
+        :param password: string, plain text password
+        :param method: string, WebDAV Request Method
+        :param uri: string
+        :param nonce: string, server generated nonce value
+        :param cnonce: string, client generated cnonce value
+        :param qop: string, quality of protection
+        :param nc: string (number), nonce counter incremented by client
+        :return: string (MD5 Hash)
+        """
+        if self._implements_realm_user_digest_hash:
+            A1 = self.domain_controller.get_realm_user_digest_hash(realm, user_name)  # optional dc interface method
         else:
-            digestresp = self.md5kd(self.md5h(A1), nonce + ":" + self.md5h(A2))
+            A1 = self.md5h(user_name + ":" + realm + ":" + password)  # default user_mapping
+
+        A2 = method + ":" + uri
+
+        if qop:
+            digestresp = self.md5kd(A1, nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
+        else:
+            digestresp = self.md5kd(A1, nonce + ":" + self.md5h(A2))
+
         return digestresp
 
     def md5h(self, data):
