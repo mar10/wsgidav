@@ -156,7 +156,9 @@ class HTTPAuthenticator(BaseMiddleware):
 
         # if True (default False), DomainController Interface
         # must implement optional get_realm_user_digest_hash
-        self._implements_realm_user_digest_hash = auth_conf.get("implements_realm_user_digest_hash", False)
+        self._implements_realm_user_digest_hash = auth_conf.get(
+            "implements_realm_user_digest_hash", False
+        )
 
     def get_domain_controller(self):
         return self.domain_controller
@@ -494,7 +496,9 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["http_authenticator.user_name"] = req_username
         return self.next_app(environ, start_response)
 
-    def compute_digest_response(self, user_name, realm, password, method, uri, nonce, cnonce, qop, nc):
+    def compute_digest_response(
+        self, user_name, realm, password, method, uri, nonce, cnonce, qop, nc
+    ):
         """
         computes digest hash. computes A1 (HA1) from parameters in default user_map
         or if enabled, gets user hash from optional dc interface method get_realm_user_digest_hash.
@@ -510,14 +514,20 @@ class HTTPAuthenticator(BaseMiddleware):
         :return: string (MD5 Hash)
         """
         if self._implements_realm_user_digest_hash:
-            A1 = self.domain_controller.get_realm_user_digest_hash(realm, user_name)  # optional dc interface method
+            A1 = self.domain_controller.get_realm_user_digest_hash(
+                realm, user_name
+            )  # optional dc interface method
         else:
-            A1 = self.md5h(user_name + ":" + realm + ":" + password)  # default user_mapping
+            A1 = self.md5h(
+                user_name + ":" + realm + ":" + password
+            )  # default user_mapping
 
         A2 = method + ":" + uri
 
         if qop:
-            digestresp = self.md5kd(A1, nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2))
+            digestresp = self.md5kd(
+                A1, nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + self.md5h(A2)
+            )
         else:
             digestresp = self.md5kd(A1, nonce + ":" + self.md5h(A2))
 
