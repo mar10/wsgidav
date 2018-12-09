@@ -351,8 +351,8 @@ class HTTPAuthenticator(BaseMiddleware):
         _logger.debug("  -> {}".format(auth_header_dict))
 
         req_username = None
-        if "user_name" in auth_header_dict:
-            req_username = auth_header_dict["user_name"]
+        if "username" in auth_header_dict:
+            req_username = auth_header_dict["username"]
             req_username_org = req_username
             # Hotfix for Windows XP:
             #   net use W: http://127.0.0.1/dav /USER:DOMAIN\tester tester
