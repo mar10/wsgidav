@@ -497,7 +497,7 @@ class WsgiDAVApp(object):
                         time=util.get_log_time(),
                         method=environ.get("REQUEST_METHOD"),
                         path=safe_re_encode(
-                            environ.get("PATH_INFO", ""), sys.stdout.encoding
+                            environ.get("PATH_INFO", ""), sys.stdout.encoding if sys.stdout.encoding else 'utf-8'
                         ),
                         extra=extra,
                         status=status,
