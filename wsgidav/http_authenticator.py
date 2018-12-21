@@ -105,6 +105,7 @@ HOTFIX_WIN_AcceptAnonymousOptions = False
 
 def make_domain_controller(config):
     dc = config.get("http_authenticator", {}).get("domain_controller")
+    org_dc = dc
     if dc is True or not dc:
         # True or null:
         dc = SimpleDomainController
@@ -116,7 +117,10 @@ def make_domain_controller(config):
     if inspect.isclass(dc):
         # If a class is passed, instantiate that
         dc = dc(config)
-
+    else:
+        raise RuntimeError(
+            "Could not resolve domain controller class (got {})".format(org_dc)
+        )
     # print("make_domain_controller", dc)
     return dc
 
@@ -131,20 +135,25 @@ class HTTPAuthenticator(BaseMiddleware):
         super(HTTPAuthenticator, self).__init__(wsgidav_app, next_app, config)
         self._verbose = config.get("verbose", 3)
         self.config = config
+
+        dc = make_domain_controller(config)
+        self.domain_controller = dc
+
         auth_conf = config.get("http_authenticator", {})
 
-        self.domain_controller = make_domain_controller(config)
-        # self.domain_controller = dc = auth_conf.get("domain_controller")
-        # if not dc or not callable(getattr(dc, "auth_domain_user")):
-        #     raise RuntimeError("Invalid domain controller {}".format(dc))
-        # self._user_mapping = config.get("user_mapping", {})
-        # self.domain_controller = config.get(
-        #     "domain_controller"
-        # ) or SimpleDomainController(self._user_mapping)
-        self._accept_basic = auth_conf.get("accept_basic", True)
-        self._accept_digest = auth_conf.get("accept_digest", True)
-        self._default_digest = auth_conf.get("default_to_digest", True)
-        self._trusted_auth_header = auth_conf.get("trusted_auth_header", None)
+        self.accept_basic = auth_conf.get("accept_basic", True)
+        self.accept_digest = auth_conf.get("accept_digest", True)
+        self.default_to_digest = auth_conf.get("default_to_digest", True)
+        self.trusted_auth_header = auth_conf.get("trusted_auth_header", None)
+
+        if dc._need_plaintext_password():
+            if self.accept_digest or self.default_to_digest or not self.accept_basic:
+                _logger.warning(
+                    "{} requires basic authentication because plain passwords are sent.\n"
+                    "Set accept_basic=True, accept_digest=False, default_to_digest=False".format(
+                        dc.__class__.__name__
+                    )
+                )
 
         self._nonce_dict = dict([])
 
@@ -168,7 +177,7 @@ class HTTPAuthenticator(BaseMiddleware):
         # return self.domain_controller.require_authentication(share)
         return isinstance(
             self.domain_controller, SimpleDomainController
-        ) and not self.config["user_mapping"].get(share)
+        ) and not self.config["simple_dc"]["user_mapping"].get(share)
 
     def __call__(self, environ, start_response):
         realm_name = self.domain_controller.get_domain_realm(
@@ -192,18 +201,18 @@ class HTTPAuthenticator(BaseMiddleware):
             environ["http_authenticator.user_name"] = ""
             return self.next_app(environ, start_response)
 
-        if self._trusted_auth_header and environ.get(self._trusted_auth_header):
+        if self.trusted_auth_header and environ.get(self.trusted_auth_header):
             # accept a user_name that was injected by a trusted upstream server
             _logger.debug(
                 "Accept trusted user_name {}='{}'for realm '{}'".format(
-                    self._trusted_auth_header,
-                    environ.get(self._trusted_auth_header),
+                    self.trusted_auth_header,
+                    environ.get(self.trusted_auth_header),
                     realm_name,
                 )
             )
             environ["http_authenticator.realm"] = realm_name
             environ["http_authenticator.user_name"] = environ.get(
-                self._trusted_auth_header
+                self.trusted_auth_header
             )
             return self.next_app(environ, start_response)
 
@@ -214,17 +223,17 @@ class HTTPAuthenticator(BaseMiddleware):
             if auth_match:
                 auth_method = auth_match.group(1).lower()
 
-            if auth_method == "digest" and self._accept_digest:
+            if auth_method == "digest" and self.accept_digest:
                 return self.auth_digest_auth_request(environ, start_response)
-            elif auth_method == "digest" and self._accept_basic:
+            elif auth_method == "digest" and self.accept_basic:
                 return self.send_basic_auth_response(environ, start_response)
-            elif auth_method == "basic" and self._accept_basic:
+            elif auth_method == "basic" and self.accept_basic:
                 return self.auth_basic_auth_request(environ, start_response)
 
             # The requested auth method is not supported.
-            elif self._default_digest and self._accept_digest:
+            elif self.default_to_digest and self.accept_digest:
                 return self.send_digest_auth_response(environ, start_response)
-            elif self._accept_basic:
+            elif self.accept_basic:
                 return self.send_basic_auth_response(environ, start_response)
 
             _logger.warning(
@@ -239,7 +248,7 @@ class HTTPAuthenticator(BaseMiddleware):
             )
             return [""]
 
-        if self._default_digest:
+        if self.default_to_digest:
             return self.send_digest_auth_response(environ, start_response)
         return self.send_basic_auth_response(environ, start_response)
 

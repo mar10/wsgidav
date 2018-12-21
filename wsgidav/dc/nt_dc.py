@@ -16,7 +16,7 @@ Usage::
 
 where:
 
-+ domain_controller object corresponds to that in ``wsgidav.conf`` or
++ domain_controller object corresponds to that in ``wsgidav.yaml`` or
   as input into ``wsgidav.http_authenticator.HTTPAuthenticator``.
 
 + preset_domain allows the admin to specify a domain to be used (instead of any domain that
@@ -70,7 +70,6 @@ Testability and caveats
 **Using for a network domain**
    This class is being tested for a network domain (I'm setting one up to test).
 
-ml
 """
 from __future__ import print_function
 from wsgidav import compat, util
@@ -84,24 +83,30 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-class NTDomainController(object):
+class NTDomainController(DomainControllerBase):
     def __init__(self, config):
-        auth_opts = config["http_authenticator"]
-        self._preset_domain = auth_opts.get("preset_domain")
-        self._preset_server = auth_opts.get("preset_server")
+        auth_conf = config["http_authenticator"]
+        dc_conf = config["nt_dc"]
+
+        self._preset_domain = dc_conf.get("preset_domain")
+        self._preset_server = dc_conf.get("preset_server")
 
         if (
-            auth_opts["accept_digest"]
-            or auth_opts["default_to_digest"]
-            or not auth_opts["accept_basic"]
+            auth_conf["accept_digest"]
+            or auth_conf["default_to_digest"]
+            or not auth_conf["accept_basic"]
         ):
             _logger.warning(
                 "NTDomainController requires basic authentication:\n"
                 "Set accept_basic=True, accept_digest=False, default_to_digest=False"
             )
 
-    def __repr__(self):
-        return self.__class__.__name__
+    # def __repr__(self):
+    #     return self.__class__.__name__
+
+    @classmethod
+    def _need_plaintext_password(cls):
+        return True
 
     def get_domain_realm(self, input_url, environ):
         return "Windows Domain Authentication"
@@ -195,6 +200,7 @@ class NTDomainController(object):
             _logger.warning("LogonUser failed for user '%s': %s" % (user_name, err))
             return False
         else:
+            # No exception (so htoken is declared, but may be falsy):
             if htoken:
                 htoken.Close()  # guarantee's cleanup
                 _logger.debug("User '%s' logged on." % user_name)

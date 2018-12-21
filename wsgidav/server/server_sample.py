@@ -21,12 +21,14 @@ def main():
 
     config = {
         "provider_mapping": {"/": provider},
-        "user_mapping": {},
+        "http_authenticator": {
+            "domain_controller": None  # None: dc.simple_dc.SimpleDomainController(user_mapping)
+        },
+        "simple_dc": {"user_mapping": {}},
         "verbose": 1,
         "enable_loggers": [],
         "property_manager": True,  # True: use property_manager.PropertyManager
         "lock_manager": True,  # True: use lock_manager.LockManager
-        "domain_controller": None,  # None: dc.simple_dc.SimpleDomainController(user_mapping)
     }
     app = WsgiDAVApp(config)
 

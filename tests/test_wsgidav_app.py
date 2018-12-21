@@ -53,22 +53,26 @@ class ServerTest(unittest.TestCase):
         # config.update({
         config = {
             "provider_mapping": {"/": provider},
-            "user_mapping": {},
+            # None: dc.simple_dc.SimpleDomainController(user_mapping)
+            "http_authenticator": {"domain_controller": None},
+            "simple_dc": {"user_mapping": {}},
             "verbose": 1,
             "enable_loggers": [],
             "property_manager": None,  # None: no property manager
             "lock_manager": True,  # True: use lock_manager.LockManager
-            # None: dc.simple_dc.SimpleDomainController(user_mapping)
-            # "domain_controller": None,
         }
 
         if withAuthentication:
-            config["user_mapping"] = {
+            config["http_authenticator"].update(
+                {
+                    "accept_basic": True,
+                    "accept_digest": False,
+                    "default_to_digest": False,
+                }
+            )
+            config["simple_dc"]["user_mapping"] = {
                 "/": {"tester": {"password": "secret", "description": "", "roles": []}}
             }
-            config["accept_basic"] = True
-            config["accept_digest"] = False
-            config["default_to_digest"] = False
 
         return WsgiDAVApp(config)
 

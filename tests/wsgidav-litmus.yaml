@@ -28,7 +28,7 @@ provider_mapping:
 http_authenticator:
     #: Domain controller that is used to resolve realms and authorization.
     #: Default null: wsgidav.domain_controller.SimpleDomainController,
-    #: which uses the `user_mapping` option below.
+    #: which uses the `simple_dc.user_mapping` option below.
     #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
     #: for an example of NT domain controller, etc.)
     domain_controller: null
@@ -47,10 +47,11 @@ http_authenticator:
 # NOTE: Provider routes without a matching entry here, are open for
 # anonymous access!
 
-user_mapping:
-    "/":
-        "tester":
-            password: "secret"
+simple_dc:
+    user_mapping:
+        "/":
+            "tester":
+                password: "secret"
 
 verbose: 3
 

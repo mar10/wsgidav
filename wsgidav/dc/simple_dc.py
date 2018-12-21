@@ -32,9 +32,10 @@ domaincontrollerinterface_
 .. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
 
 """
-from wsgidav import util
-
 import sys
+
+from wsgidav import util
+from wsgidav.dc.dc_base import DomainControllerBase, logger
 
 
 __docformat__ = "reStructuredText"
@@ -42,16 +43,22 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-class SimpleDomainController(object):
-    def __init__(self, opts):
-        #        self.dc_opts = opts.get("domain_controller", {})
-        self.user_map = opts.get("user_mapping")
+class SimpleDomainController(DomainControllerBase):
+    def __init__(self, config):
+        auth_conf = config["http_authenticator"]
+        dc_conf = config["simple_dc"]
+
+        self.user_map = dc_conf.get("user_mapping")
         if self.user_map is None:
-            raise RuntimeError("Missing option: user_mapping")
+            raise RuntimeError("Missing option: simple_dc.user_mapping")
         # self.allowAnonymous = allowAnonymous
 
-    def __repr__(self):
-        return "DC {}".format(self.__class__.__name__)
+    # def __repr__(self):
+    #     return "DC {}".format(self.__class__.__name__)
+
+    # @classmethod
+    def _need_plaintext_password(self):
+        return True
 
     def get_domain_realm(self, input_url, environ):
         """Resolve a relative url to the  appropriate realm name."""
@@ -74,7 +81,7 @@ class SimpleDomainController(object):
     def require_authentication(self, realm_name, environ):
         """Return True if this realm requires authentication or False if it is
         available for general access."""
-        # TODO: Should check for --allow_anonymous?
+        # TODO: Should check for --allow-anonymous?
         #        assert realm_name in environ["wsgidav.config"]["user_mapping"], (
         #            "Currently there must be at least on user mapping for this realm")
         return realm_name in self.user_map

@@ -57,8 +57,8 @@ DEFAULT_CONFIG = {
         # Name of a header field that will be accepted as authorized user
         "trusted_auth_header": None,
     },
-    #: Used by SimpleDomainController
-    "user_mapping": {},
+    #: Used by SimpleDomainController only
+    "simple_dc": {"user_mapping": {}},
     # Verbose Output
     # 0 - no output
     # 1 - no output (excepting application exceptions)

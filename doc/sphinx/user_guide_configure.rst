@@ -232,21 +232,22 @@ Example YAML configuration::
         accept_digest: true
         default_to_digest: true
 
-    user_mapping:
-        "/share1":
-            "user1":
-                password: "abc123"
-                description: "User 1 for Share 1"
-                roles: []
-        "/share2":
-            "user1":
-                password: "def456"
-                description: "User 1 for Share 2"
-                roles: []
-            "user2":
-                password: "qwerty"
-                description: "User 2 for Share 2"
-                roles: []
+    simple_dc:
+        user_mapping:
+            "/share1":
+                "user1":
+                    password: "abc123"
+                    description: "User 1 for Share 1"
+                    roles: []
+            "/share2":
+                "user1":
+                    password: "def456"
+                    description: "User 1 for Share 2"
+                    roles: []
+                "user2":
+                    password: "qwerty"
+                    description: "User 2 for Share 2"
+                    roles: []
 
 
 
@@ -267,6 +268,8 @@ Example YAML configuration::
         accept_basic: true
         accept_digest: false
         default_to_digest: false
+
+    nt_dc:
         preset_domain: null
         preset_server: null
 

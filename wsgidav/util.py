@@ -277,7 +277,11 @@ def dynamic_import_class(name):
     import importlib
 
     module_name, class_name = name.rsplit(".", 1)
-    module = importlib.import_module(module_name)
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        _logger.error("Dynamic import of {!r} failed: {}".format(name, e))
+        raise
     the_class = getattr(module, class_name)
     return the_class
 

@@ -19,17 +19,20 @@
         "/share2": "/path/to/share2"  // Anonymous, because no user_mapping exists
     },
     "http_authenticator": {
+        "domain_controller": null,
         "accept_basic": false,
         "accept_digest": true,
         "default_to_digest": true,
         "trusted_auth_header": null
     },
-    "user_mapping": {
-        "/share1": {
-            "user1": {
-                "password": "abc123",
-                "description": "User 1 for Share 1",
-                "roles": []
+    "simple_dc": {
+        "user_mapping": {
+            "/share1": {
+                "user1": {
+                    "password": "abc123",
+                    "description": "User 1 for Share 1",
+                    "roles": []
+                }
             }
         }
     },
