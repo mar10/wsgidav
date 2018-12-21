@@ -42,6 +42,7 @@ This release contains **BREAKING CHANGES!**
   - Includes NTDomainController
 - #112: Added limited support for Microsoft's Win32LastModified property.
 - Fix #123: HEAD request on DirBrowser folder
+- Fix #141: issue when 'sys.stdout' is none
 
 
 ## 2.4.1 / 2018-06-16
