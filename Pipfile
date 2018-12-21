@@ -31,6 +31,7 @@ defusedxml = "~=0.5"
 Jinja2 = "~=2.10"
 jsmin = "~=2.2"
 PyYAML = "~=3.2"
+six = "~=1.12"
 
 [requires]
 #python_version = "3.6"
