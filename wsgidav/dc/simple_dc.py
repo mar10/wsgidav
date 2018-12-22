@@ -32,10 +32,10 @@ domaincontrollerinterface_
 .. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
 
 """
-import sys
-
 from wsgidav import util
 from wsgidav.dc.dc_base import DomainControllerBase, logger
+
+import sys
 
 
 __docformat__ = "reStructuredText"

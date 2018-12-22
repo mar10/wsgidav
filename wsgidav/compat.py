@@ -11,15 +11,13 @@ TODO: since it is now based on six, we should remove this module eventually.
 """
 # flake8: noqa
 
-import sys
+from six import BytesIO, PY2, PY3
+from six.moves import cStringIO as StringIO, input as console_input, queue, xrange
+from six.moves.urllib.parse import quote, unquote, urlparse
 
 import six
+import sys
 
-from six import BytesIO, PY2, PY3
-from six.moves import cStringIO as StringIO
-from six.moves import queue, xrange
-from six.moves import input as console_input
-from six.moves.urllib.parse import quote, unquote, urlparse
 
 __docformat__ = "reStructuredText"
 

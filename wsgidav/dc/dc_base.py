@@ -5,12 +5,11 @@
 Abstract base class of a domain controller (used by HTTPAuthenticator).
 """
 from __future__ import print_function
+from wsgidav import util
 
 import abc
-
 import six
 
-from wsgidav import util
 
 __docformat__ = "reStructuredText"
 

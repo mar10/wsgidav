@@ -43,11 +43,10 @@ Testability and caveats
 
 """
 from __future__ import print_function
-
-import pam
-
 from wsgidav import compat, util
 from wsgidav.dc.dc_base import DomainControllerBase, logger
+
+import pam
 
 
 __docformat__ = "reStructuredText"
