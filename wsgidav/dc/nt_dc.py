@@ -104,8 +104,7 @@ class NTDomainController(DomainControllerBase):
     # def __repr__(self):
     #     return self.__class__.__name__
 
-    @classmethod
-    def _need_plaintext_password(cls):
+    def _need_plaintext_password(self):
         return True
 
     def get_domain_realm(self, input_url, environ):

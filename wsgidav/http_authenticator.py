@@ -148,7 +148,8 @@ class HTTPAuthenticator(BaseMiddleware):
 
         if dc._need_plaintext_password():
             if self.accept_digest or self.default_to_digest or not self.accept_basic:
-                _logger.warning(
+                raise RuntimeError(
+                    # _logger.warning(
                     "{} requires basic authentication because plain passwords are sent.\n"
                     "Set accept_basic=True, accept_digest=False, default_to_digest=False".format(
                         dc.__class__.__name__

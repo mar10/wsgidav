@@ -68,8 +68,11 @@ class PamDomainController(DomainControllerBase):
     # def __repr__(self):
     #     return self.__class__.__name__
 
+    def _need_plaintext_password(self):
+        return True
+
     def get_domain_realm(self, input_url, environ):
-        return "PAM Authentication"
+        return "PAM({})".format(self.pam_service)
 
     def require_authentication(self, realm_name, environ):
         return True
@@ -85,22 +88,10 @@ class PamDomainController(DomainControllerBase):
         raise NotImplementedError
 
     def auth_domain_user(self, realm_name, user_name, password, environ):
-        raise NotImplementedError
         # (domain, usern) = self._get_domain_username(user_name)
         # dcname = self._get_domain_controller_name(domain)
         # return self._auth_user(usern, password, domain, dcname)
-
-    def _get_domain_controller_name(self, domain):
-        if self._preset_server is not None:
-            return self._preset_server
-
-        try:
-            # execute this on the localhost
-            pdc = win32net.NetGetAnyDCName(None, domain)
-        except Exception:
-            pdc = None
-
-        return pdc
+        return self._auth_user(user_name, password)
 
     def _is_user(self, user_name, domain, server):
         resume = "init"
@@ -125,7 +116,7 @@ class PamDomainController(DomainControllerBase):
         _logger.info("User '%s' not found on server '%s'" % (user_name, server))
         return False
 
-    def _auth_user(self, user_name, password, domain, server):
+    def _auth_user(self, user_name, password):
         pam = self.pam
         # if not self._is_user(user_name, domain, server):
         #     return False
