@@ -33,7 +33,7 @@ domaincontrollerinterface_
 
 """
 from wsgidav import util
-from wsgidav.dc.dc_base import DomainControllerBase, logger
+from wsgidav.dc.dc_base import DomainControllerBase
 
 import sys
 
@@ -45,7 +45,7 @@ _logger = util.get_module_logger(__name__)
 
 class SimpleDomainController(DomainControllerBase):
     def __init__(self, config):
-        auth_conf = config["http_authenticator"]
+        # auth_conf = config["http_authenticator"]
         dc_conf = config["simple_dc"]
 
         self.user_map = dc_conf.get("user_mapping")
@@ -53,52 +53,51 @@ class SimpleDomainController(DomainControllerBase):
             raise RuntimeError("Missing option: simple_dc.user_mapping")
         # self.allowAnonymous = allowAnonymous
 
-    # def __repr__(self):
-    #     return "DC {}".format(self.__class__.__name__)
-
-    # @classmethod
-    def _need_plaintext_password(self):
-        return True
-
-    def get_domain_realm(self, input_url, environ):
+    def get_domain_realm(self, path_info, environ):
         """Resolve a relative url to the  appropriate realm name."""
-        # we don't get the realm here, its already been resolved in
-        # request_resolver
+        # we don't get the realm here, it was already resolved in the request_resolver
         dav_provider = environ["wsgidav.provider"]
         if not dav_provider:
             if environ["wsgidav.verbose"] >= 2:
                 _logger.debug(
                     "get_domain_realm({}): '{}'".format(
-                        util.safe_re_encode(input_url, sys.stdout.encoding), None
+                        util.safe_re_encode(path_info, sys.stdout.encoding), None
                     )
                 )
             return None
-        realm = dav_provider.sharePath
+        realm = dav_provider.share_path
         if realm == "":
             realm = "/"
         return realm
 
-    def require_authentication(self, realm_name, environ):
+    def require_authentication(self, realm, environ):
         """Return True if this realm requires authentication or False if it is
         available for general access."""
+
         # TODO: Should check for --allow-anonymous?
-        #        assert realm_name in environ["wsgidav.config"]["user_mapping"], (
+        #        assert realm in environ["wsgidav.config"]["user_mapping"], (
         #            "Currently there must be at least on user mapping for this realm")
-        return realm_name in self.user_map
+        # Or better: only return False if user map contains a special entry for that share!!
+        return realm in self.user_map
 
-    def is_realm_user(self, realm_name, user_name, environ):
-        """Returns True if this user_name is valid for the realm, False otherwise."""
-        return realm_name in self.user_map and user_name in self.user_map[realm_name]
-
-    def get_realm_user_password(self, realm_name, user_name, environ):
-        """Return the password for the given user_name for the realm.
-
-        Used for digest authentication.
-        """
-        return self.user_map.get(realm_name, {}).get(user_name, {}).get("password")
-
-    def auth_domain_user(self, realm_name, user_name, password, environ):
+    def auth_domain_user(self, realm, user_name, password, environ):
         """Returns True if this user_name/password pair is valid for the realm,
         False otherwise. Used for basic authentication."""
-        user = self.user_map.get(realm_name, {}).get(user_name)
+        user = self.user_map.get(realm, {}).get(user_name)
         return user is not None and password == user.get("password")
+
+    def supports_http_digest_auth(self):
+        # We have access to a plaintext password (or stored hash)
+        return True
+
+    def is_realm_user(self, realm, user_name, environ):
+        """Return True if this user_name is valid for the realm.
+
+        Called by http_authenticator for digest authentication.
+        """
+        return realm in self.user_map and user_name in self.user_map[realm]
+
+    def compute_http_digest_a1(self, realm, user_name):
+        """Computes digest hash A1 part."""
+        password = self.user_map.get(realm, {}).get(user_name, {}).get("password")
+        return self._compute_http_digest_a1(realm, user_name, password)

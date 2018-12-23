@@ -176,7 +176,7 @@ class RequestResolver(BaseMiddleware):
             if (
                 provider is None
                 or provider.is_readonly()
-                or provider.lockManager is None
+                or provider.lock_manager is None
             ):
                 dav_compliance_level = "1"
 

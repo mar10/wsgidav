@@ -23,7 +23,6 @@ from wsgidav.dav_error import (
 )
 from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
-import base64
 import calendar
 import collections
 import logging
@@ -950,7 +949,7 @@ def calc_hexdigest(s):
 def calc_base64(s):
     """Return base64 encoded binarystring."""
     s = compat.to_bytes(s)
-    s = base64.encodestring(s).strip()  # return bytestring
+    s = compat.base64_encodebytes(s).strip()  # return bytestring
     return compat.to_native(s)
 
 

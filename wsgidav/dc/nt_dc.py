@@ -73,6 +73,7 @@ Testability and caveats
 """
 from __future__ import print_function
 from wsgidav import compat, util
+from wsgidav.dc.dc_base import DomainControllerBase
 
 import win32net
 import win32netcon
@@ -85,72 +86,65 @@ _logger = util.get_module_logger(__name__)
 
 class NTDomainController(DomainControllerBase):
     def __init__(self, config):
-        auth_conf = config["http_authenticator"]
+        # auth_conf = config["http_authenticator"]
         dc_conf = config["nt_dc"]
 
-        self._preset_domain = dc_conf.get("preset_domain")
-        self._preset_server = dc_conf.get("preset_server")
+        self.preset_domain = dc_conf.get("preset_domain")
+        self.preset_server = dc_conf.get("preset_server")
 
-        if (
-            auth_conf["accept_digest"]
-            or auth_conf["default_to_digest"]
-            or not auth_conf["accept_basic"]
-        ):
-            _logger.warning(
-                "NTDomainController requires basic authentication:\n"
-                "Set accept_basic=True, accept_digest=False, default_to_digest=False"
-            )
-
-    # def __repr__(self):
-    #     return self.__class__.__name__
-
-    def _need_plaintext_password(self):
-        return True
-
-    def get_domain_realm(self, input_url, environ):
+    def get_domain_realm(self, path_info, environ):
         return "Windows Domain Authentication"
 
-    def require_authentication(self, realm_name, environ):
+    def require_authentication(self, realm, environ):
         return True
 
-    def is_realm_user(self, realm_name, user_name, environ):
-        (domain, usern) = self._get_domain_username(user_name)
-        dcname = self._get_domain_controller_name(domain)
-        return self._is_user(usern, domain, dcname)
+    def auth_domain_user(self, realm, user_name, password, environ):
+        domain, user = self._get_domain_username(user_name)
+        dc_name = self._get_domain_controller_name(domain)
+        return self._auth_user(user, password, domain, dc_name)
 
-    def get_realm_user_password(self, realm_name, user_name, environ):
-        (domain, user) = self._get_domain_username(user_name)
-        dcname = self._get_domain_controller_name(domain)
+    def supports_http_digest_auth(self):
+        # We don't have access to a plaintext password (or stored hash)
+        return False
 
-        try:
-            userdata = win32net.NetUserGetInfo(dcname, user, 1)
-        except Exception:
-            _logger.exception("NetUserGetInfo")
-            userdata = {}
-        return userdata.get("password")
+    # def is_realm_user(self, realm, user_name, environ):
+    #     (domain, usern) = self._get_domain_username(user_name)
+    #     dc_name = self._get_domain_controller_name(domain)
+    #     return self._is_user(usern, domain, dc_name)
 
-    def auth_domain_user(self, realm_name, user_name, password, environ):
-        (domain, usern) = self._get_domain_username(user_name)
-        dcname = self._get_domain_controller_name(domain)
-        return self._auth_user(usern, password, domain, dcname)
+    # def compute_http_digest_a1(self, realm, user_name):
+    #     """Computes digest hash A1 part."""
+    #     password = self._get_realm_user_password(realm, user_name)
+    #     return self._compute_http_digest_a1(realm, user_name, password)
 
-    def _get_domain_username(self, inusername):
-        userdata = inusername.split("\\", 1)
-        if len(userdata) == 1:
+    # def _get_realm_user_password(self, realm, user_name):
+    #     (domain, user) = self._get_domain_username(user_name)
+    #     dc_name = self._get_domain_controller_name(domain)
+
+    #     try:
+    #         userdata = win32net.NetUserGetInfo(dc_name, user, 1)
+    #     except Exception:
+    #         _logger.exception("NetUserGetInfo")
+    #         userdata = {}
+    #     return userdata.get("password")
+
+    def _get_domain_username(self, user_name):
+        user_data = user_name.split("\\", 1)
+        if len(user_data) == 1:
             domain = None
-            user_name = userdata[0]
+            user = user_data[0]
         else:
-            domain = userdata[0]
-            user_name = userdata[1]
+            domain = user_data[0]
+            user = user_data[1]
 
-        if self._preset_domain is not None:
-            domain = self._preset_domain
+        if self.preset_domain is not None:
+            domain = self.preset_domain
 
-        return (domain, user_name)
+        return (domain, user)
 
     def _get_domain_controller_name(self, domain):
-        if self._preset_server is not None:
-            return self._preset_server
+        if self.preset_server is not None:
+            return self.preset_server
 
         try:
             # execute this on the localhost
@@ -161,6 +155,7 @@ class NTDomainController(DomainControllerBase):
         return pdc
 
     def _is_user(self, user_name, domain, server):
+        # TODO: implement some kind of caching here?
         resume = "init"
         while resume:
             if resume == "init":
@@ -184,9 +179,12 @@ class NTDomainController(DomainControllerBase):
         return False
 
     def _auth_user(self, user_name, password, domain, server):
+        # TODO: is this pre-test efficient, or should we simply try LogonUser()?
+        #       (It may trigger account locking?)
         if not self._is_user(user_name, domain, server):
             return False
 
+        htoken = None
         try:
             htoken = win32security.LogonUser(
                 user_name,
@@ -195,14 +193,19 @@ class NTDomainController(DomainControllerBase):
                 win32security.LOGON32_LOGON_NETWORK,
                 win32security.LOGON32_PROVIDER_DEFAULT,
             )
+            if not htoken:
+                _logger.warning(
+                    "LogonUser('{}', '{}', '***') failed.".format(user_name, domain)
+                )
+                return False
         except win32security.error as err:
-            _logger.warning("LogonUser failed for user '%s': %s" % (user_name, err))
+            _logger.warning(
+                "LogonUser('{}', '{}', '***') failed: {}".format(user_name, domain, err)
+            )
             return False
-        else:
-            # No exception (so htoken is declared, but may be falsy):
+        finally:
             if htoken:
-                htoken.Close()  # guarantee's cleanup
-                _logger.debug("User '%s' logged on." % user_name)
-                return True
-            _logger.warning("Logon failed for user '%s'." % user_name)
-            return False
+                htoken.Close()
+
+        _logger.debug("User '{}' logged on.".format(user_name))
+        return True

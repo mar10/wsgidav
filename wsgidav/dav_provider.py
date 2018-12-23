@@ -361,7 +361,7 @@ class _DAVResource(object):
 
         See also comments in DEVELOPERS.txt glossary.
         """
-        return compat.quote(self.provider.sharePath + self.get_preferred_path())
+        return compat.quote(self.provider.share_path + self.get_preferred_path())
 
     #    def getRefKey(self):
     #        """Return an unambigous identifier string for a resource.
@@ -390,8 +390,8 @@ class _DAVResource(object):
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
         return compat.quote(
-            self.provider.mountPath
-            + self.provider.sharePath
+            self.provider.mount_path
+            + self.provider.share_path
             + self.get_preferred_path(),
             safe=safe,
         )
@@ -519,14 +519,14 @@ class _DAVResource(object):
             propNameList.append("{DAV:}getetag")
 
         # Locking properties
-        if self.provider.lockManager and not self.prevent_locking():
+        if self.provider.lock_manager and not self.prevent_locking():
             propNameList.extend(_lockPropertyNames)
 
         # Dead properties
-        if self.provider.propManager:
+        if self.provider.prop_manager:
             refUrl = self.get_ref_url()
             propNameList.extend(
-                self.provider.propManager.get_properties(refUrl, self.environ)
+                self.provider.prop_manager.get_properties(refUrl, self.environ)
             )
 
         return propNameList
@@ -604,7 +604,7 @@ class _DAVResource(object):
         refUrl = self.get_ref_url()
 
         # lock properties
-        lm = self.provider.lockManager
+        lm = self.provider.lock_manager
         if lm and name == "{DAV:}lockdiscovery":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present.
             # Correct?
@@ -706,7 +706,7 @@ class _DAVResource(object):
             raise DAVError(HTTP_NOT_FOUND)
 
         # Dead property
-        pm = self.provider.propManager
+        pm = self.provider.prop_manager
         if pm:
             value = pm.get_property(refUrl, name, self.environ)
             if value is not None:
@@ -794,7 +794,7 @@ class _DAVResource(object):
                     return True
 
         # Dead property
-        pm = self.provider.propManager
+        pm = self.provider.prop_manager
         if pm and not name.startswith("{DAV:}"):
             refUrl = self.get_ref_url()
             if value is None:
@@ -807,8 +807,8 @@ class _DAVResource(object):
 
     def remove_all_properties(self, recursive):
         """Remove all associated dead properties."""
-        if self.provider.propManager:
-            self.provider.propManager.remove_properties(
+        if self.provider.prop_manager:
+            self.provider.prop_manager.remove_properties(
                 self.get_ref_url(), self.environ
             )
 
@@ -825,13 +825,13 @@ class _DAVResource(object):
 
     def is_locked(self):
         """Return True, if URI is locked."""
-        if self.provider.lockManager is None:
+        if self.provider.lock_manager is None:
             return False
-        return self.provider.lockManager.is_url_locked(self.get_ref_url())
+        return self.provider.lock_manager.is_url_locked(self.get_ref_url())
 
     def remove_all_locks(self, recursive):
-        if self.provider.lockManager:
-            self.provider.lockManager.remove_all_locks_from_url(self.get_ref_url())
+        if self.provider.lock_manager:
+            self.provider.lock_manager.remove_all_locks_from_url(self.get_ref_url())
 
     # --- Read / write -------------------------------------------------------
 
@@ -1416,10 +1416,10 @@ class DAVProvider(object):
     """
 
     def __init__(self):
-        self.mountPath = ""
-        self.sharePath = None
-        self.lockManager = None
-        self.propManager = None
+        self.mount_path = ""
+        self.share_path = None
+        self.lock_manager = None
+        self.prop_manager = None
         self.verbose = 3
 
         self._count_get_resource_inst = 0
@@ -1439,39 +1439,41 @@ class DAVProvider(object):
         This is the value of SCRIPT_NAME, when WsgiDAVApp is called.
         """
         assert mount_path in ("", "/") or not mount_path.endswith("/")
-        self.mountPath = mount_path
+        self.mount_path = mount_path
 
     def set_share_path(self, share_path):
         """Set application location for this resource provider.
 
         @param share_path: a UTF-8 encoded, unquoted byte string.
         """
-        # if isinstance(sharePath, unicode):
-        #     sharePath = sharePath.encode("utf8")
+        # if isinstance(share_path, unicode):
+        #     share_path = share_path.encode("utf8")
         assert share_path == "" or share_path.startswith("/")
         if share_path == "/":
-            share_path = ""  # This allows to code 'absPath = sharePath + path'
+            share_path = ""  # This allows to code 'absPath = share_path + path'
         assert share_path in ("", "/") or not share_path.endswith("/")
-        self.sharePath = share_path
+        self.share_path = share_path
 
     def set_lock_manager(self, lock_manager):
         assert not lock_manager or hasattr(
             lock_manager, "check_write_permission"
         ), "Must be compatible with wsgidav.lock_manager.LockManager"
-        self.lockManager = lock_manager
+        self.lock_manager = lock_manager
 
     def set_prop_manager(self, prop_manager):
         assert not prop_manager or hasattr(
             prop_manager, "copy_properties"
         ), "Must be compatible with wsgidav.prop_man.property_manager.PropertyManager"
-        self.propManager = prop_manager
+        self.prop_manager = prop_manager
 
     def ref_url_to_path(self, ref_url):
         """Convert a refUrl to a path, by stripping the share prefix.
 
         Used to calculate the <path> from a storage key by inverting get_ref_url().
         """
-        return "/" + compat.unquote(util.lstripstr(ref_url, self.sharePath)).lstrip("/")
+        return "/" + compat.unquote(util.lstripstr(ref_url, self.share_path)).lstrip(
+            "/"
+        )
 
     def get_resource_inst(self, path, environ):
         """Return a _DAVResource object for path.

@@ -96,10 +96,10 @@ class WsgiDavDebugFilter(BaseMiddleware):
         # Process URL commands
         if "dump_storage" in environ.get("QUERY_STRING", ""):
             dav = environ.get("wsgidav.provider")
-            if dav.lockManager:
-                dav.lockManager._dump()
-            if dav.propManager:
-                dav.propManager._dump()
+            if dav.lock_manager:
+                dav.lock_manager._dump()
+            if dav.prop_manager:
+                dav.prop_manager._dump()
 
         # Turn on max. debugging for selected litmus tests
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))

@@ -11,40 +11,12 @@ Purpose
 Usage::
 
    from wsgidav.dc.pam_dc import PamDomainController
-   domain_controller = PamDomainController(config)
-
-
-Testability and caveats
------------------------
-
-**Digest Authentication**
-   Digest authentication requires the password to be retrieve from the system to compute
-   the correct digest for comparison. This is so far impossible (and indeed would be a
-   big security loophole if it was allowed), so digest authentication WILL not work
-   with this class.
-
-   Highly recommend basic authentication over SSL support.
-
-**User Login**
-   Authentication will count as a user login attempt, so any security in place for
-   invalid password attempts may be triggered.
-
-   Also note that, even though the user is logged in, the application does not impersonate
-   the user - the application will continue to run under the account and permissions it
-   started with. The user has the read/write permissions to the share of the running account
-   and not his own account.
-
-**Using on a local computer**
-   This class has been tested on a local computer (Windows XP). Leave domain as None and
-   do not specify domain when entering user_name in this case.
-
-**Using for a network domain**
-   This class is being tested for a network domain (I'm setting one up to test).
+   dc = PamDomainController(config)
 
 """
 from __future__ import print_function
-from wsgidav import compat, util
-from wsgidav.dc.dc_base import DomainControllerBase, logger
+from wsgidav import util
+from wsgidav.dc.dc_base import DomainControllerBase
 
 import pam
 
@@ -65,61 +37,14 @@ class PamDomainController(DomainControllerBase):
         self.pam_encoding = dc_conf.get("encoding", "utf-8")
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
 
-    # def __repr__(self):
-    #     return self.__class__.__name__
-
-    def _need_plaintext_password(self):
-        return True
-
-    def get_domain_realm(self, input_url, environ):
+    def get_domain_realm(self, path_info, environ):
         return "PAM({})".format(self.pam_service)
 
-    def require_authentication(self, realm_name, environ):
+    def require_authentication(self, realm, environ):
         return True
 
-    def is_realm_user(self, realm_name, user_name, environ):
-        (domain, usern) = self._get_domain_username(user_name)
-        dcname = self._get_domain_controller_name(domain)
-        return self._is_user(usern, domain, dcname)
-
-    def get_realm_user_password(self, realm_name, user_name, environ):
-        # We can't access the user's stored password for good reason.
-        # Use Basic-Authentication over SSL instead
-        raise NotImplementedError
-
-    def auth_domain_user(self, realm_name, user_name, password, environ):
-        # (domain, usern) = self._get_domain_username(user_name)
-        # dcname = self._get_domain_controller_name(domain)
-        # return self._auth_user(usern, password, domain, dcname)
-        return self._auth_user(user_name, password)
-
-    def _is_user(self, user_name, domain, server):
-        resume = "init"
-        while resume:
-            if resume == "init":
-                resume = 0
-            try:
-                users, _total, resume = win32net.NetUserEnum(
-                    server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0
-                )
-                # Make sure, we compare unicode
-                un = compat.to_unicode(user_name).lower()
-                for userinfo in users:
-                    uiname = userinfo.get("name")
-                    assert uiname
-                    assert compat.is_unicode(uiname)
-                    if un == userinfo["name"].lower():
-                        return True
-            except win32net.error as e:
-                _logger.exception("NetUserEnum: %s" % e)
-                return False
-        _logger.info("User '%s' not found on server '%s'" % (user_name, server))
-        return False
-
-    def _auth_user(self, user_name, password):
+    def auth_domain_user(self, realm, user_name, password, environ):
         pam = self.pam
-        # if not self._is_user(user_name, domain, server):
-        #     return False
 
         is_ok = pam.authenticate(
             user_name,
@@ -130,12 +55,25 @@ class PamDomainController(DomainControllerBase):
         )
 
         if is_ok:
-            _logger.debug("User {!r} logged on.".format(user_name))
+            _logger.debug("User '{}' logged on.".format(user_name))
             return True
 
         _logger.warning(
-            "LogonUser failed for user {!r}: #{} {!r}".format(
-                user_name, pam.code, pam.reason
+            "pam.authenticate('{}', '***', '{}') failed with code {}: {}".format(
+                user_name, self.pam_service, pam.code, pam.reason
             )
         )
         return False
+
+    def supports_http_digest_auth(self):
+        # We don't have access to a plaintext password (or stored hash)
+        return False
+
+    # def is_realm_user(self, realm, user_name, environ):
+    #     # Don't know:
+    #     return None
+
+    # def get_realm_user_password(self, realm, user_name, environ):
+    #     # We can't access the user's stored password for good reason.
+    #     # Use Basic-Authentication over SSL instead
+    #     raise NotImplementedError
