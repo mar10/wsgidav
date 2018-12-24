@@ -31,7 +31,15 @@ This release contains **BREAKING CHANGES!**
   - Move some modules to separate packages
   - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
 - Refactor domain_controller:
-  - ...
+  - A common base class simplifies implementation of custom DCs.
+  - New [PamDomainController](https://en.wikipedia.org/wiki/Pluggable_authentication_module)
+    allows to authenticate system users on Linux and macOS, for example.
+  - Digest hash generation is now delegated to DomainControllers. This allows
+    to implement DomainControllers that support digest access authentication
+    even if plain-text passwords are not accessible, but stored hashes are.
+  - Every domain controller now has a config section of its own. E.g.
+    the `user_mapping` option for `SimpleDomainController` was moved to
+    `simple_dc.user_mapping`.
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `wsgidav.dir_browser` package

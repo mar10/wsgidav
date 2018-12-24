@@ -158,8 +158,7 @@ class HTTPAuthenticator(BaseMiddleware):
             self.accept_digest or self.default_to_digest or not self.accept_basic
         ):
             raise RuntimeError(
-                # _logger.warning(
-                "{} requires basic authentication because plain passwords are sent.\n"
+                "{} does not support digest authentication.\n"
                 "Set accept_basic=True, accept_digest=False, default_to_digest=False".format(
                     dc.__class__.__name__
                 )
@@ -186,7 +185,7 @@ class HTTPAuthenticator(BaseMiddleware):
     def __call__(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
 
-        _logger.debug("realm '{}'".format(realm))
+        # _logger.debug("realm '{}'".format(realm))
         # _logger.debug("{}".format(environ))
 
         force_allow = False
@@ -274,17 +273,17 @@ class HTTPAuthenticator(BaseMiddleware):
     def auth_basic_auth_request(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
         auth_header = environ["HTTP_AUTHORIZATION"]
-        authvalue = ""
+        auth_value = ""
         try:
-            authvalue = auth_header[len("Basic ") :].strip()
+            auth_value = auth_header[len("Basic ") :].strip()
         except Exception:
-            authvalue = ""
-        # authvalue = authvalue.strip().decode("base64")
-        authvalue = compat.base64_decodebytes(compat.to_bytes(authvalue))
-        authvalue = compat.to_native(authvalue)
-        user_name, password = authvalue.split(":", 1)
+            auth_value = ""
+        # auth_value = auth_value.strip().decode("base64")
+        auth_value = compat.base64_decodebytes(compat.to_bytes(auth_value))
+        auth_value = compat.to_native(auth_value)
+        user_name, password = auth_value.split(":", 1)
 
-        if self.domain_controller.auth_domain_user(realm, user_name, password, environ):
+        if self.domain_controller.basic_auth_user(realm, user_name, password, environ):
             environ["http_authenticator.realm"] = realm
             environ["http_authenticator.user_name"] = user_name
             return self.next_app(environ, start_response)
@@ -353,9 +352,9 @@ class HTTPAuthenticator(BaseMiddleware):
             auth_header_list += auth_header_fixlist
 
         for auth_header in auth_header_list:
-            authheaderkey = auth_header[0]
-            authheadervalue = auth_header[1].strip().strip('"')
-            auth_header_dict[authheaderkey] = authheadervalue
+            auth_header_key = auth_header[0]
+            auth_header_value = auth_header[1].strip().strip('"')
+            auth_header_dict[auth_header_key] = auth_header_value
 
         _logger.debug(
             "auth_digest_auth_request: {}".format(environ["HTTP_AUTHORIZATION"])
@@ -463,7 +462,6 @@ class HTTPAuthenticator(BaseMiddleware):
             required_digest = self.compute_digest_response(
                 realm,
                 req_username,
-                # req_password,
                 req_method,
                 req_uri,
                 req_nonce,
@@ -482,7 +480,6 @@ class HTTPAuthenticator(BaseMiddleware):
                     root_digest = self.compute_digest_response(
                         "/",
                         req_username,
-                        # req_password,
                         req_method,
                         req_uri,
                         req_nonce,

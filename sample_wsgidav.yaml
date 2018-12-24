@@ -98,17 +98,11 @@ simple_dc:
         "/share1":
             "user1":
                 password: "abc123"
-                description: "User 1 for Share 1"
-                roles: []
         "/share2":
             "user1":
                 password: "def456"
-                description: "User 1 for Share 2"
-                roles: []
             "user2":
                 password: "qwerty"
-                description: "User 2 for Share 2"
-                roles: []
 
 # Additional options for NTDomainController only:
 nt_dc:

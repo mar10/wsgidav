@@ -84,20 +84,23 @@ def _check_config(config):
             errors.append("Missing required option '{}'.".format(field))
 
     deprecated_fields = {
+        "acceptbasic": "http_authenticator.accept_basic",
+        "acceptdigest": "http_authenticator.accept_digest",
+        "catchall": "error_printer.catch_all",
+        "defaultdigest": "http_authenticator.default_to_digest",
         "dir_browser.app_class": "middleware_stack",
         "dir_browser.enable": "middleware_stack",
         "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
-        "domaincontroller": "http_authenticator.domain_controller",
         "domain_controller": "http_authenticator.domain_controller",
-        "acceptbasic": "http_authenticator.accept_basic",
-        "acceptdigest": "http_authenticator.accept_digest",
-        "defaultdigest": "http_authenticator.default_to_digest",
-        "trusted_auth_header": "http_authenticator.trusted_auth_header",
-        "propsmanager": "property_manager",
-        "mutableLiveProps": "mutable_live_props",
+        "domaincontroller": "http_authenticator.domain_controller",
+        "http_authenticator.preset_domain": "nt_dc.preset_domain",
+        "http_authenticator.preset_server": "nt_dc.preset_server",
         "locksmanager": "lock_manager",
-        "catchall": "error_printer.catch_all",
+        "mutableLiveProps": "mutable_live_props",
+        "propsmanager": "property_manager",
+        "trusted_auth_header": "http_authenticator.trusted_auth_header",
+        "user_mapping": "simple_dc.user_mapping",
     }
     for old, new in deprecated_fields.items():
         if "." in old:

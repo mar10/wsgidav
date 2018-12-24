@@ -44,7 +44,7 @@ class DomainControllerBase(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def auth_domain_user(self, realm, user_name, password, environ):
+    def basic_auth_user(self, realm, user_name, password, environ):
         """Returns True if this user_name/password pair is valid for the realm,
         False otherwise.
 

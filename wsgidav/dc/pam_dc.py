@@ -37,13 +37,16 @@ class PamDomainController(DomainControllerBase):
         self.pam_encoding = dc_conf.get("encoding", "utf-8")
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
 
+    def __str__(self):
+        return "{}('{}')".format(self.__class__.__name__, self.pam_service)
+
     def get_domain_realm(self, path_info, environ):
         return "PAM({})".format(self.pam_service)
 
     def require_authentication(self, realm, environ):
         return True
 
-    def auth_domain_user(self, realm, user_name, password, environ):
+    def basic_auth_user(self, realm, user_name, password, environ):
         pam = self.pam
 
         is_ok = pam.authenticate(

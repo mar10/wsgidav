@@ -218,12 +218,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if compat.is_basestring(ignore_patterns):
             ignore_patterns = ignore_patterns.split(",")
 
+        ignored_list = []
         for entry in dirInfoList:
             # Skip ignore patterns
             ignore = False
             for pat in ignore_patterns:
                 if fnmatch(entry["display_name"], pat):
-                    _logger.debug("Ignore {}".format(entry["display_name"]))
+                    ignored_list.append(entry["display_name"])
+                    # _logger.debug("Ignore {}".format(entry["display_name"]))
                     ignore = True
                     break
             if ignore:
@@ -242,6 +244,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     entry["str_size"] = util.byte_number_string(content_length)
 
             rows.append(entry)
+        if ignored_list:
+            _logger.debug(
+                "Dir browser ignored {} entries: {}".format(
+                    len(ignored_list), ignored_list
+                )
+            )
 
         # sort
         sort = "name"

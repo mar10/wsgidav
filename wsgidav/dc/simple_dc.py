@@ -27,9 +27,9 @@ used for authentication with http_authenticator.HTTPAuthenticator for the
 WsgiDAV application.
 
 Domain Controllers must provide the methods as described in
-domaincontrollerinterface_
+DomainControllerBase_
 
-.. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
+.. _DomainControllerBase : dc/dc_base.py
 
 """
 from wsgidav import util
@@ -53,21 +53,28 @@ class SimpleDomainController(DomainControllerBase):
             raise RuntimeError("Missing option: simple_dc.user_mapping")
         # self.allowAnonymous = allowAnonymous
 
+    def __str__(self):
+        return "{}()".format(self.__class__.__name__)
+
     def get_domain_realm(self, path_info, environ):
         """Resolve a relative url to the  appropriate realm name."""
         # we don't get the realm here, it was already resolved in the request_resolver
         dav_provider = environ["wsgidav.provider"]
         if not dav_provider:
-            if environ["wsgidav.verbose"] >= 2:
-                _logger.debug(
-                    "get_domain_realm({}): '{}'".format(
-                        util.safe_re_encode(path_info, sys.stdout.encoding), None
-                    )
+            _logger.warn(
+                "get_domain_realm('{}'): '{}'".format(
+                    util.safe_re_encode(path_info, sys.stdout.encoding), None
                 )
+            )
             return None
         realm = dav_provider.share_path
         if realm == "":
             realm = "/"
+        _logger.debug(
+            "get_domain_realm('{}'): '{}'".format(
+                util.safe_re_encode(path_info, sys.stdout.encoding), realm
+            )
+        )
         return realm
 
     def require_authentication(self, realm, environ):
@@ -80,7 +87,7 @@ class SimpleDomainController(DomainControllerBase):
         # Or better: only return False if user map contains a special entry for that share!!
         return realm in self.user_map
 
-    def auth_domain_user(self, realm, user_name, password, environ):
+    def basic_auth_user(self, realm, user_name, password, environ):
         """Returns True if this user_name/password pair is valid for the realm,
         False otherwise. Used for basic authentication."""
         user = self.user_map.get(realm, {}).get(user_name)
