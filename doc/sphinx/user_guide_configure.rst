@@ -27,8 +27,8 @@ This section shows the available options and defaults:
 .. literalinclude:: ../../wsgidav/default_conf.py
     :linenos:
 
-When a Python dict is passed to the :class:`~wsgidav.wsgidav_app.WsgiDAVApp` constructor,
-its values will override those defaults::
+When a Python dict is passed to the :class:`~wsgidav.wsgidav_app.WsgiDAVApp`
+constructor, its values will override those defaults::
 
     root_path = gettempdir()
     provider = FilesystemProvider(root_path)
@@ -44,8 +44,8 @@ its values will override those defaults::
 
 Use a Configuration File
 ------------------------
-When running from the CLI (command line interface), *some* settings may be passed as arguments,
-e.g.::
+When running from the CLI (command line interface), *some* settings may be
+passed as arguments, e.g.::
 
 	$ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp
 
@@ -123,10 +123,10 @@ This stack is defined as a list WSGI compliant application instances, e.g.::
         ...
         }
 
-If the middleware class constructor has a common signature, it is sufficient to pass the class
-instead of the instantiated object.
-The built-in middleware derives from :class:`~wsgidav.middleware.BaseMiddleware`, so we can
-simplify as::
+If the middleware class constructor has a common signature, it is sufficient to
+pass the class instead of the instantiated object.
+The built-in middleware derives from :class:`~wsgidav.middleware.BaseMiddleware`,
+so we can simplify as::
 
     from wsgidav.dir_browser import WsgiDavDirBrowser
     from wsgidav.debug_filter import WsgiDavDebugFilter
@@ -146,8 +146,8 @@ simplify as::
         ...
         }
 
-The middleware stack can be configured and extended. The following example removes the
-directory browser, and adds a third-party debugging tool::
+The middleware stack can be configured and extended. The following example
+removes the directory browser, and adds a third-party debugging tool::
 
     import dozer
 
@@ -179,8 +179,8 @@ directory browser, and adds a third-party debugging tool::
 The stack can also be defined in text files, for example YAML.
 Again, we can pass an import path for a WSGI compliant class if the signature
 is known.
-For third-party middleware however, the constructor's positional arguments should be
-explicitly listed::
+For third-party middleware however, the constructor's positional arguments
+should be explicitly listed::
 
     ...
     middleware_stack:
@@ -197,8 +197,25 @@ explicitly listed::
         - wsgidav.request_resolver.RequestResolver
 
 Note that the external middleware must be available, for example by calling
-``pip install Doze``, so this will not be possible if WsgiDAV is running from the
-MSI installer.
+``pip install Doze``, so this will not be possible if WsgiDAV is running from
+the MSI installer.
+
+
+DAVProvider
+-----------
+
+.. todo:: TODO
+
+Route share paths to DAVProvider instances
+By default a writable `FilesystemProvider` is assumed, but can be forced
+to read-only.
+Note that a DomainController may still restrict access completely or prevent
+editing depending on authentication.
+Two syntax variants are supported:
+    <mount_path>: <folder_path>
+or
+    <mount_path>: { "root": <folder_path>, "readonly": <bool> }
+(Custom providers cannot currently be configured using YAML.)
 
 
 Property Manager
@@ -228,7 +245,7 @@ Example YAML configuration::
 
     http_authenticator:
         domain_controller: null  # Same as wsgidav.dc.simple_dc.SimpleDomainController
-        accept_basic: true
+        accept_basic: true  # Pass false to prevent sending clear text passwords
         accept_digest: true
         default_to_digest: true
 
@@ -255,8 +272,9 @@ NTDomainController
 ~~~~~~~~~~~~~~~~~~
 Allows users to authenticate against a Windows NT domain or a local computer.
 
-The :class:`~wsgidav.dc.nt_dc.NTDomainController`
-requires basic authentication and thererfore should use SSL.
+The :class:`~wsgidav.dc.nt_dc.NTDomainController` requires basic authentication
+and therefore should use SSL.
+
 Example YAML configuration::
 
     ssl_certificate: wsgidav/server/sample_bogo_server.crt
@@ -272,6 +290,32 @@ Example YAML configuration::
     nt_dc:
         preset_domain: null
         preset_server: null
+
+
+PamDomainController
+~~~~~~~~~~~~~~~~~~~
+Allows users to authenticate against a PAM (Pluggable Authentication Modules),
+that are at the core of user authentication in any modern linux distribution
+and macOS.
+
+The :class:`~wsgidav.dc.nt_dc.PamDomainController` requires basic
+authentication and therefore should use SSL.
+
+Example YAML configuration that authenticates users against the server's
+known user accounts::
+
+    ssl_certificate: wsgidav/server/sample_bogo_server.crt
+    ssl_private_key: wsgidav/server/sample_bogo_server.key
+    ssl_certificate_chain: None
+
+    http_authenticator:
+        domain_controller: wsgidav.dc.pam_dc.PamDomainController
+        accept_basic: true
+        accept_digest: false
+        default_to_digest: false
+
+    pam_dc:
+        service: "login"
 
 
 Sample ``wsgidav.yaml``
@@ -291,7 +335,6 @@ Sample ``wsgidav.json``
 
 We can also use a `JSON <http://www.json.org>`_ file for configuration.
 The structure is identical to the YAML format.
-
 
 See the :doc:`sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)

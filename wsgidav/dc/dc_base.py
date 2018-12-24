@@ -45,13 +45,15 @@ class DomainControllerBase(object):
 
     @abc.abstractmethod
     def basic_auth_user(self, realm, user_name, password, environ):
-        """Returns True if this user_name/password pair is valid for the realm,
-        False otherwise.
+        """Check request access permissions for realm/user_name/password.
 
         Called by http_authenticator for basic authentication requests.
 
         Returns:
-            bool
+            False if user is not known or not authorized
+            True if user is authorized with full access
+            Also a dict may be returned to control write-access:
+                {"readonly": <bool>}
         """
         raise NotImplementedError
 
@@ -59,7 +61,7 @@ class DomainControllerBase(object):
     def supports_http_digest_auth(self):
         """Signal if this DC instance supports the HTTP digest authentication theme.
 
-        If true, `HTTPAuthenticator` will call `dc.compute_http_digest_a1()`,
+        If true, `HTTPAuthenticator` will call `dc.digest_auth_user()`,
         so this method must be implemented as well.
 
         Returns:
@@ -91,8 +93,12 @@ class DomainControllerBase(object):
         A1 = md5(compat.to_bytes(data)).hexdigest()
         return A1
 
-    def compute_http_digest_a1(self, realm, user_name):
-        """Compute the HTTP digest hash A1 part.
+    def digest_auth_user(self, realm, user_name, environ):
+        """Check access permissions for realm/user_name.
+
+        Called by http_authenticator for basic authentication requests.
+
+        Compute the HTTP digest hash A1 part.
 
         Any domain controller that returns true for `supports_http_digest_auth()`
         MUST implement this method.
@@ -110,7 +116,10 @@ class DomainControllerBase(object):
             realm (str):
             user_name (str):
 
-        Return:
-            string (MD5 Hash)
+        Returns:
+            False if user is not known or not authorized
+            Otherwise a dict is returned to control write-access:
+                {"a1": <str>, "readonly": <bool>}
+            Tuple (MD5 Hash, can_edit)
         """
         raise NotImplementedError

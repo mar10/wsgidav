@@ -61,11 +61,27 @@ middleware_stack:
 #: e.g. <mount_path>/<share_name>/<res_path>
 mount_path: null
 
+#: Route share paths to DAVProvider instances
+#: By default a writable `FilesystemProvider` is assumed, but can be forced
+#: to read-only.
+#: Note that a DomainController may still restrict access completely or prevent
+#: editing depending on authentication.
+#: The following syntax variants are supported:
+#:     <mount_path>: <folder_path>
+#: or
+#:     <mount_path>: { "root": <folder_path>, "readonly": <bool> }
+#: or
+#:     <mount_path>: { "provider": <class_path>, "args": [<pos-args>, ...] }
+
 provider_mapping:
     "/share1": "/path/to/share1"
     "/share2":
-        - "/path/to/share2"
-        - true  # read-only
+        root: "/path/to/share2"
+        readonly: true
+    "/share3":
+        provider: path.to.CustomProviderClass
+        args: ["/path/to/share3", "second_arg"]
+        kwargs: {"another_arg": 42}
 
 
 # ==============================================================================
@@ -94,10 +110,14 @@ simple_dc:
     # These routes must match the provider mapping.
     # NOTE: Provider routes without a matching entry here, are open for
     # anonymous access!
+    default_anonymous: true
     user_mapping:
+        "/":
+            "*": {}
         "/share1":
             "user1":
                 password: "abc123"
+                roles: ["editor"]
         "/share2":
             "user1":
                 password: "def456"

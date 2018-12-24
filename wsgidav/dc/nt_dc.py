@@ -117,7 +117,7 @@ class NTDomainController(DomainControllerBase):
     #     dc_name = self._get_domain_controller_name(domain)
     #     return self._is_user(usern, domain, dc_name)
 
-    # def compute_http_digest_a1(self, realm, user_name):
+    # def digest_auth_user(self, realm, user_name, environ):
     #     """Computes digest hash A1 part."""
     #     password = self._get_realm_user_password(realm, user_name)
     #     return self._compute_http_digest_a1(realm, user_name, password)

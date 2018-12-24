@@ -104,7 +104,7 @@ class SimpleDomainController(DomainControllerBase):
         """
         return realm in self.user_map and user_name in self.user_map[realm]
 
-    def compute_http_digest_a1(self, realm, user_name):
+    def digest_auth_user(self, realm, user_name):
         """Computes digest hash A1 part."""
         password = self.user_map.get(realm, {}).get(user_name, {}).get("password")
         return self._compute_http_digest_a1(realm, user_name, password)

@@ -473,6 +473,7 @@ class HTTPAuthenticator(BaseMiddleware):
                 req_cnonce,
                 req_qop,
                 req_nc,
+                environ,
             )
 
             if required_digest != req_response:
@@ -491,6 +492,7 @@ class HTTPAuthenticator(BaseMiddleware):
                         req_cnonce,
                         req_qop,
                         req_nc,
+                        environ,
                     )
                     if root_digest == req_response:
                         _logger.warning(
@@ -524,12 +526,12 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.next_app(environ, start_response)
 
     def compute_digest_response(
-        self, realm, user_name, method, uri, nonce, cnonce, qop, nc
+        self, realm, user_name, method, uri, nonce, cnonce, qop, nc, environ
     ):
         """Computes digest hash.
 
         Calculation of the A1 (HA1) part is delegated to the dc interface method
-        `compute_http_digest_a1()`.
+        `digest_auth_user()`.
 
         Args:
             realm (str):
@@ -550,7 +552,7 @@ class HTTPAuthenticator(BaseMiddleware):
         def md5kd(secret, data):
             return md5h(secret + ":" + data)
 
-        A1 = self.domain_controller.compute_http_digest_a1(realm, user_name)
+        A1 = self.domain_controller.digest_auth_user(realm, user_name, environ)
 
         A2 = method + ":" + uri
 
