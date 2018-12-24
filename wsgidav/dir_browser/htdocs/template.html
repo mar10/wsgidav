@@ -34,10 +34,10 @@
 
   {%- if user_name and config.show_user %}
   <p class="auth-user">
-    Authenticated user: "{{user_name}}", realm: "{{realm}}".
-    <!--{%- if is_authenticated %}
-      <a title="Logout current user" href="{{ url }}?logout">Logout</a>
-    {% endif -%}-->
+    Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}.
+    {%- if is_authenticated %}
+      <a title="Logout current user" href="{{ url }}?logout" target="_blank">Logout</a>
+    {% endif -%}
   </p>
   {% endif -%}
 

@@ -131,7 +131,7 @@ def make_domain_controller(config):
 class HTTPAuthenticator(BaseMiddleware):
     """WSGI Middleware for basic and digest authentication."""
 
-    error_message = """
+    error_message_401 = """
         <html><head><title>401 Access not authorized</title></head>
         <body>
         <h1>401 Access not authorized</h1>
@@ -188,6 +188,11 @@ class HTTPAuthenticator(BaseMiddleware):
         # _logger.debug("realm '{}'".format(realm))
         # _logger.debug("{}".format(environ))
 
+        force_logout = False
+        if "logout" in environ.get("QUERY_STRING", ""):
+            force_logout = True
+            _logger.warning("Force logout")
+
         force_allow = False
         if HOTFIX_WIN_AcceptAnonymousOptions and environ["REQUEST_METHOD"] == "OPTIONS":
             _logger.warning("No authorization required for OPTIONS method")
@@ -217,7 +222,7 @@ class HTTPAuthenticator(BaseMiddleware):
             )
             return self.next_app(environ, start_response)
 
-        if "HTTP_AUTHORIZATION" in environ:
+        if "HTTP_AUTHORIZATION" in environ and not force_logout:
             auth_header = environ["HTTP_AUTHORIZATION"]
             auth_match = self._header_method.search(auth_header)
             auth_method = "None"
@@ -258,7 +263,7 @@ class HTTPAuthenticator(BaseMiddleware):
         _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realm))
         wwwauthheaders = 'Basic realm="' + realm + '"'
 
-        body = compat.to_bytes(self.error_message)
+        body = compat.to_bytes(self.error_message_401)
         start_response(
             "401 Not Authorized",
             [
@@ -309,7 +314,7 @@ class HTTPAuthenticator(BaseMiddleware):
             )
         )
 
-        body = compat.to_bytes(self.error_message)
+        body = compat.to_bytes(self.error_message_401)
         start_response(
             "401 Not Authorized",
             [

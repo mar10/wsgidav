@@ -100,12 +100,6 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 )
                 return [res]
 
-            # # Support logout
-            # if "logout" in environ.get(
-            #     "QUERY_STRING", ""
-            # ):
-            #     return self.send_basic_auth_response(environ, start_response)
-
             context = self._get_context(environ, dav_res)
 
             res = self.template.render(**context)
@@ -151,6 +145,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "parent_url": util.get_uri_parent(dav_res.get_href()),
             "config": self.dir_config,
             "is_readonly": is_readonly,
+            "access": "read-only" if is_readonly else "read-write",
             "is_authenticated": False,
         }
 
@@ -261,10 +256,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
             )
 
         if "http_authenticator.user_name" in environ:
-            context["is_authenticated"] = True
-            context["user_name"] = (
-                environ.get("http_authenticator.user_name") or "anonymous"
+            context.update(
+                {
+                    "is_authenticated": True,
+                    "user_name": (
+                        environ.get("http_authenticator.user_name") or "anonymous"
+                    ),
+                    "realm": environ.get("http_authenticator.realm"),
+                }
             )
-            context["realm"] = environ.get("http_authenticator.realm")
 
         return context
