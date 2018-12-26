@@ -44,6 +44,9 @@ This release contains **BREAKING CHANGES!**
   - Every domain controller now has a config section of its own. E.g.
     the `user_mapping` option for `SimpleDomainController` was moved to
     `simple_dc.user_mapping`.
+  - `simple_dc.user_mapping` no longer allows anonymous access by default.
+    It is now required to pass `user_mapping: "share1": True`.
+    Also a new pseudo-share `"*"` can be used to define defaults
 - Refactor WsgiDirBrowser:
   - Use Jinja2 and load static assets through own WsgiDAV provider
   - Move to `wsgidav.dir_browser` package

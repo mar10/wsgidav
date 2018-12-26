@@ -63,7 +63,10 @@ class BaseDomainController(object):
         self.wsgidav_app = wsgidav_app
         self.config = config
 
-    def _calc_realm_from_path(self, path_info, environ):
+    def __str__(self):
+        return "{}()".format(self.__class__.__name__)
+
+    def _calc_realm_from_path_provider(self, path_info, environ):
         """Internal helper to implement get_domain_realm()."""
         if environ:
             # Called while in a request:
@@ -76,7 +79,7 @@ class BaseDomainController(object):
 
         if not dav_provider:
             logger.warn(
-                "_calc_realm_from_path('{}'): '{}'".format(
+                "_calc_realm_from_path_provider('{}'): '{}'".format(
                     util.safe_re_encode(path_info, sys.stdout.encoding), None
                 )
             )
@@ -86,7 +89,7 @@ class BaseDomainController(object):
         if realm == "":
             realm = "/"
         # logger.debug(
-        #     "_calc_realm_from_path('{}'): '{}'".format(
+        #     "_calc_realm_from_path_provider('{}'): '{}'".format(
         #         util.safe_re_encode(path_info, sys.stdout.encoding), realm
         #     )
         # )
@@ -103,7 +106,7 @@ class BaseDomainController(object):
         - For every request, before basic or digest authentication is handled.
 
         A domain controller that uses the share path as realm name may use
-        the `_calc_realm_from_path()` helper.
+        the `_calc_realm_from_path_provider()` helper.
 
         Args:
             path_info (str):

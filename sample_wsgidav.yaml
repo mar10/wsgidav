@@ -180,6 +180,7 @@ dir_browser:
     response_trailer: true
     #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
+    show_logout: true
     #: Send <dm:mount> response if request URL contains '?davmount'
     #: Also add a respective link at the top of the listing
     #: (See https://tools.ietf.org/html/rfc4709)
