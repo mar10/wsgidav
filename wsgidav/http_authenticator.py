@@ -33,8 +33,10 @@ Usage::
 The HTTPAuthenticator will put the following authenticated information in the
 environ dictionary::
 
-   environ["http_authenticator.realm"] = realm name
-   environ["http_authenticator.user_name"] = user_name
+   environ["wsgidav.auth.realm"] = realm name
+   environ["wsgidav.auth.user_name"] = user_name
+   environ["wsgidav.auth.roles"] = <tuple> (optional)
+   environ["wsgidav.auth.permissions"] = <tuple> (optional)
 
 
 **Domain Controllers**
@@ -103,7 +105,7 @@ HOTFIX_WINXP_AcceptRootShareLogin = True
 HOTFIX_WIN_AcceptAnonymousOptions = False
 
 
-def make_domain_controller(config):
+def make_domain_controller(wsgidav_app, config):
     dc = config.get("http_authenticator", {}).get("domain_controller")
     org_dc = dc
     if dc is True or not dc:
@@ -116,7 +118,7 @@ def make_domain_controller(config):
 
     if inspect.isclass(dc):
         # If a class is passed, instantiate that
-        dc = dc(config)
+        dc = dc(wsgidav_app, config)
     else:
         raise RuntimeError(
             "Could not resolve domain controller class (got {})".format(org_dc)
@@ -144,7 +146,7 @@ class HTTPAuthenticator(BaseMiddleware):
         self._verbose = config.get("verbose", 3)
         self.config = config
 
-        dc = make_domain_controller(config)
+        dc = make_domain_controller(wsgidav_app, config)
         self.domain_controller = dc
 
         auth_conf = config.get("http_authenticator", {})
@@ -176,16 +178,24 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.domain_controller
 
     def allow_anonymous_access(self, share):
-        # FIXME: use DC
-        # return self.domain_controller.require_authentication(share)
-        return isinstance(
-            self.domain_controller, SimpleDomainController
-        ) and not self.config["simple_dc"]["user_mapping"].get(share)
+        return self.domain_controller.require_authentication(share, None)
+        # return isinstance(
+        #     self.domain_controller, SimpleDomainController
+        # ) and not self.config["simple_dc"]["user_mapping"].get(share)
 
     def __call__(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
 
-        # _logger.debug("realm '{}'".format(realm))
+        environ["wsgidav.auth.realm"] = realm
+        environ["wsgidav.auth.user_name"] = ""
+        # The domain controller MAY set those values depending on user's
+        # authorization:
+        environ["wsgidav.auth.roles"] = None
+        environ["wsgidav.auth.permissions"] = None
+
+        _logger.debug(
+            "HTTPAuthenticator realm({}): '{}'".format(environ["PATH_INFO"], realm)
+        )
         # _logger.debug("{}".format(environ))
 
         force_logout = False
@@ -201,10 +211,10 @@ class HTTPAuthenticator(BaseMiddleware):
         if force_allow or not self.domain_controller.require_authentication(
             realm, environ
         ):
-            # no authentication needed
+            # No authentication needed
             _logger.debug("No authorization required for realm '{}'".format(realm))
-            environ["http_authenticator.realm"] = realm
-            environ["http_authenticator.user_name"] = ""
+            # environ["wsgidav.auth.realm"] = realm
+            # environ["wsgidav.auth.user_name"] = ""
             return self.next_app(environ, start_response)
 
         if self.trusted_auth_header and environ.get(self.trusted_auth_header):
@@ -216,10 +226,8 @@ class HTTPAuthenticator(BaseMiddleware):
                     realm,
                 )
             )
-            environ["http_authenticator.realm"] = realm
-            environ["http_authenticator.user_name"] = environ.get(
-                self.trusted_auth_header
-            )
+            # environ["wsgidav.auth.realm"] = realm
+            environ["wsgidav.auth.user_name"] = environ.get(self.trusted_auth_header)
             return self.next_app(environ, start_response)
 
         if "HTTP_AUTHORIZATION" in environ and not force_logout:
@@ -283,15 +291,16 @@ class HTTPAuthenticator(BaseMiddleware):
             auth_value = auth_header[len("Basic ") :].strip()
         except Exception:
             auth_value = ""
-        # auth_value = auth_value.strip().decode("base64")
+
         auth_value = compat.base64_decodebytes(compat.to_bytes(auth_value))
         auth_value = compat.to_native(auth_value)
         user_name, password = auth_value.split(":", 1)
 
         if self.domain_controller.basic_auth_user(realm, user_name, password, environ):
-            environ["http_authenticator.realm"] = realm
-            environ["http_authenticator.user_name"] = user_name
+            environ["wsgidav.auth.realm"] = realm
+            environ["wsgidav.auth.user_name"] = user_name
             return self.next_app(environ, start_response)
+
         return self.send_basic_auth_response(environ, start_response)
 
     def send_digest_auth_response(self, environ, start_response):
@@ -394,7 +403,7 @@ class HTTPAuthenticator(BaseMiddleware):
             is_invalid_req = True
             invalid_req_reasons.append("Missing 'username' in headers")
 
-        # TODO: Chun added this comments, but code was commented out
+        # TODO: Chun added this comments, but code was commented out:
         # Do not do realm checking - a hotfix for WinXP using some other realm's
         # auth details for this realm - if user/password match
         if "realm" in auth_header_dict:
@@ -458,10 +467,6 @@ class HTTPAuthenticator(BaseMiddleware):
             invalid_req_reasons.append("Expected 'response' in headers")
 
         if not is_invalid_req:
-            # req_password = self.domain_controller.get_realm_user_password(
-            #     realm, req_username, environ
-            # )
-
             req_method = environ["REQUEST_METHOD"]
 
             required_digest = self.compute_digest_response(
@@ -480,8 +485,8 @@ class HTTPAuthenticator(BaseMiddleware):
                 warning_msg = "compute_digest_response('{}', '{}', ...): {} != {}".format(
                     realm, req_username, required_digest, req_response
                 )
-                _logger.warning(warning_msg)
                 if HOTFIX_WINXP_AcceptRootShareLogin:
+                    # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest
                     root_digest = self.compute_digest_response(
                         "/",
@@ -502,7 +507,9 @@ class HTTPAuthenticator(BaseMiddleware):
                         )
                     else:
                         is_invalid_req = True
-                        invalid_req_reasons.append(warning_msg)
+                        invalid_req_reasons.append(
+                            warning_msg + " (also tried '/' realm)"
+                        )
                 else:
                     is_invalid_req = True
                     invalid_req_reasons.append(warning_msg)
@@ -521,8 +528,8 @@ class HTTPAuthenticator(BaseMiddleware):
             _logger.warning("\n".join(invalid_req_reasons))
             return self.send_digest_auth_response(environ, start_response)
 
-        environ["http_authenticator.realm"] = realm
-        environ["http_authenticator.user_name"] = req_username
+        environ["wsgidav.auth.realm"] = realm
+        environ["wsgidav.auth.user_name"] = req_username
         return self.next_app(environ, start_response)
 
     def compute_digest_response(

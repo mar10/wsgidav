@@ -29,13 +29,11 @@ WsgiDAV application.
 Domain Controllers must provide the methods as described in
 DomainControllerBase_
 
-.. _DomainControllerBase : dc/dc_base.py
+.. _DomainControllerBase : dc/base_dc.py
 
 """
 from wsgidav import util
-from wsgidav.dc.dc_base import DomainControllerBase
-
-import sys
+from wsgidav.dc.base_dc import BaseDomainController
 
 
 __docformat__ = "reStructuredText"
@@ -43,8 +41,9 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-class SimpleDomainController(DomainControllerBase):
-    def __init__(self, config):
+class SimpleDomainController(BaseDomainController):
+    def __init__(self, wsgidav_app, config):
+        super(SimpleDomainController, self).__init__(wsgidav_app, config)
         # auth_conf = config["http_authenticator"]
         dc_conf = config["simple_dc"]
 
@@ -58,23 +57,25 @@ class SimpleDomainController(DomainControllerBase):
 
     def get_domain_realm(self, path_info, environ):
         """Resolve a relative url to the  appropriate realm name."""
+        realm = self._calc_realm_from_path(path_info, environ)
         # we don't get the realm here, it was already resolved in the request_resolver
-        dav_provider = environ["wsgidav.provider"]
-        if not dav_provider:
-            _logger.warn(
-                "get_domain_realm('{}'): '{}'".format(
-                    util.safe_re_encode(path_info, sys.stdout.encoding), None
-                )
-            )
-            return None
-        realm = dav_provider.share_path
-        if realm == "":
-            realm = "/"
-        _logger.debug(
-            "get_domain_realm('{}'): '{}'".format(
-                util.safe_re_encode(path_info, sys.stdout.encoding), realm
-            )
-        )
+        # dav_provider = ["wsgidav.provider"]
+        # dav_provider = environ["wsgidav.provider"]
+        # if not dav_provider:
+        #     _logger.warn(
+        #         "get_domain_realm('{}'): '{}'".format(
+        #             util.safe_re_encode(path_info, sys.stdout.encoding), None
+        #         )
+        #     )
+        #     return None
+        # realm = dav_provider.share_path
+        # if realm == "":
+        #     realm = "/"
+        # _logger.debug(
+        #     "get_domain_realm('{}'): '{}'".format(
+        #         util.safe_re_encode(path_info, sys.stdout.encoding), realm
+        #     )
+        # )
         return realm
 
     def require_authentication(self, realm, environ):
@@ -97,14 +98,14 @@ class SimpleDomainController(DomainControllerBase):
         # We have access to a plaintext password (or stored hash)
         return True
 
-    def is_realm_user(self, realm, user_name, environ):
-        """Return True if this user_name is valid for the realm.
+    # def is_realm_user(self, realm, user_name, environ):
+    #     """Return True if this user_name is valid for the realm.
 
-        Called by http_authenticator for digest authentication.
-        """
-        return realm in self.user_map and user_name in self.user_map[realm]
+    #     Called by http_authenticator for digest authentication.
+    #     """
+    #     return realm in self.user_map and user_name in self.user_map[realm]
 
-    def digest_auth_user(self, realm, user_name):
+    def digest_auth_user(self, realm, user_name, environ):
         """Computes digest hash A1 part."""
         password = self.user_map.get(realm, {}).get(user_name, {}).get("password")
         return self._compute_http_digest_a1(realm, user_name, password)

@@ -73,7 +73,7 @@ Testability and caveats
 """
 from __future__ import print_function
 from wsgidav import compat, util
-from wsgidav.dc.dc_base import DomainControllerBase
+from wsgidav.dc.base_dc import BaseDomainController
 
 import win32net
 import win32netcon
@@ -84,8 +84,9 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-class NTDomainController(DomainControllerBase):
-    def __init__(self, config):
+class NTDomainController(BaseDomainController):
+    def __init__(self, wsgidav_app, config):
+        super(NTDomainController, self).__init__(wsgidav_app, config)
         # auth_conf = config["http_authenticator"]
         dc_conf = config["nt_dc"]
 

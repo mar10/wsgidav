@@ -10,13 +10,13 @@ Purpose
 
 Usage::
 
-   from wsgidav.dc.pam_dc import PamDomainController
-   dc = PamDomainController(config)
+   from wsgidav.dc.pam_dc import PAMDomainController
+   dc = PAMDomainController(config)
 
 """
 from __future__ import print_function
 from wsgidav import util
-from wsgidav.dc.dc_base import DomainControllerBase
+from wsgidav.dc.base_dc import BaseDomainController
 
 import pam
 
@@ -25,8 +25,9 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-class PamDomainController(DomainControllerBase):
-    def __init__(self, config):
+class PAMDomainController(BaseDomainController):
+    def __init__(self, wsgidav_app, config):
+        super(PAMDomainController, self).__init__(wsgidav_app, config)
 
         self.pam = pam.pam()
 

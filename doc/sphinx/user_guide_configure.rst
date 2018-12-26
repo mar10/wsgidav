@@ -292,13 +292,13 @@ Example YAML configuration::
         preset_server: null
 
 
-PamDomainController
+PAMDomainController
 ~~~~~~~~~~~~~~~~~~~
 Allows users to authenticate against a PAM (Pluggable Authentication Modules),
 that are at the core of user authentication in any modern linux distribution
 and macOS.
 
-The :class:`~wsgidav.dc.nt_dc.PamDomainController` requires basic
+The :class:`~wsgidav.dc.nt_dc.PAMDomainController` requires basic
 authentication and therefore should use SSL.
 
 Example YAML configuration that authenticates users against the server's
@@ -309,7 +309,7 @@ known user accounts::
     ssl_certificate_chain: None
 
     http_authenticator:
-        domain_controller: wsgidav.dc.pam_dc.PamDomainController
+        domain_controller: wsgidav.dc.pam_dc.PAMDomainController
         accept_basic: true
         accept_digest: false
         default_to_digest: false

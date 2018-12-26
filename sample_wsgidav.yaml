@@ -2,7 +2,7 @@
 #
 # 1. Rename this file to `wsgidav.yaml`
 # 2. Adjust settings as appropriate
-# 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
+# 3. Run `wsgidav` from the same directory or pass file path with `--config` option.
 #
 # See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 #
@@ -129,7 +129,7 @@ nt_dc:
     preset_domain: null
     preset_server: null
 
-# Additional options for PamDomainController only:
+# Additional options for PAMDomainController only:
 pam_dc:
     service: "login"
     encoding: "utf-8"

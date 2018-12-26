@@ -21,6 +21,7 @@ This release contains **BREAKING CHANGES!**
     - `middleware_stack` entries can also be strings or dicts that are
     evaluated to import and instantiate middleware classes. This allows to
     define and configure external middleware in YAML and JSON config files.
+  - provider_mapping option now supports configuration of custom providers
 - Refactor code base:
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.
@@ -30,9 +31,12 @@ This release contains **BREAKING CHANGES!**
   - Enforce [Black code style](https://github.com/ambv/black)
   - Move some modules to separate packages
   - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
-- Refactor domain_controller:
+- Refactor domain_controller and authentication:
+  - Renamed environ["http_authenticator.realm"], environ["http_authenticator.user_name"]
+    => environ["wsgidav.auth.realm"], environ["wsgidav.auth.user_name"]
+  - DC may define environ["wsgidav.auth.roles"] and environ["wsgidav.auth.permissions"]
   - A common base class simplifies implementation of custom DCs.
-  - New [PamDomainController](https://en.wikipedia.org/wiki/Pluggable_authentication_module)
+  - New [PAMDomainController](https://en.wikipedia.org/wiki/Pluggable_authentication_module)
     allows to authenticate system users on Linux and macOS, for example.
   - Digest hash generation is now delegated to DomainControllers. This allows
     to implement DomainControllers that support digest access authentication

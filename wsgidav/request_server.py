@@ -72,12 +72,12 @@ class RequestServer(object):
         provider = self._davProvider
         # TODO: allow anonymous somehow: this should run, even if http_authenticator middleware
         # is not installed
-        #        assert "http_authenticator.user_name" in environ
-        if "http_authenticator.user_name" not in environ:
-            _logger.warning("Missing 'http_authenticator.user_name' in environ")
+        #        assert "wsgidav.auth.user_name" in environ
+        if "wsgidav.auth.user_name" not in environ:
+            _logger.warning("Missing 'wsgidav.auth.user_name' in environ")
 
         environ["wsgidav.user_name"] = environ.get(
-            "http_authenticator.user_name", "anonymous"
+            "wsgidav.auth.user_name", "anonymous"
         )
         requestmethod = environ["REQUEST_METHOD"]
 

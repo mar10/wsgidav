@@ -255,14 +255,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 )
             )
 
-        if "http_authenticator.user_name" in environ:
+        if "wsgidav.auth.user_name" in environ:
             context.update(
                 {
                     "is_authenticated": True,
-                    "user_name": (
-                        environ.get("http_authenticator.user_name") or "anonymous"
-                    ),
-                    "realm": environ.get("http_authenticator.realm"),
+                    "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
+                    "realm": environ.get("wsgidav.auth.realm"),
                 }
             )
 
