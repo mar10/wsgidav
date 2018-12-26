@@ -70,8 +70,8 @@ class BaseDomainController(object):
         """Internal helper to implement get_domain_realm()."""
         if environ:
             # Called while in a request:
-            # we don't get the share path here: it was already resolved and
-            # stripped in the request_resolver
+            # We don't get the share from the path_info here: it was already
+            # resolved and stripped by the request_resolver
             dav_provider = environ["wsgidav.provider"]
         else:
             # Called on start-up with the share root URL
@@ -88,11 +88,6 @@ class BaseDomainController(object):
         realm = dav_provider.share_path
         if realm == "":
             realm = "/"
-        # logger.debug(
-        #     "_calc_realm_from_path_provider('{}'): '{}'".format(
-        #         util.safe_re_encode(path_info, sys.stdout.encoding), realm
-        #     )
-        # )
         return realm
 
     @abc.abstractmethod
@@ -125,7 +120,8 @@ class BaseDomainController(object):
         - On startup, to check if anonymous access is allowed for a given share.
           In this case, `environ` is None.
         - For every request, before basic or digest authentication is handled.
-          In this case we may set environment variables for anonymous access::
+          If False is returned, we MAY also set environment variables for
+          anonymous access::
 
                 environment["wsgidav.auth.roles"] = (<role>, ...)
                 environment["wsgidav.auth.permissions"] = (<perm>, ...)
@@ -136,7 +132,7 @@ class BaseDomainController(object):
             environ (dict | None):
         Returns:
             False to allow anonymous access
-            True if user is authorized
+            True to force subsequent digest or basic authentication
         """
         raise NotImplementedError
 
@@ -185,23 +181,23 @@ class BaseDomainController(object):
         """
         raise NotImplementedError
 
-    def is_realm_user(self, realm, user_name, environ):
-        """Return true if the user is known and allowed for that realm.
+    # def is_realm_user(self, realm, user_name, environ):
+    #     """Return true if the user is known and allowed for that realm.
 
-        This method is called as a pre-check for digest authentication.
+    #     This method is called as a pre-check for digest authentication.
 
-        A domain controller MAY implement this method if this pre-check is
-        more efficient than a hash calculation or in order to enforce a
-        permission policy.
+    #     A domain controller MAY implement this method if this pre-check is
+    #     more efficient than a hash calculation or in order to enforce a
+    #     permission policy.
 
-        If this method is not implemented, or None or True is returned, the
-        http_authenticator will proceed with calculating and comparing digest
-        hash with the current request.
+    #     If this method is not implemented, or None or True is returned, the
+    #     http_authenticator will proceed with calculating and comparing digest
+    #     hash with the current request.
 
-        Returns:
-            bool: False to reject authentication.
-        """
-        return None
+    #     Returns:
+    #         bool: False to reject authentication.
+    #     """
+    #     return None
 
     def _compute_http_digest_a1(self, realm, user_name, password):
         """Internal helper to compute a digest hash (A1 part)."""

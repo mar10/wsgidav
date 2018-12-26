@@ -395,14 +395,14 @@ class HTTPAuthenticator(BaseMiddleware):
                     )
                 )
 
-            pre_check = self.domain_controller.is_realm_user(
-                realm, req_username, environ
-            )
-            if pre_check is False:
-                is_invalid_req = True
-                invalid_req_reasons.append(
-                    "Not a realm-user: '{}'/'{}'".format(realm, req_username)
-                )
+            # pre_check = self.domain_controller.is_realm_user(
+            #     realm, req_username, environ
+            # )
+            # if pre_check is False:
+            #     is_invalid_req = True
+            #     invalid_req_reasons.append(
+            #         "Not a realm-user: '{}'/'{}'".format(realm, req_username)
+            #     )
         else:
             is_invalid_req = True
             invalid_req_reasons.append("Missing 'username' in headers")
