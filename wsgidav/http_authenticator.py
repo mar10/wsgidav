@@ -78,6 +78,7 @@ all methods of the domain controller as a means for developers to pass informati
 from previous middleware or server config (if required).
 """
 from hashlib import md5
+from textwrap import dedent
 from wsgidav import compat, util
 from wsgidav.dc.simple_dc import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
@@ -133,13 +134,16 @@ def make_domain_controller(wsgidav_app, config):
 class HTTPAuthenticator(BaseMiddleware):
     """WSGI Middleware for basic and digest authentication."""
 
-    error_message_401 = """
-        <html><head><title>401 Access not authorized</title></head>
-        <body>
-        <h1>401 Access not authorized</h1>
-        </body>
+    error_message_401 = dedent(
+        """\
+        <html>
+            <head><title>401 Access not authorized</title></head>
+            <body>
+                <h1>401 Access not authorized</h1>
+            </body>
         </html>
-        """
+    """
+    )
 
     def __init__(self, wsgidav_app, next_app, config):
         super(HTTPAuthenticator, self).__init__(wsgidav_app, next_app, config)

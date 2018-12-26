@@ -156,8 +156,8 @@ class BaseDomainController(object):
 
         Optionally set environment variables:
 
-            environment["wsgidav.auth.roles"] = (<role>, ...)
-            environment["wsgidav.auth.permissions"] = (<perm>, ...)
+            environ["wsgidav.auth.roles"] = (<role>, ...)
+            environ["wsgidav.auth.permissions"] = (<perm>, ...)
 
         Args:
             realm (str):
@@ -215,6 +215,11 @@ class BaseDomainController(object):
 
         Any domain controller that returns true for `supports_http_digest_auth()`
         MUST implement this method.
+
+        Optionally set environment variables:
+
+            environ["wsgidav.auth.roles"] = (<role>, ...)
+            environ["wsgidav.auth.permissions"] = (<perm>, ...)
 
         Note that in order to calculate A1, we need either
 

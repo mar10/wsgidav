@@ -261,6 +261,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     "is_authenticated": True,
                     "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
                     "realm": environ.get("wsgidav.auth.realm"),
+                    "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
+                    "user_permissions": ", ".join(
+                        environ.get("wsgidav.auth.permissions") or []
+                    ),
                 }
             )
 

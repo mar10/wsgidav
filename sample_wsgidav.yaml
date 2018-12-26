@@ -117,6 +117,7 @@ simple_dc:
         "/share1":
             "user1":
                 password: "abc123"
+                # Optional: passed to downstream middleware as environ["wsgidav.auth.roles"]
                 roles: ["editor"]
         "/share2":
             "user1":
