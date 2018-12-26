@@ -140,7 +140,7 @@ class HgResource(_DAVResource):
         return os.path.join(self.provider.repo.root, *parts)
 
     def _commit(self, message):
-        user = self.environ.get("http_authenticator.user_name") or "Anonymous"
+        user = self.environ.get("wsgidav.auth.user_name") or "Anonymous"
         commands.commit(
             self.provider.ui,
             self.provider.repo,

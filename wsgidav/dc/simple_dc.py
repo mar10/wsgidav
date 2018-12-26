@@ -7,34 +7,63 @@
 Implementation of a domain controller that uses realm/user_name/password mappings
 from the configuration file and uses the share path as realm name.
 
-user_map is defined a follows::
+user_mapping is defined a follows::
 
-    user_map = {'realm1': {
-                 'John Smith': {'description': '',
-                                'password': 'YouNeverGuessMe',
-                                },
-                 'Dan Brown': {'description': '',
-                               'password': 'DontGuessMeEither',
-                               },
-                 }
-               'realm2': {
-                 ...
-                 }
-               }
+    simple_dc: {
+        user_mapping = {
+            "realm1": {
+                "John Smith": {
+                    "password": "YouNeverGuessMe",
+                },
+                "Dan Brown": {
+                    "password": "DontGuessMeEither",
+                    "roles": ["editor"]
+                }
+            },
+            "realm2": {
+                ...
+            }
+        },
+    }
+
+The "*" pseudo-share is used to pass a default definition::
+
+    user_mapping = {
+        "*": {  // every share except for 'realm2'
+            "Dan Brown": {
+                "password": "DontGuessMeEither",
+                "roles": ["editor"]
+            }
+        },
+        "realm2": {
+            ...
+        }
+    },
+
+A share (even the "*" pseudo-share) can be set to True to allow anonymous access::
+
+    user_mapping = {
+        "*": {
+            "Dan Brown": {
+                "password": "DontGuessMeEither",
+                "roles": ["editor"]
+            },
+        },
+        "realm2": True
+    },
 
 The SimpleDomainController fulfills the requirements of a DomainController as
 used for authentication with http_authenticator.HTTPAuthenticator for the
 WsgiDAV application.
 
 Domain Controllers must provide the methods as described in
-domaincontrollerinterface_
+DomainControllerBase_
 
-.. _domaincontrollerinterface : interfaces/domaincontrollerinterface.py
+.. _DomainControllerBase : dc/base_dc.py
 
 """
 from wsgidav import util
-
-import sys
+from wsgidav.dc.base_dc import BaseDomainController
 
 
 __docformat__ = "reStructuredText"
@@ -42,56 +71,68 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 
-class SimpleDomainController(object):
-    def __init__(self, opts):
-        #        self.dc_opts = opts.get("domain_controller", {})
-        self.user_map = opts.get("user_mapping")
+class SimpleDomainController(BaseDomainController):
+    def __init__(self, wsgidav_app, config):
+        super(SimpleDomainController, self).__init__(wsgidav_app, config)
+        dc_conf = config["simple_dc"]
+
+        self.user_map = dc_conf.get("user_mapping")
         if self.user_map is None:
-            raise RuntimeError("Missing option: user_mapping")
-        # self.allowAnonymous = allowAnonymous
-
-    def __repr__(self):
-        return "DC {}".format(self.__class__.__name__)
-
-    def get_domain_realm(self, input_url, environ):
-        """Resolve a relative url to the  appropriate realm name."""
-        # we don't get the realm here, its already been resolved in
-        # request_resolver
-        dav_provider = environ["wsgidav.provider"]
-        if not dav_provider:
-            if environ["wsgidav.verbose"] >= 2:
-                _logger.debug(
-                    "get_domain_realm({}): '{}'".format(
-                        util.safe_re_encode(input_url, sys.stdout.encoding), None
+            raise RuntimeError("Missing option: simple_dc.user_mapping")
+        for share, data in self.user_map.items():
+            if type(data) not in (bool, dict) or not data:
+                raise RuntimeError(
+                    "Invalid option: simple_dc.user_mapping['{}']: must be True or non-empty dict.".format(
+                        share
                     )
                 )
-            return None
-        realm = dav_provider.sharePath
-        if realm == "":
-            realm = "/"
+        return
+
+    def __str__(self):
+        return "{}()".format(self.__class__.__name__)
+
+    def _get_realm_entry(self, realm, user_name=None):
+        """Return the matching user_map entry (falling back to default '*' if any)."""
+        realm_entry = self.user_map.get(realm)
+        if realm_entry is None:
+            realm_entry = self.user_map.get("*")
+        if user_name is None:
+            return realm_entry
+        return realm_entry.get(user_name)
+
+    def get_domain_realm(self, path_info, environ):
+        """Resolve a relative url to the appropriate realm name."""
+        realm = self._calc_realm_from_path_provider(path_info, environ)
         return realm
 
-    def require_authentication(self, realm_name, environ):
-        """Return True if this realm requires authentication or False if it is
-        available for general access."""
-        # TODO: Should check for --allow_anonymous?
-        #        assert realm_name in environ["wsgidav.config"]["user_mapping"], (
-        #            "Currently there must be at least on user mapping for this realm")
-        return realm_name in self.user_map
+    def require_authentication(self, realm, environ):
+        """Return True if this realm requires authentication (grant anonymous access otherwise)."""
+        realm_entry = self._get_realm_entry(realm)
+        if realm_entry is None:
+            _logger.error("No user_mapping or '*' defined for realm '{}'".format(realm))
+        return realm_entry is not True
+        # return realm not in self.user_map
 
-    def is_realm_user(self, realm_name, user_name, environ):
-        """Returns True if this user_name is valid for the realm, False otherwise."""
-        return realm_name in self.user_map and user_name in self.user_map[realm_name]
-
-    def get_realm_user_password(self, realm_name, user_name, environ):
-        """Return the password for the given user_name for the realm.
-
-        Used for digest authentication.
-        """
-        return self.user_map.get(realm_name, {}).get(user_name, {}).get("password")
-
-    def auth_domain_user(self, realm_name, user_name, password, environ):
+    def basic_auth_user(self, realm, user_name, password, environ):
         """Returns True if this user_name/password pair is valid for the realm,
         False otherwise. Used for basic authentication."""
-        user = self.user_map.get(realm_name, {}).get(user_name)
-        return user is not None and password == user.get("password")
+        # user = self.user_map.get(realm, {}).get(user_name)
+        user = self._get_realm_entry(realm, user_name)
+
+        if user is not None and password == user.get("password"):
+            environ["wsgidav.auth.roles"] = user.get("roles", [])
+            # environ["wsgidav.auth.permissions"] = (<perm>, ...)
+            return True
+        return False
+
+    def supports_http_digest_auth(self):
+        # We have access to a plaintext password (or stored hash)
+        return True
+
+    def digest_auth_user(self, realm, user_name, environ):
+        """Computes digest hash A1 part."""
+        user = self._get_realm_entry(realm, user_name)
+        password = user.get("password")
+        # password = self.user_map.get(realm, {}).get(user_name, {}).get("password")
+        environ["wsgidav.auth.roles"] = user.get("roles", [])
+        return self._compute_http_digest_a1(realm, user_name, password)

@@ -90,7 +90,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "provider_mapping": {"/": provider},
         # None: dc.simple_dc.SimpleDomainController(user_mapping)
         "http_authenticator": {"domain_controller": None},
-        "user_mapping": {},
+        "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
         "verbose": 1,
         "enable_loggers": [],
         "property_manager": True,  # None: no property manager
@@ -98,7 +98,10 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     }
 
     if with_auth:
-        config.update(
+        config["http_authenticator"].update(
+            {"accept_basic": True, "accept_digest": False, "default_to_digest": False}
+        )
+        config["simple_dc"].update(
             {
                 "user_mapping": {
                     "/": {
@@ -113,10 +116,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
                             "roles": [],
                         },
                     }
-                },
-                "accept_basic": True,
-                "accept_digest": False,
-                "default_to_digest": False,
+                }
             }
         )
 

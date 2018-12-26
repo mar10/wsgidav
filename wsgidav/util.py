@@ -23,7 +23,6 @@ from wsgidav.dav_error import (
 )
 from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
-import base64
 import calendar
 import collections
 import logging
@@ -277,7 +276,11 @@ def dynamic_import_class(name):
     import importlib
 
     module_name, class_name = name.rsplit(".", 1)
-    module = importlib.import_module(module_name)
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        _logger.error("Dynamic import of {!r} failed: {}".format(name, e))
+        raise
     the_class = getattr(module, class_name)
     return the_class
 
@@ -946,7 +949,7 @@ def calc_hexdigest(s):
 def calc_base64(s):
     """Return base64 encoded binarystring."""
     s = compat.to_bytes(s)
-    s = base64.encodestring(s).strip()  # return bytestring
+    s = compat.base64_encodebytes(s).strip()  # return bytestring
     return compat.to_native(s)
 
 

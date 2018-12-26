@@ -52,15 +52,15 @@ class RequestServer(object):
         # _logger.debug("RequestServer: __init__")
 
         self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
-        # if self._davProvider.propManager is not None:
+        # if self._davProvider.prop_manager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.is_readonly():
             self._possible_methods.extend(
                 ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"]
             )
-            # if self._davProvider.propManager is not None:
+            # if self._davProvider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
-            if self._davProvider.lockManager is not None:
+            if self._davProvider.lock_manager is not None:
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
     def __del__(self):
@@ -72,12 +72,12 @@ class RequestServer(object):
         provider = self._davProvider
         # TODO: allow anonymous somehow: this should run, even if http_authenticator middleware
         # is not installed
-        #        assert "http_authenticator.user_name" in environ
-        if "http_authenticator.user_name" not in environ:
-            _logger.warning("Missing 'http_authenticator.user_name' in environ")
+        #        assert "wsgidav.auth.user_name" in environ
+        if "wsgidav.auth.user_name" not in environ:
+            _logger.warning("Missing 'wsgidav.auth.user_name' in environ")
 
         environ["wsgidav.user_name"] = environ.get(
-            "http_authenticator.user_name", "anonymous"
+            "wsgidav.auth.user_name", "anonymous"
         )
         requestmethod = environ["REQUEST_METHOD"]
 
@@ -188,7 +188,7 @@ class RequestServer(object):
 
         If depth=='infinity', we also raise when child resources are locked.
         """
-        lockMan = self._davProvider.lockManager
+        lockMan = self._davProvider.lock_manager
         if lockMan is None or res is None:
             return True
 
@@ -255,7 +255,7 @@ class RequestServer(object):
         #            isnewfile = not provider.exists(mappedpath)
 
         refUrl = res.get_ref_url()
-        lockMan = self._davProvider.lockManager
+        lockMan = self._davProvider.lock_manager
         locktokenlist = []
         if lockMan:
             lockList = lockMan.get_indirect_url_lock_list(
@@ -937,12 +937,12 @@ class RequestServer(object):
             self._fail(
                 HTTP_BAD_GATEWAY, "Source and destination must have the same host name."
             )
-        elif not destPath.startswith(provider.mountPath + provider.sharePath):
+        elif not destPath.startswith(provider.mount_path + provider.share_path):
             # Inter-realm copying not supported, since its not possible to
             # authentication-wise
             self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
 
-        destPath = destPath[len(provider.mountPath + provider.sharePath) :]
+        destPath = destPath[len(provider.mount_path + provider.share_path) :]
         assert destPath.startswith("/")
 
         # destPath is now relative to current mount/share starting with '/'
@@ -1169,7 +1169,7 @@ class RequestServer(object):
         path = environ["PATH_INFO"]
         provider = self._davProvider
         res = provider.get_resource_inst(path, environ)
-        lockMan = provider.lockManager
+        lockMan = provider.lock_manager
 
         if lockMan is None:
             # http://www.webdav.org/specs/rfc4918.html#rfc.section.6.3
@@ -1371,7 +1371,7 @@ class RequestServer(object):
         provider = self._davProvider
         res = self._davProvider.get_resource_inst(path, environ)
 
-        lockMan = provider.lockManager
+        lockMan = provider.lock_manager
         if lockMan is None:
             self._fail(HTTP_NOT_IMPLEMENTED, "This share does not support locking.")
         elif util.get_content_length(environ) != 0:
@@ -1415,7 +1415,7 @@ class RequestServer(object):
         res = provider.get_resource_inst(path, environ)
 
         dav_compliance_level = "1,2"
-        if provider is None or provider.is_readonly() or provider.lockManager is None:
+        if provider is None or provider.is_readonly() or provider.lock_manager is None:
             dav_compliance_level = "1"
 
         headers = [
@@ -1446,24 +1446,24 @@ class RequestServer(object):
         if res and res.is_collection:
             # Existing collection
             allow.extend(["HEAD", "GET", "PROPFIND"])
-            # if provider.propManager is not None:
+            # if provider.prop_manager is not None:
             #     allow.extend( [ "PROPFIND" ] )
             if not provider.is_readonly():
                 allow.extend(["DELETE", "COPY", "MOVE", "PROPPATCH"])
-                # if provider.propManager is not None:
+                # if provider.prop_manager is not None:
                 #     allow.extend( [ "PROPPATCH" ] )
-                if provider.lockManager is not None:
+                if provider.lock_manager is not None:
                     allow.extend(["LOCK", "UNLOCK"])
         elif res:
             # Existing resource
             allow.extend(["HEAD", "GET", "PROPFIND"])
-            # if provider.propManager is not None:
+            # if provider.prop_manager is not None:
             #     allow.extend( [ "PROPFIND" ] )
             if not provider.is_readonly():
                 allow.extend(["PUT", "DELETE", "COPY", "MOVE", "PROPPATCH"])
-                # if provider.propManager is not None:
+                # if provider.prop_manager is not None:
                 #     allow.extend( [ "PROPPATCH" ] )
-                if provider.lockManager is not None:
+                if provider.lock_manager is not None:
                     allow.extend(["LOCK", "UNLOCK"])
             if res.support_ranges():
                 headers.append(("Allow-Ranges", "bytes"))

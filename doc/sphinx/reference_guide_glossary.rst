@@ -68,7 +68,7 @@ You will find this terms / naming conventions in the source:
   WsgiDAV mount points ('share path')?
 
   Constructed like
-      mountPath = environ[SCRIPT_NAME]
+      mount_path = environ[SCRIPT_NAME]
   Example
       "/dav"
 
@@ -147,7 +147,7 @@ You will find this terms / naming conventions in the source:
   is the refUrl.
 
   Constructed like:
-      realUrl = quote(mountPath + reference path)
+      realUrl = quote(mount_path + reference path)
   Examples:
       "/dav/by_key/1234"
 
@@ -159,7 +159,7 @@ You will find this terms / naming conventions in the source:
   with '/'.  (See http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3)
 
   Constructed like:
-      href = quote(mountPath + preferredPath)
+      href = quote(mount_path + preferredPath)
   Example:
       "/dav/public/my%20nice%20doc.txt"
 

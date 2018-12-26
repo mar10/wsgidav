@@ -6,49 +6,22 @@
 Tool functions to support Python 2 and 3.
 
 Inspired by six https://pythonhosted.org/six/
+
+TODO: since it is now based on six, we should remove this module eventually.
 """
 # flake8: noqa
 
+from six import BytesIO, PY2, PY3
+from six.moves import cStringIO as StringIO, input as console_input, queue, xrange
+from six.moves.urllib.parse import quote, unquote, urlparse
+
+import six
 import sys
 
 
 __docformat__ = "reStructuredText"
 
-#: True if we are running on Python 2.x
-PY2 = sys.version_info < (3, 0)
-
-#: True if we are running on Python 3
-PY3 = not PY2
-
 _filesystemencoding = sys.getfilesystemencoding()
-
-
-try:
-    console_input = raw_input
-except NameError:
-    console_input = input
-
-try:
-    from cStringIO import StringIO
-
-    BytesIO = StringIO
-    import Queue as queue
-except ImportError:
-    from io import StringIO  # py3
-    from io import BytesIO  # py3
-    import queue
-
-try:
-    from urllib.parse import quote, unquote, urlparse  # py3
-except ImportError:
-    from urllib import quote, unquote
-    from urlparse import urlparse
-
-try:
-    xrange = xrange  # py2
-except NameError:
-    xrange = range  # py3
-
 
 # String Abstractions
 

@@ -2,7 +2,7 @@
 #
 # 1. Rename this file to `wsgidav.yaml`
 # 2. Adjust settings as appropriate
-# 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
+# 3. Run `wsgidav` from the same directory or pass file path with `--config` option.
 #
 # See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 #
@@ -61,22 +61,32 @@ middleware_stack:
 #: e.g. <mount_path>/<share_name>/<res_path>
 mount_path: null
 
+#: Route share paths to DAVProvider instances
+#: By default a writable `FilesystemProvider` is assumed, but can be forced
+#: to read-only.
+#: Note that a DomainController may still restrict access completely or prevent
+#: editing depending on authentication.
+#: The following syntax variants are supported:
+#:     <mount_path>: <folder_path>
+#: or
+#:     <mount_path>: { "root": <folder_path>, "readonly": <bool> }
+#: or
+#:     <mount_path>: { "provider": <class_path>, "args": [<pos-args>, ...] }
+
 provider_mapping:
     "/share1": "/path/to/share1"
     "/share2":
-        - "/path/to/share2"
-        - true  # read-only
+        root: "/path/to/share2"
+        readonly: true
+    "/share3":
+        provider: path.to.CustomProviderClass
+        args: ["/path/to/share3", "second_arg"]
+        kwargs: {"another_arg": 42}
 
 
 # ==============================================================================
 # AUTHENTICATION
 http_authenticator:
-    #: Domain controller that is used to resolve realms and authorization.
-    #: Default null: wsgidav.dc.simple_dc.SimpleDomainController,
-    #: which uses the `user_mapping` option below.
-    #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
-    #: for an example of NT domain controller, etc.)
-    domain_controller: null
     #: Allow basic authentication
     accept_basic: false
     #: Allow digest authentication
@@ -86,30 +96,41 @@ http_authenticator:
     #: Header field that will be accepted as authorized user.
     #: Including quotes, for example: trusted_auth_header = "REMOTE_USER"
     trusted_auth_header: null
-    #: NTDomainController only:
+    #: Domain controller that is used to resolve realms and authorization.
+    #: Default null: wsgidav.dc.simple_dc.SimpleDomainController,
+    #: which uses the `simple_dc.user_mapping` option below.
+    #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+    #: for an example of NT domain controller, etc.)
+    domain_controller: null
+
+
+# Additional options for SimpleDomainController only:
+simple_dc:
+    # Access control per share.
+    # These routes must match the provider mapping.
+    # NOTE: Provider routes without a matching entry here, are open for
+    # anonymous access!
+    user_mapping:
+        "/":
+            "user1":
+                password: "abc123"
+                # Optional: passed to downstream middleware as environ["wsgidav.auth.roles"]
+                roles: ["editor"]
+            "user2":
+                password: "def456"
+                password: "qwerty"
+        "/pub": true  # Pass true to allow anonymous access
+
+# Additional options for NTDomainController only:
+nt_dc:
     preset_domain: null
     preset_server: null
 
-# Access control per share, used by the default SimpleDomainController.
-# These routes must match the provider mapping.
-# NOTE: Provider routes without a matching entry here, are open for
-# anonymous access!
-
-user_mapping:
-    "/share1":
-        "user1":
-            password: "abc123"
-            description: "User 1 for Share 1"
-            roles: []
-    "/share2":
-        "user1":
-            password: "def456"
-            description: "User 1 for Share 2"
-            roles: []
-        "user2":
-            password: "qwerty"
-            description: "User 2 for Share 2"
-            roles: []
+# Additional options for PAMDomainController only:
+pam_dc:
+    service: "login"
+    encoding: "utf-8"
+    resetcreds: True
 
 
 # ==============================================================================
@@ -155,6 +176,7 @@ dir_browser:
     response_trailer: true
     #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
+    show_logout: true
     #: Send <dm:mount> response if request URL contains '?davmount'
     #: Also add a respective link at the top of the listing
     #: (See https://tools.ietf.org/html/rfc4709)

@@ -106,9 +106,12 @@ class WsgiDAVServerThread(Thread):
         # config.update({
         config = {
             "provider_mapping": {"/": provider},
-            "user_mapping": {},
             "host": SERVER_HOST,
             "port": SERVER_PORT,
+            # None: dc.simple_dc.SimpleDomainController(user_mapping)
+            "http_authenticator": {"domain_controller": None},
+            "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
+            "verbose": 4,
             "enable_loggers": [
                 # "http_authenticator",
                 # "lock_manager",
@@ -116,23 +119,34 @@ class WsgiDAVServerThread(Thread):
             "debug_methods": [],
             "property_manager": True,  # True: use lock_manager.LockManager
             "lock_manager": True,  # True: use lock_manager.LockManager
-            # None: dc.simple_dc.SimpleDomainController(user_mapping)
-            "domain_controller": None,
-            "verbose": 4,
         }
 
         if withAuthentication:
-            config["user_mapping"] = {
-                "/": {
-                    "tester": {"password": "secret", "description": "", "roles": []},
-                    "tester2": {"password": "secret2", "description": "", "roles": []},
+            config["http_authenticator"].update(
+                {
+                    "accept_basic": True,
+                    "accept_digest": False,
+                    "default_to_digest": False,
                 }
-            }
-            config["http_authenticator"] = {
-                "accept_basic": True,
-                "accept_digest": False,
-                "default_to_digest": False,
-            }
+            )
+            config["simple_dc"].update(
+                {
+                    "user_mapping": {
+                        "/": {
+                            "tester": {
+                                "password": "secret",
+                                "description": "",
+                                "roles": [],
+                            },
+                            "tester2": {
+                                "password": "secret2",
+                                "description": "",
+                                "roles": [],
+                            },
+                        }
+                    }
+                }
+            )
 
         app = WsgiDAVApp(config)
 

@@ -3,7 +3,7 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
-"""
+r"""
 ::
 
      _      __         _ ___  ___ _   __
@@ -84,20 +84,23 @@ def _check_config(config):
             errors.append("Missing required option '{}'.".format(field))
 
     deprecated_fields = {
+        "acceptbasic": "http_authenticator.accept_basic",
+        "acceptdigest": "http_authenticator.accept_digest",
+        "catchall": "error_printer.catch_all",
+        "defaultdigest": "http_authenticator.default_to_digest",
         "dir_browser.app_class": "middleware_stack",
         "dir_browser.enable": "middleware_stack",
         "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
-        "domaincontroller": "http_authenticator.domain_controller",
         "domain_controller": "http_authenticator.domain_controller",
-        "acceptbasic": "http_authenticator.accept_basic",
-        "acceptdigest": "http_authenticator.accept_digest",
-        "defaultdigest": "http_authenticator.default_to_digest",
-        "trusted_auth_header": "http_authenticator.trusted_auth_header",
-        "propsmanager": "property_manager",
-        "mutableLiveProps": "mutable_live_props",
+        "domaincontroller": "http_authenticator.domain_controller",
+        "http_authenticator.preset_domain": "nt_dc.preset_domain",
+        "http_authenticator.preset_server": "nt_dc.preset_server",
         "locksmanager": "lock_manager",
-        "catchall": "error_printer.catch_all",
+        "mutableLiveProps": "mutable_live_props",
+        "propsmanager": "property_manager",
+        "trusted_auth_header": "http_authenticator.trusted_auth_header",
+        "user_mapping": "simple_dc.user_mapping",
     }
     for old, new in deprecated_fields.items():
         if "." in old:
@@ -123,13 +126,11 @@ class WsgiDAVApp(object):
 
         self.config = copy.deepcopy(DEFAULT_CONFIG)
         util.deep_update(self.config, config)
-        # self.config.update(config)
         config = self.config
 
         # Evaluate configuration and set defaults
         _check_config(config)
 
-        #        response_trailer = config.get("response_trailer", "")
         self.verbose = config.get("verbose", 3)
 
         lock_storage = config.get("lock_manager")
@@ -151,12 +152,12 @@ class WsgiDAVApp(object):
         self.mount_path = config.get("mount_path")
         auth_conf = config.get("http_authenticator", {})
 
-        # Instantiate DAV resource provider objects for every share
-        # provider_mapping may contain the args that are passed to a `FilesystemProvider`
-        # instance:
+        # Instantiate DAV resource provider objects for every share.
+        # provider_mapping may contain the args that are passed to a
+        # `FilesystemProvider` instance:
         #     <mount_path>: <folder_path>
         # or
-        #     <mount_path>: [folder_path, is_readonly]
+        #     <mount_path>: { "root": <folder_path>, "readonly": True }
         # or contain a complete new instance:
         #     <mount_path>: <DAVProvider Instance>
 
@@ -167,23 +168,7 @@ class WsgiDAVApp(object):
         for share, provider in provider_mapping.items():
             self.add_provider(share, provider)
 
-        # Figure out the domain controller, used by http_authenticator
-        # dc = config.get("http_authenticator", {}).get("domain_controller")
-        # if dc is True or not dc:
-        #     # True or null:
-        #     dc = SimpleDomainController
-
-        # if compat.is_basestring(dc):
-        #     # If a plain string is passed, try to import it as class
-        #     dc = dynamic_import_class(dc)
-
-        # if inspect.isclass(dc):
-        #     # If a class is passed, instantiate that
-        #     # assert issubclass(mw, BaseMiddleware)  # TODO: remove this assert with 3.0
-        #     dc = dc(config)
-
-        # domain_controller = dc
-        # print(domain_controller)
+        self.http_authenticator = None
         domain_controller = None
 
         # Define WSGI application stack
@@ -194,18 +179,16 @@ class WsgiDAVApp(object):
         # is eventually called by the server.
         self.application = self
 
-        # When building up the middleware stack, this app will be wrapped and replaced by the
-        # next middleware in the list.
-        # The `middleware_stack` is configured such that the first app in the list should be
-        # called first. But since every app wraps its predecessor, we iterate in reverse
-        # order:
+        # The `middleware_stack` is configured such that the first app in the
+        # list should be called first. Since every app wraps its predecessor, we
+        # iterate in reverse order:
         for mw in reversed(middleware_stack):
             # The middleware stack configuration may contain plain strings, dicts,
             # classes, or objects
             app = None
             if compat.is_basestring(mw):
-                # If a plain string is passed, try to import it, assuming BaseMiddleware
-                # signature
+                # If a plain string is passed, try to import it, assuming
+                # `BaseMiddleware` signature
                 app_class = dynamic_import_class(mw)
                 app = app_class(self, self.application, config)
             elif type(mw) is dict:
@@ -225,13 +208,10 @@ class WsgiDAVApp(object):
                 # Otherwise assume an initialized middleware instance
                 app = mw
 
-            # FIXME: We should try to generalize this specific code:
+            # Remember
             if isinstance(app, HTTPAuthenticator):
+                self.http_authenticator = app
                 domain_controller = app.get_domain_controller()
-                # Check anonymous access
-                for share, data in self.provider_map.items():
-                    if app.allow_anonymous_access(share):
-                        data["allow_anonymous"] = True
 
             # Add middleware to the stack
             if app:
@@ -240,6 +220,7 @@ class WsgiDAVApp(object):
             else:
                 _logger.error("Could not add middleware {}.".format(mw))
 
+        domain_controller
         # Print info
         _logger.info(
             "WsgiDAV/{} Python/{} {}".format(
@@ -268,32 +249,58 @@ class WsgiDAVApp(object):
         if self.verbose >= 3:
             _logger.info("Registered DAV providers by route:")
             for share in self.sorted_share_list:
-                data = self.provider_map[share]
-                hint = " (anonymous)" if data["allow_anonymous"] else ""
-                _logger.info("  - '{}': {}{}".format(share, data["provider"], hint))
+                provider = self.provider_map[share]
+                hint = (
+                    " (anonymous)"
+                    if domain_controller.is_share_anonymous(share)
+                    else ""
+                )
+                _logger.info("  - '{}': {}{}".format(share, provider, hint))
 
         if auth_conf.get("accept_basic") and not config.get("ssl_certificate"):
             _logger.warning(
                 "Basic authentication is enabled: It is highly recommended to enable SSL."
             )
 
-        for share, data in self.provider_map.items():
-            if data["allow_anonymous"]:
-                # TODO: we should only warn here, if --no-auth is not given
-                _logger.warning("Share '{}' will allow anonymous access.".format(share))
+        if domain_controller:
+            for share, _provider in self.provider_map.items():
+                if domain_controller.is_share_anonymous(share):
+                    _logger.warning(
+                        "Share '{}' will allow anonymous access.".format(share)
+                    )
         return
 
     def add_provider(self, share, provider, readonly=False):
-        """Add a provider to the provider_map."""
+        """Add a provider to the provider_map routing table."""
         # Make sure share starts with, or is '/'
         share = "/" + share.strip("/")
         assert share not in self.provider_map
-        # We allow a simple string as 'provider'. In this case we interpret
-        # it as a file system root folder that is published.
+
         if compat.is_basestring(provider):
+            # Syntax:
+            #   <mount_path>: <folder_path>
+            # We allow a simple string as 'provider'. In this case we interpret
+            # it as a file system root folder that is published.
             provider = FilesystemProvider(provider, readonly)
+        elif type(provider) in (dict,):
+            if "provider" in provider:
+                # Syntax:
+                #   <mount_path>: {"provider": <class_path>, "args": <pos_args>, "kwargs": <named_args}
+                prov_class = dynamic_import_class(provider["provider"])
+                provider = prov_class(
+                    *provider.get("args", []), **provider.get("kwargs", {})
+                )
+            else:
+                # Syntax:
+                #   <mount_path>: {"root": <path>, "redaonly": <bool>}
+                provider = FilesystemProvider(
+                    provider["root"], bool(provider.get("readonly", False))
+                )
         elif type(provider) in (list, tuple):
-            provider = FilesystemProvider(provider[0], provider[1])
+            raise ValueError(
+                "Provider {}: tuple/list syntax is no longer supported".format(provider)
+            )
+            # provider = FilesystemProvider(provider[0], provider[1])
 
         if not isinstance(provider, DAVProvider):
             raise ValueError("Invalid provider {}".format(provider))
@@ -307,7 +314,8 @@ class WsgiDAVApp(object):
         provider.set_lock_manager(self.lock_manager)
         provider.set_prop_manager(self.prop_manager)
 
-        self.provider_map[share] = {"provider": provider, "allow_anonymous": False}
+        self.provider_map[share] = provider
+        # self.provider_map[share] = {"provider": provider, "allow_anonymous": False}
 
         # Store the list of share paths, ordered by length, so route lookups
         # will return the most specific match
@@ -315,6 +323,29 @@ class WsgiDAVApp(object):
         self.sorted_share_list = sorted(self.sorted_share_list, key=len, reverse=True)
 
         return provider
+
+    def resolve_provider(self, path):
+        """Get the registered DAVProvider for a given path.
+
+        Returns:
+            tuple: (share, provider)
+        """
+        # Find DAV provider that matches the share
+        share = None
+        lower_path = path.lower()
+        for r in self.sorted_share_list:
+            # @@: Case sensitivity should be an option of some sort here;
+            # os.path.normpath might give the preferred case for a filename.
+            if r == "/":
+                share = r
+                break
+            elif lower_path == r or lower_path.startswith(r + "/"):
+                share = r
+                break
+
+        if share is None:
+            return None, None
+        return share, self.provider_map.get(share)
 
     def __call__(self, environ, start_response):
 
@@ -353,24 +384,27 @@ class WsgiDAVApp(object):
         environ["wsgidav.verbose"] = self.verbose
 
         # Find DAV provider that matches the share
-        share = None
-        lower_path = path.lower()
-        for r in self.sorted_share_list:
-            # @@: Case sensitivity should be an option of some sort here;
-            # os.path.normpath might give the preferred case for a filename.
-            if r == "/":
-                share = r
-                break
-            elif lower_path == r or lower_path.startswith(r + "/"):
-                share = r
-                break
+        share, provider = self.resolve_provider(path)
+        # share = None
+        # lower_path = path.lower()
+        # for r in self.sorted_share_list:
+        #     # @@: Case sensitivity should be an option of some sort here;
+        #     # os.path.normpath might give the preferred case for a filename.
+        #     if r == "/":
+        #         share = r
+        #         break
+        #     elif lower_path == r or lower_path.startswith(r + "/"):
+        #         share = r
+        #         break
 
         # Note: we call the next app, even if provider is None, because OPTIONS
         #       must still be handled.
         #       All other requests will result in '404 Not Found'
-        if share is not None:
-            share_data = self.provider_map.get(share)
-            environ["wsgidav.provider"] = share_data["provider"]
+        # if share is not None:
+        #     share_data = self.provider_map.get(share)
+        #     environ["wsgidav.provider"] = share_data["provider"]
+
+        environ["wsgidav.provider"] = provider
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
 
@@ -458,7 +492,7 @@ class WsgiDAVApp(object):
 
             # Log request
             if self.verbose >= 3:
-                userInfo = environ.get("http_authenticator.user_name")
+                userInfo = environ.get("wsgidav.auth.user_name")
                 if not userInfo:
                     userInfo = "(anonymous)"
                 extra = []

@@ -79,7 +79,7 @@ for cmd in ["bdist_msi"]:
 #   2. users may prefer another server
 #   3. there may already cherrypy versions installed
 
-install_requires = ["defusedxml", "jsmin", "Jinja2", "PyYAML"]
+install_requires = ["defusedxml", "jsmin", "six", "Jinja2", "PyYAML"]
 setup_requires = install_requires
 tests_require = []
 
