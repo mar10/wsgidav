@@ -263,9 +263,8 @@ class WsgiDAVApp(object):
             )
 
         if domain_controller:
-            for share, provider in self.provider_map.items():
+            for share, _provider in self.provider_map.items():
                 if domain_controller.is_share_anonymous(share):
-                    # TODO: we should only warn here, if --no-auth is not given
                     _logger.warning(
                         "Share '{}' will allow anonymous access.".format(share)
                     )
