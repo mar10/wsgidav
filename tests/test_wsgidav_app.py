@@ -55,7 +55,7 @@ class ServerTest(unittest.TestCase):
             "provider_mapping": {"/": provider},
             # None: dc.simple_dc.SimpleDomainController(user_mapping)
             "http_authenticator": {"domain_controller": None},
-            "simple_dc": {"user_mapping": {}},
+            "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
             "verbose": 1,
             "enable_loggers": [],
             "property_manager": None,  # None: no property manager

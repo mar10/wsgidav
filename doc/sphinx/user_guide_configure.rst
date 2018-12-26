@@ -266,6 +266,7 @@ Example YAML configuration::
                     description: "User 2 for Share 2"
                     roles: []
 
+.. todo:: "*" syntax and pass true to allow anonymous access
 
 
 NTDomainController

@@ -90,7 +90,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "provider_mapping": {"/": provider},
         # None: dc.simple_dc.SimpleDomainController(user_mapping)
         "http_authenticator": {"domain_controller": None},
-        "simple_dc": {"user_mapping": {}},
+        "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
         "verbose": 1,
         "enable_loggers": [],
         "property_manager": True,  # None: no property manager

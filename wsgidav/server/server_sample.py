@@ -24,7 +24,7 @@ def main():
         "http_authenticator": {
             "domain_controller": None  # None: dc.simple_dc.SimpleDomainController(user_mapping)
         },
-        "simple_dc": {"user_mapping": {}},
+        "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
         "verbose": 1,
         "enable_loggers": [],
         "property_manager": True,  # True: use property_manager.PropertyManager

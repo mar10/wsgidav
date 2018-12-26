@@ -110,7 +110,7 @@ class WsgiDAVServerThread(Thread):
             "port": SERVER_PORT,
             # None: dc.simple_dc.SimpleDomainController(user_mapping)
             "http_authenticator": {"domain_controller": None},
-            "simple_dc": {"user_mapping": {}},
+            "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
             "verbose": 4,
             "enable_loggers": [
                 # "http_authenticator",

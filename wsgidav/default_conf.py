@@ -58,7 +58,8 @@ DEFAULT_CONFIG = {
         "trusted_auth_header": None,
     },
     #: Used by SimpleDomainController only
-    "simple_dc": {"user_mapping": {}},
+    # "simple_dc": {"user_mapping": {}},
+    "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
     # Verbose Output
     # 0 - no output
     # 1 - no output (excepting application exceptions)
