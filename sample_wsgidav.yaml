@@ -110,20 +110,16 @@ simple_dc:
     # These routes must match the provider mapping.
     # NOTE: Provider routes without a matching entry here, are open for
     # anonymous access!
-    default_anonymous: true
     user_mapping:
         "/":
-            "*": {}
-        "/share1":
             "user1":
                 password: "abc123"
                 # Optional: passed to downstream middleware as environ["wsgidav.auth.roles"]
                 roles: ["editor"]
-        "/share2":
-            "user1":
-                password: "def456"
             "user2":
+                password: "def456"
                 password: "qwerty"
+        "/pub": true  # Pass true to allow anonymous access
 
 # Additional options for NTDomainController only:
 nt_dc:
