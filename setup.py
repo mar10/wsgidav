@@ -255,5 +255,6 @@ setup(
     cmdclass={"test": ToxCommand, "sphinx": SphinxCommand},
     entry_points={"console_scripts": ["wsgidav = wsgidav.server.server_cli:run"]},
     options={"build_exe": build_exe_options, "bdist_msi": bdist_msi_options},
+    # Used by cx_Freeze:
     executables=executables,
 )

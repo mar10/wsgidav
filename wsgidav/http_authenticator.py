@@ -373,10 +373,10 @@ class HTTPAuthenticator(BaseMiddleware):
             auth_header_value = auth_header[1].strip().strip('"')
             auth_header_dict[auth_header_key] = auth_header_value
 
-        _logger.debug(
-            "handle_digest_auth_request: {}".format(environ["HTTP_AUTHORIZATION"])
-        )
-        _logger.debug("  -> {}".format(auth_header_dict))
+        # _logger.debug(
+        #     "handle_digest_auth_request: {}".format(environ["HTTP_AUTHORIZATION"])
+        # )
+        # _logger.debug("  -> {}".format(auth_header_dict))
 
         req_username = None
         if "username" in auth_header_dict:
