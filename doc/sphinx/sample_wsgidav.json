@@ -16,7 +16,7 @@
     "verbose": 3,
     "provider_mapping": {
         "/share1": "/path/to/share1",
-        "/share2": "/path/to/share2"  // Anonymous, because no user_mapping exists
+        "/share2": "/path/to/share2"
     },
     "http_authenticator": {
         "domain_controller": null,
@@ -33,7 +33,8 @@
                     "description": "User 1 for Share 1",
                     "roles": []
                 }
-            }
+            },
+            "/share2": true  // anonymous access
         }
     },
     // Remove this block to prevent directory browsing

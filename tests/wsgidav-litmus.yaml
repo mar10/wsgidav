@@ -49,7 +49,7 @@ http_authenticator:
 
 simple_dc:
     user_mapping:
-        "/":
+        "*":
             "tester":
                 password: "secret"
 

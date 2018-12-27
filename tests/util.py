@@ -104,7 +104,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         config["simple_dc"].update(
             {
                 "user_mapping": {
-                    "/": {
+                    "*": {
                         "tester": {
                             "password": "secret",
                             "description": "",
