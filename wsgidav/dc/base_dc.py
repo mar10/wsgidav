@@ -67,7 +67,7 @@ class BaseDomainController(object):
         return "{}()".format(self.__class__.__name__)
 
     def _calc_realm_from_path_provider(self, path_info, environ):
-        """Internal helper to implement get_domain_realm()."""
+        """Internal helper for derived classes to implement get_domain_realm()."""
         if environ:
             # Called while in a request:
             # We don't get the share from the path_info here: it was already
@@ -200,7 +200,7 @@ class BaseDomainController(object):
     #     return None
 
     def _compute_http_digest_a1(self, realm, user_name, password):
-        """Internal helper to compute a digest hash (A1 part)."""
+        """Internal helper for derived classes to compute a digest hash (A1 part)."""
         data = user_name + ":" + realm + ":" + password
         A1 = md5(compat.to_bytes(data)).hexdigest()
         return A1
@@ -236,6 +236,7 @@ class BaseDomainController(object):
             environ (dict):
 
         Returns:
-            MD5 Hash
+            str: MD5("{usern_name}:{realm}:{password}")
+            or false if user is unknown or rejected
         """
         raise NotImplementedError

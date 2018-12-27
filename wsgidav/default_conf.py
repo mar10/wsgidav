@@ -3,7 +3,7 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
-"""
+r"""
 ::
 
      _      __         _ ___  ___ _   __
@@ -59,7 +59,7 @@ DEFAULT_CONFIG = {
     },
     #: Used by SimpleDomainController only
     # "simple_dc": {"user_mapping": {}},
-    "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
+    "simple_dc": {"user_mapping": {}},  # anonymous access
     # Verbose Output
     # 0 - no output
     # 1 - no output (excepting application exceptions)

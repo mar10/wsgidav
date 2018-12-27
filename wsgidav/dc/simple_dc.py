@@ -79,6 +79,7 @@ class SimpleDomainController(BaseDomainController):
         self.user_map = dc_conf.get("user_mapping")
         if self.user_map is None:
             raise RuntimeError("Missing option: simple_dc.user_mapping")
+
         for share, data in self.user_map.items():
             if type(data) not in (bool, dict) or not data:
                 raise RuntimeError(
@@ -96,7 +97,7 @@ class SimpleDomainController(BaseDomainController):
         realm_entry = self.user_map.get(realm)
         if realm_entry is None:
             realm_entry = self.user_map.get("*")
-        if user_name is None:
+        if user_name is None or realm_entry is None:
             return realm_entry
         return realm_entry.get(user_name)
 
@@ -109,19 +110,19 @@ class SimpleDomainController(BaseDomainController):
         """Return True if this realm requires authentication (grant anonymous access otherwise)."""
         realm_entry = self._get_realm_entry(realm)
         if realm_entry is None:
-            _logger.error("No user_mapping or '*' defined for realm '{}'".format(realm))
+            _logger.error(
+                'Missing configuration simple_dc.user_mapping["{}"] (or "*"): '
+                "realm is not accesible!".format(realm)
+            )
         return realm_entry is not True
-        # return realm not in self.user_map
 
     def basic_auth_user(self, realm, user_name, password, environ):
         """Returns True if this user_name/password pair is valid for the realm,
         False otherwise. Used for basic authentication."""
-        # user = self.user_map.get(realm, {}).get(user_name)
         user = self._get_realm_entry(realm, user_name)
 
         if user is not None and password == user.get("password"):
             environ["wsgidav.auth.roles"] = user.get("roles", [])
-            # environ["wsgidav.auth.permissions"] = (<perm>, ...)
             return True
         return False
 
@@ -132,7 +133,8 @@ class SimpleDomainController(BaseDomainController):
     def digest_auth_user(self, realm, user_name, environ):
         """Computes digest hash A1 part."""
         user = self._get_realm_entry(realm, user_name)
+        if user is None:
+            return False
         password = user.get("password")
-        # password = self.user_map.get(realm, {}).get(user_name, {}).get("password")
         environ["wsgidav.auth.roles"] = user.get("roles", [])
         return self._compute_http_digest_a1(realm, user_name, password)

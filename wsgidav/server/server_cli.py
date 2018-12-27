@@ -336,7 +336,8 @@ def _init_config():
         config["port"] = cli_opts.get("port")
     if cli_opts.get("host"):
         config["host"] = cli_opts.get("host")
-    if cli_opts.get("verbose") is not None:
+    # if cli_opts.get("verbose") is not None:
+    if cli_opts.get("verbose") != DEFAULT_VERBOSE:
         config["verbose"] = cli_opts.get("verbose")
     if cli_opts.get("profile") is not None:
         config["profile"] = True

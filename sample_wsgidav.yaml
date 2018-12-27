@@ -88,7 +88,7 @@ provider_mapping:
 # AUTHENTICATION
 http_authenticator:
     #: Allow basic authentication
-    accept_basic: false
+    accept_basic: true
     #: Allow digest authentication
     accept_digest: true
     #: true (default digest) or false (default basic)
@@ -102,6 +102,9 @@ http_authenticator:
     #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
     #: for an example of NT domain controller, etc.)
     domain_controller: null
+    # domain_controller: wsgidav.simple.nt_dc.SimpleDomainController'
+    # domain_controller: wsgidav.dc.pam_dc.PAMDomainController'
+    # domain_controller: wsgidav.dc.nt_dc.NTDomainController'
 
 
 # Additional options for SimpleDomainController only:
@@ -111,7 +114,8 @@ simple_dc:
     # NOTE: Provider routes without a matching entry here, are open for
     # anonymous access!
     user_mapping:
-        "/":
+        # "/":
+        "*":  # default (used for all shares that are not explicitly listed)
             "user1":
                 password: "abc123"
                 # Optional: passed to downstream middleware as environ["wsgidav.auth.roles"]
@@ -130,7 +134,7 @@ nt_dc:
 pam_dc:
     service: "login"
     encoding: "utf-8"
-    resetcreds: True
+    resetcreds: true
 
 
 # ==============================================================================

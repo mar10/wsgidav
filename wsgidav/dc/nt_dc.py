@@ -12,7 +12,7 @@ Purpose
 Usage::
 
    from wsgidav.dc.nt_dc import NTDomainController
-   domain_controller = NTDomainController(config)
+   domain_controller = NTDomainController(wsgidav_app, config)
 
 where:
 
@@ -94,7 +94,7 @@ class NTDomainController(BaseDomainController):
         self.preset_server = dc_conf.get("preset_server")
 
     def __str__(self):
-        return "{}('{}', '{}')".format(
+        return "{}({!r}, {!r})".format(
             self.__class__.__name__, self.preset_domain, self.preset_server
         )
 
@@ -179,14 +179,17 @@ class NTDomainController(BaseDomainController):
                     if un == userinfo["name"].lower():
                         return True
             except win32net.error as e:
-                _logger.exception("NetUserEnum: %s" % e)
+                _logger.exception("NetUserEnum: {}".format(e))
                 return False
-        _logger.info("User '%s' not found on server '%s'" % (user_name, server))
+        _logger.info("User {!r} not found on server {!r}".format(user_name, server))
         return False
 
     def _auth_user(self, user_name, password, domain, server):
+
+        # TODO: implement caching?
+
         # TODO: is this pre-test efficient, or should we simply try LogonUser()?
-        #       (It may trigger account locking?)
+        #       (Could this trigger account locking?)
         if not self._is_user(user_name, domain, server):
             return False
 

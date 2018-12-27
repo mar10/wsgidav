@@ -116,7 +116,7 @@ _lockPropertyNames = ["{DAV:}lockdiscovery", "{DAV:}supportedlock"]
 
 
 class _DAVResource(object):
-    """Represents a single existing DAV resource instance.
+    r"""Represents a single existing DAV resource instance.
 
     A resource may be a collection (aka 'folder') or a non-collection (aka
     'file').

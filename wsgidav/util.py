@@ -278,8 +278,8 @@ def dynamic_import_class(name):
     module_name, class_name = name.rsplit(".", 1)
     try:
         module = importlib.import_module(module_name)
-    except ImportError as e:
-        _logger.error("Dynamic import of {!r} failed: {}".format(name, e))
+    except Exception as e:
+        _logger.exception("Dynamic import of {!r} failed: {}".format(name, e))
         raise
     the_class = getattr(module, class_name)
     return the_class
@@ -1001,8 +1001,10 @@ def get_etag(file_path):
 # ========================================================================
 
 # Range Specifiers
-reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
-reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
+reByteRangeSpecifier = re.compile("(([0-9]+)-([0-9]*))")
+reSuffixByteRangeSpecifier = re.compile("(-([0-9]+))")
+# reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
+# reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
 
 
 def obtain_content_ranges(rangetext, filesize):

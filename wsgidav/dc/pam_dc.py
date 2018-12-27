@@ -11,7 +11,7 @@ Purpose
 Usage::
 
    from wsgidav.dc.pam_dc import PAMDomainController
-   dc = PAMDomainController(config)
+   dc = PAMDomainController(wsgidav_app, config)
 
 """
 from __future__ import print_function
@@ -72,12 +72,3 @@ class PAMDomainController(BaseDomainController):
     def supports_http_digest_auth(self):
         # We don't have access to a plaintext password (or stored hash)
         return False
-
-    # def is_realm_user(self, realm, user_name, environ):
-    #     # Don't know:
-    #     return None
-
-    # def get_realm_user_password(self, realm, user_name, environ):
-    #     # We can't access the user's stored password for good reason.
-    #     # Use Basic-Authentication over SSL instead
-    #     raise NotImplementedError
