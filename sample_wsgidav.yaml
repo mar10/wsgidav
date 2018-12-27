@@ -102,7 +102,7 @@ http_authenticator:
     #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
     #: for an example of NT domain controller, etc.)
     domain_controller: null
-    # domain_controller: wsgidav.simple.nt_dc.SimpleDomainController'
+    # domain_controller: wsgidav.dc.simple_dc.SimpleDomainController'
     # domain_controller: wsgidav.dc.pam_dc.PAMDomainController'
     # domain_controller: wsgidav.dc.nt_dc.NTDomainController'
 
