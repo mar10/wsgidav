@@ -47,7 +47,7 @@ Use a Configuration File
 When running from the CLI (command line interface), *some* settings may be
 passed as arguments, e.g.::
 
-	$ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp
+	$ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=anonymous
 
 	Serving on http://0.0.0.0:8080 ...
 
@@ -215,7 +215,12 @@ Two syntax variants are supported:
     <mount_path>: <folder_path>
 or
     <mount_path>: { "root": <folder_path>, "readonly": <bool> }
-(Custom providers cannot currently be configured using YAML.)
+or
+    <mount_path>: {
+        provider: path.to.CustomDAVProviderClass
+        args: ["/path/to/share3", "second_arg"]
+        kwargs: {"another_arg": 42}
+    }
 
 
 Property Manager
@@ -234,12 +239,16 @@ Domain Controller
 -----------------
 
 The HTTP authentication middleware relies on a domain controller.
-Currently two variants are supported.
+Currently three variants are supported.
 
 SimpleDomainController
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Allows to authenticate against a plain mapping of shares and user names.
+
+The pseudo-share "*" maps all URLs that are not explicitly listed.
+
+A value of true must be used to enable anonymous access.
 
 Example YAML configuration::
 
@@ -251,22 +260,39 @@ Example YAML configuration::
 
     simple_dc:
         user_mapping:
-            "/share1":
+            "*":
                 "user1":
                     password: "abc123"
-                    description: "User 1 for Share 1"
-                    roles: []
-            "/share2":
-                "user1":
-                    password: "def456"
-                    description: "User 1 for Share 2"
-                    roles: []
                 "user2":
                     password: "qwerty"
-                    description: "User 2 for Share 2"
+            "/share2":
+                "user1":
+                    password: "abc123"
+
+An optional `roles` list will be passed in `environ["wsgidav.auth.roles"]` to
+downstream middleware. This is currently not used by the provided middleware,
+but may be handy for custom handlers)::
+
+    simple_dc:
+        user_mapping:
+            "*":
+                "user1":
+                    password: "abc123"
+                    roles: ["editor", "admin"]
+                "user2":
+                    password: "abc123"
                     roles: []
 
-.. todo:: "*" syntax and pass true to allow anonymous access
+If no config file is used, anonymous authentication can be enabled on the
+command line like::
+
+    $ wsgidav ... --auth=anonymous
+
+which simply defines this setting::
+
+    simple_dc:
+        user_mapping:
+            "*": true
 
 
 NTDomainController
@@ -292,6 +318,11 @@ Example YAML configuration::
         preset_domain: null
         preset_server: null
 
+If no config file is used, NT authentication can be enabled on the command
+line like::
+
+    $ wsgidav ... --auth=nt
+
 
 PAMDomainController
 ~~~~~~~~~~~~~~~~~~~
@@ -299,7 +330,7 @@ Allows users to authenticate against a PAM (Pluggable Authentication Modules),
 that are at the core of user authentication in any modern linux distribution
 and macOS.
 
-The :class:`~wsgidav.dc.nt_dc.PAMDomainController` requires basic
+The :class:`~wsgidav.dc.pam_dc.PAMDomainController` requires basic
 authentication and therefore should use SSL.
 
 Example YAML configuration that authenticates users against the server's
@@ -317,6 +348,11 @@ known user accounts::
 
     pam_dc:
         service: "login"
+
+If no config file is used, PAM authentication can be enabled on the command
+line like::
+
+    $ wsgidav ... --auth=pam-login
 
 
 Sample ``wsgidav.yaml``

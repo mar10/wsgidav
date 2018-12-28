@@ -3,16 +3,11 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implementation of a domain controller that allows users to authenticate against
-a Windows NT domain or a local computer (used by HTTPAuthenticator).
+a Pluggable Authentication Module ('PAM').
 
-Purpose
--------
+Used by HTTPAuthenticator. Only available on linux and macOS.
 
-Usage::
-
-   from wsgidav.dc.pam_dc import PAMDomainController
-   dc = PAMDomainController(wsgidav_app, config)
-
+See https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 """
 from __future__ import print_function
 from wsgidav import util
@@ -57,7 +52,6 @@ class PAMDomainController(BaseDomainController):
             resetcreds=self.pam_resetcreds,
             encoding=self.pam_encoding,
         )
-
         if is_ok:
             _logger.debug("User '{}' logged on.".format(user_name))
             return True

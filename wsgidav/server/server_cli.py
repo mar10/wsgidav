@@ -96,14 +96,14 @@ Run a WEBDAV server to share file system folders.
 
 Examples:
 
-  Share filesystem folder '/temp':
-    wsgidav --port=80 --host=0.0.0.0 --root=/temp
+  Share filesystem folder '/temp' for anonymous access (no config file used):
+    wsgidav --port=80 --host=0.0.0.0 --root=/temp --auth=anonymous
 
   Run using a specific configuration file:
-    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.yaml
+    wsgidav --port=80 --host=0.0.0.0 --config=~/my_wsgidav.yaml
 
   If no config file is specified, the application will look for a file named
-  'wsgidav.conf' in the current directory.
+  'wsgidav.yaml' in the current directory.
   See
     http://wsgidav.readthedocs.io/en/latest/run-configure.html
   for some explanation of the configuration file format.
@@ -148,6 +148,12 @@ See https://github.com/mar10/wsgidav for additional information.
         help="path to a file system folder to publish as share '/'.",
     )
     parser.add_argument(
+        "--auth",
+        choices=("anonymous", "nt", "pam-login"),
+        help="quick configuration of a domain controller when no config file "
+        "is used",
+    )
+    parser.add_argument(
         "--server",
         choices=SUPPORTED_SERVERS.keys(),
         default="cheroot",
@@ -159,13 +165,6 @@ See https://github.com/mar10/wsgidav for additional information.
         default="builtin",
         help="used by 'cheroot' server if SSL certificates are configured "
         "(default: %(default)s).",
-    )
-    parser.add_argument(
-        "--auth",
-        choices=("anonymous", "nt", "pam-login"),
-        default=None,
-        help="Quick configuration of a default domain controller "
-        "(default: use settings from config file).",
     )
 
     qv_group = parser.add_mutually_exclusive_group()
@@ -180,7 +179,8 @@ See https://github.com/mar10/wsgidav for additional information.
         "-q", "--quiet", default=0, action="count", help="decrement verbosity by one"
     )
 
-    parser.add_argument(
+    qv_group = parser.add_mutually_exclusive_group()
+    qv_group.add_argument(
         "-c",
         "--config",
         dest="config_file",
@@ -191,7 +191,7 @@ See https://github.com/mar10/wsgidav for additional information.
             )
         ),
     )
-    parser.add_argument(
+    qv_group.add_argument(
         "--no-config",
         action="store_true",
         dest="no_config",
@@ -225,8 +225,7 @@ See https://github.com/mar10/wsgidav for additional information.
         sys.exit()
 
     if args.no_config:
-        if args.config_file:
-            parser.error("--config and --no-config are mutually exclusive")
+        pass
         # ... else ignore default config files
     elif args.config_file is None:
         # If --config was omitted, use default (if it exists)

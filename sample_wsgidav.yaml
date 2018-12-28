@@ -74,12 +74,12 @@ mount_path: null
 #:     <mount_path>: { "provider": <class_path>, "args": [<pos-args>, ...] }
 
 provider_mapping:
-    "/share1": "/path/to/share1"
-    "/share2":
+    "/": "/path/to/share1"
+    "/pub":
         root: "/path/to/share2"
         readonly: true
     "/share3":
-        provider: path.to.CustomProviderClass
+        provider: path.to.CustomDAVProviderClass
         args: ["/path/to/share3", "second_arg"]
         kwargs: {"another_arg": 42}
 
@@ -97,22 +97,21 @@ http_authenticator:
     #: Including quotes, for example: trusted_auth_header = "REMOTE_USER"
     trusted_auth_header: null
     #: Domain controller that is used to resolve realms and authorization.
-    #: Default null: wsgidav.dc.simple_dc.SimpleDomainController,
-    #: which uses the `simple_dc.user_mapping` option below.
+    #: Default null: which uses SimpleDomainController and the
+    #: `simple_dc.user_mapping` option below.
     #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
-    #: for an example of NT domain controller, etc.)
+    #: for details.)
     domain_controller: null
-    # domain_controller: wsgidav.dc.simple_dc.SimpleDomainController'
-    # domain_controller: wsgidav.dc.pam_dc.PAMDomainController'
-    # domain_controller: wsgidav.dc.nt_dc.NTDomainController'
+    # domain_controller: wsgidav.dc.simple_dc.SimpleDomainController
+    # domain_controller: wsgidav.dc.pam_dc.PAMDomainController
+    # domain_controller: wsgidav.dc.nt_dc.NTDomainController
 
 
 # Additional options for SimpleDomainController only:
 simple_dc:
     # Access control per share.
     # These routes must match the provider mapping.
-    # NOTE: Provider routes without a matching entry here, are open for
-    # anonymous access!
+    # NOTE: Provider routes without a matching entry here, are inaccessible.
     user_mapping:
         # "/":
         "*":  # default (used for all shares that are not explicitly listed)

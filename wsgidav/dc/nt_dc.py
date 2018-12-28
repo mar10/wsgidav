@@ -4,7 +4,11 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implementation of a domain controller that allows users to authenticate against
-a Windows NT domain or a local computer (used by HTTPAuthenticator).
+a Windows NT domain or a local computer.
+
+Used by HTTPAuthenticator. Only available on linux and macOS.
+
+See also https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 
 Purpose
 -------

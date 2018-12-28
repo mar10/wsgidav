@@ -112,7 +112,7 @@ class SimpleDomainController(BaseDomainController):
         if realm_entry is None:
             _logger.error(
                 'Missing configuration simple_dc.user_mapping["{}"] (or "*"): '
-                "realm is not accesible!".format(realm)
+                "realm is not accessible!".format(realm)
             )
         return realm_entry is not True
 

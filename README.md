@@ -19,7 +19,6 @@ Main features:
     Running WsgiDAV/2.2.2 Cheroot/5.5.0 Python/3.4.2
     Serving on http://0.0.0.0:8080 ...
     ```
-
     Run `wsgidav --help` for a list of available options.
   - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
     web server with SSL support.
@@ -42,6 +41,7 @@ See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)
 
 **Note:** Release 3.0 is pretty new and introduces some refactorings and breaking changes.<br>
 Wimps may prefer using 2.x for a more stable release ;-)
+
 
 ## More info
 

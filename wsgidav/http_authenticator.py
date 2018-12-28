@@ -304,6 +304,11 @@ class HTTPAuthenticator(BaseMiddleware):
             environ["wsgidav.auth.user_name"] = user_name
             return self.next_app(environ, start_response)
 
+        _logger.warning(
+            "Authentication (basic) failed for user '{}', realm '{}'.".format(
+                user_name, realm
+            )
+        )
         return self.send_basic_auth_response(environ, start_response)
 
     def send_digest_auth_response(self, environ, start_response):
@@ -537,13 +542,13 @@ class HTTPAuthenticator(BaseMiddleware):
             invalid_req_reasons.append("Headers:\n    {}".format(auth_header_dict))
             if self._verbose >= 4:
                 _logger.warning(
-                    "Authentication failed for user '{}', realm '{}':\n  {}".format(
+                    "Authentication (digest) failed for user '{}', realm '{}':\n  {}".format(
                         req_username, realm, "\n  ".join(invalid_req_reasons)
                     )
                 )
             else:
                 _logger.warning(
-                    "Authentication failed for user '{}', realm '{}'.".format(
+                    "Authentication (digest) failed for user '{}', realm '{}'.".format(
                         req_username, realm
                     )
                 )
