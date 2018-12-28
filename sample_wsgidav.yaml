@@ -25,10 +25,26 @@ block_size: 8192
 #: Add the MS-Author-Via Response Header to OPTIONS command to allow editing
 #: with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
-#: See issue #8
-unquote_path_info: false
-#: (See issue #73) Set null to activate on Python 3 only
-re_encode_path_info: null
+
+hotfixes:
+    winxp_accept_root_share_login: false
+    win_accept_anonymous_options: false
+    #: See issue #8
+    unquote_path_info: false
+    #: (See issue #73) Set null to activate on Python 3 only
+    re_encode_path_info: null
+    # Handle Microsoft's Win32LastModifiedTime property.
+    # This is useful only in the case when you copy files from a Windows
+    # client into a WebDAV share. Windows sends the "last modified" time of
+    # the file in a Microsoft extended property called "Win32LastModifiedTime"
+    # instead of the standard WebDAV property "getlastmodified". So without
+    # this config option set to "True", the "last modified" time of the copied
+    # file will be "now" instead of its original value.
+    # The proper solution for dealing with the Windows WebDAV client is to use
+    # a persistent property manager. This setting is merely a work-around.
+    # NOTE: Works with Win10, can't work with Win7. Other versions untested.
+    emulate_win32_lastmod: true
+
 
 # ----------------------------------------------------------------------------
 # SSL Support
@@ -113,7 +129,6 @@ simple_dc:
     # These routes must match the provider mapping.
     # NOTE: Provider routes without a matching entry here, are inaccessible.
     user_mapping:
-        # "/":
         "*":  # default (used for all shares that are not explicitly listed)
             "user1":
                 password: "abc123"
@@ -149,7 +164,8 @@ logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname
 logger_date_format: "%H:%M:%S"
 
 #: Let ErrorPrinter middleware catch all exceptions to return as 500 Internal Error
-catch_all: false
+error_printer:
+    catch_all: false
 
 # Enable specific module loggers
 # E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
@@ -168,6 +184,7 @@ debug_litmus: []
 # WsgiDavDirBrowser
 
 dir_browser:
+    enable: true
     #: List of fnmatch patterns that will be hidden in the directory listing
     ignore:
         - ".DS_Store"  # macOS folder meta data
@@ -211,18 +228,6 @@ mutable_live_props:
     # Enable to allow clients to use e.g. the touch or cp / rsync commands with the
     # preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
     - "{DAV:}getlastmodified"
-
-# Handle Microsoft's Win32LastModifiedTime property.
-# This is useful only in the case when you copy files from a Windows
-# client into a WebDAV share. Windows sends the "last modified" time of
-# the file in a Microsoft extended property called "Win32LastModifiedTime"
-# instead of the standard WebDAV property "getlastmodified". So without
-# this config option set to "True", the "last modified" time of the copied
-# file will be "now" instead of its original value.
-# The proper solution for dealing with the Windows WebDAV client is to use
-# a persistent property manager. This setting is merely a work-around.
-# NOTE: Works with Win10, can't work with Win7. Other versions untested.
-emulate_win32_lastmod: true
 
 # ----------------------------------------------------------------------------
 # Lock Manager

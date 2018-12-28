@@ -187,14 +187,14 @@ Hack, Hack, Hack
       `travis <https://travis-ci.org/mar10/wsgidav>`_ and therefore be
       automatically rejected:
 
-        - Run ``$ tox -e black`` to re-format the code, or
+        - Run ``$ tox -e format`` to re-format the code, or
           `look for plugins for your favorite editor <https://black.readthedocs.io/en/stable/editor_integration.html>`_
           that format on-save.
 
         - Run ``$ tox -e check`` frequently and before you commit.
 
-        - Don't forget to run ``$ tox`` to run the whole test suite before
-          you commit.
+        - Don't forget to run ``$ tox -e format`` and ``$ tox`` to run the
+          whole test suite before you commit.
 
 
 Test, Test, Test

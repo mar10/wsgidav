@@ -94,17 +94,6 @@ __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
 
-# HOTFIX for Windows XP (Microsoft-WebDAV-MiniRedir/5.1.2600):
-# When accessing a share '/dav/', XP sometimes sends digests for '/'.
-# With this fix turned on, we allow '/' digests, when a matching '/dav' account
-# is present.
-HOTFIX_WINXP_AcceptRootShareLogin = False
-
-# HOTFIX for Windows
-# MW 2013-12-31: DON'T set this (will MS office to use anonymous always in
-# some scenarios)
-HOTFIX_WIN_AcceptAnonymousOptions = False
-
 
 def make_domain_controller(wsgidav_app, config):
     dc = config.get("http_authenticator", {}).get("domain_controller")
@@ -151,6 +140,22 @@ class HTTPAuthenticator(BaseMiddleware):
 
         dc = make_domain_controller(wsgidav_app, config)
         self.domain_controller = dc
+
+        hotfixes = config.get("hotfixes", {})
+        # HOT FIX for Windows XP (Microsoft-WebDAV-MiniRedir/5.1.2600):
+        # When accessing a share '/dav/', XP sometimes sends digests for '/'.
+        # With this fix turned on, we allow '/' digests, when a matching '/dav' account
+        # is present.
+        self.winxp_accept_root_share_login = hotfixes.get(
+            "winxp_accept_root_share_login", False
+        )
+
+        # HOTFIX for Windows
+        # MW 2013-12-31: DON'T set this (will MS office to use anonymous always in
+        # some scenarios)
+        self.win_accept_anonymous_options = hotfixes.get(
+            "win_accept_anonymous_options", False
+        )
 
         auth_conf = config.get("http_authenticator", {})
 
@@ -207,7 +212,7 @@ class HTTPAuthenticator(BaseMiddleware):
             _logger.warning("Force logout")
 
         force_allow = False
-        if HOTFIX_WIN_AcceptAnonymousOptions and environ["REQUEST_METHOD"] == "OPTIONS":
+        if self.win_accept_anonymous_options and environ["REQUEST_METHOD"] == "OPTIONS":
             _logger.warning("No authorization required for OPTIONS method")
             force_allow = True
 
@@ -421,12 +426,9 @@ class HTTPAuthenticator(BaseMiddleware):
         # auth details for this realm - if user/password match
         if "realm" in auth_header_dict:
             if auth_header_dict["realm"].upper() != realm.upper():
-                if (
-                    HOTFIX_WINXP_AcceptRootShareLogin
-                    and auth_header_dict["realm"] == "/"
-                ):
+                if winxp_accept_root_share_login and auth_header_dict["realm"] == "/":
                     # Hotfix: also accept '/'
-                    _logger.info("HOTFIX_WINXP_AcceptRootShareLogin")
+                    _logger.info("winxp_accept_root_share_login")
                 else:
                     is_invalid_req = True
                     invalid_req_reasons.append("Realm mismatch: '{}'".format(realm))
@@ -505,7 +507,7 @@ class HTTPAuthenticator(BaseMiddleware):
                 warning_msg = "compute_digest_response('{}', '{}', ...): {} != {}".format(
                     realm, req_username, required_digest, req_response
                 )
-                if HOTFIX_WINXP_AcceptRootShareLogin and realm != "/":
+                if winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest
                     root_digest = self.compute_digest_response(

@@ -89,17 +89,20 @@ def _check_config(config):
         "catchall": "error_printer.catch_all",
         "defaultdigest": "http_authenticator.default_to_digest",
         "dir_browser.app_class": "middleware_stack",
-        "dir_browser.enable": "middleware_stack",
+        # "dir_browser.enable": "middleware_stack",
         "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
         "domain_controller": "http_authenticator.domain_controller",
         "domaincontroller": "http_authenticator.domain_controller",
+        "emulate_win32_lastmod": "hotfix.emulate_win32_lastmod",
         "http_authenticator.preset_domain": "nt_dc.preset_domain",
         "http_authenticator.preset_server": "nt_dc.preset_server",
         "locksmanager": "lock_manager",
         "mutableLiveProps": "mutable_live_props",
         "propsmanager": "property_manager",
+        "re_encode_path_info": "hotfix.re_encode_path_info",
         "trusted_auth_header": "http_authenticator.trusted_auth_header",
+        "unquote_path_info": "hotfix.unquote_path_info",
         "user_mapping": "simple_dc.user_mapping",
     }
     for old, new in deprecated_fields.items():
@@ -132,6 +135,14 @@ class WsgiDAVApp(object):
         _check_config(config)
 
         self.verbose = config.get("verbose", 3)
+
+        hotfixes = config.get("hotfixes", {})
+
+        self.re_encode_path_info = hotfixes.get("re_encode_path_info", None)
+        if self.re_encode_path_info is None:
+            self.re_encode_path_info = compat.PY3
+
+        self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
         lock_storage = config.get("lock_manager")
         if lock_storage is True:
@@ -215,8 +226,13 @@ class WsgiDAVApp(object):
 
             # Add middleware to the stack
             if app:
-                mw_list.append(app)
-                self.application = app
+                if callable(getattr(app, "is_disabled", None)) and app.is_disabled():
+                    _logger.warning(
+                        "App {}.is_disabled() returned True: skipping.".format(app)
+                    )
+                else:
+                    mw_list.append(app)
+                    self.application = app
             else:
                 _logger.error("Could not add middleware {}.".format(mw))
 
@@ -263,10 +279,12 @@ class WsgiDAVApp(object):
             )
 
         if domain_controller:
-            for share, _provider in self.provider_map.items():
+            for share, provider in self.provider_map.items():
                 if domain_controller.is_share_anonymous(share):
                     _logger.warning(
-                        "Share '{}' will allow anonymous access.".format(share)
+                        "Share '{}' will allow anonymous {} access.".format(
+                            share, "read" if provider.is_readonly() else "write"
+                        )
                     )
         return
 
@@ -362,16 +380,14 @@ class WsgiDAVApp(object):
         # But also seems to resolve errors when accessing resources with Chinese characters, for
         # example.
         # This is done by default for Python 3, but can be turned off in settings.
-        re_encode_path_info = self.config.get("re_encode_path_info")
-        if re_encode_path_info is None:
-            re_encode_path_info = compat.PY3
-        if re_encode_path_info:
+        if self.re_encode_path_info:
             path = environ["PATH_INFO"] = compat.wsgi_to_bytes(path).decode()
 
         # We optionally unquote PATH_INFO here, although this should already be
         # done by the server (#8).
-        if self.config.get("unquote_path_info", False):
+        if self.unquote_path_info:
             path = compat.unquote(environ["PATH_INFO"])
+
         # GC issue 22: Pylons sends root as u'/'
         if not compat.is_native(path):
             _logger.warning("Got non-native PATH_INFO: {!r}".format(path))
@@ -449,7 +465,7 @@ class WsgiDAVApp(object):
                 and statusCode >= 200
                 and statusCode not in (204, 304)
             )
-            #            _logger.info(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
+            # _logger.info(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
             if contentLengthRequired and currentContentLength in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
@@ -482,12 +498,12 @@ class WsgiDAVApp(object):
                 "wsgidav.all_input_read"
             ):
                 _logger.warning(
-                    "Input stream not completely consumed: closing connection"
+                    "Input stream not completely consumed: closing connection."
                 )
                 forceCloseConnection = True
 
             if forceCloseConnection and headerDict.get("connection") != "close":
-                _logger.warning("Adding 'Connection: close' header")
+                _logger.warning("Adding 'Connection: close' header.")
                 response_headers.append(("Connection", "close"))
 
             # Log request

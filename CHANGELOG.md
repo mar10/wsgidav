@@ -22,6 +22,11 @@ This release contains **BREAKING CHANGES!**
     evaluated to import and instantiate middleware classes. This allows to
     define and configure external middleware in YAML and JSON config files.
   - provider_mapping option now supports configuration of custom providers
+  - Windows XP (Microsoft-WebDAV-MiniRedir/5.1.2600) had a bug
+    when accessing a share '/dav/': XP sometimes sends digests for '/'.
+    In v.2.4 a hotfix was also accept '/' instead of the real share.
+    This is now disabled by default, but can be re-enabled with
+    hotfixes.winxp_accept_root_share_login: true.
 - Refactor code base:
   - **Rename methods** according to PEP 8, e.g.
     `provider.getResourceInst()` => `provider.get_resource_inst()`.

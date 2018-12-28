@@ -56,6 +56,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
         self.template = templateEnv.get_template("template.html")
         self.dir_config = config.get("dir_browser", {})
 
+    def is_disabled(self):
+        return self.dir_config.get("enable") is False
+
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
 

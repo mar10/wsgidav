@@ -28,7 +28,7 @@ This section shows the available options and defaults:
     :linenos:
 
 When a Python dict is passed to the :class:`~wsgidav.wsgidav_app.WsgiDAVApp`
-constructor, its values will override those defaults::
+constructor, its values will override the defaults from above::
 
     root_path = gettempdir()
     provider = FilesystemProvider(root_path)
@@ -47,20 +47,20 @@ Use a Configuration File
 When running from the CLI (command line interface), *some* settings may be
 passed as arguments, e.g.::
 
-	$ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=anonymous
+    $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=anonymous
 
-	Serving on http://0.0.0.0:8080 ...
+    Serving on http://0.0.0.0:8080 ...
 
 Much more options are available when a configuration file is used.
 By default ``wsgidav.yaml``,  ``wsgidav.json``, and ``wsgidav.conf`` are searched in the
 local directory.
 An alternative file name can be specified like so::
 
-	$ wsgidav --config=my_config.yaml
+    $ wsgidav --config=my_config.yaml
 
 To *prevent* the use of of a local default configuration file, use this option::
 
-  $ wsgidav --no-config
+    $ wsgidav --no-config
 
 The options described below can be defined for the CLI either
 
@@ -105,10 +105,10 @@ Middleware Stack
 ----------------
 
 WsgiDAV is built as WSGI application (:class:`~wsgidav.wsgidav_app.WsgiDAVApp`)
-that is extended by a list of middleware components that implement additional
+that is extended by a list of middleware components which implement additional
 functionality.
 
-This stack is defined as a list WSGI compliant application instances, e.g.::
+This stack is defined as a list of WSGI compliant application instances, e.g.::
 
     from wsgidav.debug_filter import WsgiDavDebugFilter
 
@@ -211,16 +211,24 @@ By default a writable `FilesystemProvider` is assumed, but can be forced
 to read-only.
 Note that a DomainController may still restrict access completely or prevent
 editing depending on authentication.
-Two syntax variants are supported:
-    <mount_path>: <folder_path>
-or
-    <mount_path>: { "root": <folder_path>, "readonly": <bool> }
-or
-    <mount_path>: {
-        provider: path.to.CustomDAVProviderClass
-        args: ["/path/to/share3", "second_arg"]
-        kwargs: {"another_arg": 42}
-    }
+
+Three syntax variants are supported:
+
+1. ``<mount_path>: <folder_path>``
+2. ``<mount_path>: { "root": <folder_path>, "readonly": <bool> }``
+3. ``<mount_path>: { "provider": <class_path>, "args:" ..., "kwargs": ... }``
+
+For example::
+
+    provider_mapping:
+        "/": "/path/to/share1"
+        "/pub":
+            root: "/path/to/share2"
+            readonly: true
+        "/share3":
+            provider: path.to.CustomDAVProviderClass
+            args: ["/path/to/share3", "second_arg"]
+            kwargs: {"another_arg": 42}
 
 
 Property Manager
@@ -385,9 +393,10 @@ See the :doc:`sample_wsgidav.json` example.
 Sample ``wsgidav.conf``
 -----------------------
 
-This format uses plain Python syntax, which allows us to use Python data structures,
-and even write helper functions, etc.
+This format uses plain Python syntax, which allows us to use Python data
+structures, and even write helper functions, etc.
 
-This is the most powerful and flexible format, that can be used in complex scenarios.
+This is the most powerful and flexible format, that can be used in complex
+scenarios.
 
 See the :doc:`sample_wsgidav_conf` example.

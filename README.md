@@ -20,6 +20,7 @@ Main features:
     Serving on http://0.0.0.0:8080 ...
     ```
     Run `wsgidav --help` for a list of available options.
+    **NOTE:** The syntax changes slightly with v3.0.
   - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
     web server with SSL support.
   - A binary MSI installer is available for Microsoft Windows.

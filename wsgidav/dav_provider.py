@@ -751,8 +751,9 @@ class _DAVResource(object):
             )
 
         # Live property
-        _config = self.environ["wsgidav.config"]
-        mutableLiveProps = _config.get("mutable_live_props", [])
+        config = self.environ["wsgidav.config"]
+        hotfixes = config.get("hotfixes", {})
+        mutableLiveProps = config.get("mutable_live_props", [])
         # Accept custom live property updates on resources if configured.
         if (
             name.startswith("{DAV:}")
@@ -782,7 +783,7 @@ class _DAVResource(object):
         # with this so we ignore older clients. Others pre-Win10 should be tested.
         if name.startswith("{urn:schemas-microsoft-com:}"):
             agent = self.environ.get("HTTP_USER_AGENT", "None")
-            win32_emu = _config.get("emulate_win32_lastmod", False)
+            win32_emu = config.get("hotfixes", {}).get("emulate_win32_lastmod", False)
             if win32_emu and "MiniRedir/6.1" not in agent:
                 if "Win32LastModifiedTime" in name:
                     return self.set_last_modified(self.path, value.text, dry_run)
