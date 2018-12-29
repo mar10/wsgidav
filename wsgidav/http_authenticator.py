@@ -426,7 +426,10 @@ class HTTPAuthenticator(BaseMiddleware):
         # auth details for this realm - if user/password match
         if "realm" in auth_header_dict:
             if auth_header_dict["realm"].upper() != realm.upper():
-                if winxp_accept_root_share_login and auth_header_dict["realm"] == "/":
+                if (
+                    self.winxp_accept_root_share_login
+                    and auth_header_dict["realm"] == "/"
+                ):
                     # Hotfix: also accept '/'
                     _logger.info("winxp_accept_root_share_login")
                 else:
@@ -507,7 +510,7 @@ class HTTPAuthenticator(BaseMiddleware):
                 warning_msg = "compute_digest_response('{}', '{}', ...): {} != {}".format(
                     realm, req_username, required_digest, req_response
                 )
-                if winxp_accept_root_share_login and realm != "/":
+                if self.winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest
                     root_digest = self.compute_digest_response(
