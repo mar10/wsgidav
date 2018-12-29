@@ -6,7 +6,8 @@
  *
  * JSON formatted (JavaScript-style comments are allowed).
  *
- * NOTE: the recommended configuration file format is YAML.
+ * NOTE: the recommended configuration file format is YAML!
+ *
  * See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
  */
 {
@@ -19,26 +20,24 @@
         "/share2": "/path/to/share2"
     },
     "http_authenticator": {
-        "domain_controller": null,
-        "accept_basic": false,
+        "domain_controller": null,  // Use simple_dc
+        "accept_basic": false,  // Force digest authentication
         "accept_digest": true,
         "default_to_digest": true,
         "trusted_auth_header": null
     },
     "simple_dc": {
         "user_mapping": {
-            "/share1": {
+            "*": {
                 "user1": {
                     "password": "abc123",
-                    "description": "User 1 for Share 1",
-                    "roles": []
                 }
             },
-            "/share2": true  // anonymous access
+            "/share2": true  // Allow anonymous access
         }
     },
-    // Remove this block to prevent directory browsing
     "dir_browser": {
+        "enable": true,
         "response_trailer": "",
         "davmount": false,
         "ms_mount": false,
