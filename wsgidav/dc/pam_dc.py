@@ -27,7 +27,7 @@ class PAMDomainController(BaseDomainController):
         self.pam = pam.pam()
 
         # auth_conf = config["http_authenticator"]
-        dc_conf = config["pam_dc"]
+        dc_conf = config.get("pam_dc", {})
 
         self.pam_service = dc_conf.get("service", "login")
         self.pam_encoding = dc_conf.get("encoding", "utf-8")

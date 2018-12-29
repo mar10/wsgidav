@@ -92,7 +92,7 @@ class NTDomainController(BaseDomainController):
     def __init__(self, wsgidav_app, config):
         super(NTDomainController, self).__init__(wsgidav_app, config)
         # auth_conf = config["http_authenticator"]
-        dc_conf = config["nt_dc"]
+        dc_conf = config.get("nt_dc", {})
 
         self.preset_domain = dc_conf.get("preset_domain")
         self.preset_server = dc_conf.get("preset_server")
