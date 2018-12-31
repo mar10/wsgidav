@@ -16,8 +16,6 @@ This release contains **BREAKING CHANGES!**
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
-    - Remove `middleware.isSuitable()` because we don't want to enforce
-      a specific base class for middleware (introduced with #12)
     - `middleware_stack` entries can also be strings or dicts that are
     evaluated to import and instantiate middleware classes. This allows to
     define and configure external middleware in YAML and JSON config files.

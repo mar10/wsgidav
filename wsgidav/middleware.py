@@ -35,4 +35,5 @@ class BaseMiddleware(object):
         return "{}.{}".format(self.__module__, self.__class__.__name__)
 
     def is_disabled(self):
+        """Optionally return False to skip this module on startup."""
         return False
