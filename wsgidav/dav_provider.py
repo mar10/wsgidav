@@ -752,7 +752,7 @@ class _DAVResource(object):
 
         # Live property
         config = self.environ["wsgidav.config"]
-        hotfixes = config.get("hotfixes", {})
+        # hotfixes = config.get("hotfixes", {})
         mutableLiveProps = config.get("mutable_live_props", [])
         # Accept custom live property updates on resources if configured.
         if (

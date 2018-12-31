@@ -15,4 +15,4 @@ NOTE:
     When pywin32 is installed, number must be a.b.c for MSI builds?
     "3.0.0a4" seems not to work in this case!
 """
-__version__ = "3.0.0a7"
+__version__ = "3.0.0a8"

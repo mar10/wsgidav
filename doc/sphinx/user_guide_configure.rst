@@ -222,6 +222,7 @@ For example::
 
     provider_mapping:
         "/": "/path/to/share1"
+        "/home": "~"
         "/pub":
             root: "/path/to/share2"
             readonly: true
@@ -273,13 +274,11 @@ Example YAML configuration::
                     password: "abc123"
                 "user2":
                     password: "qwerty"
-            "/share2":
-                "user1":
-                    password: "abc123"
+            "/pub": true
 
 An optional `roles` list will be passed in `environ["wsgidav.auth.roles"]` to
 downstream middleware. This is currently not used by the provided middleware,
-but may be handy for custom handlers)::
+but may be handy for custom handlers::
 
     simple_dc:
         user_mapping:
@@ -383,11 +382,6 @@ The structure is identical to the YAML format.
 
 See the :doc:`sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)
-
-..
-    .. literalinclude:: sample_wsgidav.json
-        :linenos:
-        :language: json
 
 
 Sample ``wsgidav.conf``
