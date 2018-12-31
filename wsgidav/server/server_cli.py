@@ -156,15 +156,15 @@ See https://github.com/mar10/wsgidav for additional information.
     parser.add_argument(
         "--server",
         choices=SUPPORTED_SERVERS.keys(),
-        default="cheroot",
-        help="type of pre-installed WSGI server to use (default: %(default)s).",
+        # default="cheroot",
+        help="type of pre-installed WSGI server to use (default: cheroot).",
     )
     parser.add_argument(
         "--ssl-adapter",
         choices=("builtin", "pyopenssl"),
-        default="builtin",
+        # default="builtin",
         help="used by 'cheroot' server if SSL certificates are configured "
-        "(default: %(default)s).",
+        "(default: builtin).",
     )
 
     qv_group = parser.add_mutually_exclusive_group()

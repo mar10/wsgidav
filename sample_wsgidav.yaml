@@ -55,7 +55,7 @@ hotfixes:
 
 # ssl_certificate: "wsgidav/server/sample_bogo_server.crt"
 # ssl_private_key: "wsgidav/server/sample_bogo_server.key"
-# ssl_certificate_chain: None
+# ssl_certificate_chain: null
 
 #: Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
 # ssl_adapter: "pyopenssl"

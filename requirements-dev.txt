@@ -2,7 +2,7 @@
 
 -r requirements.txt
 
-cheroot~=6.4
+cheroot~=6.5
 # Installed by PS script from vendored wheel (see release_wsgidav.ps1):
 #cx_Freeze
 Paste~=2.0
