@@ -5,7 +5,7 @@
 ############################
 
 A generic and extendable `WebDAV <http://www.ietf.org/rfc/rfc4918.txt>`_ server
-written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-0333/>`_.
+written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-3333/>`_.
 
 :Project:   https://github.com/mar10/wsgidav/
 :Version:   |version|, Date: |today|
@@ -35,7 +35,7 @@ Main Features
 - SSL support
 - Support for authentication using Basic or Digest scheme.
 - Passes the `litmus test suite <http://www.webdav.org/neon/litmus/>`_.
-- Open architecture allows to `write custom providers <user_guide_custom_providers>`_
+- Open architecture allows to :doc:`user_guide_custom_providers`
   (i.e. storage, locking, authentication, virtual file systems, ...).
 - WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md>`_
   written by Ho Chun Wei.
@@ -55,13 +55,29 @@ Install WsgiDAV (and a server) like::
 
 	$ pip install cheroot wsgidav
 
-To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
-
-	$ wsgidav --host=0.0.0.0 --port=80 --root=/tmp
-
 .. note::
    MS Windows users that only need the command line interface may prefer the
    `MSI installer <https://github.com/mar10/wsgidav/releases>`_.
+
+To serve the ``/tmp`` folder as WebDAV ``/`` share with anonyoums read-write
+access, simply run::
+
+  $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
+
+Then open `http://HOST/ <http://localhost/>`_ in your browser or pass this URL to another
+WebDAV-aware client, such as MS Word, macOS Finder, Windows File Explorer, ...
+
+**On Linux** we can enforce authentication against known users (e.g.
+``/etc/passwd``, ``/etc/shadow``) like so::
+
+  $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=pam-login
+
+**On Windows** we can enforce authentication against known users (e.g.
+Windows NT Domain Controller) like so::
+
+  > wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=nt
+
+There is much more to configure. Read this docs to find out.
 
 
 Supported Clients

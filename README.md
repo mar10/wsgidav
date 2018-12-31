@@ -6,7 +6,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
-written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-0333/).
+written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-3333/).
 
 Main features:
 

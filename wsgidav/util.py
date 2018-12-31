@@ -672,7 +672,7 @@ def is_equal_or_child_uri(parentUri, childUri):
 
 def make_complete_url(environ, localUri=None):
     """URL reconstruction according to PEP 333.
-    @see http://www.python.org/dev/peps/pep-0333/#id33
+    @see https://www.python.org/dev/peps/pep-3333/#url-reconstruction
     """
     url = environ["wsgi.url_scheme"] + "://"
 

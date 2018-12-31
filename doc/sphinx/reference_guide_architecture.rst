@@ -13,7 +13,7 @@ WSGI Application Stack
 ======================
 WsgiDAV is a WSGI application.
 
-WSGI <http://www.python.org/peps/pep-0333.html> stands for Web Server Gateway
+`WSGI <http://www.python.org/peps/pep-3333.html>`_ stands for Web Server Gateway
 Interface, a proposed standard interface between web servers and Python web
 applications or frameworks, to promote web application portability across a
 variety of web servers. If you are unfamiliar with WSGI, do take a moment to

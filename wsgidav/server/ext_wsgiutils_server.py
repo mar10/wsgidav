@@ -46,7 +46,7 @@ To run it with other WSGI web servers, you can::
 
 where ``publish_app`` is the WSGI application to be run, it will be called with
 ``publish_app(environ, start_response)`` for each incoming request, as described in
-WSGI <http://www.python.org/peps/pep-0333.html>
+`WSGI <http://www.python.org/peps/pep-3333.html>`_
 
 Note: if you are using the paster development server (from Paste <http://pythonpaste.org>), you
 can copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and use this server to
