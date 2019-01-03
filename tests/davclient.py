@@ -157,7 +157,7 @@ class DAVClient(object):
 
     def _tree_to_binary_body(self, tree):
         """Return tree content as xml bytestring."""
-        # Etree won"t just return a normal string, so we have to do this
+        # Etree won't just return a normal string, so we have to do this
         body = BytesIO()
         tree.write(body)
         body = body.getvalue()  # bytestring

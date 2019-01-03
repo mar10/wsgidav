@@ -9,7 +9,7 @@ Usage
 -----
 http://code.google.com/p/clouddav/
 
-    
+
 Module description
 ------------------
 http://code.google.com/p/clouddav/

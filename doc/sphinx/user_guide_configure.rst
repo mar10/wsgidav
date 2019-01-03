@@ -204,9 +204,17 @@ the MSI installer.
 DAVProvider
 -----------
 
-.. todo:: TODO
+A DAVProvider handles read and write requests for all URLs that start with
+a given share path.
 
-Route share paths to DAVProvider instances
+WsgiDAV comes bundled with ``FilesystemProvider``, a DAVProvider that serves
+DAV requests by reading and writing to the server's file system. |br|
+However, custom DAVProviders may be implemented and used, that publish a
+database backend, cloud drive, or any virtual data structure.
+
+The ``provider_mapping`` configuration routes share paths to specific
+DAVProvider instances.
+
 By default a writable `FilesystemProvider` is assumed, but can be forced
 to read-only.
 Note that a DomainController may still restrict access completely or prevent
@@ -255,9 +263,9 @@ SimpleDomainController
 
 Allows to authenticate against a plain mapping of shares and user names.
 
-The pseudo-share "*" maps all URLs that are not explicitly listed.
+The pseudo-share ``"*"`` maps all URLs that are not explicitly listed.
 
-A value of true must be used to enable anonymous access.
+A value of ``true`` can be used to enable anonymous access.
 
 Example YAML configuration::
 

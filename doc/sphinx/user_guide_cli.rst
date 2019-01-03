@@ -11,13 +11,22 @@ The WsgiDAV server was tested with these platforms
 
 To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
 
-	$ wsgidav --host=0.0.0.0 --port=80 --root=/tmp
-	WARNING: share '/' will allow anonymous access.
-	Running WsgiDAV/2.3.1 Cheroot/6.0.0 Python/3.6.1
-	Serving on http://127.0.0.1:8080 ...
+  $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
+  2019-01-03 20:47:52.034 - INFO    :  WsgiDAV/3.0.0a8 Python/3.7.0 Darwin-18.2.0-x86_64-i386-64bit
+  2019-01-03 20:47:52.034 - INFO    :  Lock manager:      LockManager(LockStorageDict)
+  2019-01-03 20:47:52.034 - INFO    :  Property manager:  None
+  2019-01-03 20:47:52.034 - INFO    :  Domain controller: SimpleDomainController()
+  2019-01-03 20:47:52.034 - INFO    :  Registered DAV providers by route:
+  2019-01-03 20:47:52.035 - INFO    :    - '/:dir_browser': FilesystemProvider for path '/Users/martin/prj/git/wsgidav/wsgidav/dir_browser/htdocs' (Read-Only) (anonymous)
+  2019-01-03 20:47:52.035 - INFO    :    - '/': FilesystemProvider for path '/tmp' (Read-Write) (anonymous)
+  2019-01-03 20:47:52.035 - WARNING :  Basic authentication is enabled: It is highly recommended to enable SSL.
+  2019-01-03 20:47:52.035 - WARNING :  Share '/' will allow anonymous write access.
+  2019-01-03 20:47:52.035 - WARNING :  Share '/:dir_browser' will allow anonymous read access.
+  2019-01-03 20:47:52.042 - INFO    :  Running WsgiDAV/3.0.0a8 Cheroot/6.5.4.dev43+gab92fb97 Python/3.7.0
+  2019-01-03 20:47:52.042 - INFO    :  Serving on http://0.0.0.0:80 ...
 
 .. warning::
-	By default, WsgiDAV will publish the folder for anonymous access.
+	Here, WsgiDAV will publish the folder for anonymous access.
 	Read :doc:`user_guide_configure` how to set up authentication.
 
 
@@ -26,49 +35,52 @@ CLI Options
 
 Use the ``--help`` or ``-h`` argument to get help::
 
-	$ wsgidav --help
-	usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH]
-	               [--server {cheroot,cherrypy-wsgiserver,ext-wsgiutils,flup-fcgi,flup-fcgi-fork,paste,wsgiref}]
-	               [--ssl-adapter {builtin,pyopenssl}] [-v] [-q] [-c CONFIG_FILE]
-	               [--no-config] [-V]
+  $ wsgidav --help
+  usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH]
+                [--auth {anonymous,nt,pam-login}]
+                [--server {paste,gevent,cheroot,cherrypy,ext-wsgiutils,flup-fcgi,flup-fcgi_fork,wsgiref}]
+                [--ssl-adapter {builtin,pyopenssl}] [-v | -q]
+                [-c CONFIG_FILE | --no-config] [-V]
 
-	Run a WEBDAV server to share file system folders.
+  Run a WEBDAV server to share file system folders.
 
-	Examples:
+  Examples:
 
-	  Share filesystem folder '/temp':
-	    wsgidav --port=80 --host=0.0.0.0 --root=/temp
+    Share filesystem folder '/temp' for anonymous access (no config file used):
+      wsgidav --port=80 --host=0.0.0.0 --root=/temp --auth=anonymous
 
-	  Run using a specific configuration file:
-	    wsgidav --port=80 --host=0.0.0.0 --config=~/wsgidav.conf
+    Run using a specific configuration file:
+      wsgidav --port=80 --host=0.0.0.0 --config=~/my_wsgidav.yaml
 
-	  If no config file is specified, the application will look for a file named
-	  'wsgidav.conf' in the current directory.
-	  See
-	    http://wsgidav.readthedocs.io/en/latest/run-configure.html
-	  for some explanation of the configuration file format.
+    If no config file is specified, the application will look for a file named
+    'wsgidav.yaml' in the current directory.
+    See
+      http://wsgidav.readthedocs.io/en/latest/run-configure.html
+    for some explanation of the configuration file format.
 
 
-	optional arguments:
-	  -h, --help            show this help message and exit
-	  -p PORT, --port PORT  port to serve on (default: 8080)
-	  -H HOST, --host HOST  host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public
-	  -r ROOT_PATH, --root ROOT_PATH
-	                        path to a file system folder to publish as share '/'.
-	  --server {cheroot,cherrypy-wsgiserver,ext-wsgiutils,flup-fcgi,flup-fcgi-fork,paste,wsgiref}
-	                        type of pre-installed WSGI server to use (default: cheroot).
-	  --ssl-adapter {builtin,pyopenssl}
-	                        used by 'cheroot' server if SSL certificates are configured (default: builtin.
-	  -v, --verbose         increment verbosity by one (default: 1, range: 0..5)
-	  -q, --quiet           set verbosity 0: suppress any output except for errors
-	  -c CONFIG_FILE, --config CONFIG_FILE
-	                        configuration file (default: wsgidav.conf in current directory)
-	  --no-config           do not try to load default wsgidav.conf
-	  -V, --version         show program's version number and exit
+  optional arguments:
+    -h, --help            show this help message and exit
+    -p PORT, --port PORT  port to serve on (default: 8080)
+    -H HOST, --host HOST  host to serve from (default: localhost). 'localhost' is only accessible from the local computer. Use 0.0.0.0 to make your application public
+    -r ROOT_PATH, --root ROOT_PATH
+                          path to a file system folder to publish as share '/'.
+    --auth {anonymous,nt,pam-login}
+                          quick configuration of a domain controller when no config file is used
+    --server {paste,gevent,cheroot,cherrypy,ext-wsgiutils,flup-fcgi,flup-fcgi_fork,wsgiref}
+                          type of pre-installed WSGI server to use (default: cheroot).
+    --ssl-adapter {builtin,pyopenssl}
+                          used by 'cheroot' server if SSL certificates are configured (default: builtin).
+    -v, --verbose         increment verbosity by one (default: 3, range: 0..5)
+    -q, --quiet           decrement verbosity by one
+    -c CONFIG_FILE, --config CONFIG_FILE
+                          configuration file (default: ('wsgidav.yaml', 'wsgidav.json', 'wsgidav.conf') in current directory)
+    --no-config           do not try to load default ('wsgidav.yaml', 'wsgidav.json', 'wsgidav.conf')
+    -V, --version         print version info and exit (may be combined with --verbose)
 
-	Licensed under the MIT license.
-	See https://github.com/mar10/wsgidav for additional information.
-	$
+  Licensed under the MIT license.
+  See https://github.com/mar10/wsgidav for additional information.
+  $
 
 
 Use a Configuration File

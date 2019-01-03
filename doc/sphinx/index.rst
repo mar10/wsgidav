@@ -53,7 +53,7 @@ Quickstart
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_.
 Install WsgiDAV (and a server) like::
 
-	$ pip install cheroot wsgidav
+  $ pip install cheroot wsgidav
 
 .. note::
    MS Windows users that only need the command line interface may prefer the

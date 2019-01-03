@@ -20,22 +20,22 @@ this dynamic structure is published:
 
 .. image:: _static/img/Explorer_virtual.png
 
-A resource is served as an collection, which is generated on-the-fly and 
+A resource is served as an collection, which is generated on-the-fly and
 contains some virtual files with additional information:
- 
+
 .. image:: _static/img/Browser_virtual.png
 
 
 Usage
 -----
-To publish the sample virtual resources, simply add thes lines  to the 
+To publish the sample virtual resources, simply add thes lines  to the
 configuration file::
 
     # Publish a virtual structure
     from wsgidav.samples.virtual_dav_provider import VirtualResourceProvider
     addShare("virtres", VirtualResourceProvider())
 
-    
+
 Module description
 ------------------
 .. automodule::  wsgidav.samples.virtual_dav_provider
