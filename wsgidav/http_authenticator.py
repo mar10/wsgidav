@@ -201,9 +201,9 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["wsgidav.auth.roles"] = None
         environ["wsgidav.auth.permissions"] = None
 
-        _logger.debug(
-            "HTTPAuthenticator realm({}): '{}'".format(environ["PATH_INFO"], realm)
-        )
+        # _logger.debug(
+        #     "HTTPAuthenticator realm({}): '{}'".format(environ["PATH_INFO"], realm)
+        # )
         # _logger.debug("{}".format(environ))
 
         force_logout = False
@@ -220,7 +220,7 @@ class HTTPAuthenticator(BaseMiddleware):
             realm, environ
         ):
             # No authentication needed
-            _logger.debug("No authorization required for realm '{}'".format(realm))
+            # _logger.debug("No authorization required for realm '{}'".format(realm))
             # environ["wsgidav.auth.realm"] = realm
             # environ["wsgidav.auth.user_name"] = ""
             return self.next_app(environ, start_response)
