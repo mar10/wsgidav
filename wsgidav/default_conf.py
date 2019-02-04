@@ -48,7 +48,7 @@ DEFAULT_CONFIG = {
         WsgiDavDebugFilter,
         ErrorPrinter,
         HTTPAuthenticator,
-        WsgiDavDirBrowser,
+        WsgiDavDirBrowser,  # configured under dir_browser option (see below)
         RequestResolver,
     ],
     # HTTP Authentication Options
