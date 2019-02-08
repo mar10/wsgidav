@@ -22,8 +22,7 @@ On init:
 
     Create a dictionary of share-to-provider mappings.
 
-    Initialize middleware objects and RequestResolver and setup the WSGI
-    application stack.
+    Initialize middleware objects and setup the WSGI application stack.
 
 For every request:
 

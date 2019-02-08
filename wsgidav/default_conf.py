@@ -49,7 +49,7 @@ DEFAULT_CONFIG = {
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)
-        RequestResolver,
+        RequestResolver,  # this must be the last middleware item
     ],
     # HTTP Authentication Options
     "http_authenticator": {

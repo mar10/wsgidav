@@ -141,7 +141,7 @@ so we can simplify as::
             ErrorPrinter,
             HTTPAuthenticator,
             WsgiDavDirBrowser,
-            RequestResolver,
+            RequestResolver,  # this must be the last middleware item
             ],
         ...
         }
@@ -171,7 +171,7 @@ removes the directory browser, and adds a third-party debugging tool::
             ErrorPrinter,
             HTTPAuthenticator,
             # WsgiDavDirBrowser,
-            RequestResolver,
+            RequestResolver,  # this must be the last middleware item
             ],
         ...
         }
