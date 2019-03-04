@@ -50,9 +50,16 @@ WSGI middleware for resolving Realm and Paths for the WsgiDAV
 application.
 
 Usage::
+   It *must* be configured as the last item on `middleware_stack` list.
 
    from wsgidav.request_resolver import RequestResolver
-   WSGIApp = RequestResolver(InternalWSGIApp)
+   config = {
+        ...,
+        'middleware_stack': [
+            ...,
+            RequestResolver,
+        ],
+    }
 
 The RequestResolver resolves the requested URL to the following values
 placed in the environ dictionary. First it resolves the corresponding

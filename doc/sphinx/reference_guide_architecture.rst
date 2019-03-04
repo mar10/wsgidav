@@ -226,7 +226,8 @@ For every request:
 
 RequestResolver
 ---------------
-Middleware ``request_resolver.RequestResolver``
+Middleware ``request_resolver.RequestResolver``.
+Must be configured as last in `middleware_stack` config option.
 Find the mapped DAV-Provider, create a new RequestServer instance, and dispatch
 the request.
 
