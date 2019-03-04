@@ -1515,8 +1515,8 @@ class RequestServer(object):
             self._fail(
                 HTTP_FORBIDDEN,
                 "Directory browsing is not enabled."
-                "(WsgiDavDirBrowser middleware may be enabled using "
-                "the dir_browser option.)",
+                "(to enable it put WsgiDavDirBrowser into middleware_stack"
+                "option and set dir_browser -> enabled = True option.)",
             )
 
         self._evaluate_if_headers(res, environ)

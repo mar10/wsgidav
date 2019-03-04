@@ -48,8 +48,8 @@ DEFAULT_CONFIG = {
         WsgiDavDebugFilter,
         ErrorPrinter,
         HTTPAuthenticator,
-        WsgiDavDirBrowser,
-        RequestResolver,
+        WsgiDavDirBrowser,  # configured under dir_browser option (see below)
+        RequestResolver,  # this must be the last middleware item
     ],
     # HTTP Authentication Options
     "http_authenticator": {

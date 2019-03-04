@@ -1,6 +1,8 @@
 # Changelog
 
-## 3.0.0 / Unreleased
+## 3.0.1 / Unreleased
+
+## 3.0.0 / 2019-03-04
 
 This release contains **BREAKING CHANGES!**
 
