@@ -3,7 +3,7 @@
 server_cli
 ==========
 
-:Author: Martin Wendt, moogle(at)wwwendt.de
+:Author: Martin Wendt
 :Copyright: Licensed under the MIT license, see LICENSE file in this package.
 
 Standalone server that runs WsgiDAV.

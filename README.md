@@ -20,10 +20,12 @@ Main features:
     Serving on http://0.0.0.0:8080 ...
     ```
     Run `wsgidav --help` for a list of available options.<br>
-    **NOTE:** The syntax changes slightly with v3.0.
+    **Note:** The syntax changed slightly with v3.0.
+  - **Note:** Windows users may prefer the
+    [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
+    (see <kbd>Assets</kbd> section).
   - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
     web server with SSL support.
-  - A binary MSI installer is available for Microsoft Windows.
   - WsgiDAV is also a Python library that implements the WSGI protocol and can
 	  be run behind any WSGI compliant web server.<br>
   - WsgiDAV is implemented as a configurable stack of WSGI middleware
