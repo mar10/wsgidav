@@ -28,5 +28,6 @@ coverage.xml
 *.project
 *.pydevproject
 npm-debug.log
+pip-wheel-metadata/
 wsgidav.yaml
 wsgidav_2x.yaml
