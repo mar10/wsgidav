@@ -65,10 +65,12 @@ Here we keep most of the default options and use the
   server = wsgi.Server(**server_args)
   server.start()
 
-Options are passed as Python dict, see the :doc:`user_guide_configure` for details.
+Options are passed as Python dict, see the :doc:`user_guide_configure` for
+details.
 
 By default, the :class:`~wsgidav.fs_dav_provider.FilesystemProvider` is used.
-This provider creates instances of :class:`~wsgidav.fs_dav_provider.FileResource`
+This provider creates instances of
+:class:`~wsgidav.fs_dav_provider.FileResource`
 and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
 directories respectively.
 
@@ -119,12 +121,15 @@ By default, the library initializes and uses a
 `python logger <https://docs.python.org/library/logging.html>`_ named 'wsgidav' and
 sub-loggers named like 'wsgidav.wsgidav_app', etc.
 
-By default, the wsgidav logger only has a ``NullHandler`` assigned and does not propagate
-to the root logger, so it is *silent*.
+By default, the wsgidav logger only has a ``NullHandler`` assigned and does not
+propagate to the root logger, so it is *silent*.
 
 This logger can be enabled like so::
 
     import logging
+
+    # Logging should be initialized some way, e.g.:
+    # logging.basicConfig(level=logging.DEBUG)
 
     logger = logging.getLogger("wsgidav")
     logger.propagate = True
