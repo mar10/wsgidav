@@ -354,7 +354,7 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             self.server.stop_request = True
 
         if not hasattr(ExtHandler, "do_SHUTDOWN"):
-            setattr(ExtHandler, "do_SHUTDOWN", _shutdownHandler)
+            ExtHandler.do_SHUTDOWN = _shutdownHandler
 
         # Send request, so socket is unblocked
         (host, port) = self.server_address
