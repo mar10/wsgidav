@@ -811,28 +811,30 @@ class RequestServer(object):
 
         hasErrors = False
         try:
-            if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
-                data_stream = self._stream_data_chunked(environ, self.block_size)
+            if hasattr(res, "upload_fileobj"):
+                res.upload_fileobj(environ["wsgi.input"])
             else:
-                data_stream = self._stream_data(
-                    environ, content_length, self.block_size
-                )
+                if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
+                    data_stream = self._stream_data_chunked(environ, self.block_size)
+                else:
+                    data_stream = self._stream_data(
+                        environ, content_length, self.block_size
+                    )
 
-            fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
+                fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
+                # Process the data in the body.
 
-            # Process the data in the body.
+                # If the fileobj has a writelines() method, give it the data stream.
+                # If it doesn't, itearate the stream and call write() for each
+                # iteration. This gives providers more flexibility in how they
+                # consume the data.
+                if getattr(fileobj, "writelines", None):
+                    fileobj.writelines(data_stream)
+                else:
+                    for data in data_stream:
+                        fileobj.write(data)
 
-            # If the fileobj has a writelines() method, give it the data stream.
-            # If it doesn't, itearate the stream and call write() for each
-            # iteration. This gives providers more flexibility in how they
-            # consume the data.
-            if getattr(fileobj, "writelines", None):
-                fileobj.writelines(data_stream)
-            else:
-                for data in data_stream:
-                    fileobj.write(data)
-
-            fileobj.close()
+                fileobj.close()
 
         except Exception as e:
             res.end_write(with_errors=True)
