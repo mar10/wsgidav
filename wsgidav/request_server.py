@@ -1590,6 +1590,9 @@ class RequestServer(object):
         if res.support_etag():
             response_headers.append(("ETag", '"{}"'.format(entitytag)))
 
+        if res.support_ranges():
+            response_headers.append(("Accept-Ranges", "bytes"))
+
         if "response_headers" in environ["wsgidav.config"]:
             customHeaders = environ["wsgidav.config"]["response_headers"]
             for header, value in customHeaders:
