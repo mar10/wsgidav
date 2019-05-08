@@ -1548,7 +1548,8 @@ class RequestServer(object):
             # Try as http-date first (Return None, if invalid date string)
             secstime = util.parse_time_string(ifrange)
             if secstime:
-                if last_modified != secstime:
+                # cast to integer, as last_modified may be a floating point number
+                if int(last_modified) != secstime:
                     doignoreranges = True
             else:
                 # Use as entity tag
