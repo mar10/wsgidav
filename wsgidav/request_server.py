@@ -1623,7 +1623,10 @@ class RequestServer(object):
         contentlengthremaining = range_length
         try:
             while 1:
-                if contentlengthremaining < 0 or contentlengthremaining > self.block_size:
+                if (
+                    contentlengthremaining < 0
+                    or contentlengthremaining > self.block_size
+                ):
                     readbuffer = fileobj.read(self.block_size)
                 else:
                     readbuffer = fileobj.read(contentlengthremaining)
