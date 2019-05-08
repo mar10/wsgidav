@@ -234,7 +234,7 @@ class RequestServer(object):
         last_modified = -1  # nonvalid modified time
         entitytag = "[]"  # Non-valid entity tag
         if res.get_last_modified() is not None:
-            last_modified = res.get_last_modified()
+            last_modified = int(res.get_last_modified())
         if res.get_etag() is not None:
             entitytag = res.get_etag()
 
