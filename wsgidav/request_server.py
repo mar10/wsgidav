@@ -234,7 +234,7 @@ class RequestServer(object):
         last_modified = -1  # nonvalid modified time
         entitytag = "[]"  # Non-valid entity tag
         if res.get_last_modified() is not None:
-            last_modified = res.get_last_modified()
+            last_modified = int(res.get_last_modified())
         if res.get_etag() is not None:
             entitytag = res.get_etag()
 
@@ -1548,7 +1548,8 @@ class RequestServer(object):
             # Try as http-date first (Return None, if invalid date string)
             secstime = util.parse_time_string(ifrange)
             if secstime:
-                if last_modified != secstime:
+                # cast to integer, as last_modified may be a floating point number
+                if int(last_modified) != secstime:
                     doignoreranges = True
             else:
                 # Use as entity tag
