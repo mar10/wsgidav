@@ -1466,7 +1466,7 @@ class RequestServer(object):
                 if provider.lock_manager is not None:
                     allow.extend(["LOCK", "UNLOCK"])
             if res.support_ranges():
-                headers.append(("Allow-Ranges", "bytes"))
+                headers.append(("Accept-Ranges", "bytes"))
         elif provider.is_collection(util.get_uri_parent(path), environ):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an
@@ -1589,6 +1589,9 @@ class RequestServer(object):
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
             response_headers.append(("ETag", '"{}"'.format(entitytag)))
+
+        if res.support_ranges():
+            response_headers.append(("Accept-Ranges", "bytes"))
 
         if "response_headers" in environ["wsgidav.config"]:
             customHeaders = environ["wsgidav.config"]["response_headers"]
