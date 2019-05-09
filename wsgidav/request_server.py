@@ -1625,17 +1625,24 @@ class RequestServer(object):
             fileobj.seek(range_start)
 
         contentlengthremaining = range_length
-        while 1:
-            if contentlengthremaining < 0 or contentlengthremaining > self.block_size:
-                readbuffer = fileobj.read(self.block_size)
-            else:
-                readbuffer = fileobj.read(contentlengthremaining)
-            assert compat.is_bytes(readbuffer)
-            yield readbuffer
-            contentlengthremaining -= len(readbuffer)
-            if len(readbuffer) == 0 or contentlengthremaining == 0:
-                break
-        fileobj.close()
+        try:
+            while 1:
+                if (
+                    contentlengthremaining < 0
+                    or contentlengthremaining > self.block_size
+                ):
+                    readbuffer = fileobj.read(self.block_size)
+                else:
+                    readbuffer = fileobj.read(contentlengthremaining)
+                assert compat.is_bytes(readbuffer)
+                yield readbuffer
+                contentlengthremaining -= len(readbuffer)
+                if len(readbuffer) == 0 or contentlengthremaining == 0:
+                    break
+        finally:
+            # yield readbuffer MAY fail with a GeneratorExit error
+            # we still need to close the file
+            fileobj.close()
         return
 
 
