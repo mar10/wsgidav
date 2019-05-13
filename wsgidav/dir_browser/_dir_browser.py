@@ -49,6 +49,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         # Add an additional read-only FS provider that serves the dir_browser assets
         self.wsgidav_app.add_provider(ASSET_SHARE, self.htdocs_path, readonly=True)
+        # and make sure we have anonymous access there
+        config.get("simple_dc", {}).get("user_mapping", {}).setdefault(
+            ASSET_SHARE, True
+        )
 
         # Prepare a Jinja2 template
         templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
