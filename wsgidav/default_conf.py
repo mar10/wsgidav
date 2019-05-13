@@ -27,7 +27,7 @@ __docformat__ = "reStructuredText"
 DEFAULT_VERBOSE = 3
 
 DEFAULT_CONFIG = {
-    "server": "cheroot",
+    "server": "gevent",
     "server_args": {},
     "host": "localhost",
     "port": 8080,

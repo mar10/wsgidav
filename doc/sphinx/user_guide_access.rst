@@ -17,7 +17,7 @@ WsgiDAV was tested with these clients
   * Microsoft® Office 2013
   * OpenOffice 3.1
   * Ubuntu Nautilus / gvfs
-  * Mac OS/X Finder
+  * macOS Finder
 
 The following examples assume, that we have a running WsgiDAV server on a remote
 machine with this configuration:
@@ -199,8 +199,8 @@ To unmount::
 
 Mac
 ===
-OS/X Finder
------------
+macOS Finder
+------------
 In the Finder menu, choose `Go` and `Connect to Server...`.
 
  1. Enter the URI of the WsgiDAV server: `http://192.168.0.2/dav`

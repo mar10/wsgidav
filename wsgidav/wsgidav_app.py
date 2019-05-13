@@ -555,6 +555,9 @@ class WsgiDAVApp(object):
                         # referer
                     )
                 )
+
+            # override server name
+            response_headers.append(("Server", "WsgiDAV {}".format(__version__)))
             return start_response(status, response_headers, exc_info)
 
         # Call first middleware

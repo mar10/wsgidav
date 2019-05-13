@@ -5,7 +5,7 @@ Command Line Interface
 
 The WsgiDAV server was tested with these platforms
 
-  * Mac OS X 10.9 - 10.13
+  * Mac OS X 10.9 - 10.14
   * Ubuntu 13 - 16
   * Windows (Win 7 - 10, Vista, XP)
 

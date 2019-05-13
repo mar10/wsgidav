@@ -156,8 +156,8 @@ See https://github.com/mar10/wsgidav for additional information.
     parser.add_argument(
         "--server",
         choices=SUPPORTED_SERVERS.keys(),
-        # default="cheroot",
-        help="type of pre-installed WSGI server to use (default: cheroot).",
+        # default="gevent",
+        help="type of pre-installed WSGI server to use (default: gevent).",
     )
     parser.add_argument(
         "--ssl-adapter",
@@ -494,19 +494,53 @@ def _run_gevent(app, config, mode):
     gevent.monkey.patch_all()
     from gevent.pywsgi import WSGIServer
 
-    server_args = {
-        "bind_addr": (config["host"], config["port"]),
-        "wsgi_app": app,
-        # TODO: SSL support
-        "keyfile": None,
-        "certfile": None,
-    }
-    protocol = "http"
+    server_args = {"bind_addr": (config["host"], config["port"]), "wsgi_app": app}
+
+    server_name = "WsgiDAV/{} gevent/{} Python/{}".format(
+        __version__, gevent.__version__, util.PYTHON_VERSION
+    )
+
+    # Support SSL
+    ssl_certificate = _get_checked_path(config.get("ssl_certificate"), config)
+    ssl_private_key = _get_checked_path(config.get("ssl_private_key"), config)
+    ssl_certificate_chain = _get_checked_path(
+        config.get("ssl_certificate_chain"), config
+    )
+
     # Override or add custom args
     server_args.update(config.get("server_args", {}))
 
-    dav_server = WSGIServer(server_args["bind_addr"], app)
-    _logger.info("Running {}".format(dav_server))
+    protocol = "http"
+    if ssl_certificate:
+        assert ssl_private_key
+        protocol = "https"
+        _logger.info("SSL / HTTPS enabled.")
+        dav_server = WSGIServer(
+            server_args["bind_addr"],
+            app,
+            keyfile=ssl_private_key,
+            certfile=ssl_certificate,
+            ca_certs=ssl_certificate_chain,
+        )
+
+    else:
+        dav_server = WSGIServer(server_args["bind_addr"], app)
+
+    # If the caller passed a startup event, monkey patch the server to set it
+    # when the request handler loop is entered
+    startup_event = config.get("startup_event")
+    if startup_event:
+
+        def _patched_start():
+            dav_server.start_accepting = org_start  # undo the monkey patch
+            org_start()
+            _logger.info("gevent is ready")
+            startup_event.set()
+
+        org_start = dav_server.start_accepting
+        dav_server.start_accepting = _patched_start
+
+    _logger.info("Running {}".format(server_name))
     _logger.info(
         "Serving on {}://{}:{} ...".format(protocol, config["host"], config["port"])
     )

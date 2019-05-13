@@ -13,10 +13,10 @@ Main features:
   - WsgiDAV is a stand-alone WebDAV server with SSL support, that can be
     installed and run as Python command line script on Linux, OSX, and Windows:<br>
     ```
-    $ pip install wsgidav cheroot
+    $ pip install gevent cheroot
     $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp
     WARNING: share '/' will allow anonymous access.
-    Running WsgiDAV/2.2.2 Cheroot/5.5.0 Python/3.4.2
+    Running WsgiDAV/3.0.1 gevent/1.4.0 Python/3.7.3
     Serving on http://0.0.0.0:8080 ...
     ```
     Run `wsgidav --help` for a list of available options.<br>

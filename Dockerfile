@@ -15,7 +15,7 @@ FROM python:3-alpine
 # Compile dependencies to pip install lxml (including alpine musl libc)
 RUN apk --no-cache add gcc libxslt-dev musl-dev
 
-RUN pip install --no-cache-dir wsgidav cheroot lxml
+RUN pip install --no-cache-dir wsgidav gevent lxml
 RUN mkdir -p /var/wsgidav-root
 
 EXPOSE 8080

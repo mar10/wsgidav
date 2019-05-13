@@ -146,9 +146,9 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 
     # from wsgidav.server.server_cli import _runBuiltIn
     # _runBuiltIn(app, config, None)
-    from wsgidav.server.server_cli import _run_cheroot
+    from wsgidav.server.server_cli import _run_gevent
 
-    _run_cheroot(app, config, "cheroot")
+    _run_gevent(app, config, "gevent")
     # blocking...
 
 

@@ -4,6 +4,7 @@
 - Fix #152: "Allow-Ranges: bytes" is now correct "Accept-Ranges: bytes" header
 - Merge #155: last_modified is now correctly cast to int when comparing conditional requests
 - Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
+- Use gevent as default WSGI server as cheroot has performance issues with windows clients
 
 ## 3.0.0 / 2019-03-04
 
@@ -16,7 +17,7 @@ This release contains **BREAKING CHANGES!**
     override those.
   - Log format is configurable
   - Remove option `dir_browser.enabled` (modify `middleware_stack` instead)
-  - CLI supports `--server=gevent` (gevent must be installed separately)
+  - CLI supports `--server=cheroot` (cheroot must be installed separately)
   - SSL paths are evaluated relative to the config file, if any
   - Refactor middleware stack
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`

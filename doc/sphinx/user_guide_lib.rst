@@ -31,6 +31,7 @@ Run Inside a WSGI Server
 
 The WsgiDAV server was tested with these WSGI servers:
 
+  * gevent
   * Cheroot
   * cherrypy.wsgiserver
   * paste.httpserver
@@ -52,16 +53,16 @@ Here we keep most of the default options and use the
       "port": 8080,
       "provider_mapping": {
           "/": "/Users/joe/pub",
-          },
+      },
       "verbose": 1,
-      }
+  }
 
   app = WsgiDAVApp(config)
 
   server_args = {
       "bind_addr": (config["host"], config["port"]),
       "wsgi_app": app,
-      }
+  }
   server = wsgi.Server(**server_args)
   server.start()
 
