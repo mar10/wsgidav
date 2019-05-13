@@ -1,6 +1,9 @@
 # Changelog
 
 ## 3.0.1 / Unreleased
+- Fix #152: "Allow-Ranges: bytes" is now correct "Accept-Ranges: bytes" header
+- Merge #155: last_modified is now correctly cast to int when comparing conditional requests
+- Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
 
 ## 3.0.0 / 2019-03-04
 

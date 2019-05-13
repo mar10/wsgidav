@@ -234,7 +234,7 @@ class RequestServer(object):
         last_modified = -1  # nonvalid modified time
         entitytag = "[]"  # Non-valid entity tag
         if res.get_last_modified() is not None:
-            last_modified = res.get_last_modified()
+            last_modified = int(res.get_last_modified())
         if res.get_etag() is not None:
             entitytag = res.get_etag()
 
@@ -1466,7 +1466,7 @@ class RequestServer(object):
                 if provider.lock_manager is not None:
                     allow.extend(["LOCK", "UNLOCK"])
             if res.support_ranges():
-                headers.append(("Allow-Ranges", "bytes"))
+                headers.append(("Accept-Ranges", "bytes"))
         elif provider.is_collection(util.get_uri_parent(path), environ):
             # A new resource below an existing collection
             # TODO: should we allow LOCK here? I think it is allowed to lock an
@@ -1548,7 +1548,8 @@ class RequestServer(object):
             # Try as http-date first (Return None, if invalid date string)
             secstime = util.parse_time_string(ifrange)
             if secstime:
-                if last_modified != secstime:
+                # cast to integer, as last_modified may be a floating point number
+                if int(last_modified) != secstime:
                     doignoreranges = True
             else:
                 # Use as entity tag
@@ -1590,6 +1591,9 @@ class RequestServer(object):
         if res.support_etag():
             response_headers.append(("ETag", '"{}"'.format(entitytag)))
 
+        if res.support_ranges():
+            response_headers.append(("Accept-Ranges", "bytes"))
+
         if "response_headers" in environ["wsgidav.config"]:
             customHeaders = environ["wsgidav.config"]["response_headers"]
             for header, value in customHeaders:
@@ -1621,17 +1625,24 @@ class RequestServer(object):
             fileobj.seek(range_start)
 
         contentlengthremaining = range_length
-        while 1:
-            if contentlengthremaining < 0 or contentlengthremaining > self.block_size:
-                readbuffer = fileobj.read(self.block_size)
-            else:
-                readbuffer = fileobj.read(contentlengthremaining)
-            assert compat.is_bytes(readbuffer)
-            yield readbuffer
-            contentlengthremaining -= len(readbuffer)
-            if len(readbuffer) == 0 or contentlengthremaining == 0:
-                break
-        fileobj.close()
+        try:
+            while 1:
+                if (
+                    contentlengthremaining < 0
+                    or contentlengthremaining > self.block_size
+                ):
+                    readbuffer = fileobj.read(self.block_size)
+                else:
+                    readbuffer = fileobj.read(contentlengthremaining)
+                assert compat.is_bytes(readbuffer)
+                yield readbuffer
+                contentlengthremaining -= len(readbuffer)
+                if len(readbuffer) == 0 or contentlengthremaining == 0:
+                    break
+        finally:
+            # yield readbuffer MAY fail with a GeneratorExit error
+            # we still need to close the file
+            fileobj.close()
         return
 
 

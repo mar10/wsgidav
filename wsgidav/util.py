@@ -1174,7 +1174,7 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
 
     if "HTTP_IF_UNMODIFIED_SINCE" in environ and dav_res.support_modified():
         ifunmodtime = parse_time_string(environ["HTTP_IF_UNMODIFIED_SINCE"])
-        if ifunmodtime and ifunmodtime <= last_modified:
+        if ifunmodtime and ifunmodtime < last_modified:
             raise DAVError(
                 HTTP_PRECONDITION_FAILED, "If-Unmodified-Since header condition failed"
             )
