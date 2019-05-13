@@ -557,7 +557,8 @@ class WsgiDAVApp(object):
                 )
 
             # override server name
-            response_headers.append(("Server", "WsgiDAV {}".format(__version__)))
+            # maybe just remove the test requirement?
+            response_headers.append(("Server", "WsgiDAV/{}".format(__version__)))
             return start_response(status, response_headers, exc_info)
 
         # Call first middleware
