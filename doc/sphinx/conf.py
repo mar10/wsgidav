@@ -57,11 +57,11 @@ extensions = [
 ]
 
 # Included at the beginning of every file:
-rst_prolog = """
-.. important ::
+# rst_prolog = """
+# .. important ::
 
-    You are looking at the documentation for the pre-release 3.x with breaking changes. |br|
-    The current `stable version is 2.x </en/stable/>`_.
+#     You are looking at the documentation for the pre-release 3.x with breaking changes. |br|
+#     The current `stable version is 2.x </en/stable/>`_.
 """
 # A string of reStructuredText that will be included at the end of every source file that is read.
 # This is the right place to add substitutions that should be available in every file:
