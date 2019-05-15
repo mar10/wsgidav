@@ -702,9 +702,9 @@ class RequestServer(object):
         """Get the data from a non-chunked transfer."""
         if content_length == 0:
             # TODO: review this
-            # XP and Vista MiniRedir submit PUT with Content-Length 0,
+            # Windows MiniRedir submit PUT with Content-Length 0,
             # before LOCK and the real PUT. So we have to accept this.
-            _logger.info("PUT: Content-Length == 0. Creating empty file...")
+            _logger.debug("PUT: Content-Length == 0. Creating empty file...")
 
         #        elif content_length < 0:
         #            # TODO: review this

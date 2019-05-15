@@ -4,7 +4,8 @@
 - Fix #152: "Allow-Ranges: bytes" is now correct "Accept-Ranges: bytes" header
 - Merge #155: last_modified is now correctly cast to int when comparing conditional requests
 - Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
-- Use gevent as default WSGI server as cheroot has performance issues with windows clients
+- Use gevent as default WSGI server as cheroot as it performs better with windows clients
+- #149: Improve performance for Windows File Explorer by incrementing the default thread count for cheroot
 
 ## 3.0.0 / 2019-03-04
 
