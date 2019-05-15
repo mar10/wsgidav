@@ -655,6 +655,8 @@ def _run_cheroot(app, config, mode):
         "bind_addr": (config["host"], config["port"]),
         "wsgi_app": app,
         "server_name": server_name,
+        # File Explorer needs lot of threads (see issue #149):
+        "numthreads": 256,
     }
     # Override or add custom args
     server_args.update(config.get("server_args", {}))
