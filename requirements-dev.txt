@@ -2,6 +2,7 @@
 
 -r requirements.txt
 
+cheroot~=6.5.4
 gevent~=1.4.0
 # Installed by PS script from vendored wheel (see release_wsgidav.ps1):
 #cx_Freeze

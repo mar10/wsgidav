@@ -89,6 +89,8 @@ if use_cx_freeze:
         [
             "cheroot",
             "cheroot.ssl.builtin",
+            "gevent",
+            "gevent.time",
             "lxml",
             # "win32",
             "wsgidav.dc.nt_dc",
