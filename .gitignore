@@ -27,3 +27,6 @@ dist
 npm-debug.log
 wsgidav.yaml
 wsgidav_2x.yaml
+_build/
+coverage.xml
+pip-wheel-metadata/

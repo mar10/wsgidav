@@ -55,10 +55,9 @@ extensions = [
 
 # Included at the beginning of every file:
 rst_prolog = """
-.. seealso ::
+.. attention ::
 
-    You are looking at the documentation for the stable release 2.x. |br|
-    A `pre-release of 3.x </en/latest/>`_ is also available.
+    You are looking at the documentation for the old release 2.x.
 """
 
 # A string of reStructuredText that will be included at the end of every source file that is read.
