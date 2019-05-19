@@ -125,7 +125,7 @@ class BasicTest(unittest.TestCase):
         q.write("*" * 9)
         q.close()
         # sized reads will return chunks as demanded
-        for i in range(6):
+        for _ in range(6):
             self.assertEqual(len(q.read(5)), 5)
         self.assertEqual(len(q.read(5)), 2, "last chunk delivers the reminder")
         self.assertEqual(len(q.read(5)), 0, "furtehr read() returns ''")

@@ -548,7 +548,6 @@ class HgResourceProvider(DAVProvider):
         _logger.info("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time))
         return cache
 
-
 #    def _listMembers(self, path, rev=None):
 #        """Return a list of all non-collection members"""
 #        # Pattern for direct members:

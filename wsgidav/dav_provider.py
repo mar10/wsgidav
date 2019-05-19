@@ -121,7 +121,7 @@ _lockPropertyNames = ["{DAV:}lockdiscovery",
 
 
 class _DAVResource(object):
-    """Represents a single existing DAV resource instance.
+    r"""Represents a single existing DAV resource instance.
 
     A resource may be a collection (aka 'folder') or a non-collection (aka
     'file').
@@ -392,7 +392,6 @@ class _DAVResource(object):
         safe = "/" + "!*'()," + "$-_|."
         return compat.quote(self.provider.mountPath + self.provider.sharePath
                             + self.getPreferredPath(), safe=safe)
-
 
 #    def getParent(self):
 #        """Return parent _DAVResource or None.

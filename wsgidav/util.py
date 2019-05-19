@@ -882,8 +882,8 @@ def getETag(filePath):
 # ========================================================================
 
 # Range Specifiers
-reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
-reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
+reByteRangeSpecifier = re.compile("(([0-9]+)-([0-9]*))")
+reSuffixByteRangeSpecifier = re.compile("(-([0-9]+))")
 
 
 def obtainContentRanges(rangetext, filesize):

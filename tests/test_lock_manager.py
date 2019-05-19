@@ -94,7 +94,6 @@ class BasicTest(unittest.TestCase):
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored")
 
-
 #    def testOpen(self):
 #        """Lock manager should be lazy opening on first access."""
 #        lm = self.lm
