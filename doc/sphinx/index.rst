@@ -43,8 +43,8 @@ Main Features
 
 .. note::
 
-  Release 3.0 is pretty new and introduces some refactorings and breaking changes. |br|
-  Wimps may prefer using 2.x for a more stable release ;-)
+  Release 3.0 introduces some refactorings and breaking changes. |br|
+  See :doc:`changes` for details.
 
 
 Quickstart
