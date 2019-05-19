@@ -19,3 +19,8 @@ dist
 
 *.prefs
 wsgidav.yaml
+build/
+_build/
+coverage.xml
+pip-wheel-metadata/
+.pytest_cache/
