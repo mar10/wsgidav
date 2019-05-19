@@ -57,7 +57,8 @@ extensions = [
 rst_prolog = """
 .. attention ::
 
-    You are looking at the documentation for the old release 2.x.
+    You are looking at outdated documentation for version 2.x.
+    A `newer version </en/latest/>`_ is available.
 """
 
 # A string of reStructuredText that will be included at the end of every source file that is read.
