@@ -304,7 +304,7 @@ class DAVClient(object):
                 def parse_props(props):
                     property_dict = {}
                     for prop in props:
-                        if prop.tag.find("{DAV:}") is not -1:
+                        if prop.tag.find("{DAV:}") != -1:
                             name = prop.tag.split("}")[-1]
                         else:
                             name = prop.tag
