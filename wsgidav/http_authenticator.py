@@ -230,7 +230,7 @@ class HTTPAuthenticator(BaseMiddleware):
         realmname = self._domaincontroller.getDomainRealm(
             environ["PATH_INFO"], environ)
         _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realmname))
-        wwwauthheaders = "Basic realm=\"" + realmname + "\""
+        wwwauthheaders = 'Basic realm="' + realmname + '"'
 
         body = compat.to_bytes(self.getErrorMessage())
         start_response("401 Not Authorized", [("WWW-Authenticate", wwwauthheaders),
@@ -309,7 +309,7 @@ class HTTPAuthenticator(BaseMiddleware):
             authheaderlist += authheaderfixlist
         for authheader in authheaderlist:
             authheaderkey = authheader[0]
-            authheadervalue = authheader[1].strip().strip("\"")
+            authheadervalue = authheader[1].strip().strip('"')
             authheaderdict[authheaderkey] = authheadervalue
 
         _logger.debug("authDigestAuthRequest: {}".format(environ["HTTP_AUTHORIZATION"]))

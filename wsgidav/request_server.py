@@ -1432,7 +1432,7 @@ class RequestServer(object):
                     doignoreranges = True
             else:
                 # Use as entity tag
-                ifrange = ifrange.strip("\" ")
+                ifrange = ifrange.strip('" ')
                 if entitytag is None or ifrange != entitytag:
                     doignoreranges = True
 

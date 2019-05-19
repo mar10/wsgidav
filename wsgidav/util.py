@@ -1015,7 +1015,7 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     if "HTTP_IF_MATCH" in environ and davres.supportEtag():
         ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
-            ifmatchtag = ifmatchtag.strip(" \"\t")
+            ifmatchtag = ifmatchtag.strip(' "\t')
             if ifmatchtag == entitytag or ifmatchtag == "*":
                 break
             raise DAVError(HTTP_PRECONDITION_FAILED,
@@ -1037,7 +1037,7 @@ def evaluateHTTPConditionals(davres, lastmodified, entitytag, environ):
     if "HTTP_IF_NONE_MATCH" in environ and davres.supportEtag():
         ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
         for ifmatchtag in ifmatchlist:
-            ifmatchtag = ifmatchtag.strip(" \"\t")
+            ifmatchtag = ifmatchtag.strip(' "\t')
             if ifmatchtag == entitytag or ifmatchtag == "*":
                 # ETag matched. If it's a GET request and we don't have an
                 # conflicting If-Modified header, we return NOT_MODIFIED
