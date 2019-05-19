@@ -62,7 +62,7 @@ extensions = [
 
 #     You are looking at the documentation for the pre-release 3.x with breaking changes. |br|
 #     The current `stable version is 2.x </en/stable/>`_.
-"""
+# """
 # A string of reStructuredText that will be included at the end of every source file that is read.
 # This is the right place to add substitutions that should be available in every file:
 rst_epilog = """
