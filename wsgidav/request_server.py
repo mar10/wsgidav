@@ -294,7 +294,7 @@ class RequestServer(object):
             )
 
         if res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         if environ.get("wsgidav.debug_break"):
             pass  # break point
@@ -382,7 +382,7 @@ class RequestServer(object):
             self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
 
         if res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         self._evaluate_if_headers(res, environ)
         self._check_write_permission(res, "0", environ)
@@ -545,7 +545,7 @@ class RequestServer(object):
                 "The server does not handle any body content.",
             )
         if res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         if res.is_collection:
             # Delete over collection
@@ -874,7 +874,7 @@ class RequestServer(object):
         # --- Check source ----------------------------------------------------
 
         if srcRes is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, srcPath)
         if "HTTP_DESTINATION" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing required Destination header.")
         if not environ.setdefault("HTTP_OVERWRITE", "T") in ("T", "F"):
@@ -1380,7 +1380,7 @@ class RequestServer(object):
                 "The server does not handle any body content.",
             )
         elif res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
         elif "HTTP_LOCK_TOKEN" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing lock token.")
 
@@ -1474,7 +1474,7 @@ class RequestServer(object):
             if not provider.is_readonly():
                 allow.extend(["PUT", "MKCOL"])
         else:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         headers.append(("Allow", " ".join(allow)))
 
@@ -1510,7 +1510,7 @@ class RequestServer(object):
         elif environ.setdefault("HTTP_DEPTH", "0") != "0":
             self._fail(HTTP_BAD_REQUEST, "Only Depth: 0 supported.")
         elif res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
         elif res.is_collection:
             self._fail(
                 HTTP_FORBIDDEN,
