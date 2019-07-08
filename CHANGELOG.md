@@ -6,6 +6,8 @@
 - Merge #155: last_modified is now correctly cast to int when comparing conditional requests
 - Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
 - #149: Improve performance for Windows File Explorer by incrementing the default thread count for cheroot
+- #159: Display requested path with 404 errors
+
 
 ## 3.0.0 / 2019-03-04
 

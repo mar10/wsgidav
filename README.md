@@ -43,8 +43,8 @@ Main features:
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
 
-**Note:** Release 3.0 is pretty new and introduces some refactorings and breaking changes.<br>
-Wimps may prefer using 2.x for a more stable release ;-)
+**Note:** Release 3.0 introduces some refactorings and breaking changes.<br>
+  See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
 
 
 ## More info
