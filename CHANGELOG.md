@@ -2,12 +2,12 @@
 
 ## 3.0.1 / Unreleased
 (Thanks to Steffen Deusch for most of the fixes.)
+- #149: Improve performance for Windows File Explorer by incrementing the default thread count for cheroot
 - Fix #152: "Allow-Ranges: bytes" is now correct "Accept-Ranges: bytes" header
 - Merge #155: last_modified is now correctly cast to int when comparing conditional requests
 - Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
-- #149: Improve performance for Windows File Explorer by incrementing the default thread count for cheroot
+- Merge #158: add ssl support for gevent
 - #159: Display requested path with 404 errors
-
 
 ## 3.0.0 / 2019-03-04
 
