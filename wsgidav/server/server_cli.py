@@ -139,7 +139,7 @@ See https://github.com/mar10/wsgidav for additional information.
             "accessible from the local computer. Use 0.0.0.0 to make your "
             "application public"
         ),
-    ),
+    )
     parser.add_argument(
         "-r",
         "--root",
