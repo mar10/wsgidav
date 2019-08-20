@@ -8,6 +8,7 @@
 - Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
 - Merge #158: add ssl support for gevent
 - #159: Display requested path with 404 errors
+- Fix #164: Wrong separator on Allow values
 
 ## 3.0.0 / 2019-03-04
 

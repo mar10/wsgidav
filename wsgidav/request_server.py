@@ -1476,7 +1476,7 @@ class RequestServer(object):
         else:
             self._fail(HTTP_NOT_FOUND, path)
 
-        headers.append(("Allow", " ".join(allow)))
+        headers.append(("Allow", ", ".join(allow)))
 
         if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
             headers.append(("MS-Author-Via", "DAV"))
