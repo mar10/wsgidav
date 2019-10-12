@@ -690,7 +690,7 @@ def _run_cheroot(app, config, mode):
         "wsgi_app": app,
         "server_name": server_name,
         # File Explorer needs lot of threads (see issue #149):
-        "numthreads": 256,
+        "numthreads": 50,
     }
     # Override or add custom args
     server_args.update(config.get("server_args", {}))

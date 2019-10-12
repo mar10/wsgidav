@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-black = "18.6b4"
-Cheroot = "~=6.5"
+black = "==18.6b4"
+Cheroot = "~=8.1"
 flake8 = "~=3.5"
 flake8-bugbear = "~=18.2"
 flake8-quotes = "~=1.0"
