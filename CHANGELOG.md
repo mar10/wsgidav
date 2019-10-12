@@ -1,7 +1,11 @@
 # Changelog
 
-## 3.0.1 / Unreleased
+## 3.0.2 / Unreleased
+
+## 3.0.1 / 2019-10-12
+
 (Thanks to Steffen Deusch for most of the fixes.)
+
 - #149: Improve performance for Windows File Explorer by updating cheroot to 8.1
 - Fix #152: "Allow-Ranges: bytes" is now correct "Accept-Ranges: bytes" header
 - Merge #155: last_modified is now correctly cast to int when comparing conditional requests
@@ -9,6 +13,7 @@
 - Merge #158: add ssl support for gevent
 - #159: Display requested path with 404 errors
 - Fix #164: Wrong separator on Allow values
+
 
 ## 3.0.0 / 2019-03-04
 
