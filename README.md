@@ -22,6 +22,11 @@ Main features:
     ```
     Run `wsgidav --help` for a list of available options.<br>
     **Note:** The syntax changed slightly with v3.0.
+  - **Note:** python-pam is needed if using pam-login on Linux or OSX:
+    ```
+    $ pip install python-pam
+    $ wsgidav --auth=pam-login --host=0.0.0.0 --port=8080 --root=/tmp
+    ```
   - **Note:** Windows users may prefer the
     [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
     (see <kbd>Assets</kbd> section).
