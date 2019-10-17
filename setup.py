@@ -215,8 +215,8 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        # "Development Status :: 5 - Production/Stable",
+        # "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
