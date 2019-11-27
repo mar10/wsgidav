@@ -921,9 +921,14 @@ class RequestServer(object):
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING:
         # DELETE removed collection resource withRequest-URI including
         # fragment; unsafe
-        destScheme, destNetloc, destPath, _destParams, _destQuery, _destFrag = compat.urlparse(
-            destinationHeader, allow_fragments=False
-        )
+        (
+            destScheme,
+            destNetloc,
+            destPath,
+            _destParams,
+            _destQuery,
+            _destFrag,
+        ) = compat.urlparse(destinationHeader, allow_fragments=False)
 
         if srcRes.is_collection:
             destPath = destPath.rstrip("/") + "/"
