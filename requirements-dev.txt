@@ -7,7 +7,7 @@ cheroot~=8.1
 #cx_Freeze
 Paste~=2.0
 # Black is beta and therefore requires --pre flag for installation unless we give the exact number
-black~=18.6b4
+black~=19.10b0
 flake8~=3.5
 flake8-bugbear~=18.2
 flake8-quotes~=1.0

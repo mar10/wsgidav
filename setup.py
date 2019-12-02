@@ -215,8 +215,8 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        # "Development Status :: 5 - Production/Stable",
+        # "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
@@ -226,10 +226,11 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
+        # "Programming Language :: Python :: 3.4",  # EOL 2019-03-18
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
