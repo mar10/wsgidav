@@ -2,6 +2,9 @@
 
 ## 3.0.2 / Unreleased
 
+- Deprecated support for Python 3.4 (reached end of live on 2019-03-18)
+
+
 ## 3.0.1 / 2019-10-12
 
 (Thanks to Steffen Deusch for most of the fixes.)

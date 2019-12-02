@@ -12,7 +12,13 @@ TODO: since it is now based on six, we should remove this module eventually.
 # flake8: noqa
 
 from six import BytesIO, PY2, PY3
-from six.moves import cStringIO as StringIO, input as console_input, queue, xrange
+from six.moves import (
+    collections_abc,
+    cStringIO as StringIO,
+    input as console_input,
+    queue,
+    xrange,
+)
 from six.moves.urllib.parse import quote, unquote, urlparse
 
 import six

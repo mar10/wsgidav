@@ -254,7 +254,7 @@ class PropertyManager(object):
                 self._lazy_open()
             if with_children:
                 # Move src_url\*
-                for url in self._dict.keys():
+                for url in list(self._dict.keys()):
                     if util.is_equal_or_child_uri(src_url, url):
                         d = url.replace(src_url, dest_url)
                         self._dict[d] = self._dict[url]

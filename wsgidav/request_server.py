@@ -871,6 +871,12 @@ class RequestServer(object):
         srcRes = provider.get_resource_inst(srcPath, environ)
         srcParentRes = provider.get_resource_inst(util.get_uri_parent(srcPath), environ)
 
+        def _debug_exception(e):
+            """Log internal exceptions with stacktrace that otherwise would be hidden."""
+            if self._verbose >= 5:
+                _logger.exception("_debug_exception")
+            return
+
         # --- Check source ----------------------------------------------------
 
         if srcRes is None:
@@ -1008,6 +1014,7 @@ class RequestServer(object):
                 error_list = handled
                 handled = True
         except Exception as e:
+            _debug_exception(e)
             error_list = [(srcRes.get_href(), as_DAVError(e))]
             handled = True
         if handled:
@@ -1064,7 +1071,8 @@ class RequestServer(object):
             for s in srcList:
                 try:
                     self._evaluate_if_headers(s, environ)
-                except Exception:
+                except Exception as e:
+                    _debug_exception(e)
                     hasConflicts = True
                     break
 
@@ -1073,7 +1081,9 @@ class RequestServer(object):
                     _logger.debug("Recursive move: {} -> '{}'".format(srcRes, destPath))
                     error_list = srcRes.move_recursive(destPath)
                 except Exception as e:
+                    _debug_exception(e)
                     error_list = [(srcRes.get_href(), as_DAVError(e))]
+
                 return self._send_response(
                     environ, start_response, srcRes, success_code, error_list
                 )
@@ -1124,6 +1134,7 @@ class RequestServer(object):
                     sRes.delete()
 
             except Exception as e:
+                _debug_exception(e)
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source
                 # and destination URLs'. So maybe this should be the destination
@@ -1158,7 +1169,9 @@ class RequestServer(object):
                     _logger.debug("Remove collection after move: {}".format(sRes))
                     sRes.delete()
                 except Exception as e:
+                    _debug_exception(e)
                     error_list.append((srcRes.get_href(), as_DAVError(e)))
+
             _logger.debug("ErrorList: {}".format(error_list))
 
         # --- Return response -------------------------------------------------

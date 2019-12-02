@@ -24,7 +24,6 @@ from wsgidav.dav_error import (
 from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
 import calendar
-import collections
 import logging
 import mimetypes
 import os
@@ -259,7 +258,7 @@ def get_module_logger(moduleName, defaultToVerbose=False):
 
 def deep_update(d, u):
     for k, v in u.items():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, compat.collections_abc.Mapping):
             d[k] = deep_update(d.get(k, {}), v)
         else:
             d[k] = v
