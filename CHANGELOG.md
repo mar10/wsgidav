@@ -5,6 +5,7 @@
 - Fixes for Python 3.8
 - Deprecated support for Python 3.4 (reached end of live on 2019-03-18),
   i.e. stopped testing.
+- #167 Docker image reduction from 244MB to 66.4MB
 
 
 ## 3.0.1 / 2019-10-12
