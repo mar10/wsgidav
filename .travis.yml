@@ -7,6 +7,7 @@ matrix:
           env: TOXENV=lint-py27
         - python: "3.7"
           env: TOXENV=black-check,lint-py3
+          dist: xenial  # only while we're using python 3.7
         - python: "2.7"
           env: TOXENV=py27
         # - python: "3.4"  # EOL 2019-03-18
