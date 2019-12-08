@@ -34,7 +34,6 @@ Configuration is defined like this:
 """
 from __future__ import print_function
 from inspect import isfunction
-from jsmin import jsmin
 from pprint import pformat
 from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
@@ -45,13 +44,19 @@ from wsgidav.xml_tools import use_lxml
 import argparse
 import copy
 import io
-import json
 import logging
 import os
 import platform
 import sys
 import traceback
 import yaml
+
+
+try:
+    # Try pyjson5 first because it's faster than json5
+    from pyjson5 import load as json_load
+except ImportError:
+    from json5 import load as json_load
 
 
 __docformat__ = "reStructuredText"
@@ -265,9 +270,7 @@ def _read_config_file(config_file, verbose):
 
     if config_file.endswith(".json"):
         with io.open(config_file, mode="r", encoding="utf-8") as json_file:
-            # Minify the JSON file to strip embedded comments
-            minified = jsmin(json_file.read())
-        conf = json.loads(minified)
+            conf = json_load(json_file)
 
     elif config_file.endswith(".yaml"):
         with io.open(config_file, mode="r", encoding="utf-8") as yaml_file:
