@@ -6,6 +6,7 @@
 - Deprecated support for Python 3.4 (reached end of live on 2019-03-18),
   i.e. stopped testing.
 - #167 Docker image reduction from 244MB to 66.4MB
+- #169 Replace jsmin with json5 dependency
 
 
 ## 3.0.1 / 2019-10-12
