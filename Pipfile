@@ -30,9 +30,9 @@ wheel = "*"
 [packages]
 defusedxml = "~=0.5"
 Jinja2 = "~=2.10"
-jsmin = "~=2.2"
 PyYAML = "~=5.1"
 six = "~=1.12"
+json5 = "*"
 
 [requires]
 python_version = "3.7"

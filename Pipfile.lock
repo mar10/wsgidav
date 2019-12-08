@@ -32,12 +32,13 @@
             "index": "pypi",
             "version": "==2.10.3"
         },
-        "jsmin": {
+        "json5": {
             "hashes": [
-                "sha256:b6df99b2cd1c75d9d342e4335b535789b8da9107ec748212706ef7bbe5c2553b"
+                "sha256:124b0f0da1ed2ff3bfe3a3e9b8630abd3c650852465cb52c15ef60b8e82a73b0",
+                "sha256:32bd17e0553bf53927f6c29b6089f3a320c12897120a4bcfea76ea81c10b2d9c"
             ],
             "index": "pypi",
-            "version": "==2.2.2"
+            "version": "==0.8.5"
         },
         "markupsafe": {
             "hashes": [
