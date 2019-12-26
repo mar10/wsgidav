@@ -1,6 +1,8 @@
 # Changelog
 
-## 3.0.2 / Unreleased
+## 3.0.3 / Unreleased
+
+## 3.0.2 / 2019-12-26
 
 - Fixes for Python 3.8
 - Deprecated support for Python 3.4 (reached end of live on 2019-03-18),
