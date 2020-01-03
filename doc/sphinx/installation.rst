@@ -71,6 +71,10 @@ If everything is cool, this should work now::
     $ wsgidav --version
     bash-3.2$     2.3.1
 
+.. seealso::
+
+   `Deploying WebDAV on Debian 10 using WsgiDAV <https://www.vultr.com/docs/deploying-webdav-on-debian-10-using-wsgidav>`_.
+
 
 Windows
 -------
