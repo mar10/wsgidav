@@ -12,17 +12,19 @@ TODO: since it is now based on six, we should remove this module eventually.
 # flake8: noqa
 
 from six import BytesIO, PY2, PY3
-from six.moves import (
-    collections_abc,
-    cStringIO as StringIO,
-    input as console_input,
-    queue,
-    xrange,
-)
+from six.moves import cStringIO as StringIO, input as console_input, queue, xrange
 from six.moves.urllib.parse import quote, unquote, urlparse
 
 import six
 import sys
+
+
+# See #174: `collections_abc` would be part of six.moves, but only for
+# six v1.13+ but we don't want to force users to update their system python's six
+try:
+    import collections.abc as collections_abc  # Python 3.3+
+except ImportError:
+    import collections as collections_abc
 
 
 __docformat__ = "reStructuredText"

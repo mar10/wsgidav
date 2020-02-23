@@ -31,7 +31,7 @@ wheel = "*"
 defusedxml = "~=0.5"
 Jinja2 = "~=2.10"
 PyYAML = "~=5.1"
-six = ">=1.13"
+six = "~=1.13"
 json5 = "*"
 
 [requires]
