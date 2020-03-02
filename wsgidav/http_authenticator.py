@@ -186,10 +186,7 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.domain_controller
 
     def allow_anonymous_access(self, share):
-        return self.domain_controller.require_authentication(share, None)
-        # return isinstance(
-        #     self.domain_controller, SimpleDomainController
-        # ) and not self.config["simple_dc"]["user_mapping"].get(share)
+        return not self.domain_controller.require_authentication(share, None)
 
     def __call__(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
