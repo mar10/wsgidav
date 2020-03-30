@@ -1,9 +1,13 @@
 # Changelog
 
-## 3.0.3 / Unreleased
+## 3.0.4 / Unreleased
+
+## 3.0.3 / 2020-03-30
 
 - #172 Fix missing import of collections_abc (regression in 3.0.2:
   this requires six 1.13+; dependencies have been updated)
+- #177 Fix allow_anonymous_access()
+
 
 ## 3.0.2 / 2019-12-26
 
