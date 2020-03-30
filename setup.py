@@ -145,7 +145,7 @@ if use_cx_freeze:
                 icon="doc/logo.ico",
                 shortcutName="WsgiDAV",
                 # requires cx_Freeze PR#94:
-                # copyright="(c) 2009-2019 Martin Wendt",
+                # copyright="(c) 2009-2020 Martin Wendt",
                 # trademarks="...",
             )
         ]
@@ -193,7 +193,7 @@ build_exe_options = {
         # "wsgidav.dc.nt_dc",
     ],
     "excludes": ["tkinter"],
-    "constants": "BUILD_COPYRIGHT='(c) 2009-2019 Martin Wendt'",
+    "constants": "BUILD_COPYRIGHT='(c) 2009-2020 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
 }
