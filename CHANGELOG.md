@@ -2,7 +2,7 @@
 
 ## 3.0.4 / Unreleased
 
-## 3.0.3 / 2020-03-30
+## 3.0.3 / 2020-04-02
 
 - #172 Fix missing import of collections_abc (regression in 3.0.2:
   this requires six 1.13+; dependencies have been updated)

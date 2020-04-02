@@ -201,6 +201,7 @@ build_exe_options = {
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
+    #    "all_users": True,
 }
 
 setup(
