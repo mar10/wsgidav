@@ -14,6 +14,7 @@ FROM alpine:latest
 
 #dependencies
 RUN apk --no-cache add py-lxml py-pip
+RUN apk --no-cache add gcc libxslt-dev musl-dev
 
 RUN pip install --no-cache-dir wsgidav cheroot lxml
 RUN mkdir -p /var/wsgidav-root
