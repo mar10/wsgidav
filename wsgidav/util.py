@@ -970,7 +970,7 @@ def get_etag(file_path):
         unicodeFilePath = to_unicode_safe(file_path)
     else:
         unicodeFilePath = file_path
-        file_path = file_path.encode("utf8")
+        file_path = file_path.encode("utf8","surrogateescape")
 
     if not os.path.isfile(unicodeFilePath):
         return md5(file_path).hexdigest()
