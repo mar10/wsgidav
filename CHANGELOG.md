@@ -2,6 +2,9 @@
 
 ## 3.0.4 / Unreleased
 
+- #181 Fix error for UTF8 (surrogate) filename
+
+
 ## 3.0.3 / 2020-04-02
 
 - #172 Fix missing import of collections_abc (regression in 3.0.2:
