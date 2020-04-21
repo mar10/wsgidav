@@ -941,7 +941,11 @@ class RequestServer(object):
 
         if destScheme and destScheme.lower() != environ["wsgi.url_scheme"].lower():
             self._fail(
-                HTTP_BAD_GATEWAY, "Source and destination must have the same scheme."
+                HTTP_BAD_GATEWAY,
+                "Source and destination must have the same scheme.\n"
+                "If you are running behind a reverse proxy, you may have to "
+                "rewrite the 'Destination' haeader.\n"
+                "(See https://github.com/mar10/wsgidav/issues/183)",
             )
         elif destNetloc and destNetloc.lower() != environ["HTTP_HOST"].lower():
             # TODO: this should consider environ["SERVER_PORT"] also
