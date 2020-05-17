@@ -130,7 +130,7 @@ class LockStorageRedis(object):
         self._redis.set(self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
 
         # Store locked path reference
-        key = "wsgidav-URL2TOKEN:{}".format(path)
+        key = self._redis_url2token_prefix.format(path)
         if not self._redis.exists(key):
             self._redis.lpush(key, token)
         else:
@@ -176,7 +176,7 @@ class LockStorageRedis(object):
         lock = pickle.loads(lock)
         _logger.debug("delete {}".format(lock_string(lock)))
         # Remove url to lock mapping
-        key = "wsgidav-URL2TOKEN:{}".format(lock.get("root"))
+        key = self._redis_url2token_prefix.format(lock.get("root"))
         self._redis.lrem(key, 1, token)
         self._redis.delete(self._redis_lock_prefix.format(token))
         self._flush()
@@ -215,7 +215,7 @@ class LockStorageRedis(object):
                         lockList.append(lock)
 
         path = normalize_lock_root(path)
-        key = "wsgidav-URL2TOKEN:{}".format(path)
+        key = self._redis_url2token_prefix.format(path)
 
         tokList = self._redis.lrange(key, 0, -1)
         lockList = []
@@ -223,7 +223,7 @@ class LockStorageRedis(object):
             __appendLocks(tokList)
 
         if include_children:
-            for u in map(lambda x: x.decode("utf-8"), self._redis.keys("wsgidav-URL2TOKEN:*")):
+            for u in map(lambda x: x.decode("utf-8"), self._redis.keys(key + "/*")):
                 if util.is_child_uri(key, u):
                     __appendLocks(self._redis.lrange(u, 0, -1))
         return lockList
