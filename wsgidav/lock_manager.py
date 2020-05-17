@@ -153,7 +153,6 @@ class LockManager(object):
         for lock in self.storage.get_lock_list(
             "/", include_root=True, include_children=True, token_only=False
         ):
-            # print("dump", lock)
             tok = lock["token"]
             tokenDict[tok] = lock_string(lock)
             userDict.setdefault(lock["principal"], []).append(tok)
@@ -215,7 +214,6 @@ class LockManager(object):
         }
         #
         self.storage.create(path, lock_dict)
-        # print("generate", path, lock_depth)
         return lock_dict
 
     def acquire(
@@ -251,7 +249,6 @@ class LockManager(object):
         """Set new timeout for lock, if existing and valid."""
         if timeout is None:
             timeout = LockManager.LOCK_TIME_OUT_DEFAULT
-        # print("refresh", token)
         return self.storage.refresh(token, timeout)
 
     def get_lock(self, token, key=None):
@@ -274,14 +271,12 @@ class LockManager(object):
             "token",
         )
         lock = self.storage.get(token)
-        # print("get", token, lock)
         if key is None or lock is None:
             return lock
         return lock[key]
 
     def release(self, token):
         """Delete lock."""
-        # print("release", token)
         self.storage.delete(token)
 
     def is_token_locked_by_user(self, token, principal):
@@ -297,7 +292,6 @@ class LockManager(object):
         lockList = self.storage.get_lock_list(
             url, include_root=True, include_children=False, token_only=False
         )
-        # print("locklist", lockList)
         return lockList
 
     def get_indirect_url_lock_list(self, url, principal=None):
@@ -323,7 +317,6 @@ class LockManager(object):
                 if principal is None or principal == l["principal"]:
                     lockList.append(l)
             u = util.get_uri_parent(u)
-        # print("indirect", lockList)
         return lockList
 
     def is_url_locked(self, url):
@@ -399,7 +392,6 @@ class LockManager(object):
             u = url
             while u:
                 ll = self.get_url_lock_list(u)
-                # print("lll", ll)
                 for l in ll:
                     _logger.debug("    check parent {}, {}".format(u, lock_string(l)))
                     if u != url and l["depth"] != "infinity":
@@ -421,7 +413,6 @@ class LockManager(object):
                 childLocks = self.storage.get_lock_list(
                     url, include_root=False, include_children=True, token_only=False
                 )
-                # print("child locks", childLocks)
 
                 for l in childLocks:
                     assert util.is_child_uri(url, l["root"])
@@ -484,7 +475,6 @@ class LockManager(object):
             u = url
             while u:
                 ll = self.get_url_lock_list(u)
-                # print("write ll", ll)
                 _logger.debug("  checking {}".format(u))
                 for l in ll:
                     _logger.debug("     l={}".format(lock_string(l)))
@@ -507,7 +497,6 @@ class LockManager(object):
                 childLocks = self.storage.get_lock_list(
                     url, include_root=False, include_children=True, token_only=False
                 )
-                # print("werite childs", childLocks)
 
                 for l in childLocks:
                     assert util.is_child_uri(url, l["root"])
