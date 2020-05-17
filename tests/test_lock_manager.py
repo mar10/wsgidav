@@ -6,6 +6,7 @@
 from tempfile import gettempdir
 from time import sleep
 from wsgidav import lock_manager, lock_storage
+from wsgidav.lock_storage_redis import LockStorageRedis
 from wsgidav.dav_error import DAVError
 
 import os
@@ -391,6 +392,25 @@ class ShelveTest(BasicTest):
 
 #         if os.path.exists(self.path):
 #             os.remove(self.path)
+
+
+class RedisTest(BasicTest):
+    """Test lock_manager.ShelveLockManager()."""
+
+    def setUp(self):
+        if sys.version_info < (3, 0):
+            modifier = "-py2"  # shelve formats are incompatible
+        else:
+            modifier = "-py3"
+        storage = LockStorageRedis()
+        self.lm = lock_manager.LockManager(storage)
+        self.lm._verbose = 2
+
+    def tearDown(self):
+        self.lm.storage.clear()
+        self.lm = None
+        # Note: os.remove(self.path) does not work, because Shelve may append
+        # a file extension.
 
 
 # ========================================================================
