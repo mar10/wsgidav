@@ -395,13 +395,7 @@ class ShelveTest(BasicTest):
 
 
 class RedisTest(BasicTest):
-    """Test lock_manager.ShelveLockManager()."""
-
     def setUp(self):
-        if sys.version_info < (3, 0):
-            modifier = "-py2"  # shelve formats are incompatible
-        else:
-            modifier = "-py3"
         storage = LockStorageRedis()
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 2
@@ -409,8 +403,6 @@ class RedisTest(BasicTest):
     def tearDown(self):
         self.lm.storage.clear()
         self.lm = None
-        # Note: os.remove(self.path) does not work, because Shelve may append
-        # a file extension.
 
 
 # ========================================================================
