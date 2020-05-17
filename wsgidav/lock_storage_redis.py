@@ -24,7 +24,7 @@ class LockStorageRedis(object):
         self._redis_port = port
         self._redis_db = db
         self._redis_prefix = "wsgidav-{}"
-        self._redis_lock_prefix = self._redis_prefix.format("token:{}")
+        self._redis_lock_prefix = self._redis_prefix.format("lock:{}")
         self._redis_url2token_prefix = self._redis_prefix.format("URL2TOKEN:{}")
         self._redis = None
 
