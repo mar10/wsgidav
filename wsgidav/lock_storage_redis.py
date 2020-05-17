@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# (c) 2009-2020 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# Original PyFileServer (c) 2005 Ho Chun Wei.
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 import time
 import pickle
 
@@ -18,6 +23,7 @@ class LockStorageRedis(object):
     """
         A (high performance?) lock manager implementation using redis!
     """
+
     def __init__(self, host="127.0.0.1", port=6379, db=0):
         super(LockStorageRedis, self).__init__()
         self._redis_host = host
@@ -46,7 +52,9 @@ class LockStorageRedis(object):
         May be implemented to initialize a storage.
         """
         assert self._redis is None
-        self._redis = redis.Redis(host=self._redis_host, port=self._redis_port, db=self._redis_db)
+        self._redis = redis.Redis(
+            host=self._redis_host, port=self._redis_port, db=self._redis_db
+        )
 
     def close(self):
         """Called on shutdown."""
@@ -81,9 +89,7 @@ class LockStorageRedis(object):
         lock = pickle.loads(lock)
         expire = float(lock["expire"])
         if 0 <= expire < time.time():
-            _logger.debug(
-                "Lock timed-out({}): {}".format(expire, lock_string(lock))
-            )
+            _logger.debug("Lock timed-out({}): {}".format(expire, lock_string(lock)))
             self.delete(token)
             return None
         return lock
@@ -127,7 +133,9 @@ class LockStorageRedis(object):
         lock["token"] = token
 
         # Store lock
-        self._redis.set(self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
+        self._redis.set(
+            self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout)
+        )
 
         # Store locked path reference
         key = self._redis_url2token_prefix.format(path)
@@ -162,7 +170,9 @@ class LockStorageRedis(object):
         lock = pickle.loads(self._redis.get(self._redis_lock_prefix.format(token)))
         lock["timeout"] = timeout
         lock["expire"] = time.time() + timeout
-        self._redis.set(self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
+        self._redis.set(
+            self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout)
+        )
         self._flush()
         return lock
 
