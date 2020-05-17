@@ -37,6 +37,9 @@ before_install:
 #    - sudo apt-get install libneon27-dev
 #    - ./install_litmus.sh
 
+service:
+    - redis-server
+
 install:
     - travis_retry pip install -U pip setuptools
     - travis_retry pip install -U tox coveralls coverage
