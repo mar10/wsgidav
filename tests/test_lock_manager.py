@@ -6,8 +6,8 @@
 from tempfile import gettempdir
 from time import sleep
 from wsgidav import lock_manager, lock_storage
-from wsgidav.lock_storage_redis import LockStorageRedis
 from wsgidav.dav_error import DAVError
+from wsgidav.lock_storage_redis import LockStorageRedis
 
 import os
 import sys
