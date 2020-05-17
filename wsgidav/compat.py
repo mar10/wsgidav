@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (c) 2009-2019 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2020 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -17,6 +17,14 @@ from six.moves.urllib.parse import quote, unquote, urlparse
 
 import six
 import sys
+
+
+# See #174: `collections_abc` would be part of six.moves, but only for
+# six v1.13+ but we don't want to force users to update their system python's six
+try:
+    import collections.abc as collections_abc  # Python 3.3+
+except ImportError:
+    import collections as collections_abc
 
 
 __docformat__ = "reStructuredText"

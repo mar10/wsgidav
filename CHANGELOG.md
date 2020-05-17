@@ -1,9 +1,38 @@
 # Changelog
 
-## 3.0.1 / Unreleased
+## 3.0.4 / Unreleased
+
+- #181 Fix error for UTF8 (surrogate) filename
+
+
+## 3.0.3 / 2020-04-02
+
+- #172 Fix missing import of collections_abc (regression in 3.0.2:
+  this requires six 1.13+; dependencies have been updated)
+- #177 Fix allow_anonymous_access()
+
+
+## 3.0.2 / 2019-12-26
+
+- Fixes for Python 3.8
+- Deprecated support for Python 3.4 (reached end of live on 2019-03-18),
+  i.e. stopped testing.
+- #167 Docker image reduction from 244MB to 66.4MB
+- #169 Replace jsmin with json5 dependency
+
+
+## 3.0.1 / 2019-10-12
+
+(Thanks to Steffen Deusch for most of the fixes.)
+
+- #149: Improve performance for Windows File Explorer by updating cheroot to 8.1
 - Fix #152: "Allow-Ranges: bytes" is now correct "Accept-Ranges: bytes" header
 - Merge #155: last_modified is now correctly cast to int when comparing conditional requests
 - Merge #156: the file object returned by get_content (DAVNonCollection) is now correctly being closed when a client disconnects unexpectedly
+- Merge #158: add ssl support for gevent
+- #159: Display requested path with 404 errors
+- Fix #164: Wrong separator on Allow values
+
 
 ## 3.0.0 / 2019-03-04
 

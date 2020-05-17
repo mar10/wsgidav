@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (c) 2009-2019 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
+# (c) 2009-2020 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -24,7 +24,6 @@ from wsgidav.dav_error import (
 from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
 
 import calendar
-import collections
 import logging
 import mimetypes
 import os
@@ -259,7 +258,7 @@ def get_module_logger(moduleName, defaultToVerbose=False):
 
 def deep_update(d, u):
     for k, v in u.items():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, compat.collections_abc.Mapping):
             d[k] = deep_update(d.get(k, {}), v)
         else:
             d[k] = v
@@ -578,7 +577,7 @@ def fail(value, context_info=None, src_exception=None, err_condition=None):
         e = as_DAVError(value)
     else:
         e = DAVError(value, context_info, src_exception, err_condition)
-    _logger.error("Raising DAVError {}".format(e.get_user_info()))
+    _logger.debug("Raising DAVError {}".format(e.get_user_info()))
     raise e
 
 
@@ -971,7 +970,7 @@ def get_etag(file_path):
         unicodeFilePath = to_unicode_safe(file_path)
     else:
         unicodeFilePath = file_path
-        file_path = file_path.encode("utf8")
+        file_path = file_path.encode("utf8", "surrogateescape")
 
     if not os.path.isfile(unicodeFilePath):
         return md5(file_path).hexdigest()

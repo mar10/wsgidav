@@ -10,7 +10,11 @@
 # SERVER OPTIONS
 
 server: "cheroot"
-server_args: {}
+
+# Server specific arguments, for example
+# cheroot: https://cheroot.cherrypy.org/en/latest/pkg/cheroot.wsgi.html#cheroot.wsgi.Server
+# server_args:
+#     numthreads: 50
 
 host: 0.0.0.0
 port: 8080

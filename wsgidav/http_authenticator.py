@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (c) 2009-2019 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2020 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -186,10 +186,7 @@ class HTTPAuthenticator(BaseMiddleware):
         return self.domain_controller
 
     def allow_anonymous_access(self, share):
-        return self.domain_controller.require_authentication(share, None)
-        # return isinstance(
-        #     self.domain_controller, SimpleDomainController
-        # ) and not self.config["simple_dc"]["user_mapping"].get(share)
+        return not self.domain_controller.require_authentication(share, None)
 
     def __call__(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)

@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-3333/).
@@ -21,6 +22,11 @@ Main features:
     ```
     Run `wsgidav --help` for a list of available options.<br>
     **Note:** The syntax changed slightly with v3.0.
+  - **Note:** python-pam is needed if using pam-login on Linux or OSX:
+    ```
+    $ pip install python-pam
+    $ wsgidav --auth=pam-login --host=0.0.0.0 --port=8080 --root=/tmp
+    ```
   - **Note:** Windows users may prefer the
     [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
     (see <kbd>Assets</kbd> section).
@@ -42,8 +48,8 @@ Main features:
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
 
-**Note:** Release 3.0 is pretty new and introduces some refactorings and breaking changes.<br>
-Wimps may prefer using 2.x for a more stable release ;-)
+**Note:** Release 3.0 introduces some refactorings and breaking changes.<br>
+  See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
 
 
 ## More info

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (c) 2009-2019 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2020 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -294,7 +294,7 @@ class RequestServer(object):
             )
 
         if res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         if environ.get("wsgidav.debug_break"):
             pass  # break point
@@ -382,7 +382,7 @@ class RequestServer(object):
             self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
 
         if res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         self._evaluate_if_headers(res, environ)
         self._check_write_permission(res, "0", environ)
@@ -545,7 +545,7 @@ class RequestServer(object):
                 "The server does not handle any body content.",
             )
         if res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
         if res.is_collection:
             # Delete over collection
@@ -702,9 +702,9 @@ class RequestServer(object):
         """Get the data from a non-chunked transfer."""
         if content_length == 0:
             # TODO: review this
-            # XP and Vista MiniRedir submit PUT with Content-Length 0,
+            # Windows MiniRedir submit PUT with Content-Length 0,
             # before LOCK and the real PUT. So we have to accept this.
-            _logger.info("PUT: Content-Length == 0. Creating empty file...")
+            _logger.debug("PUT: Content-Length == 0. Creating empty file...")
 
         #        elif content_length < 0:
         #            # TODO: review this
@@ -871,10 +871,16 @@ class RequestServer(object):
         srcRes = provider.get_resource_inst(srcPath, environ)
         srcParentRes = provider.get_resource_inst(util.get_uri_parent(srcPath), environ)
 
+        def _debug_exception(e):
+            """Log internal exceptions with stacktrace that otherwise would be hidden."""
+            if self._verbose >= 5:
+                _logger.exception("_debug_exception")
+            return
+
         # --- Check source ----------------------------------------------------
 
         if srcRes is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, srcPath)
         if "HTTP_DESTINATION" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing required Destination header.")
         if not environ.setdefault("HTTP_OVERWRITE", "T") in ("T", "F"):
@@ -921,16 +927,25 @@ class RequestServer(object):
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING:
         # DELETE removed collection resource withRequest-URI including
         # fragment; unsafe
-        destScheme, destNetloc, destPath, _destParams, _destQuery, _destFrag = compat.urlparse(
-            destinationHeader, allow_fragments=False
-        )
+        (
+            destScheme,
+            destNetloc,
+            destPath,
+            _destParams,
+            _destQuery,
+            _destFrag,
+        ) = compat.urlparse(destinationHeader, allow_fragments=False)
 
         if srcRes.is_collection:
             destPath = destPath.rstrip("/") + "/"
 
         if destScheme and destScheme.lower() != environ["wsgi.url_scheme"].lower():
             self._fail(
-                HTTP_BAD_GATEWAY, "Source and destination must have the same scheme."
+                HTTP_BAD_GATEWAY,
+                "Source and destination must have the same scheme.\n"
+                "If you are running behind a reverse proxy, you may have to "
+                "rewrite the 'Destination' haeader.\n"
+                "(See https://github.com/mar10/wsgidav/issues/183)",
             )
         elif destNetloc and destNetloc.lower() != environ["HTTP_HOST"].lower():
             # TODO: this should consider environ["SERVER_PORT"] also
@@ -1003,6 +1018,7 @@ class RequestServer(object):
                 error_list = handled
                 handled = True
         except Exception as e:
+            _debug_exception(e)
             error_list = [(srcRes.get_href(), as_DAVError(e))]
             handled = True
         if handled:
@@ -1059,7 +1075,8 @@ class RequestServer(object):
             for s in srcList:
                 try:
                     self._evaluate_if_headers(s, environ)
-                except Exception:
+                except Exception as e:
+                    _debug_exception(e)
                     hasConflicts = True
                     break
 
@@ -1068,7 +1085,9 @@ class RequestServer(object):
                     _logger.debug("Recursive move: {} -> '{}'".format(srcRes, destPath))
                     error_list = srcRes.move_recursive(destPath)
                 except Exception as e:
+                    _debug_exception(e)
                     error_list = [(srcRes.get_href(), as_DAVError(e))]
+
                 return self._send_response(
                     environ, start_response, srcRes, success_code, error_list
                 )
@@ -1119,6 +1138,7 @@ class RequestServer(object):
                     sRes.delete()
 
             except Exception as e:
+                _debug_exception(e)
                 ignoreDict[sRes.path] = True
                 # TODO: the error-href should be 'most appropriate of the source
                 # and destination URLs'. So maybe this should be the destination
@@ -1153,7 +1173,9 @@ class RequestServer(object):
                     _logger.debug("Remove collection after move: {}".format(sRes))
                     sRes.delete()
                 except Exception as e:
+                    _debug_exception(e)
                     error_list.append((srcRes.get_href(), as_DAVError(e)))
+
             _logger.debug("ErrorList: {}".format(error_list))
 
         # --- Return response -------------------------------------------------
@@ -1380,7 +1402,7 @@ class RequestServer(object):
                 "The server does not handle any body content.",
             )
         elif res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
         elif "HTTP_LOCK_TOKEN" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing lock token.")
 
@@ -1474,9 +1496,9 @@ class RequestServer(object):
             if not provider.is_readonly():
                 allow.extend(["PUT", "MKCOL"])
         else:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
 
-        headers.append(("Allow", " ".join(allow)))
+        headers.append(("Allow", ", ".join(allow)))
 
         if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
             headers.append(("MS-Author-Via", "DAV"))
@@ -1510,7 +1532,7 @@ class RequestServer(object):
         elif environ.setdefault("HTTP_DEPTH", "0") != "0":
             self._fail(HTTP_BAD_REQUEST, "Only Depth: 0 supported.")
         elif res is None:
-            self._fail(HTTP_NOT_FOUND)
+            self._fail(HTTP_NOT_FOUND, path)
         elif res.is_collection:
             self._fail(
                 HTTP_FORBIDDEN,

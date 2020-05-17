@@ -57,12 +57,12 @@ extensions = [
 ]
 
 # Included at the beginning of every file:
-rst_prolog = """
-.. important ::
+# rst_prolog = """
+# .. important ::
 
-    You are looking at the documentation for the pre-release 3.x with breaking changes. |br|
-    The current `stable version is 2.x </en/stable/>`_.
-"""
+#     You are looking at the documentation for the pre-release 3.x with breaking changes. |br|
+#     The current `stable version is 2.x </en/stable/>`_.
+# """
 # A string of reStructuredText that will be included at the end of every source file that is read.
 # This is the right place to add substitutions that should be available in every file:
 rst_epilog = """
@@ -94,7 +94,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'WsgiDAV'
-copyright = u'2009-2019 Martin Wendt, 2005 Ho Chun Wei'
+copyright = u'2009-2020 Martin Wendt, 2005 Ho Chun Wei'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -336,7 +336,7 @@ texinfo_documents = [
 epub_title = u'WsgiDAV'
 epub_author = u'Martin Wendt'
 epub_publisher = u'Martin Wendt'
-epub_copyright = u'2009-2019, Martin Wendt'
+epub_copyright = u'2009-2020, Martin Wendt'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = u'wsgidav'

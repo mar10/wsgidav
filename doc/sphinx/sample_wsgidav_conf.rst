@@ -12,6 +12,12 @@ The configuration file uses Python syntax to specify these options:
   * Advanced debugging options
   * (and more)
 
+.. attention::
+
+  This format is deprecated.
+  For most cases the ``wsgidav.yaml`` format is recommended.
+  See :doc:`user_guide_configure` for details.
+
 For a start, you should copy
 :download:`Annotated Sample Configuration<../sample_wsgidav.conf>`
 and edit it to your needs.

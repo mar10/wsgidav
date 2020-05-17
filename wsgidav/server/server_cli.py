@@ -34,7 +34,6 @@ Configuration is defined like this:
 """
 from __future__ import print_function
 from inspect import isfunction
-from jsmin import jsmin
 from pprint import pformat
 from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
@@ -45,13 +44,19 @@ from wsgidav.xml_tools import use_lxml
 import argparse
 import copy
 import io
-import json
 import logging
 import os
 import platform
 import sys
 import traceback
 import yaml
+
+
+try:
+    # Try pyjson5 first because it's faster than json5
+    from pyjson5 import load as json_load
+except ImportError:
+    from json5 import load as json_load
 
 
 __docformat__ = "reStructuredText"
@@ -139,7 +144,7 @@ See https://github.com/mar10/wsgidav for additional information.
             "accessible from the local computer. Use 0.0.0.0 to make your "
             "application public"
         ),
-    ),
+    )
     parser.add_argument(
         "-r",
         "--root",
@@ -265,9 +270,7 @@ def _read_config_file(config_file, verbose):
 
     if config_file.endswith(".json"):
         with io.open(config_file, mode="r", encoding="utf-8") as json_file:
-            # Minify the JSON file to strip embedded comments
-            minified = jsmin(json_file.read())
-        conf = json.loads(minified)
+            conf = json_load(json_file)
 
     elif config_file.endswith(".yaml"):
         with io.open(config_file, mode="r", encoding="utf-8") as yaml_file:
@@ -494,19 +497,53 @@ def _run_gevent(app, config, mode):
     gevent.monkey.patch_all()
     from gevent.pywsgi import WSGIServer
 
-    server_args = {
-        "bind_addr": (config["host"], config["port"]),
-        "wsgi_app": app,
-        # TODO: SSL support
-        "keyfile": None,
-        "certfile": None,
-    }
-    protocol = "http"
+    server_args = {"bind_addr": (config["host"], config["port"]), "wsgi_app": app}
+
+    server_name = "WsgiDAV/{} gevent/{} Python/{}".format(
+        __version__, gevent.__version__, util.PYTHON_VERSION
+    )
+
+    # Support SSL
+    ssl_certificate = _get_checked_path(config.get("ssl_certificate"), config)
+    ssl_private_key = _get_checked_path(config.get("ssl_private_key"), config)
+    ssl_certificate_chain = _get_checked_path(
+        config.get("ssl_certificate_chain"), config
+    )
+
     # Override or add custom args
     server_args.update(config.get("server_args", {}))
 
-    dav_server = WSGIServer(server_args["bind_addr"], app)
-    _logger.info("Running {}".format(dav_server))
+    protocol = "http"
+    if ssl_certificate:
+        assert ssl_private_key
+        protocol = "https"
+        _logger.info("SSL / HTTPS enabled.")
+        dav_server = WSGIServer(
+            server_args["bind_addr"],
+            app,
+            keyfile=ssl_private_key,
+            certfile=ssl_certificate,
+            ca_certs=ssl_certificate_chain,
+        )
+
+    else:
+        dav_server = WSGIServer(server_args["bind_addr"], app)
+
+    # If the caller passed a startup event, monkey patch the server to set it
+    # when the request handler loop is entered
+    startup_event = config.get("startup_event")
+    if startup_event:
+
+        def _patched_start():
+            dav_server.start_accepting = org_start  # undo the monkey patch
+            org_start()
+            _logger.info("gevent is ready")
+            startup_event.set()
+
+        org_start = dav_server.start_accepting
+        dav_server.start_accepting = _patched_start
+
+    _logger.info("Running {}".format(server_name))
     _logger.info(
         "Serving on {}://{}:{} ...".format(protocol, config["host"], config["port"])
     )
@@ -655,6 +692,8 @@ def _run_cheroot(app, config, mode):
         "bind_addr": (config["host"], config["port"]),
         "wsgi_app": app,
         "server_name": server_name,
+        # File Explorer needs lot of threads (see issue #149):
+        "numthreads": 50,
     }
     # Override or add custom args
     server_args.update(config.get("server_args", {}))

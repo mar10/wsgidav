@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-black = "18.6b4"
-Cheroot = "~=6.5"
+black = "==19.10b0"
+Cheroot = "~=8.1"
 flake8 = "~=3.5"
 flake8-bugbear = "~=18.2"
 flake8-quotes = "~=1.0"
@@ -22,7 +22,7 @@ setuptools = "~=40.2"
 # setuptools = "~=38.6"
 Sphinx = "~=1.6"
 sphinx_rtd_theme = "*"
-tox = "~=3.2"
+tox = "~=3.13"
 twine = "~=1.11"
 WebTest = "~=2.0"
 wheel = "*"
@@ -30,12 +30,12 @@ wheel = "*"
 [packages]
 defusedxml = "~=0.5"
 Jinja2 = "~=2.10"
-jsmin = "~=2.2"
 PyYAML = "~=5.1"
-six = "~=1.12"
+six = "~=1.13"
+json5 = "*"
 
 [requires]
-#python_version = "3.6"
+python_version = "3.7"
 
 [pipenv]
 allow_prereleases = true

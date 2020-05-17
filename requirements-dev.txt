@@ -2,12 +2,12 @@
 
 -r requirements.txt
 
-cheroot~=6.5
+cheroot~=8.1
 # Installed by PS script from vendored wheel (see release_wsgidav.ps1):
 #cx_Freeze
 Paste~=2.0
 # Black is beta and therefore requires --pre flag for installation unless we give the exact number
-black~=18.6b4
+black~=19.10b0
 flake8~=3.5
 flake8-bugbear~=18.2
 flake8-quotes~=1.0
@@ -18,7 +18,7 @@ requests
 setuptools~=40.2
 sphinx_rtd_theme
 sphinx~=1.6
-tox~=3.2
+tox~=3.13
 twine~=1.11
 WebTest~=2.0
 wheel

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# (c) 2009-2019 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2020 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -254,7 +254,7 @@ class PropertyManager(object):
                 self._lazy_open()
             if with_children:
                 # Move src_url\*
-                for url in self._dict.keys():
+                for url in list(self._dict.keys()):
                     if util.is_equal_or_child_uri(src_url, url):
                         d = url.replace(src_url, dest_url)
                         self._dict[d] = self._dict[url]
