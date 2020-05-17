@@ -23,7 +23,9 @@ class LockStorageRedis(object):
         self._redis_host = host
         self._redis_port = port
         self._redis_db = db
-        self._redis_prefix = "wsgidav-lock:{}"
+        self._redis_prefix = "wsgidav-{}"
+        self._redis_lock_prefix = self._redis_prefix.format("token:{}")
+        self._redis_url2token_prefix = self._redis_prefix.format("URL2TOKEN:{}")
         self._redis = None
 
     LOCK_TIME_OUT_DEFAULT = 604800  # 1 week, in seconds
@@ -60,9 +62,6 @@ class LockStorageRedis(object):
             keys = self._redis.keys(self._redis_prefix.format("*"))
             for key in keys:
                 self._redis.delete(key)
-            pathkeys = self._redis.keys("wsgidav-URL2TOKEN:*")
-            for key in pathkeys:
-                self._redis.delete(key)
 
     def get(self, token):
         """Return a lock dictionary for a token.
@@ -73,8 +72,7 @@ class LockStorageRedis(object):
             Lock dictionary or <None>
         Side effect: if lock is expired, it will be purged and None is returned.
         """
-        lock = self._redis.get(self._redis_prefix.format(token))
-        # print("redis get lock", token, lock)
+        lock = self._redis.get(self._redis_lock_prefix.format(token))
         if lock is None:
             # Lock not found: purge dangling URL2TOKEN entries
             _logger.debug("Lock purged dangling: {}".format(token))
@@ -129,19 +127,14 @@ class LockStorageRedis(object):
         lock["token"] = token
 
         # Store lock
-        # print("store lock", self._redis_prefix.format(token), pickle.dumps(lock), int(timeout))
-        r = self._redis.set(self._redis_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
-        # print("stored lock", r, lock, self._redis_prefix.format(token), timeout)
+        self._redis.set(self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
 
         # Store locked path reference
         key = "wsgidav-URL2TOKEN:{}".format(path)
         if not self._redis.exists(key):
             self._redis.lpush(key, token)
-            # print("pushed to new list", key, token)
         else:
             self._redis.lpush(key, token)
-            # print("pushed to existing list", key, token)
-        # print("list", self._redis.lrange(key, 0, -1))
         self._flush()
         _logger.debug(
             "LockStorageRedis.set({!r}): {}".format(org_path, lock_string(lock))
@@ -159,17 +152,17 @@ class LockStorageRedis(object):
             Lock dictionary.
             Raises ValueError, if token is invalid.
         """
-        assert self._redis.exists(self._redis_prefix.format(token))
+        assert self._redis.exists(self._redis_lock_prefix.format(token))
         assert timeout == -1 or timeout > 0
         if timeout < 0 or timeout > LockStorageRedis.LOCK_TIME_OUT_MAX:
             timeout = LockStorageRedis.LOCK_TIME_OUT_MAX
 
         # Note: shelve dictionary returns copies, so we must reassign
         # values:
-        lock = pickle.loads(self._redis.get(self._redis_prefix.format(token)))
+        lock = pickle.loads(self._redis.get(self._redis_lock_prefix.format(token)))
         lock["timeout"] = timeout
         lock["expire"] = time.time() + timeout
-        self._redis.set(self._redis_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
+        self._redis.set(self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout))
         self._flush()
         return lock
 
@@ -177,7 +170,7 @@ class LockStorageRedis(object):
         """Delete lock.
         Returns True on success. False, if token does not exist, or is expired.
         """
-        lock = self._redis.get(self._redis_prefix.format(token))
+        lock = self._redis.get(self._redis_lock_prefix.format(token))
         if lock is None:
             return False
         lock = pickle.loads(lock)
@@ -185,12 +178,11 @@ class LockStorageRedis(object):
         # Remove url to lock mapping
         key = "wsgidav-URL2TOKEN:{}".format(lock.get("root"))
         self._redis.lrem(key, 1, token)
-        self._redis.delete(self._redis_prefix.format(token))
+        self._redis.delete(self._redis_lock_prefix.format(token))
         self._flush()
         return True
 
     def get_lock_list(self, path, include_root, include_children, token_only):
-        # print("get_lock_list", path, include_root, include_children, token_only)
         """Return a list of direct locks for <path>.
         Expired locks are *not* returned (but may be purged).
         path:
@@ -214,8 +206,7 @@ class LockStorageRedis(object):
             # Since we can do this quickly, we use self.get() even if
             # token_only is set, so expired locks are purged.
             for token in map(lambda x: x.decode("utf-8"), toklist):
-                # print("appendlocks", token, self._redis_prefix.format(token), self._redis.get(self._redis_prefix.format(token)))
-                lock = self._redis.get(self._redis_prefix.format(token))
+                lock = self._redis.get(self._redis_lock_prefix.format(token))
                 if lock:
                     lock = pickle.loads(lock)
                     if token_only:
@@ -229,14 +220,10 @@ class LockStorageRedis(object):
         tokList = self._redis.lrange(key, 0, -1)
         lockList = []
         if include_root:
-            # print("root", key, tokList)
             __appendLocks(tokList)
 
         if include_children:
-            # print("looking for children", self._redis.keys("wsgidav-URL2TOKEN:*"))
             for u in map(lambda x: x.decode("utf-8"), self._redis.keys("wsgidav-URL2TOKEN:*")):
-                # print(u, key, util.is_child_uri(key, u))
                 if util.is_child_uri(key, u):
                     __appendLocks(self._redis.lrange(u, 0, -1))
-        # print("redis locklist", lockList)
         return lockList
