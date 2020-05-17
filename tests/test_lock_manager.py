@@ -396,6 +396,12 @@ class ShelveTest(BasicTest):
 
 class RedisTest(BasicTest):
     def setUp(self):
+        try:
+            import redis
+            r = redis.Redis()
+            r.ping()
+        except redis.exceptions.ConnectionError:
+            raise unittest.SkipTest("Test requires a running redis instance")
         storage = LockStorageRedis()
         self.lm = lock_manager.LockManager(storage)
         self.lm._verbose = 2
