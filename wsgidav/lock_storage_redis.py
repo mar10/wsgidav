@@ -15,6 +15,7 @@ import pickle
 import redis
 import time
 
+
 _logger = util.get_module_logger(__name__)
 
 
@@ -44,7 +45,6 @@ class LockStorageRedis(object):
 
     def _flush(self):
         """Overloaded by Shelve implementation."""
-        pass
 
     def open(self):
         """Called before first use.
@@ -61,7 +61,6 @@ class LockStorageRedis(object):
 
     def cleanup(self):
         """Purge expired locks (optional)."""
-        pass
 
     def clear(self):
         """Delete all entries."""
