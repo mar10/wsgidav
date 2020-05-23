@@ -602,7 +602,7 @@ class HgResourceProvider(DAVProvider):
             if rest == "/":
                 # Browse /archive: return a list of revision folders:
                 loglist = self._get_log(limit=10)
-                members = [compat.to_native(l["local_id"]) for l in loglist]
+                members = [compat.to_native(m["local_id"]) for m in loglist]
                 return VirtualCollection(path, environ, "Revisions", members)
             revid, rest = util.pop_path(rest)
             try:
