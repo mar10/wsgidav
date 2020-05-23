@@ -1,4 +1,4 @@
-sudo: false
+# sudo: false
 language: python
 
 matrix:
@@ -37,7 +37,7 @@ before_install:
 #    - sudo apt-get install libneon27-dev
 #    - ./install_litmus.sh
 
-service:
+services:
     - redis-server
 
 install:
