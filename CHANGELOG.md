@@ -3,7 +3,7 @@
 ## 3.0.4 / Unreleased
 
 - #181 Fix error for UTF8 (surrogate) filename
-
+- #186 Add sample Redis lock manager `LockStorageRedis` (Steffen Deusch)
 
 ## 3.0.3 / 2020-04-02
 

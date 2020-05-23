@@ -398,6 +398,7 @@ class RedisTest(BasicTest):
     def setUp(self):
         try:
             import redis
+
             r = redis.Redis()
             r.ping()
         except redis.exceptions.ConnectionError:
