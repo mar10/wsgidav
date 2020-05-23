@@ -7,6 +7,7 @@ from tempfile import gettempdir
 from time import sleep
 from wsgidav import lock_manager, lock_storage
 from wsgidav.dav_error import DAVError
+from wsgidav.lock_storage_redis import LockStorageRedis
 
 import os
 import sys
@@ -391,6 +392,24 @@ class ShelveTest(BasicTest):
 
 #         if os.path.exists(self.path):
 #             os.remove(self.path)
+
+
+class RedisTest(BasicTest):
+    def setUp(self):
+        try:
+            import redis
+
+            r = redis.Redis()
+            r.ping()
+        except redis.exceptions.ConnectionError:
+            raise unittest.SkipTest("Test requires a running redis instance")
+        storage = LockStorageRedis()
+        self.lm = lock_manager.LockManager(storage)
+        self.lm._verbose = 2
+
+    def tearDown(self):
+        self.lm.storage.clear()
+        self.lm = None
 
 
 # ========================================================================
