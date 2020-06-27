@@ -870,6 +870,14 @@ def parse_xml_body(environ, *, allow_empty=False):
 #                            ])
 #    return [ body ]
 
+def append_custom_headers(environ, headers):
+    """Add custom headers (if any configured) to a list of headers."""
+    custom_headers = environ["wsgidav.config"].get("response_headers")
+    if custom_headers:
+        for header, value in custom_headers:
+            headers.append((header, value))
+    return headers
+
 
 def send_status_response(
     environ, start_response, e, *, add_headers=None, is_head=False
@@ -883,6 +891,7 @@ def send_status_response(
     #        headers += [
     #            ('Connection', 'keep-alive'),
     #        ]
+    append_custom_headers(environ, headers)
 
     if e in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
         # See paste.lint: these code don't have content
@@ -939,6 +948,8 @@ def send_multi_status_response(environ, start_response, multistatus_elem):
     #        headers += [
     #            ('Connection', 'keep-alive'),
     #        ]
+
+    append_custom_headers(environ, headers)
 
     start_response("207 Multi-Status", headers)
     return [xml_data]

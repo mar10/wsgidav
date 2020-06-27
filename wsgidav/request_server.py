@@ -32,7 +32,8 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
-from wsgidav.util import checked_etag, etree
+from wsgidav.util import append_custom_headers, checked_etag, etree
+
 
 __docformat__ = "reStructuredText"
 
@@ -1527,6 +1528,8 @@ class RequestServer:
         if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
             headers.append(("MS-Author-Via", "DAV"))
 
+        append_custom_headers(environ, headers)
+
         start_response("200 OK", headers)
         return [b""]
 
@@ -1640,10 +1643,7 @@ class RequestServer:
         if res.support_ranges():
             response_headers.append(("Accept-Ranges", "bytes"))
 
-        if "response_headers" in environ["wsgidav.config"]:
-            customHeaders = environ["wsgidav.config"]["response_headers"]
-            for header, value in customHeaders:
-                response_headers.append((header, value))
+        append_custom_headers(environ, response_headers)
 
         res.finalize_headers(environ, response_headers)
 
