@@ -869,7 +869,9 @@ class RequestServer(object):
         src_path = environ["PATH_INFO"]
         provider = self._davProvider
         src_res = provider.get_resource_inst(src_path, environ)
-        src_parent_res = provider.get_resource_inst(util.get_uri_parent(src_path), environ)
+        src_parent_res = provider.get_resource_inst(
+            util.get_uri_parent(src_path), environ
+        )
 
         def _debug_exception(e):
             """Log internal exceptions with stacktrace that otherwise would be hidden."""
@@ -1082,7 +1084,9 @@ class RequestServer(object):
 
             if not has_conflicts:
                 try:
-                    _logger.debug("Recursive move: {} -> '{}'".format(src_res, dest_path))
+                    _logger.debug(
+                        "Recursive move: {} -> '{}'".format(src_res, dest_path)
+                    )
                     error_list = src_res.move_recursive(dest_path)
                 except Exception as e:
                     _debug_exception(e)
@@ -1418,7 +1422,9 @@ class RequestServer(object):
                 err_condition=PRECONDITION_CODE_LockTokenMismatch,
             )
 
-        if not lock_man.is_token_locked_by_user(lock_token, environ["wsgidav.user_name"]):
+        if not lock_man.is_token_locked_by_user(
+            lock_token, environ["wsgidav.user_name"]
+        ):
             # TODO: there must be a way to allow this for admins.
             #       Maybe test for "remove_locks" in environ["wsgidav.roles"]
             self._fail(HTTP_FORBIDDEN, "Token was created by another user.")
