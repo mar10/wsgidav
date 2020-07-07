@@ -10,11 +10,12 @@
 
 # NOTE 2018-07-28: alpine does not compile lxml
 # NOTE 2019-11-27: smallest image generated at the end
-FROM alpine:latest
+FROM python:3-alpine
 
 #dependencies
-RUN apk --no-cache add py-lxml py-pip
-RUN apk --no-cache add gcc libxslt-dev musl-dev
+RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml py3-pip \
+    && pip3 install wsgidav cheroot lxml \
+    && apk del .build-deps gcc musl-dev
 
 RUN pip install --no-cache-dir wsgidav cheroot lxml
 RUN mkdir -p /var/wsgidav-root
