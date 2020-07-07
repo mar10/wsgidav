@@ -304,18 +304,18 @@ class LockManager(object):
         lockList = []
         u = url
         while u:
-            ll = self.storage.get_lock_list(
+            lock_list = self.storage.get_lock_list(
                 u, include_root=True, include_children=False, token_only=False
             )
-            for l in ll:
-                if u != url and l["depth"] != "infinity":
+            for lock in lock_list:
+                if u != url and lock["depth"] != "infinity":
                     continue  # We only consider parents with Depth: infinity
                 # TODO: handle shared locks in some way?
-                #                if (l["scope"] == "shared" and lock_scope == "shared"
-                #                   and principal != l["principal"]):
+                #                if (lock["scope"] == "shared" and lock_scope == "shared"
+                #                   and principal != lock["principal"]):
                 # continue  # Only compatible with shared locks by other users
-                if principal is None or principal == l["principal"]:
-                    lockList.append(l)
+                if principal is None or principal == lock["principal"]:
+                    lockList.append(lock)
             u = util.get_uri_parent(u)
         return lockList
 
@@ -391,36 +391,38 @@ class LockManager(object):
             # Check url and all parents for conflicting locks
             u = url
             while u:
-                ll = self.get_url_lock_list(u)
-                for l in ll:
-                    _logger.debug("    check parent {}, {}".format(u, lock_string(l)))
-                    if u != url and l["depth"] != "infinity":
+                lock_list = self.get_url_lock_list(u)
+                for lock in lock_list:
+                    _logger.debug(
+                        "    check parent {}, {}".format(u, lock_string(lock))
+                    )
+                    if u != url and lock["depth"] != "infinity":
                         # We only consider parents with Depth: infinity
                         continue
-                    elif l["scope"] == "shared" and lock_scope == "shared":
+                    elif lock["scope"] == "shared" and lock_scope == "shared":
                         # Only compatible with shared locks (even by same
                         # principal)
                         continue
                     # Lock conflict
                     _logger.debug(
-                        " -> DENIED due to locked parent {}".format(lock_string(l))
+                        " -> DENIED due to locked parent {}".format(lock_string(lock))
                     )
-                    errcond.add_href(l["root"])
+                    errcond.add_href(lock["root"])
                 u = util.get_uri_parent(u)
 
             if lock_depth == "infinity":
                 # Check child URLs for conflicting locks
-                childLocks = self.storage.get_lock_list(
+                child_ocks = self.storage.get_lock_list(
                     url, include_root=False, include_children=True, token_only=False
                 )
 
-                for l in childLocks:
-                    assert util.is_child_uri(url, l["root"])
-                    #                    if util.is_child_uri(url, l["root"]):
+                for lock in child_ocks:
+                    assert util.is_child_uri(url, lock["root"])
+                    #                    if util.is_child_uri(url, lock["root"]):
                     _logger.debug(
-                        " -> DENIED due to locked child {}".format(lock_string(l))
+                        " -> DENIED due to locked child {}".format(lock_string(lock))
                     )
-                    errcond.add_href(l["root"])
+                    errcond.add_href(lock["root"])
         finally:
             self._lock.release()
 
@@ -474,37 +476,39 @@ class LockManager(object):
             # Check url and all parents for conflicting locks
             u = url
             while u:
-                ll = self.get_url_lock_list(u)
+                lock_list = self.get_url_lock_list(u)
                 _logger.debug("  checking {}".format(u))
-                for l in ll:
-                    _logger.debug("     l={}".format(lock_string(l)))
-                    if u != url and l["depth"] != "infinity":
+                for lock in lock_list:
+                    _logger.debug("     lock={}".format(lock_string(lock)))
+                    if u != url and lock["depth"] != "infinity":
                         # We only consider parents with Depth: inifinity
                         continue
-                    elif principal == l["principal"] and l["token"] in token_list:
+                    elif principal == lock["principal"] and lock["token"] in token_list:
                         # User owns this lock
                         continue
                     else:
                         # Token is owned by principal, but not passed with lock list
                         _logger.debug(
-                            " -> DENIED due to locked parent {}".format(lock_string(l))
+                            " -> DENIED due to locked parent {}".format(
+                                lock_string(lock)
+                            )
                         )
-                        errcond.add_href(l["root"])
+                        errcond.add_href(lock["root"])
                 u = util.get_uri_parent(u)
 
             if depth == "infinity":
                 # Check child URLs for conflicting locks
-                childLocks = self.storage.get_lock_list(
+                child_ocks = self.storage.get_lock_list(
                     url, include_root=False, include_children=True, token_only=False
                 )
 
-                for l in childLocks:
-                    assert util.is_child_uri(url, l["root"])
-                    #                    if util.is_child_uri(url, l["root"]):
+                for lock in child_ocks:
+                    assert util.is_child_uri(url, lock["root"])
+                    #                    if util.is_child_uri(url, lock["root"]):
                     _logger.debug(
-                        " -> DENIED due to locked child {}".format(lock_string(l))
+                        " -> DENIED due to locked child {}".format(lock_string(lock))
                     )
-                    errcond.add_href(l["root"])
+                    errcond.add_href(lock["root"])
         finally:
             self._lock.release()
 
