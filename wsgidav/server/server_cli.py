@@ -221,12 +221,16 @@ See https://github.com/mar10/wsgidav for additional information.
 
     if args.version:
         if args.verbose >= 4:
-            msg = "WsgiDAV/{} Python/{} {}".format(
-                __version__, util.PYTHON_VERSION, platform.platform(aliased=True)
+            version_info = "WsgiDAV/{} Python/{}({} bit) {}".format(
+                __version__,
+                util.PYTHON_VERSION,
+                "64" if sys.maxsize > 2 ** 32 else "32",
+                platform.platform(aliased=True),
             )
+            version_info += "\nPython from: {}".format(sys.executable)
         else:
-            msg = "{}".format(__version__)
-        print(msg)
+            version_info = "{}".format(__version__)
+        print(version_info)
         sys.exit()
 
     if args.no_config:
