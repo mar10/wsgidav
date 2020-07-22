@@ -1,0 +1,92 @@
+file_version: stressor#0
+
+# The run configuration defines how the `sequences` are executed in parallel
+# sessions.
+config:
+  name: Test WebDAV
+  # tag: Not set (pass `-o tag:TAG_NAME` to override)
+  details: |
+    This scenario runs some tests against a WebDAV server.
+    We use it to test stressor against a locally running WsgiDAV server:
+    - Open a terminal and run
+      $ wsgidav --root tests/stressor/htdocs --host 127.0.0.1 --port 8082 --auth anonymous --no-config
+    - Open a second terminal and run
+      $ stressor run tests/stressor/test_rw -q
+  verbose: 3
+  base_url: http://127.0.0.1:8082
+  timeout: 1
+
+# Initial context value definitions.
+# All used parameters must be listed here in the form:
+#   parameter_name: default_value
+# Set `null` value to make it mandatory, i.e. must be passed by caller.
+context:
+
+sessions:
+  users: $load(users.yaml)
+  count: 10
+  # basic_auth: true
+
+# Define what actions should be performed by every session
+scenario:
+  - sequence: init
+  - sequence: main
+    # repeat: 3
+    duration: 30
+  - sequence: end
+
+
+# List of named action sequences. Used as building blocks for scenarios
+sequences:
+  # 'init' is the reserved name for the set-up sequence.
+  init:
+    # Log-in
+    - activity: HTTPRequest
+      url: $(base_url)
+      method: OPTIONS
+      assert_match_headers: ".*'DAV'.*"
+
+    - activity: GetRequest
+      # Use `base_url` by default:
+      url: mock_login_response.json
+      assert_json:
+        result.user_guid: "{abc123}"
+      store_json:
+        user_guid: "result.user_guid"
+
+    # - activity: $debug()
+
+  # Other sections can have arbitrary names and are excuted in order of appearance
+  main:
+    # Test dirbrowser for root URL
+    - activity: GetRequest
+      url: $(base_url)/
+      assert_match: ".*Index of /.*"
+      assert_html:
+        "//*[@class='logo']": true
+
+    # Plain GET (all sessions read the same file)
+    - activity: GetRequest
+      url: $(base_url)/private/test.html
+      auth: $(user.auth)
+      assert_match: ".*Secret text.*"
+      # debug: true
+
+    # PUT + GET (all sessions create their own file)
+    - activity: PutRequest
+      url: /temp/wsgidav_test_file~$(session_id).txt
+      data: "Test"
+      assert_max_time: 0.5
+      # debug: true
+      monitor: true
+
+    - activity: GetRequest
+      url: /temp/wsgidav_test_file~$(session_id).txt
+      assert_match: "Test"
+
+  # 'end' is the reserved name for the tear-down sequence
+  end:
+    - activity: $sleep(0.1)
+
+    - activity: DeleteRequest
+      url: /temp/wsgidav_test_file~$(session_id).txt
