@@ -42,13 +42,12 @@ sequences:
   init:
     # Log-in
     - activity: HTTPRequest
-      url: $(base_url)
+      url: /
       method: OPTIONS
       assert_match_headers: ".*'DAV'.*"
 
     - activity: GetRequest
-      # Use `base_url` by default:
-      url: mock_login_response.json
+      url: /mock_login_response.json
       assert_json:
         result.user_guid: "{abc123}"
       store_json:
@@ -60,16 +59,17 @@ sequences:
   main:
     # Test dirbrowser for root URL
     - activity: GetRequest
-      url: $(base_url)/
+      url: /
       assert_match: ".*Index of /.*"
       assert_html:
         "//*[@class='logo']": true
 
     # Plain GET (all sessions read the same file)
     - activity: GetRequest
-      url: $(base_url)/private/test.html
+      url: /private/test.html
       auth: $(user.auth)
-      assert_match: ".*Secret text.*"
+      # assert_match: ".*Secret text.*"
+      monitor: true
       # debug: true
 
     # PUT + GET (all sessions create their own file)
@@ -77,12 +77,13 @@ sequences:
       url: /temp/wsgidav_test_file~$(session_id).txt
       data: "Test"
       assert_max_time: 0.5
-      # debug: true
       monitor: true
+      # debug: true
 
     - activity: GetRequest
       url: /temp/wsgidav_test_file~$(session_id).txt
       assert_match: "Test"
+      monitor: true
 
   # 'end' is the reserved name for the tear-down sequence
   end:
