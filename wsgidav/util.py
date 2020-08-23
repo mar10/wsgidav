@@ -1008,14 +1008,14 @@ reSuffixByteRangeSpecifier = re.compile("(-([0-9]+))")
 
 def obtain_content_ranges(rangetext, filesize):
     """
-   returns tuple (list, value)
+    returns tuple (list, value)
 
-   list
-       content ranges as values to their parsed components in the tuple
-       (seek_position/abs position of first byte, abs position of last byte, num_of_bytes_to_read)
-   value
-       total length for Content-Length
-   """
+    list
+        content ranges as values to their parsed components in the tuple
+        (seek_position/abs position of first byte, abs position of last byte, num_of_bytes_to_read)
+    value
+        total length for Content-Length
+    """
     listReturn = []
     seqRanges = rangetext.split(",")
     for subrange in seqRanges:
