@@ -169,7 +169,7 @@ logger_date_format: "%H:%M:%S"
 
 #: Let ErrorPrinter middleware catch all exceptions to return as 500 Internal Error
 error_printer:
-    catch_all: false
+    catch_all: true
 
 # Enable specific module loggers
 # E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
