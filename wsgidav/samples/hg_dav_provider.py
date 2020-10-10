@@ -366,9 +366,7 @@ class HgResource(_DAVResource):
         commands.remove(self.provider.ui, self.provider.repo, filepath, force=True)
 
     def handle_copy(self, dest_path, depth_infinity):
-        """Handle a COPY request natively.
-
-        """
+        """Handle a COPY request natively."""
         destType, destHgPath = util.pop_path(dest_path)
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
@@ -387,9 +385,7 @@ class HgResource(_DAVResource):
         return True
 
     def handle_move(self, dest_path):
-        """Handle a MOVE request natively.
-
-        """
+        """Handle a MOVE request natively."""
         destType, destHgPath = util.pop_path(dest_path)
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui

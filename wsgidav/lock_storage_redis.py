@@ -21,7 +21,7 @@ _logger = util.get_module_logger(__name__)
 
 class LockStorageRedis(object):
     """
-        A (high performance?) lock manager implementation using redis!
+    A (high performance?) lock manager implementation using redis!
     """
 
     def __init__(self, host="127.0.0.1", port=6379, db=0):

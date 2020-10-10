@@ -323,8 +323,10 @@ class HTTPAuthenticator(BaseMiddleware):
             timekey + ":" + etagkey + ":" + serverkey
         )
         nonce = calc_base64(nonce_source)
-        wwwauthheaders = 'Digest realm="{}", nonce="{}", algorithm=MD5, qop="auth"'.format(
-            realm, nonce
+        wwwauthheaders = (
+            'Digest realm="{}", nonce="{}", algorithm=MD5, qop="auth"'.format(
+                realm, nonce
+            )
         )
 
         _logger.debug(
@@ -504,8 +506,10 @@ class HTTPAuthenticator(BaseMiddleware):
                     )
                 )
             elif required_digest != req_response:
-                warning_msg = "compute_digest_response('{}', '{}', ...): {} != {}".format(
-                    realm, req_username, required_digest, req_response
+                warning_msg = (
+                    "compute_digest_response('{}', '{}', ...): {} != {}".format(
+                        realm, req_username, required_digest, req_response
+                    )
                 )
                 if self.winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
