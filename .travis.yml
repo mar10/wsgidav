@@ -21,15 +21,15 @@ matrix:
           dist: xenial
         - python: "3.8"
           env: TOXENV=py38
-        - python: "3.7-dev"
-          env: TOXENV=py37
-        - python: "3.8-dev"
-          env: TOXENV=py38
+        - python: "3.9"
+          env: TOXENV=py39
+        - python: "3.10-dev"
+          env: TOXENV=py310
     allow_failures:
-        - python: "3.7-dev"
-          env: TOXENV=py37
-        - python: "3.8-dev"
-          env: TOXENV=py38
+        - python: "3.9"
+          env: TOXENV=py39
+        - python: "3.10-dev"
+          env: TOXENV=py310
 
 before_install:
     # See issue #80: litmus fails to build on travis

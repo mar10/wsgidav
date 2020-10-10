@@ -215,6 +215,8 @@ class FolderResource(DAVCollection):
         nameList = []
         # self._file_path is unicode, so os.listdir returns unicode as well
         assert compat.is_unicode(self._file_path)
+        # if "temp" in self._file_path:
+        #     raise RuntimeError("Oops")
         for name in os.listdir(self._file_path):
             if not compat.is_unicode(name):
                 name = name.decode(sys.getfilesystemencoding())

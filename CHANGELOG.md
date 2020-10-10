@@ -4,6 +4,7 @@
 
 - #181 Fix error for UTF8 (surrogate) filename
 - #186 Add sample Redis lock manager `LockStorageRedis` (Steffen Deusch)
+- Use yabs for releases
 
 ## 3.0.3 / 2020-04-02
 

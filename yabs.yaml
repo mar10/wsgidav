@@ -1,0 +1,96 @@
+# Yabs Workflow Definition
+# See https://github.com/mar10/yabs
+
+file_version: yabs#1
+
+config:
+  repo: 'mar10/wsgidav'
+  gh_auth:
+    oauth_token_var: GITHUB_OAUTH_TOKEN
+  version:
+    - type: __version__        # First entry is master for synchronizing
+      file: wsgidav/__init__.py
+  max_increment: minor
+  branches:                  # Allowed git branches
+    - master
+
+tasks:
+  # 'check': Assert preconditons and fail otherwise
+  - task: check
+    branches: master        # Current branch must be in this list
+    can_push: true          # Test if 'git push' would/would not succeed
+    github: true            # GitHub repo name valid and online accessible
+    clean: true             # Repo must/must not contain modifications
+    os: null                # (str, list)
+    python: ">=3.5"         # SemVer specifier
+    twine: true             # `twine` is available
+    up_to_date: true        # everything pulled from remote
+    venv: true              # running inside a virtual environment
+    version: true           # `setup.py --version` returns the configured version
+
+  # 'run': Run arbitrary shell command
+  - task: exec
+    args: ["tox", "-e", "lint"]     # shell command and optional arguments
+    always: true            # `true`: run even in dry-run mode
+    silent: true            # `true`: suppress output
+    ignore_errors: false    # `true`: show warning, but proceed on errors (exit code != 0)
+
+  - task: exec
+    args: ["tox"]           # shell command and optional arguments
+    always: true            # `true`: run even in dry-run mode
+    silent: true            # `true`: suppress output
+    ignore_errors: false    # `true`: show warning, but proceed on errors (exit code != 0)
+
+  # 'bump': version by `--inc` argument
+  - task: bump
+    # inc: null               # Use value passed as 'yabs run --inc INC'
+
+    # 'commit': Commit modified files
+  - task: commit
+    add: []                 # Also `git add` these files ('.' for all)
+    add_known: true         # Commit with -a flag
+    message: |
+      Bump version to {version}
+
+  # 'tag': Create an annotated tag
+  - task: tag
+    name: v{version}
+    message: |
+      Version {version}
+
+  # 'build': `setup.y bdist_wheel`, ...
+  - task: build
+    targets:
+      - sdist
+      - bdist_wheel
+
+  # 'push': Push changes and tags
+  - task: push
+    tags: true
+
+  # 'pypi_release': Create a release on PyPI
+  - task: pypi_release
+
+  # 'github_release': Create a release on GitHub
+  - task: github_release
+    name: 'v{version}'
+    message: |
+      Released {version}
+      [Commit details](https://github.com/{repo}/compare/{org_tag_name}...{tag_name}).
+    # draft: true
+    prerelease: null  # null: guess from version number format
+    upload:
+      - sdist
+      - bdist_wheel
+
+  # Commit after-release version
+  - task: bump
+    inc: postrelease
+
+  - task: commit
+    add_known: true
+    # '[ci skip]' tells travis to ignore
+    message: |
+      Bump prerelease ({version}) [ci skip]
+
+  - task: push

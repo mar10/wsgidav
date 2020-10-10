@@ -24,7 +24,6 @@ Package ``wsgidav``
 .. autosummary::
    :toctree: _autosummary
 
-   wsgidav._version
    wsgidav.compat
    wsgidav.dav_error
    wsgidav.dav_provider

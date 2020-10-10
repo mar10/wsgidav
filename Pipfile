@@ -26,6 +26,8 @@ tox = "~=3.13"
 twine = "~=1.11"
 WebTest = "~=2.0"
 wheel = "*"
+yabs = "*"
+# wsgidav = {editable = true, path = "."}
 
 [packages]
 defusedxml = "~=0.5"
@@ -35,7 +37,7 @@ six = "~=1.13"
 json5 = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true

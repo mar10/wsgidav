@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Released with: Yabs](https://img.shields.io/badge/released%20with-yabs-yellowgreen)](https://github.com/mar10/yabs)
 [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
