@@ -294,4 +294,4 @@ This release contains **BREAKING CHANGES!**
 
 ## Until 0.4.0 alpha
 
-See https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md
+See https://github.com/mar10/wsgidav/blob/master/docs/changelog04.md

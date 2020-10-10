@@ -37,7 +37,7 @@ Main Features
 - Passes the `litmus test suite <http://www.webdav.org/neon/litmus/>`_.
 - Open architecture allows to :doc:`user_guide_custom_providers`
   (i.e. storage, locking, authentication, virtual file systems, ...).
-- WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/doc/changelog04.md>`_
+- WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/docs/changelog04.md>`_
   written by Ho Chun Wei.
 
 
