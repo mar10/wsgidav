@@ -941,7 +941,10 @@ class RequestServer(object):
         if src_res.is_collection:
             dest_path = dest_path.rstrip("/") + "/"
 
-        if dest_scheme and dest_scheme.lower() != environ["wsgi.url_scheme"].lower():
+        dest_scheme = dest_scheme.lower() if dest_scheme else ""
+        url_scheme = environ["wsgi.url_scheme"].lower()
+        fwd_scheme = environ.get("HTTP_X_FORWARDED_PROTO", "").lower()
+        if dest_scheme and dest_scheme not in (url_scheme, fwd_scheme):
             self._fail(
                 HTTP_BAD_GATEWAY,
                 "Source and destination must have the same scheme.\n"
