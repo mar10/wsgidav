@@ -1,10 +1,11 @@
 # Changelog
 
-## 3.0.4 / Unreleased
+## 3.0.5 / Unreleased
 
 - #181 Fix error for UTF8 (surrogate) filename
+- #183 Support reverse proxies
 - #186 Add sample Redis lock manager `LockStorageRedis` (Steffen Deusch)
-- Use yabs for releases
+- Use [Yabs](https://github.com/mar10/yabs) as release tool
 
 ## 3.0.3 / 2020-04-02
 
@@ -285,7 +286,7 @@ This release contains **BREAKING CHANGES!**
 
 ## 0.4.0.b1
 
-- Using HTTP/1.1 with keep-alive (St�phane KLEIN)
+- Using HTTP/1.1 with keep-alive (Stéphane KLEIN)
 - Correctly return pre- and postconditions on lock conflicts.
 - Added Sphinx docs
 - Added Mercurial provider
