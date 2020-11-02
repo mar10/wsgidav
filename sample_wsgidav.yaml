@@ -214,6 +214,10 @@ dir_browser:
     #:   https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ff407576(v%3Doffice.14)
     #: - Otherwise the Office URL prefix is used (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
     ms_sharepoint_support: true
+    #: The path to the directory that contains template.html and associated
+    #: assets.
+    #: The default is the htdocs directory within the dir_browser directory.
+    htdocs_path: htdocs
 
 
 # ----------------------------------------------------------------------------
