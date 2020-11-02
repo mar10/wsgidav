@@ -45,7 +45,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
     def __init__(self, wsgidav_app, next_app, config):
         super(WsgiDavDirBrowser, self).__init__(wsgidav_app, next_app, config)
-        self.htdocs_path = os.path.join(os.path.dirname(__file__), "htdocs")
+        self.dir_config = config.get("dir_browser", {})
+        self.htdocs_path = os.path.realpath(self.dir_config.get('htdocs_path', os.path.join(os.path.dirname(__file__), "htdocs")))
+
+        if not os.path.exists(self.htdocs_path):
+            raise ValueError("Invalid dir_browser htdocs_path {!r}".format(self.htdocs_path))
 
         # Add an additional read-only FS provider that serves the dir_browser assets
         self.wsgidav_app.add_provider(ASSET_SHARE, self.htdocs_path, readonly=True)
@@ -58,7 +62,6 @@ class WsgiDavDirBrowser(BaseMiddleware):
         templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
         templateEnv = Environment(loader=templateLoader)
         self.template = templateEnv.get_template("template.html")
-        self.dir_config = config.get("dir_browser", {})
 
     def is_disabled(self):
         return self.dir_config.get("enable") is False
