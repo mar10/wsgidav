@@ -42,6 +42,6 @@
         "davmount": false,
         "ms_mount": false,
         "ms_sharepoint_support": true,
-        "htdocs_path": "htdocs"
+        "htdocs_path": null
     }
 }

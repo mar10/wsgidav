@@ -95,6 +95,6 @@ DEFAULT_CONFIG = {
         # "ms_sharepoint_urls": False,  # Prepend 'ms-word:ofe|u|' to URL for MS Offce documents
         # The path to the directory that contains template.html and associated assets.
         # The default is the htdocs directory within the dir_browser directory.
-        "htdocs_path": "htdocs",
+        "htdocs_path": None,
     },
 }
