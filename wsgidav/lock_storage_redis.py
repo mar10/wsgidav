@@ -24,11 +24,12 @@ class LockStorageRedis(object):
     A (high performance?) lock manager implementation using redis!
     """
 
-    def __init__(self, host="127.0.0.1", port=6379, db=0):
+    def __init__(self, host="127.0.0.1", port=6379, db=0, password=None):
         super(LockStorageRedis, self).__init__()
         self._redis_host = host
         self._redis_port = port
         self._redis_db = db
+        self._redis_password = password
         self._redis_prefix = "wsgidav-{}"
         self._redis_lock_prefix = self._redis_prefix.format("lock:{}")
         self._redis_url2token_prefix = self._redis_prefix.format("URL2TOKEN:{}")
@@ -52,7 +53,7 @@ class LockStorageRedis(object):
         """
         assert self._redis is None
         self._redis = redis.Redis(
-            host=self._redis_host, port=self._redis_port, db=self._redis_db
+            host=self._redis_host, port=self._redis_port, db=self._redis_db, password=self._redis_password
         )
 
     def close(self):
