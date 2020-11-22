@@ -7,6 +7,7 @@
 - #186 Add sample Redis lock manager `LockStorageRedis` (Steffen Deusch)
 - Use [Yabs](https://github.com/mar10/yabs) as release tool
 - #191 Add option `dir_browser.htdocs_path`
+- #195 Add password to lock_storage_redis
 
 ## 3.0.3 / 2020-04-02
 
