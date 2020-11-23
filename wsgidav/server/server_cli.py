@@ -790,6 +790,35 @@ def _run_ext_wsgiutils(app, config, mode):
     return
 
 
+def _run_gunicorn(app, config, mode):
+    """Run WsgiDAV using gunicorn if gunicorn is installed."""
+    import gunicorn.app.base
+
+    class GunicornApplication(gunicorn.app.base.BaseApplication):
+        def __init__(self, app, options=None):
+            self.options = options or {}
+            self.application = app
+            super().__init__()
+
+        def load_config(self):
+            config = {
+                key: value for key, value in self.options.items()
+                if key in self.cfg.settings and value is not None
+            }
+            for key, value in config.items():
+                self.cfg.set(key.lower(), value)
+
+        def load(self):
+            return self.application
+
+    options = {
+        "bind": "{}:{}".format(config['host'], config['port']),
+        "threads": 50,
+        "timeout": 1200
+    }
+    GunicornApplication(app, options).run()
+
+
 SUPPORTED_SERVERS = {
     "paste": _run_paste,
     "gevent": _run_gevent,
@@ -799,6 +828,7 @@ SUPPORTED_SERVERS = {
     "flup-fcgi": _run_flup,
     "flup-fcgi_fork": _run_flup,
     "wsgiref": _run_wsgiref,
+    "gunicorn": _run_gunicorn,
 }
 
 

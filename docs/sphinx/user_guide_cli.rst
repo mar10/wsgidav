@@ -38,7 +38,7 @@ Use the ``--help`` or ``-h`` argument to get help::
   $ wsgidav --help
   usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH]
                 [--auth {anonymous,nt,pam-login}]
-                [--server {paste,gevent,cheroot,cherrypy,ext-wsgiutils,flup-fcgi,flup-fcgi_fork,wsgiref}]
+                [--server {paste,gevent,cheroot,cherrypy,ext-wsgiutils,flup-fcgi,flup-fcgi_fork,wsgiref,gunicorn}]
                 [--ssl-adapter {builtin,pyopenssl}] [-v | -q]
                 [-c CONFIG_FILE | --no-config] [-V]
 
@@ -67,7 +67,7 @@ Use the ``--help`` or ``-h`` argument to get help::
                           path to a file system folder to publish as share '/'.
     --auth {anonymous,nt,pam-login}
                           quick configuration of a domain controller when no config file is used
-    --server {paste,gevent,cheroot,cherrypy,ext-wsgiutils,flup-fcgi,flup-fcgi_fork,wsgiref}
+    --server {paste,gevent,cheroot,cherrypy,ext-wsgiutils,flup-fcgi,flup-fcgi_fork,wsgiref,gunicorn}
                           type of pre-installed WSGI server to use (default: cheroot).
     --ssl-adapter {builtin,pyopenssl}
                           used by 'cheroot' server if SSL certificates are configured (default: builtin).
