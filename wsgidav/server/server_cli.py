@@ -35,6 +35,7 @@ Configuration is defined like this:
 from __future__ import print_function
 from inspect import isfunction
 from pprint import pformat
+from threading import Timer
 from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -698,21 +699,33 @@ def _run_cheroot(app, config, mode):
     # Override or add custom args
     server_args.update(config.get("server_args", {}))
 
-    server = wsgi.Server(**server_args)
+    class PatchedServer(wsgi.Server):
+        STARTUP_NOTIFICATION_DELAY = 0.5
+
+        def serve(self, *args, **kwargs):
+            _logger.error("wsgi.Server.serve")
+            if startup_event and not startup_event.is_set():
+                Timer(self.STARTUP_NOTIFICATION_DELAY, startup_event.set).start()
+                _logger.error("wsgi.Server is ready")
+            return super(PatchedServer, self).serve(*args, **kwargs)
 
     # If the caller passed a startup event, monkey patch the server to set it
     # when the request handler loop is entered
     startup_event = config.get("startup_event")
     if startup_event:
+        server = PatchedServer(**server_args)
 
-        def _patched_tick():
-            server.tick = org_tick  # undo the monkey patch
-            _logger.info("wsgi.Server is ready")
-            startup_event.set()
-            org_tick()
-
-        org_tick = server.tick
-        server.tick = _patched_tick
+        # issue #200: The `server.tick()` method was dropped with cheroot 8.5
+        # def _patched_tick():
+        #     server.tick = org_tick  # undo the monkey patch
+        #     _logger.info("wsgi.Server is ready (pre Cheroot 8.5")
+        #     startup_event.set()
+        #     org_tick()
+        #
+        # org_tick = server.tick
+        # server.tick = _patched_tick
+    else:
+        server = wsgi.Server(**server_args)
 
     try:
         server.start()
