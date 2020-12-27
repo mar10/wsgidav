@@ -6,6 +6,7 @@
     Run litmus against WsgiDAV server.
 """
 from __future__ import print_function
+
 from tests.util import WsgiDavTestServer
 
 import subprocess

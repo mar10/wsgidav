@@ -35,8 +35,10 @@ _filesystemencoding = sys.getfilesystemencoding()
 
 if PY2:
 
-    from base64 import decodestring as base64_decodebytes
-    from base64 import encodestring as base64_encodebytes
+    from base64 import (
+        decodestring as base64_decodebytes,
+        encodestring as base64_encodebytes,
+    )
     from cgi import escape as html_escape
 
     def is_basestring(s):
@@ -75,8 +77,10 @@ if PY2:
 
 else:  # Python 3
 
-    from base64 import decodebytes as base64_decodebytes
-    from base64 import encodebytes as base64_encodebytes
+    from base64 import (
+        decodebytes as base64_decodebytes,
+        encodebytes as base64_encodebytes,
+    )
     from html import escape as html_escape
 
     def is_basestring(s):

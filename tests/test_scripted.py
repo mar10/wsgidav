@@ -11,6 +11,7 @@
         http://svn.osafoundation.org/tools/davclient/trunk/src/davclient/davclient.py
 """
 from __future__ import print_function
+
 from tempfile import gettempdir
 from tests import davclient
 from tests.util import WsgiDavTestServer

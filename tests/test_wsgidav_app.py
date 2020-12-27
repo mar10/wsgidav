@@ -12,6 +12,7 @@
         (successor of http://pythonpaste.org/testing-applications.html)
 """
 from __future__ import print_function
+
 from tempfile import gettempdir
 from wsgidav import compat, util
 from wsgidav.fs_dav_provider import FilesystemProvider

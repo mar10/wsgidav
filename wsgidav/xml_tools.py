@@ -22,10 +22,9 @@ _logger = logging.getLogger("wsgidav")
 use_lxml = False
 try:
     # This import helps setup.py to include lxml completely:
-    from lxml import _elementpath as _dummy_elementpath  # noqa
-
     # lxml with safe defaults
     from defusedxml.lxml import _etree as etree
+    from lxml import _elementpath as _dummy_elementpath  # noqa
 
     use_lxml = True
     _ElementType = etree._Element

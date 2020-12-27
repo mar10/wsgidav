@@ -76,6 +76,7 @@ Testability and caveats
 
 """
 from __future__ import print_function
+
 from wsgidav import compat, util
 from wsgidav.dc.base_dc import BaseDomainController
 

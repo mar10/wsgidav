@@ -4,6 +4,7 @@
 # http://www.opensource.org/licenses/mit-license.php
 """Unit tests for wsgidav.util"""
 from __future__ import print_function
+
 from wsgidav.compat import StringIO
 from wsgidav.util import (
     BASE_LOGGER_NAME,

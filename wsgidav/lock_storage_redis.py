@@ -53,7 +53,10 @@ class LockStorageRedis(object):
         """
         assert self._redis is None
         self._redis = redis.Redis(
-            host=self._redis_host, port=self._redis_port, db=self._redis_db, password=self._redis_password
+            host=self._redis_host,
+            port=self._redis_port,
+            db=self._redis_db,
+            password=self._redis_password,
         )
 
     def close(self):

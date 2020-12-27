@@ -72,6 +72,7 @@ Requirements:
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 """
 from __future__ import print_function
+
 from hashlib import md5
 from pprint import pprint
 from wsgidav import compat, util
@@ -85,9 +86,10 @@ import time
 
 
 try:
-    import mercurial.ui
-    from mercurial.__version__ import version as hgversion
     from mercurial import commands, hg
+    from mercurial.__version__ import version as hgversion
+
+    import mercurial.ui
 
     # from mercurial import util as hgutil
 except ImportError:

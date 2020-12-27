@@ -33,6 +33,7 @@ Configuration is defined like this:
        FOLDER on the '/' share.
 """
 from __future__ import print_function
+
 from inspect import isfunction
 from pprint import pformat
 from threading import Timer
@@ -741,9 +742,9 @@ def _run_flup(app, config, mode):
     """Run WsgiDAV using flup.server.fcgi if Flup is installed."""
     # http://trac.saddi.com/flup/wiki/FlupServers
     if mode == "flup-fcgi":
-        from flup.server.fcgi import WSGIServer, __version__ as flupver
+        from flup.server.fcgi import __version__ as flupver, WSGIServer
     elif mode == "flup-fcgi-fork":
-        from flup.server.fcgi_fork import WSGIServer, __version__ as flupver
+        from flup.server.fcgi_fork import __version__ as flupver, WSGIServer
     else:
         raise ValueError
 

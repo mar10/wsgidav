@@ -10,6 +10,7 @@ Used by HTTPAuthenticator. Only available on linux and macOS.
 See https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 """
 from __future__ import print_function
+
 from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
 
