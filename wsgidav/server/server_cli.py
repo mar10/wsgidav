@@ -649,8 +649,6 @@ def _run_cheroot(app, config, mode):
     assert mode == "cheroot"
     try:
         from cheroot import server, wsgi
-    #         from cheroot.ssl.builtin import BuiltinSSLAdapter
-    #         import cheroot.ssl.pyopenssl
     except ImportError:
         _logger.error("*" * 78)
         _logger.error("ERROR: Could not import Cheroot.")
@@ -684,8 +682,6 @@ def _run_cheroot(app, config, mode):
         raise RuntimeError(
             "Option 'ssl_certificate' and 'ssl_private_key' must be used together."
         )
-    #     elif ssl_adapter:
-    #         print("WARNING: Ignored option 'ssl_adapter' (requires 'ssl_certificate').")
 
     _logger.info("Running {}".format(server_name))
     _logger.info(
@@ -802,7 +798,8 @@ def _run_gunicorn(app, config, mode):
 
         def load_config(self):
             config = {
-                key: value for key, value in self.options.items()
+                key: value
+                for key, value in self.options.items()
                 if key in self.cfg.settings and value is not None
             }
             for key, value in config.items():
@@ -812,9 +809,9 @@ def _run_gunicorn(app, config, mode):
             return self.application
 
     options = {
-        "bind": "{}:{}".format(config['host'], config['port']),
+        "bind": "{}:{}".format(config["host"], config["port"]),
         "threads": 50,
-        "timeout": 1200
+        "timeout": 1200,
     }
     GunicornApplication(app, options).run()
 
