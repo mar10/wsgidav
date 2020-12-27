@@ -408,8 +408,10 @@ def safe_re_encode(s, encoding_to, errors="backslashreplace"):
         encoding_to = "ASCII"
     if compat.is_bytes(s):
         s = s.decode(encoding_to, errors=errors).encode(encoding_to)
-    else:
+    elif hasattr(s, "encode"):
         s = s.encode(encoding_to, errors=errors).decode(encoding_to)
+    else:
+        raise TypeError("{!r} has not .encode".format(s))
     # print("safe_re_encode({}, {}) => {}".format(prev, encoding_to, s))
     return s
 
