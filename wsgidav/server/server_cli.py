@@ -34,15 +34,6 @@ Configuration is defined like this:
 """
 from __future__ import print_function
 
-from inspect import isfunction
-from pprint import pformat
-from threading import Timer
-from wsgidav import __version__, util
-from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
-from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.wsgidav_app import WsgiDAVApp
-from wsgidav.xml_tools import use_lxml
-
 import argparse
 import copy
 import io
@@ -51,8 +42,17 @@ import os
 import platform
 import sys
 import traceback
+from inspect import isfunction
+from pprint import pformat
+from threading import Timer
+
 import yaml
 
+from wsgidav import __version__, util
+from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
+from wsgidav.fs_dav_provider import FilesystemProvider
+from wsgidav.wsgidav_app import WsgiDAVApp
+from wsgidav.xml_tools import use_lxml
 
 try:
     # Try pyjson5 first because it's faster than json5
@@ -742,9 +742,11 @@ def _run_flup(app, config, mode):
     """Run WsgiDAV using flup.server.fcgi if Flup is installed."""
     # http://trac.saddi.com/flup/wiki/FlupServers
     if mode == "flup-fcgi":
-        from flup.server.fcgi import __version__ as flupver, WSGIServer
+        from flup.server.fcgi import WSGIServer
+        from flup.server.fcgi import __version__ as flupver
     elif mode == "flup-fcgi-fork":
-        from flup.server.fcgi_fork import __version__ as flupver, WSGIServer
+        from flup.server.fcgi_fork import WSGIServer
+        from flup.server.fcgi_fork import __version__ as flupver
     else:
         raise ValueError
 

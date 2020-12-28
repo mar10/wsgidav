@@ -50,10 +50,6 @@ Test cases
 """
 from __future__ import print_function
 
-from tests.util import Timing, WsgiDavTestServer
-from wsgidav import __version__
-from wsgidav.xml_tools import use_lxml
-
 import datetime
 import logging
 import os
@@ -61,6 +57,9 @@ import platform
 import subprocess
 import sys
 
+from tests.util import Timing, WsgiDavTestServer
+from wsgidav import __version__
+from wsgidav.xml_tools import use_lxml
 
 try:
     # WsgiDAV 2.x

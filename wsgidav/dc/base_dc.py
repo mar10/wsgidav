@@ -39,13 +39,13 @@ TODO: Work In Progress / Subject to change
 """
 from __future__ import print_function
 
-from hashlib import md5
-from wsgidav import compat, util
-
 import abc
-import six
 import sys
+from hashlib import md5
 
+import six
+
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 

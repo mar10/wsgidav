@@ -7,11 +7,10 @@
 """
 from __future__ import print_function
 
-from tests.util import WsgiDavTestServer
-
 import subprocess
 import unittest
 
+from tests.util import WsgiDavTestServer
 
 # ========================================================================
 # WsgiDAVServerTest

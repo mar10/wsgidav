@@ -65,7 +65,6 @@ DomainControllerBase_
 from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
 
-
 __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)

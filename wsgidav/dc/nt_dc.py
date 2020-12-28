@@ -77,13 +77,12 @@ Testability and caveats
 """
 from __future__ import print_function
 
-from wsgidav import compat, util
-from wsgidav.dc.base_dc import BaseDomainController
-
 import win32net
 import win32netcon
 import win32security
 
+from wsgidav import compat, util
+from wsgidav.dc.base_dc import BaseDomainController
 
 __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)

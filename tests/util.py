@@ -11,16 +11,15 @@ Example:
 """
 from __future__ import print_function
 
-from tempfile import gettempdir
-from wsgidav import compat, util
-from wsgidav.fs_dav_provider import FilesystemProvider
-from wsgidav.wsgidav_app import WsgiDAVApp
-
 import multiprocessing
 import os
 import sys
 import time
+from tempfile import gettempdir
 
+from wsgidav import compat, util
+from wsgidav.fs_dav_provider import FilesystemProvider
+from wsgidav.wsgidav_app import WsgiDAVApp
 
 # ========================================================================
 # Timing

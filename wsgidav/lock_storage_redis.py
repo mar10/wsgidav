@@ -3,6 +3,11 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
+import pickle
+import time
+
+import redis
+
 from wsgidav import compat, util
 from wsgidav.lock_manager import (
     generate_lock_token,
@@ -10,11 +15,6 @@ from wsgidav.lock_manager import (
     normalize_lock_root,
     validate_lock,
 )
-
-import pickle
-import redis
-import time
-
 
 _logger = util.get_module_logger(__name__)
 

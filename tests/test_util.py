@@ -5,6 +5,10 @@
 """Unit tests for wsgidav.util"""
 from __future__ import print_function
 
+import logging
+import logging.handlers
+import unittest
+
 from wsgidav.compat import StringIO
 from wsgidav.util import (
     BASE_LOGGER_NAME,
@@ -17,10 +21,6 @@ from wsgidav.util import (
     pop_path,
     shift_path,
 )
-
-import logging
-import logging.handlers
-import unittest
 
 
 class BasicTest(unittest.TestCase):

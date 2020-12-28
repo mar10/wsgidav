@@ -26,14 +26,15 @@
 # - Use requests instead of http.client / httplib
 
 import copy
-import requests
 import sys
 
+import requests
 
 PY2 = sys.version_info < (3, 0)
 
 if PY2:
     from base64 import encodestring as base64_encodebytes
+
     from cStringIO import StringIO
 
     BytesIO = StringIO

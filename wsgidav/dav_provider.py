@@ -76,21 +76,20 @@ lockManager
 
 See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """
-from wsgidav import compat, util, xml_tools
-from wsgidav.dav_error import (
-    as_DAVError,
-    DAVError,
-    HTTP_FORBIDDEN,
-    HTTP_NOT_FOUND,
-    PRECONDITION_CODE_ProtectedProperty,
-)
-from wsgidav.util import etree
-
 import os
 import sys
 import time
 import traceback
 
+from wsgidav import compat, util, xml_tools
+from wsgidav.dav_error import (
+    HTTP_FORBIDDEN,
+    HTTP_NOT_FOUND,
+    DAVError,
+    PRECONDITION_CODE_ProtectedProperty,
+    as_DAVError,
+)
+from wsgidav.util import etree
 
 __docformat__ = "reStructuredText"
 

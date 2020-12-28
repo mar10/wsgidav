@@ -20,7 +20,6 @@ from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.request_resolver import RequestResolver
 
-
 __docformat__ = "reStructuredText"
 
 # Use these settings, if config file does not define them (or is totally missing)

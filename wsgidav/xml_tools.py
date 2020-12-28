@@ -8,10 +8,9 @@ Small wrapper for different etree packages.
 """
 # from __future__ import print_function
 
-from wsgidav import compat
-
 import logging
 
+from wsgidav import compat
 
 __docformat__ = "reStructuredText"
 
@@ -31,10 +30,10 @@ try:
 except ImportError:
     # warnings.warn("Could not import lxml")  # , ImportWarning)
     # Try xml module (Python 2.5 or later) with safe defaults
-    from defusedxml import ElementTree as etree
-
     # defusedxml doesn't define these non-parsing related objects
     from xml.etree.ElementTree import Element, SubElement, tostring
+
+    from defusedxml import ElementTree as etree
 
     etree.Element = _ElementType = Element
     etree.SubElement = SubElement

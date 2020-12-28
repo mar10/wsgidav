@@ -11,13 +11,14 @@ TODO: since it is now based on six, we should remove this module eventually.
 """
 # flake8: noqa
 
-from six import BytesIO, PY2, PY3
-from six.moves import cStringIO as StringIO, input as console_input, queue, xrange
-from six.moves.urllib.parse import quote, unquote, urlparse
-
-import six
 import sys
 
+import six
+from six import PY2, PY3, BytesIO
+from six.moves import cStringIO as StringIO
+from six.moves import input as console_input
+from six.moves import queue, xrange
+from six.moves.urllib.parse import quote, unquote, urlparse
 
 # See #174: `collections_abc` would be part of six.moves, but only for
 # six v1.13+ but we don't want to force users to update their system python's six
@@ -35,10 +36,8 @@ _filesystemencoding = sys.getfilesystemencoding()
 
 if PY2:
 
-    from base64 import (
-        decodestring as base64_decodebytes,
-        encodestring as base64_encodebytes,
-    )
+    from base64 import decodestring as base64_decodebytes
+    from base64 import encodestring as base64_encodebytes
     from cgi import escape as html_escape
 
     def is_basestring(s):
@@ -77,10 +76,8 @@ if PY2:
 
 else:  # Python 3
 
-    from base64 import (
-        decodebytes as base64_decodebytes,
-        encodebytes as base64_encodebytes,
-    )
+    from base64 import decodebytes as base64_decodebytes
+    from base64 import encodebytes as base64_encodebytes
     from html import escape as html_escape
 
     def is_basestring(s):

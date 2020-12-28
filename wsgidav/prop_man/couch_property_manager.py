@@ -25,10 +25,10 @@ Valid options are (sample shows defaults)::
 from __future__ import print_function
 
 from uuid import uuid4
-from wsgidav import compat, util
 
 import couchdb
 
+from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
 

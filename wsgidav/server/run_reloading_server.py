@@ -7,10 +7,9 @@ modified.
 """
 from __future__ import print_function
 
-from subprocess import Popen
-
 import os
 import sys
+from subprocess import Popen
 
 
 def run():

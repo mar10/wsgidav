@@ -20,7 +20,6 @@ from __future__ import print_function
 
 from wsgidav import compat, util
 
-
 __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)

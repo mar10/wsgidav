@@ -11,11 +11,10 @@ See https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 """
 from __future__ import print_function
 
-from wsgidav import util
-from wsgidav.dc.base_dc import BaseDomainController
-
 import pam
 
+from wsgidav import util
+from wsgidav.dc.base_dc import BaseDomainController
 
 __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)

@@ -12,19 +12,18 @@
 """
 from __future__ import print_function
 
+import os
+import time
+import unittest
 from tempfile import gettempdir
+from threading import Thread
+
 from tests import davclient
 from tests.util import WsgiDavTestServer
-from threading import Thread
 from wsgidav import compat
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 from wsgidav.wsgidav_app import WsgiDAVApp
-
-import os
-import time
-import unittest
-
 
 # SERVER_ADDRESS
 # (using localhost or mixing hostnames with IPs may be very slow!)

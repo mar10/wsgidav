@@ -53,8 +53,6 @@ can copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and us
 run the application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate
 paste configuration.
 """
-from wsgidav import __version__, compat, util
-
 import logging
 import socket
 import sys
@@ -62,6 +60,7 @@ import threading
 import time
 import traceback
 
+from wsgidav import __version__, compat, util
 
 __docformat__ = "reStructuredText"
 
