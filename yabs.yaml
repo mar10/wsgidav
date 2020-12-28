@@ -28,17 +28,20 @@ tasks:
     venv: true              # running inside a virtual environment
     version: true           # `setup.py --version` returns the configured version
 
-  # 'run': Run arbitrary shell command
+  # 'exec': Run arbitrary shell command
   - task: exec
     args: ["tox", "-e", "lint-py3,lint-py27,black-check"]     # shell command and optional arguments
     always: true            # `true`: run even in dry-run mode
-    silent: true            # `true`: suppress output
+    # silent: true            # `true`: suppress output
+    stream: true
     ignore_errors: false    # `true`: show warning, but proceed on errors (exit code != 0)
 
   - task: exec
     args: ["tox"]           # shell command and optional arguments
     always: true            # `true`: run even in dry-run mode
-    silent: true            # `true`: suppress output
+    # silent: true            # `true`: suppress output
+    # timeout: 20
+    stream: true
     ignore_errors: false    # `true`: show warning, but proceed on errors (exit code != 0)
 
   # 'bump': version by `--inc` argument
@@ -79,9 +82,9 @@ tasks:
       [Commit details](https://github.com/{repo}/compare/{org_tag_name}...{tag_name}).
     # draft: true
     prerelease: null  # null: guess from version number format
-    upload:
-      - sdist
-      - bdist_wheel
+    # upload:
+    #   - sdist
+    #   - bdist_wheel
 
   # Commit after-release version
   - task: bump

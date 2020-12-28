@@ -21,6 +21,7 @@ debug.log
 wsgidav.conf
 wsgidav.json
 dist
+dist.yabs/
 coverage.xml
 .coverage*
 
