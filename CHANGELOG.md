@@ -9,6 +9,7 @@
 - #191 Add option `dir_browser.htdocs_path`
 - #193 Support gunicorn
 - #195 Add password to lock_storage_redis
+- #198 Fix exception with verbose > 3
 
 ## 3.0.3 / 2020-04-02
 
