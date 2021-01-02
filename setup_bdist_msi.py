@@ -9,7 +9,6 @@ from cx_Freeze import setup, Executable  # noqa re-import setup
 
 from wsgidav import __version__
 
-
 # Check for Windows MSI Setup
 if "bdist_msi" not in sys.argv:  # or len(sys.argv) != 2:
     raise RuntimeError(
@@ -64,8 +63,19 @@ try:
 except IOError:
     readme = "(readme not found. Running from tox/setup.py test?)"
 
-install_requires = ["defusedxml", "six", "Jinja2", "json5", "PyYAML"]
-# The Windows MSI Setup should include lxml and CherryPy
+# These dependencies are for plain WsgiDAV:
+install_requires = [
+    "defusedxml",
+    "jinja2",  # NOTE: we must use lower-case name, otherwise import will fail
+    "json5",
+    "yaml",  # NOTE: must import 'yaml' (but dependency is names 'PyYAML')
+    "six",
+    # Used by wsgidav.dc.nt_dc:
+    "win32net",
+    "win32netcon",
+    "win32security",
+]
+# ... The Windows MSI Setup should include lxml and CherryPy
 install_requires.extend(
     [
         "cheroot",
@@ -77,41 +87,23 @@ install_requires.extend(
 setup_requires = install_requires
 tests_require = []
 
-# cx_Freeze seems to be confused by module name 'PyYAML' which
-# must be imported as 'yaml', so we rename here. However it must
-# be listed as 'PyYAML' in the requirements.txt and be installed!
-install_requires.remove("PyYAML")
-install_requires.append("yaml")
-
 executables = [
     Executable(
         script="wsgidav/server/server_cli.py",
         base=None,
         # base="Win32GUI",
         targetName="wsgidav.exe",
-        icon="doc/logo.ico",
+        icon="docs/logo.ico",
         shortcutName="WsgiDAV",
         # requires cx_Freeze PR#94:
-        # copyright="(c) 2009-2021 Martin Wendt",
+        copyright="(c) 2009-2021 Martin Wendt",
         # trademarks="...",
     )
 ]
 
 build_exe_options = {
     "includes": install_requires,
-    "include_files": [
-        # https://stackoverflow.com/a/43034479/19166
-        # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tk86t.dll"),
-        # os.path.join(PYTHON_INSTALL_DIR, "DLLs", "tcl86t.dll"),
-        # NOTE: this seems to fix a problem where Jinja2 package
-        # was copied as `<project>\build\exe.win32-3.6\lib\Jinja2` with a
-        # capital 'J'.
-        # Hotfix: we remove it from the dependencies (see above) and
-        # copy it manually from a vendored source.
-        # See
-        #     https://github.com/anthony-tuininga/cx_Freeze/issues/418
-        ("vendor/jinja2", "lib/jinja2")
-    ],
+    # "include_files": [],
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.dir_browser",
@@ -126,7 +118,8 @@ build_exe_options = {
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
-    #    "all_users": True,
+    # "all_users": True,
+    "install_icon": "docs/logo.ico",
 }
 
 setup(
@@ -140,32 +133,7 @@ setup(
     description="Generic and extendable WebDAV server based on WSGI",
     long_description=readme,
     long_description_content_type="text/markdown",
-    classifiers=[
-        # "Development Status :: 4 - Beta",
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: Developers",
-        "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        # "Programming Language :: Python :: 3.4",  # EOL 2019-03-18
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-        "Topic :: Internet :: WWW/HTTP :: WSGI",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
+    classifiers=[],  # not required for this build-only setup config
     keywords="web wsgi webdav application server",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
