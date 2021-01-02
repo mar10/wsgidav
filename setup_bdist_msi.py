@@ -95,12 +95,12 @@ executables = [
         targetName="wsgidav.exe",
         icon="docs/logo.ico",
         shortcutName="WsgiDAV",
-        # requires cx_Freeze PR#94:
         copyright="(c) 2009-2021 Martin Wendt",
         # trademarks="...",
     )
 ]
 
+# See https://cx-freeze.readthedocs.io/en/latest/distutils.html#build-exe
 build_exe_options = {
     "includes": install_requires,
     # "include_files": [],
@@ -115,6 +115,7 @@ build_exe_options = {
     "include_msvcr": True,
 }
 
+# See https://cx-freeze.readthedocs.io/en/latest/distutils.html#bdist-msi
 bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
@@ -133,7 +134,7 @@ setup(
     description="Generic and extendable WebDAV server based on WSGI",
     long_description=readme,
     long_description_content_type="text/markdown",
-    classifiers=[],  # not required for this build-only
+    classifiers=[],  # not required for this build-only setup config
     keywords="web wsgi webdav application server",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
