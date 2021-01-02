@@ -5,11 +5,11 @@
 - #181 Fix error for UTF8 (surrogate) filename
 - #183 Support reverse proxies
 - #186 Add sample Redis lock manager `LockStorageRedis` (Steffen Deusch)
-- Use [Yabs](https://github.com/mar10/yabs) as release tool
 - #191 Add option `dir_browser.htdocs_path`
 - #193 Support gunicorn
 - #195 Add password to lock_storage_redis
 - #198 Fix exception with verbose > 3
+- Use [Yabs](https://github.com/mar10/yabs) as release tool
 
 ## 3.0.3 / 2020-04-02
 
