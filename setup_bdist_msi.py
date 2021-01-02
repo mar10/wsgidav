@@ -133,7 +133,7 @@ setup(
     description="Generic and extendable WebDAV server based on WSGI",
     long_description=readme,
     long_description_content_type="text/markdown",
-    classifiers=[],  # not required for this build-only setup config
+    classifiers=[],  # not required for this build-only
     keywords="web wsgi webdav application server",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
