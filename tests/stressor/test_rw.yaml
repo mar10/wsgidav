@@ -14,7 +14,7 @@ config:
       $ stressor run tests/stressor/test_rw -q
   verbose: 3
   base_url: http://127.0.0.1:8082
-  timeout: 1
+  request_timeout: 1
 
 # Initial context value definitions.
 # All used parameters must be listed here in the form:
