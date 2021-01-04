@@ -1,6 +1,8 @@
 # Changelog
 
-## 3.0.5 / Unreleased
+## 3.1.1 / Unreleased
+
+## 3.1.0 / 2021-01-04
 
 - #181 Fix error for UTF8 (surrogate) filename
 - #183 Support reverse proxies
