@@ -943,10 +943,10 @@ class RequestServer(object):
         dest_scheme = dest_scheme.lower() if dest_scheme else ""
         url_scheme = environ["wsgi.url_scheme"].lower()
         fwd_scheme = environ.get("HTTP_X_FORWARDED_PROTO", "").lower()
-        
+
         url_host = environ["HTTP_HOST"].lower()
         fwd_host = environ.get("HTTP_X_FORWARDED_HOST", "").lower()
-        
+
         if dest_scheme and dest_scheme not in (url_scheme, fwd_scheme):
             self._fail(
                 HTTP_BAD_GATEWAY,
