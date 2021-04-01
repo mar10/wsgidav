@@ -30,6 +30,7 @@ WebTest = "*"  # "~=2.0"
 wheel = "*"
 # wsgidav = {editable = true, path = "."}
 yabs = "*"
+safety = "*"
 
 [packages]
 defusedxml = "*"  # "~=0.5"
