@@ -3,12 +3,8 @@ language: python
 
 matrix:
     include:
-        - python: "2.7"
-          env: TOXENV=lint-py27
         - python: "3.9"
-          env: TOXENV=check,lint-py3
-        - python: "2.7"
-          env: TOXENV=py27
+          env: TOXENV=check,lint
         - python: "3.9"
           env: TOXENV=py39
         - python: "3.8"
@@ -18,8 +14,8 @@ matrix:
           dist: xenial
         - python: "3.6"
           env: TOXENV=py36
-        - python: "3.5"
-          env: TOXENV=py35
+        # - python: "3.5"  # EOL 2020-09-13
+        #   env: TOXENV=py35
         # - python: "3.4"  # EOL 2019-03-18
         #   env: TOXENV=py34
         - python: "3.10-dev"
