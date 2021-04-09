@@ -71,7 +71,7 @@ class FileLikeQueue(object):
             try:
                 # Read pending data, blocking if neccessary
                 # (but handle the case that close() is called while waiting)
-                res += compat.to_native(self.queue.get(True, 0.1))
+                res += compat.to_str(self.queue.get(True, 0.1))
             except queue.Empty:
                 # There was no pending data: wait for more, unless close() was called
                 if self.is_closed:

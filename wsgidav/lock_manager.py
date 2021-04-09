@@ -60,13 +60,13 @@ _logger = util.get_module_logger(__name__)
 
 
 def generate_lock_token():
-    return "opaquelocktoken:" + compat.to_native(hex(random.getrandbits(256)))
+    return "opaquelocktoken:" + compat.to_str(hex(random.getrandbits(256)))
 
 
 def normalize_lock_root(path):
     # Normalize root: /foo/bar
     assert path
-    path = compat.to_native(path)
+    path = compat.to_str(path)
     path = "/" + path.strip("/")
     return path
 
@@ -100,7 +100,7 @@ def lock_string(lock_dict):
 
 
 def validate_lock(lock):
-    assert compat.is_native(lock["root"])
+    assert compat.is_str(lock["root"])
     assert lock["root"].startswith("/")
     assert lock["type"] == "write"
     assert lock["scope"] in ("shared", "exclusive")
@@ -109,9 +109,9 @@ def validate_lock(lock):
     # raises TypeError:
     timeout = float(lock["timeout"])
     assert timeout > 0 or timeout == -1, "timeout must be positive or -1"
-    assert compat.is_native(lock["principal"])
+    assert compat.is_str(lock["principal"])
     if "token" in lock:
-        assert compat.is_native(lock["token"])
+        assert compat.is_str(lock["token"])
 
 
 # ========================================================================
@@ -459,7 +459,7 @@ class LockManager(object):
 
         @return: None or raise error
         """
-        assert compat.is_native(url)
+        assert compat.is_str(url)
         assert depth in ("0", "infinity")
         _logger.debug(
             "check_write_permission({}, {}, {}, {})".format(

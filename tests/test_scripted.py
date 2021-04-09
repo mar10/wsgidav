@@ -327,7 +327,7 @@ class ServerTest(unittest.TestCase):
     #
     #        # Request must not contain a body (expect '415 Media Type Not Supported')
     #        app.get("/file1.txt",
-    #                headers={"Content-Length": compat.to_native(len(data1))},
+    #                headers={"Content-Length": compat.to_str(len(data1))},
     #                params=data1,
     #                status=415)
     #

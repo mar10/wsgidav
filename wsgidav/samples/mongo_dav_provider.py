@@ -89,7 +89,7 @@ class CollCollection(DAVCollection):
     def get_member_names(self):
         res = []
         for doc in self.coll.find():
-            res.append(compat.to_native(doc["_id"]))
+            res.append(compat.to_str(doc["_id"]))
         return res
 
     def get_member(self, name):
@@ -121,8 +121,8 @@ class DocResource(DAVNonCollection):
         elif doc.get("title"):
             return doc["title"].encode("utf8")
         elif doc.get("_id"):
-            return compat.to_native(doc["_id"])
-        return compat.to_native(doc["key"])
+            return compat.to_str(doc["_id"])
+        return compat.to_str(doc["key"])
 
     def get_display_info(self):
         return {"type": "Mongo document"}

@@ -164,7 +164,7 @@ class _DAVResource(object):
     """
 
     def __init__(self, path, is_collection, environ):
-        assert compat.is_native(path)
+        assert compat.is_str(path)
         assert path == "" or path.startswith("/")
         self.provider = environ["wsgidav.provider"]
         self.path = path

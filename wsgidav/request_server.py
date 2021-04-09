@@ -674,7 +674,7 @@ class RequestServer(object):
             WORKAROUND_CHUNK_LENGTH = False
             buf = environ["wsgi.input"].readline()
             environ["wsgidav.some_input_read"] = 1
-            if buf == compat.b_empty:
+            if buf == b"":
                 length = 0
             else:
                 length = int(buf, 16)
@@ -686,14 +686,14 @@ class RequestServer(object):
                 environ["wsgidav.some_input_read"] = 1
                 # Keep receiving until we read expected size or reach
                 # EOF
-                if buf == compat.b_empty:
+                if buf == b"":
                     length = 0
                 else:
                     length -= len(buf)
             else:
                 environ["wsgi.input"].readline()
                 buf = environ["wsgi.input"].readline()
-                if buf == compat.b_empty:
+                if buf == b"":
                     length = 0
                 else:
                     length = int(buf, 16)

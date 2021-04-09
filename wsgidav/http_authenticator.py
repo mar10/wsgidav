@@ -298,7 +298,7 @@ class HTTPAuthenticator(BaseMiddleware):
             auth_value = ""
 
         auth_value = base64.decodebytes(compat.to_bytes(auth_value))
-        auth_value = compat.to_native(auth_value)
+        auth_value = compat.to_str(auth_value)
         user_name, password = auth_value.split(":", 1)
 
         if self.domain_controller.basic_auth_user(realm, user_name, password, environ):

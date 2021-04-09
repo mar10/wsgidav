@@ -3,16 +3,10 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
-Tool functions to support Python 2 and 3.
-
-Inspired by six https://pythonhosted.org/six/
-
-TODO: since it is now based on six, we should remove this module eventually.
+Tool functions dealing with strings and bytes (former comaptibility layer for Python 2/3).
 """
 
 import sys
-
-# from urllib.parse import quote, unquote, urlparse
 
 __docformat__ = "reStructuredText"
 
@@ -31,14 +25,13 @@ def is_bytes(s):
     return isinstance(s, bytes)
 
 
-def is_native(s):
+def is_str(s):
     """Return True for native strings (for str on Py2 and Py3)."""
     return isinstance(s, str)
 
 
-def is_unicode(s):
-    """Return True for unicode strings (for unicode on Py2 and str on Py3)."""
-    return isinstance(s, str)
+# is_native = is_str
+# is_unicode = is_str
 
 
 def to_bytes(s, encoding="utf8"):
@@ -48,7 +41,7 @@ def to_bytes(s, encoding="utf8"):
     return s
 
 
-def to_native(s, encoding="utf8"):
+def to_str(s, encoding="utf8"):
     """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
     if type(s) is bytes:
         s = str(s, encoding)
@@ -57,14 +50,14 @@ def to_native(s, encoding="utf8"):
     return s
 
 
-to_unicode = to_native
-"""Convert binary data to unicode (text strings) on Python 2 and 3."""
+# to_native = to_str
+# to_unicode = to_str
 
 
 # Binary Strings
 
-b_empty = to_bytes("")
-b_slash = to_bytes("/")
+# b_empty = b""
+# b_slash = b"/"
 
 
 # WSGI support

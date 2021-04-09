@@ -388,10 +388,10 @@ class WsgiDAVApp(object):
             path = unquote(environ["PATH_INFO"])
 
         # GC issue 22: Pylons sends root as u'/'
-        if not compat.is_native(path):
+        if not compat.is_str(path):
             _logger.warning("Got non-native PATH_INFO: {!r}".format(path))
             # path = path.encode("utf8")
-            path = compat.to_native(path)
+            path = compat.to_str(path)
 
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
@@ -432,7 +432,7 @@ class WsgiDAVApp(object):
             environ["PATH_INFO"] = path[len(share) :]
 
         # assert isinstance(path, str)
-        assert compat.is_native(path)
+        assert compat.is_str(path)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty

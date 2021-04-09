@@ -33,10 +33,8 @@ from urllib.parse import urljoin, urlparse
 import requests
 
 is_bytes = lambda s: isinstance(s, bytes)  # noqa: E731
-is_unicode = lambda s: isinstance(s, str)  # noqa: E731
-to_native = lambda s: s if is_unicode(s) else s.decode("utf8")  # noqa: E731
-
-is_native = lambda s: isinstance(s, str)  # noqa: E731
+is_str = lambda s: isinstance(s, str)  # noqa: E731
+to_str = lambda s: s if is_str(s) else s.decode("utf8")  # noqa: E731
 to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
 
 try:
@@ -302,7 +300,7 @@ class DAVClient(object):
         """Property find. If properties arg is unspecified it defaults to 'allprop'."""
         # Build propfind xml
         root = ElementTree.Element("{DAV:}propfind")
-        if is_native(properties):
+        if is_str(properties):
             ElementTree.SubElement(root, "{DAV:}%s" % properties)
         else:
             props = ElementTree.SubElement(root, "{DAV:}prop")

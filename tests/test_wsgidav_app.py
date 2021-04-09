@@ -82,7 +82,7 @@ class ServerTest(unittest.TestCase):
         self.app = webtest.TestApp(wsgi_app)
 
     def tearDown(self):
-        shutil.rmtree(compat.to_unicode(self.rootpath))
+        shutil.rmtree(compat.to_str(self.rootpath))
         del self.app
 
     def testPreconditions(self):
@@ -148,7 +148,7 @@ class ServerTest(unittest.TestCase):
         app.request(
             "/file1.txt",
             method="GET",
-            headers={"Content-Length": compat.to_native(len(data1))},
+            headers={"Content-Length": compat.to_str(len(data1))},
             body=data1,
             status=415,
         )

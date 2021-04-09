@@ -477,7 +477,7 @@ class MySQLBrowserProvider(DAVProvider):
         if row is None:
             cursor.close()
             return None
-        val = compat.to_native(row[field_name])
+        val = compat.to_str(row[field_name])
         cursor.close()
         return val
 
@@ -528,7 +528,7 @@ class MySQLBrowserProvider(DAVProvider):
             cursor.close()
             return None
         for fname in row.keys():
-            dictRet[fname] = compat.to_native(row[fname])
+            dictRet[fname] = compat.to_str(row[fname])
         cursor.close()
         return dictRet
 
@@ -554,7 +554,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.execute("SELECT " + field_name + " FROM " + self._db + "." + table_name)
         result_set = cursor.fetchall()
         for row in result_set:
-            retlist.append(compat.to_native(row[field_name]))
+            retlist.append(compat.to_str(row[field_name]))
         cursor.close()
         return retlist
 

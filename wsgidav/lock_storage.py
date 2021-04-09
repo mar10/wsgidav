@@ -301,7 +301,7 @@ class LockStorageDict(object):
         Returns:
             List of valid lock dictionaries (may be empty).
         """
-        assert compat.is_native(path)
+        assert compat.is_str(path)
         assert path and path.startswith("/")
         assert include_root or include_children
 

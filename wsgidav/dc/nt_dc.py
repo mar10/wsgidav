@@ -175,11 +175,11 @@ class NTDomainController(BaseDomainController):
                     server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0
                 )
                 # Make sure, we compare unicode
-                un = compat.to_unicode(user_name).lower()
+                un = compat.to_str(user_name).lower()
                 for userinfo in users:
                     uiname = userinfo.get("name")
                     assert uiname
-                    assert compat.is_unicode(uiname)
+                    assert compat.is_str(uiname)
                     if un == userinfo["name"].lower():
                         return True
             except win32net.error as e:

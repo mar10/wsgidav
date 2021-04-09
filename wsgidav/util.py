@@ -388,12 +388,12 @@ def split_namespace(clarkName):
 def to_unicode_safe(s):
     """Convert a binary string to Unicode using UTF-8 (fallback to ISO-8859-1)."""
     try:
-        u = compat.to_unicode(s, "utf8")
+        u = compat.to_str(s, "utf8")
     except ValueError:
         _logger.error(
             "to_unicode_safe({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s)
         )
-        u = compat.to_unicode(s, "ISO-8859-1")
+        u = compat.to_str(s, "ISO-8859-1")
     return u
 
 
@@ -782,7 +782,7 @@ def parse_xml_body(environ, allow_empty=False):
         _logger.info(
             "{} XML request body:\n{}".format(
                 environ["REQUEST_METHOD"],
-                compat.to_native(xml_to_bytes(rootEL, pretty_print=True)),
+                compat.to_str(xml_to_bytes(rootEL, pretty_print=True)),
             )
         )
         environ["wsgidav.dump_request_body"] = False
@@ -825,7 +825,7 @@ def send_status_response(environ, start_response, e, add_headers=None, is_head=F
 
     content_type, body = e.get_response_page()
     if is_head:
-        body = compat.b_empty
+        body = b""
 
     assert compat.is_bytes(body), body  # If not, Content-Length is wrong!
     start_response(
@@ -846,7 +846,7 @@ def send_multi_status_response(environ, start_response, multistatusEL):
     if environ.get("wsgidav.dump_response_body"):
         xml = "{} XML response body:\n{}".format(
             environ["REQUEST_METHOD"],
-            compat.to_native(xml_to_bytes(multistatusEL, pretty_print=True)),
+            compat.to_str(xml_to_bytes(multistatusEL, pretty_print=True)),
         )
         environ["wsgidav.dump_response_body"] = xml
 
@@ -951,7 +951,7 @@ def calc_base64(s):
     """Return base64 encoded binarystring."""
     s = compat.to_bytes(s)
     s = base64.encodebytes(s).strip()  # return bytestring
-    return compat.to_native(s)
+    return compat.to_str(s)
 
 
 def get_etag(file_path):

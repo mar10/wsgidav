@@ -206,7 +206,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
             "REMOTE_ADDR": self.client_address[0],
             "SERVER_NAME": self.server.server_address[0],
-            "SERVER_PORT": compat.to_native(self.server.server_address[1]),
+            "SERVER_PORT": compat.to_str(self.server.server_address[1]),
             "SERVER_PROTOCOL": self.request_version,
         }
         for httpHeader, httpValue in self.headers.items():
@@ -279,10 +279,10 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # assert type(data) is str # If not, Content-Length is propably wrong!
         _logger.debug(
             "wsgiWriteData: write {} bytes: '{!r}'...".format(
-                len(data), compat.to_native(data[:50])
+                len(data), compat.to_str(data[:50])
             )
         )
-        if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
+        if compat.is_str(data):  # If not, Content-Length is propably wrong!
             _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
             # data = compat.wsgi_to_bytes(data)
             data = compat.to_bytes(data)

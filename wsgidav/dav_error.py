@@ -159,7 +159,7 @@ class DAVErrorCondition(object):
         return error_el
 
     def as_string(self):
-        return compat.to_native(xml_tools.xml_to_bytes(self.as_xml(), True))
+        return compat.to_str(xml_tools.xml_to_bytes(self.as_xml(), True))
 
 
 # ========================================================================
@@ -187,7 +187,7 @@ class DAVError(Exception):
         self.context_info = context_info
         self.src_exception = src_exception
         self.err_condition = err_condition
-        if compat.is_native(err_condition):
+        if compat.is_str(err_condition):
             self.err_condition = DAVErrorCondition(err_condition)
         assert (
             self.err_condition is None or type(self.err_condition) is DAVErrorCondition
