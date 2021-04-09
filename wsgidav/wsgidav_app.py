@@ -264,11 +264,13 @@ class WsgiDAVApp(object):
             _logger.info("Registered DAV providers by route:")
             for share in self.sorted_share_list:
                 provider = self.provider_map[share]
-                hint = (
-                    " (anonymous)"
-                    if domain_controller.is_share_anonymous(share)
-                    else ""
-                )
+                if domain_controller:
+                    if domain_controller.is_share_anonymous(share):
+                        hint = " (anonymous)"
+                    else:
+                        hint = ""
+                else:
+                    hint = " (custom auth)"
                 _logger.info("  - '{}': {}{}".format(share, provider, hint))
 
         if auth_conf.get("accept_basic") and not config.get("ssl_certificate"):
