@@ -52,6 +52,7 @@ import inspect
 import platform
 import sys
 import time
+from urllib.parse import unquote
 
 from wsgidav import __version__, compat, util
 from wsgidav.dav_provider import DAVProvider
@@ -138,7 +139,7 @@ class WsgiDAVApp(object):
 
         self.re_encode_path_info = hotfixes.get("re_encode_path_info", None)
         if self.re_encode_path_info is None:
-            self.re_encode_path_info = compat.PY3
+            self.re_encode_path_info = True
 
         self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
@@ -384,7 +385,7 @@ class WsgiDAVApp(object):
         # We optionally unquote PATH_INFO here, although this should already be
         # done by the server (#8).
         if self.unquote_path_info:
-            path = compat.unquote(environ["PATH_INFO"])
+            path = unquote(environ["PATH_INFO"])
 
         # GC issue 22: Pylons sends root as u'/'
         if not compat.is_native(path):

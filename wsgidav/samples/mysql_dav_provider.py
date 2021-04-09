@@ -62,6 +62,7 @@ from __future__ import print_function
 import csv
 import hashlib
 import time
+from io import StringIO
 
 import MySQLdb  # @UnresolvedImport
 
@@ -214,7 +215,7 @@ class MySQLBrowserResource(_DAVResource):
 
         See DAVResource.get_content()
         """
-        filestream = compat.StringIO()
+        filestream = StringIO()
 
         tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:

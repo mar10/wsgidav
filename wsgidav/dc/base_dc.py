@@ -39,11 +39,9 @@ TODO: Work In Progress / Subject to change
 """
 from __future__ import print_function
 
-import abc
 import sys
+from abc import ABC, abstractmethod
 from hashlib import md5
-
-import six
 
 from wsgidav import compat, util
 
@@ -52,8 +50,7 @@ __docformat__ = "reStructuredText"
 logger = util.get_module_logger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseDomainController(object):
+class BaseDomainController(ABC):
     #: A domain controller MAY list these values as
     #: `environ["wsgidav.auth.permissions"] = (<permission>, ...)`
     known_permissions = ("browse_dir", "delete_resource", "edit_resource")
@@ -91,7 +88,7 @@ class BaseDomainController(object):
             realm = "/"
         return realm
 
-    @abc.abstractmethod
+    @abstractmethod
     def get_domain_realm(self, path_info, environ):
         """Return the normalized realm name for a given URL.
 
@@ -112,7 +109,7 @@ class BaseDomainController(object):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
+    @abstractmethod
     def require_authentication(self, realm, environ):
         """Return False to disable authentication for this request.
 
@@ -148,7 +145,7 @@ class BaseDomainController(object):
         realm = self.get_domain_realm(path_info, None)
         return not self.require_authentication(realm, None)
 
-    @abc.abstractmethod
+    @abstractmethod
     def basic_auth_user(self, realm, user_name, password, environ):
         """Check request access permissions for realm/user_name/password.
 
@@ -170,7 +167,7 @@ class BaseDomainController(object):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
+    @abstractmethod
     def supports_http_digest_auth(self):
         """Signal if this DC instance supports the HTTP digest authentication theme.
 

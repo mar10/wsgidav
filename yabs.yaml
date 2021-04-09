@@ -30,7 +30,7 @@ tasks:
 
   # 'exec': Run arbitrary shell command
   - task: exec
-    args: ["tox", "-e", "lint-py3,lint-py27,check"]     # shell command and optional arguments
+    args: ["tox", "-e", "lint,check"]     # shell command and optional arguments
     always: true            # `true`: run even in dry-run mode
     # silent: true            # `true`: suppress output
     stream: true

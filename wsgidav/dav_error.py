@@ -7,12 +7,10 @@
 Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 import datetime
+from html import escape as html_escape
 
 from wsgidav import __version__, compat, xml_tools
 from wsgidav.xml_tools import etree
-
-# import traceback
-
 
 __docformat__ = "reStructuredText"
 
@@ -240,11 +238,11 @@ class DAVError(Exception):
         html.append("  <title>{}</title>".format(status))
         html.append("</head><body>")
         html.append("  <h1>{}</h1>".format(status))
-        html.append("  <p>{}</p>".format(compat.html_escape(self.get_user_info())))
+        html.append("  <p>{}</p>".format(html_escape(self.get_user_info())))
         html.append("<hr/>")
         html.append(
             "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}".format(
-                __version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")
+                __version__, html_escape(str(datetime.datetime.now()), "utf-8")
             )
         )
         html.append("</body></html>")

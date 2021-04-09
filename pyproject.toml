@@ -1,7 +1,6 @@
 [tool.black]
 line-length = 88
-#py36 = false  # don't strip 'u' from native strings
-target-version = ['py27', 'py35', 'py36', 'py37', 'py38']
+target-version = ['py36', 'py37', 'py38']
 include = '\.pyi?$'
 exclude = '''
 /(

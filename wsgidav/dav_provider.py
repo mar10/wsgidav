@@ -80,6 +80,7 @@ import os
 import sys
 import time
 import traceback
+from urllib.parse import quote, unquote
 
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (
@@ -360,7 +361,7 @@ class _DAVResource(object):
 
         See also comments in DEVELOPERS.txt glossary.
         """
-        return compat.quote(self.provider.share_path + self.get_preferred_path())
+        return quote(self.provider.share_path + self.get_preferred_path())
 
     #    def getRefKey(self):
     #        """Return an unambigous identifier string for a resource.
@@ -388,7 +389,7 @@ class _DAVResource(object):
         # Nautilus chokes, if href encodes '(' as '%28'
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
-        return compat.quote(
+        return quote(
             self.provider.mount_path
             + self.provider.share_path
             + self.get_preferred_path(),
@@ -404,6 +405,15 @@ class _DAVResource(object):
     #        if not parentpath:
     #            return None
     #        return self.provider.get_resource_inst(parentpath)
+
+    def get_member(self, name):
+        """Return child resource with a given name (None, if not found).
+
+        This method COULD be overridden by a derived class, for performance
+        reasons.
+        This default implementation calls self.provider.get_resource_inst().
+        """
+        raise NotImplementedError  # implemented by DAVCollecion
 
     def get_member_list(self):
         """Return a list of direct members (_DAVResource or derived objects).
@@ -1471,9 +1481,7 @@ class DAVProvider(object):
 
         Used to calculate the <path> from a storage key by inverting get_ref_url().
         """
-        return "/" + compat.unquote(util.lstripstr(ref_url, self.share_path)).lstrip(
-            "/"
-        )
+        return "/" + unquote(util.lstripstr(ref_url, self.share_path)).lstrip("/")
 
     def get_resource_inst(self, path, environ):
         """Return a _DAVResource object for path.

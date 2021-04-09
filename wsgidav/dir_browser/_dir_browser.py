@@ -8,6 +8,7 @@ WSGI middleware that handles GET requests on collections to display directories.
 import os
 import sys
 from fnmatch import fnmatch
+from urllib.parse import unquote
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -157,7 +158,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
             "rows": [],
             "version": __version__,
-            "display_path": compat.unquote(dav_res.get_href()),
+            "display_path": unquote(dav_res.get_href()),
             "url": dav_res.get_href(),  # util.make_complete_url(environ),
             "parent_url": util.get_uri_parent(dav_res.get_href()),
             "config": self.dir_config,

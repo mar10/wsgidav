@@ -24,6 +24,7 @@ Valid options are (sample shows defaults)::
             }
 
 """
+from io import StringIO
 from pprint import pformat
 
 import pymongo
@@ -105,7 +106,7 @@ class DocResource(DAVNonCollection):
 
     def get_content(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
-        return compat.StringIO(html.encode("utf8"))
+        return StringIO(html.encode("utf8"))
 
     def get_content_length(self):
         return len(self.get_content().read())

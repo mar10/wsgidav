@@ -125,7 +125,7 @@ class VirtualTextResource(_VirtualNonCollection):
 
     #    def get_ref_url(self):
     #        refPath = "/by_key/%s/%s" % (self._data["key"], self.name)
-    #        return compat.quote(self.provider.share_path + refPath)
+    #        return quote(self.provider.share_path + refPath)
 
     def get_content(self):
         return compat.StringIO(self.content)
@@ -171,7 +171,7 @@ class FileResource(_VirtualNonCollection):
 
     #    def get_ref_url(self):
     #        refPath = "/by_key/%s/%s" % (self._data["key"], os.path.basename(self.file_path))
-    #        return compat.quote(self.provider.share_path + refPath)
+    #        return quote(self.provider.share_path + refPath)
 
     def get_content(self):
         # mime = self.get_content_type()

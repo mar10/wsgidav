@@ -16,7 +16,7 @@ pylint = "*"
 pytest = "*"  # "~=4.6"
 pytest-cov = "*"  # "~=2.10"
 python-pam = "*"  # "~=1.8"
-pywin32 = "*"
+pywin32 = {version = "*", os_name = "== 'nt'"}
 recommonmark = "*"
 requests = "*"
 rope = "*"
@@ -36,7 +36,6 @@ safety = "*"
 defusedxml = "*"  # "~=0.5"
 Jinja2 = "*"  # "~=2.10"
 PyYAML = "*"  # "~=5.1"
-six = "*"  # "~=1.13"
 json5 = "*"
 
 [requires]

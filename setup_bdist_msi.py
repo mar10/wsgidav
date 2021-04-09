@@ -69,7 +69,6 @@ install_requires = [
     "jinja2",  # NOTE: we must use lower-case name, otherwise import will fail
     "json5",
     "yaml",  # NOTE: must import 'yaml' (but dependency is names 'PyYAML')
-    "six",
     # Used by wsgidav.dc.nt_dc:
     "win32net",
     "win32netcon",

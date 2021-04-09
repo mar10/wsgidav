@@ -218,7 +218,7 @@ class ServerTest(unittest.TestCase):
         # Big file with 10 MB
         lines = []
         line = "." * (1000 - 6 - len("\n"))
-        for i in compat.xrange(10 * 1000):
+        for i in range(10 * 1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
         data3 = compat.to_bytes(data3)

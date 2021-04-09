@@ -9,24 +9,10 @@ Inspired by six https://pythonhosted.org/six/
 
 TODO: since it is now based on six, we should remove this module eventually.
 """
-# flake8: noqa
 
 import sys
 
-import six
-from six import PY2, PY3, BytesIO
-from six.moves import cStringIO as StringIO
-from six.moves import input as console_input
-from six.moves import queue, xrange
-from six.moves.urllib.parse import quote, unquote, urlparse
-
-# See #174: `collections_abc` would be part of six.moves, but only for
-# six v1.13+ but we don't want to force users to update their system python's six
-try:
-    import collections.abc as collections_abc  # Python 3.3+
-except ImportError:
-    import collections as collections_abc
-
+# from urllib.parse import quote, unquote, urlparse
 
 __docformat__ = "reStructuredText"
 
@@ -34,84 +20,45 @@ _filesystemencoding = sys.getfilesystemencoding()
 
 # String Abstractions
 
-if PY2:
 
-    from base64 import decodestring as base64_decodebytes
-    from base64 import encodestring as base64_encodebytes
-    from cgi import escape as html_escape
+def is_basestring(s):
+    """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
+    return isinstance(s, (str, bytes))
 
-    def is_basestring(s):
-        """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
-        return isinstance(s, basestring)
 
-    def is_bytes(s):
-        """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
-        return isinstance(s, str)
+def is_bytes(s):
+    """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
+    return isinstance(s, bytes)
 
-    def is_native(s):
-        """Return True for native strings (for str on Py2 and Py3)."""
-        return isinstance(s, str)
 
-    def is_unicode(s):
-        """Return True for unicode strings (for unicode on Py2 and str on Py3)."""
-        return isinstance(s, unicode)
+def is_native(s):
+    """Return True for native strings (for str on Py2 and Py3)."""
+    return isinstance(s, str)
 
-    def to_bytes(s, encoding="utf8"):
-        """Convert unicode (text strings) to binary data (str on Py2 and bytes on Py3)."""
-        if type(s) is unicode:
-            s = s.encode(encoding)
-        elif type(s) is not str:
-            s = str(s)
-        return s
 
-    to_native = to_bytes
+def is_unicode(s):
+    """Return True for unicode strings (for unicode on Py2 and str on Py3)."""
+    return isinstance(s, str)
+
+
+def to_bytes(s, encoding="utf8"):
+    """Convert a text string (unicode) to bytestring (str on Py2 and bytes on Py3)."""
+    if type(s) is not bytes:
+        s = bytes(s, encoding)
+    return s
+
+
+def to_native(s, encoding="utf8"):
     """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
+    if type(s) is bytes:
+        s = str(s, encoding)
+    elif type(s) is not str:
+        s = str(s)
+    return s
 
-    def to_unicode(s, encoding="utf8"):
-        """Convert data to unicode text (unicode on Py2 and str on Py3)."""
-        if type(s) is not unicode:
-            s = unicode(s, encoding)
-        return s
 
-
-else:  # Python 3
-
-    from base64 import decodebytes as base64_decodebytes
-    from base64 import encodebytes as base64_encodebytes
-    from html import escape as html_escape
-
-    def is_basestring(s):
-        """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
-        return isinstance(s, (str, bytes))
-
-    def is_bytes(s):
-        """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
-        return isinstance(s, bytes)
-
-    def is_native(s):
-        """Return True for native strings (for str on Py2 and Py3)."""
-        return isinstance(s, str)
-
-    def is_unicode(s):
-        """Return True for unicode strings (for unicode on Py2 and str on Py3)."""
-        return isinstance(s, str)
-
-    def to_bytes(s, encoding="utf8"):
-        """Convert a text string (unicode) to bytestring (str on Py2 and bytes on Py3)."""
-        if type(s) is not bytes:
-            s = bytes(s, encoding)
-        return s
-
-    def to_native(s, encoding="utf8"):
-        """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
-        if type(s) is bytes:
-            s = str(s, encoding)
-        elif type(s) is not str:
-            s = str(s)
-        return s
-
-    to_unicode = to_native
-    """Convert binary data to unicode (text strings) on Python 2 and 3."""
+to_unicode = to_native
+"""Convert binary data to unicode (text strings) on Python 2 and 3."""
 
 
 # Binary Strings

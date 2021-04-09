@@ -8,8 +8,8 @@ from __future__ import print_function
 import logging
 import logging.handlers
 import unittest
+from io import StringIO
 
-from wsgidav.compat import StringIO
 from wsgidav.util import (
     BASE_LOGGER_NAME,
     get_module_logger,

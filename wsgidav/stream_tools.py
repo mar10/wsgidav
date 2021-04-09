@@ -18,6 +18,8 @@ consumer at the same time::
 """
 from __future__ import print_function
 
+import queue
+
 from wsgidav import compat, util
 
 __docformat__ = "reStructuredText"
@@ -49,7 +51,7 @@ class FileLikeQueue(object):
 
     def __init__(self, max_size=0):
         self.is_closed = False
-        self.queue = compat.queue.Queue(max_size)
+        self.queue = queue.Queue(max_size)
         self.unread = ""
 
     def read(self, size=0):
@@ -70,7 +72,7 @@ class FileLikeQueue(object):
                 # Read pending data, blocking if neccessary
                 # (but handle the case that close() is called while waiting)
                 res += compat.to_native(self.queue.get(True, 0.1))
-            except compat.queue.Empty:
+            except queue.Empty:
                 # There was no pending data: wait for more, unless close() was called
                 if self.is_closed:
                     break

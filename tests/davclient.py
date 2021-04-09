@@ -26,32 +26,15 @@
 # - Use requests instead of http.client / httplib
 
 import copy
-import sys
+from base64 import encodebytes as base64_encodebytes
+from io import BytesIO
+from urllib.parse import urljoin, urlparse
 
 import requests
 
-PY2 = sys.version_info < (3, 0)
-
-if PY2:
-    from base64 import encodestring as base64_encodebytes
-
-    from cStringIO import StringIO
-
-    BytesIO = StringIO
-    from urlparse import urljoin, urlparse
-
-    is_bytes = lambda s: isinstance(s, str)  # noqa: E731
-    is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731, F821
-    to_native = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
-else:
-    from base64 import encodebytes as base64_encodebytes
-    from io import BytesIO, StringIO
-    from urllib.parse import urljoin, urlparse
-
-    xrange = range
-    is_bytes = lambda s: isinstance(s, bytes)  # noqa: E731
-    is_unicode = lambda s: isinstance(s, str)  # noqa: E731
-    to_native = lambda s: s if is_unicode(s) else s.decode("utf8")  # noqa: E731
+is_bytes = lambda s: isinstance(s, bytes)  # noqa: E731
+is_unicode = lambda s: isinstance(s, str)  # noqa: E731
+to_native = lambda s: s if is_unicode(s) else s.decode("utf8")  # noqa: E731
 
 is_native = lambda s: isinstance(s, str)  # noqa: E731
 to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
@@ -453,7 +436,7 @@ class DAVClient(object):
 
         Inspired by paste.fixture
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = True  # pylint: disable=unused-variable
         res = self.response
         full_status = "%s %s" % (res.status_code, res.reason)
 

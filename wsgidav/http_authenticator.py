@@ -77,6 +77,7 @@ The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
 """
+import base64
 import inspect
 import random
 import re
@@ -296,7 +297,7 @@ class HTTPAuthenticator(BaseMiddleware):
         except Exception:
             auth_value = ""
 
-        auth_value = compat.base64_decodebytes(compat.to_bytes(auth_value))
+        auth_value = base64.decodebytes(compat.to_bytes(auth_value))
         auth_value = compat.to_native(auth_value)
         user_name, password = auth_value.split(":", 1)
 

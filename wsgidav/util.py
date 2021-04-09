@@ -6,7 +6,9 @@
 """
 Miscellaneous support functions for WsgiDAV.
 """
+import base64
 import calendar
+import collections.abc
 import logging
 import mimetypes
 import os
@@ -18,6 +20,7 @@ import time
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
+from urllib.parse import quote
 
 from wsgidav import compat
 from wsgidav.dav_error import (
@@ -257,7 +260,7 @@ def get_module_logger(moduleName, defaultToVerbose=False):
 
 def deep_update(d, u):
     for k, v in u.items():
-        if isinstance(v, compat.collections_abc.Mapping):
+        if isinstance(v, collections.abc.Mapping):
             d[k] = deep_update(d.get(k, {}), v)
         else:
             d[k] = v
@@ -686,10 +689,10 @@ def make_complete_url(environ, localUri=None):
             if environ["SERVER_PORT"] != "80":
                 url += ":" + environ["SERVER_PORT"]
 
-    url += compat.quote(environ.get("SCRIPT_NAME", ""))
+    url += quote(environ.get("SCRIPT_NAME", ""))
 
     if localUri is None:
-        url += compat.quote(environ.get("PATH_INFO", ""))
+        url += quote(environ.get("PATH_INFO", ""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:
@@ -911,7 +914,7 @@ def add_property_response(multistatusEL, href, propList):
     #    log("href value:{}".format(string_repr(href)))
     #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
     etree.SubElement(responseEL, "{DAV:}href").text = href
-    #    etree.SubElement(responseEL, "{DAV:}href").text = compat.quote(href, safe="/" + "!*'(),"
+    #    etree.SubElement(responseEL, "{DAV:}href").text = quote(href, safe="/" + "!*'(),"
     #       + "$-_|.")
 
     # One <propstat> per status code
@@ -947,7 +950,7 @@ def calc_hexdigest(s):
 def calc_base64(s):
     """Return base64 encoded binarystring."""
     s = compat.to_bytes(s)
-    s = compat.base64_encodebytes(s).strip()  # return bytestring
+    s = base64.encodebytes(s).strip()  # return bytestring
     return compat.to_native(s)
 
 

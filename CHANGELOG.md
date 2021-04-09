@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.0.0 / Unreleased
+- Drop Python 2 support
+
 ## 3.1.1 / Unreleased
 - #201 Check also HTTP_X_FORWARDED_HOST as alternative to DESTINATION header
 

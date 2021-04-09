@@ -6,6 +6,8 @@
 """
 WSGI application that handles one single WebDAV request.
 """
+from urllib.parse import unquote, urlparse
+
 from wsgidav import compat, util, xml_tools
 from wsgidav.dav_error import (
     HTTP_BAD_GATEWAY,
@@ -922,7 +924,7 @@ class RequestServer(object):
 
         # Destination header may be quoted (e.g. DAV Explorer sends unquoted,
         # Windows quoted)
-        http_destination = compat.unquote(environ["HTTP_DESTINATION"])
+        http_destination = unquote(environ["HTTP_DESTINATION"])
 
         # Return fragments as part of <path>
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING:
@@ -935,7 +937,7 @@ class RequestServer(object):
             _dest_params,
             _dest_query,
             _dest_frag,
-        ) = compat.urlparse(http_destination, allow_fragments=False)
+        ) = urlparse(http_destination, allow_fragments=False)
 
         if src_res.is_collection:
             dest_path = dest_path.rstrip("/") + "/"

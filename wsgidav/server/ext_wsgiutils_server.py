@@ -59,6 +59,8 @@ import sys
 import threading
 import time
 import traceback
+from io import StringIO
+from urllib.parse import urlparse
 
 from wsgidav import __version__, compat, util
 
@@ -140,7 +142,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def getApp(self):
         # We want fragments to be returned as part of <path>
-        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse(
+        _protocol, _host, path, _parameters, query, _fragment = urlparse(
             "http://dummyhost{}".format(self.path), allow_fragments=False
         )
         # Find any application we might have
@@ -231,7 +233,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     result.close()
         except Exception:
             _logger.debug("runWSGIApp caught exception...")
-            errorMsg = compat.StringIO()
+            errorMsg = StringIO()
             traceback.print_exc(file=errorMsg)
             logging.error(errorMsg.getvalue())
             if not self.wsgiSentHeaders:
@@ -292,7 +294,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # 10053: Software caused connection abort
             # 10054: Connection reset by peer
             if e.args[0] in (10053, 10054):
-                _logger.info("*** Caught socket.error: ", e, file=sys.stderr)
+                _logger.info("*** Caught socket.error: %s", e, file=sys.stderr)
             else:
                 raise
 

@@ -9,8 +9,7 @@ Small wrapper for different etree packages.
 # from __future__ import print_function
 
 import logging
-
-from wsgidav import compat
+from io import StringIO
 
 __docformat__ = "reStructuredText"
 
@@ -76,8 +75,11 @@ def xml_to_bytes(element, pretty_print=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print
     option and prepends an encoding header."""
     if use_lxml:
-        xml = etree.tostring(
-            element, encoding="UTF-8", xml_declaration=True, pretty_print=pretty_print
+        xml = etree.tostring(  # pylint: disable=unexpected-keyword-arg
+            element,
+            encoding="UTF-8",
+            xml_declaration=True,
+            pretty_print=pretty_print,
         )
     else:
         xml = etree.tostring(element, encoding="UTF-8")
@@ -118,7 +120,7 @@ def element_content_as_string(element):
     """
     if len(element) == 0:
         return element.text or ""  # Make sure, None is returned as ''
-    stream = compat.StringIO()
+    stream = StringIO()
     for childnode in element:
         stream.write(xml_to_bytes(childnode, pretty_print=False) + "\n")
         # print(xml_to_bytes(childnode, pretty_print=False), file=stream)
