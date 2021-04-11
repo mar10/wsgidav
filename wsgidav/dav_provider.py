@@ -80,6 +80,8 @@ import os
 import sys
 import time
 import traceback
+from datetime import datetime
+from typing import Optional
 from urllib.parse import quote, unquote
 
 from wsgidav import util, xml_tools
@@ -163,7 +165,7 @@ class _DAVResource(object):
     See also DAVProvider.get_resource_inst().
     """
 
-    def __init__(self, path, is_collection, environ):
+    def __init__(self, path: str, is_collection: bool, environ: dict):
         assert util.is_str(path)
         assert path == "" or path.startswith("/")
         self.provider = environ["wsgidav.provider"]
@@ -184,7 +186,7 @@ class _DAVResource(object):
     #        """
     #        raise NotImplementedError
 
-    def get_content_length(self):
+    def get_content_length(self) -> Optional[int]:
         """Contains the Content-Length header returned by a GET without accept
         headers.
 
@@ -197,7 +199,7 @@ class _DAVResource(object):
             return None
         raise NotImplementedError
 
-    def get_content_type(self):
+    def get_content_type(self) -> Optional[str]:
         """Contains the Content-Type header returned by a GET without accept
         headers.
 
@@ -211,7 +213,7 @@ class _DAVResource(object):
             return None
         raise NotImplementedError
 
-    def get_creation_date(self):
+    def get_creation_date(self) -> Optional[datetime]:
         """Records the time and date the resource was created.
 
         The creationdate property should be defined on all DAV compliant
@@ -234,7 +236,7 @@ class _DAVResource(object):
         assert self.is_collection
         return None
 
-    def get_display_name(self):
+    def get_display_name(self) -> str:
         """Provides a name for the resource that is suitable for presentation to
         a user.
 
@@ -1181,7 +1183,7 @@ class DAVNonCollection(_DAVResource):
     See also _DAVResource
     """
 
-    def __init__(self, path, environ):
+    def __init__(self, path: str, environ: dict):
         _DAVResource.__init__(self, path, False, environ)
 
     def get_content_length(self):

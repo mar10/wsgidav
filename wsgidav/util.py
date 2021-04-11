@@ -20,6 +20,7 @@ import time
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
+from typing import Optional
 from urllib.parse import quote
 
 from wsgidav.dav_error import (
@@ -681,12 +682,12 @@ def join_uri(uri, *segments):
     return uri.rstrip("/") + "/" + sub
 
 
-def get_uri_name(uri):
+def get_uri_name(uri: str) -> str:
     """Return local name, i.e. last segment of URI."""
     return uri.strip("/").split("/")[-1]
 
 
-def get_uri_parent(uri):
+def get_uri_parent(uri: str) -> Optional[str]:
     """Return URI of parent collection with trailing '/', or None, if URI is top-level.
 
     This function simply strips the last segment. It does not test, if the
@@ -697,7 +698,7 @@ def get_uri_parent(uri):
     return uri.rstrip("/").rsplit("/", 1)[0] + "/"
 
 
-def is_child_uri(parentUri, childUri):
+def is_child_uri(parentUri: str, childUri: str) -> bool:
     """Return True, if childUri is a child of parentUri.
 
     This function accounts for the fact that '/a/b/c' and 'a/b/c/' are
@@ -705,8 +706,8 @@ def is_child_uri(parentUri, childUri):
     Note that '/a/b/cd' is NOT a child of 'a/b/c'.
     """
     return (
-        parentUri
-        and childUri
+        bool(parentUri)
+        and bool(childUri)
         and childUri.rstrip("/").startswith(parentUri.rstrip("/") + "/")
     )
 
