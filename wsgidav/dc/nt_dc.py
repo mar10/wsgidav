@@ -75,8 +75,6 @@ Testability and caveats
    This class is being tested for a network domain (I'm setting one up to test).
 
 """
-from __future__ import print_function
-
 import win32net
 import win32netcon
 import win32security

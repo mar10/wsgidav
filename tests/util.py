@@ -9,8 +9,6 @@ Example:
     with WsgiDavTestServer(opts):
         ... test methods
 """
-from __future__ import print_function
-
 import multiprocessing
 import os
 import sys

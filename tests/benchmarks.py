@@ -48,8 +48,6 @@ Test cases
       subfolder10-10/
         file10-10-1.txt -> 1k
 """
-from __future__ import print_function
-
 import datetime
 import logging
 import platform

@@ -11,8 +11,6 @@
     See http://webtest.readthedocs.org/en/latest/
         (successor of http://pythonpaste.org/testing-applications.html)
 """
-from __future__ import print_function
-
 import os
 import shutil
 import sys

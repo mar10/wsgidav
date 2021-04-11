@@ -10,8 +10,6 @@
     See http://chandlerproject.org/Projects/Davclient
         http://svn.osafoundation.org/tools/davclient/trunk/src/davclient/davclient.py
 """
-from __future__ import print_function
-
 import os
 import time
 import unittest

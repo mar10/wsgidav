@@ -3,7 +3,6 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """Unit tests for wsgidav.util"""
-from __future__ import print_function
 
 import logging
 import logging.handlers

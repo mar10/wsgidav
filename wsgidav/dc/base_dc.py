@@ -37,8 +37,6 @@ namespace in order to define access permissions for the following middleware
 TODO: Work In Progress / Subject to change
 
 """
-from __future__ import print_function
-
 import sys
 from abc import ABC, abstractmethod
 from hashlib import md5

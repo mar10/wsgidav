@@ -32,8 +32,6 @@ Configuration is defined like this:
        ``--root=FOLDER`` option creates a FilesystemProvider that publishes
        FOLDER on the '/' share.
 """
-from __future__ import print_function
-
 import argparse
 import copy
 import io

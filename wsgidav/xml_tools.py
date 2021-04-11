@@ -6,8 +6,6 @@
 """
 Small wrapper for different etree packages.
 """
-# from __future__ import print_function
-
 import logging
 from io import StringIO
 

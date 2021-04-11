@@ -57,8 +57,6 @@ its limitations:
       unnecessary queries to the database.
 
 """
-from __future__ import print_function
-
 import csv
 import hashlib
 import time
