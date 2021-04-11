@@ -85,7 +85,7 @@ import time
 from hashlib import md5
 from textwrap import dedent
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dc.simple_dc import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
@@ -101,7 +101,7 @@ def make_domain_controller(wsgidav_app, config):
     if dc is True or not dc:
         # True or null:
         dc = SimpleDomainController
-    elif compat.is_basestring(dc):
+    elif util.is_basestring(dc):
         # If a plain string is passed, try to import it as class
         dc = dynamic_import_class(dc)
 
@@ -276,7 +276,7 @@ class HTTPAuthenticator(BaseMiddleware):
         _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realm))
         wwwauthheaders = 'Basic realm="' + realm + '"'
 
-        body = compat.to_bytes(self.error_message_401)
+        body = util.to_bytes(self.error_message_401)
         start_response(
             "401 Not Authorized",
             [
@@ -297,8 +297,8 @@ class HTTPAuthenticator(BaseMiddleware):
         except Exception:
             auth_value = ""
 
-        auth_value = base64.decodebytes(compat.to_bytes(auth_value))
-        auth_value = compat.to_str(auth_value)
+        auth_value = base64.decodebytes(util.to_bytes(auth_value))
+        auth_value = util.to_str(auth_value)
         user_name, password = auth_value.split(":", 1)
 
         if self.domain_controller.basic_auth_user(realm, user_name, password, environ):
@@ -335,7 +335,7 @@ class HTTPAuthenticator(BaseMiddleware):
             )
         )
 
-        body = compat.to_bytes(self.error_message_401)
+        body = util.to_bytes(self.error_message_401)
         start_response(
             "401 Not Authorized",
             [
@@ -587,7 +587,7 @@ class HTTPAuthenticator(BaseMiddleware):
         """
 
         def md5h(data):
-            return md5(compat.to_bytes(data)).hexdigest()
+            return md5(util.to_bytes(data)).hexdigest()
 
         def md5kd(secret, data):
             return md5h(secret + ":" + data)

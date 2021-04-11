@@ -54,7 +54,7 @@ These configuration settings are evaluated:
 import sys
 import threading
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import safe_re_encode
 
@@ -182,11 +182,11 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
             # Check, if response is a binary string, otherwise we probably have
             # calculated a wrong content-length
-            assert compat.is_bytes(v), v
+            assert util.is_bytes(v), v
 
             # Dump response body
             drb = environ.get("wsgidav.dump_response_body")
-            if compat.is_basestring(drb):
+            if util.is_basestring(drb):
                 # Middleware provided a formatted body representation
                 _logger.info(drb)
                 drb = environ["wsgidav.dump_response_body"] = None

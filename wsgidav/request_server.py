@@ -8,7 +8,7 @@ WSGI application that handles one single WebDAV request.
 """
 from urllib.parse import unquote, urlparse
 
-from wsgidav import compat, util, xml_tools
+from wsgidav import util, xml_tools
 from wsgidav.dav_error import (
     HTTP_BAD_GATEWAY,
     HTTP_BAD_REQUEST,
@@ -1280,7 +1280,7 @@ class RequestServer(object):
 
         lock_type = None
         lock_scope = None
-        lock_owner = compat.to_bytes("")
+        lock_owner = util.to_bytes("")
         lock_depth = environ.setdefault("HTTP_DEPTH", "infinity")
 
         for linode in lockinfo_el:
@@ -1670,7 +1670,7 @@ class RequestServer(object):
                     readbuffer = fileobj.read(self.block_size)
                 else:
                     readbuffer = fileobj.read(contentlengthremaining)
-                assert compat.is_bytes(readbuffer)
+                assert util.is_bytes(readbuffer)
                 yield readbuffer
                 contentlengthremaining -= len(readbuffer)
                 if len(readbuffer) == 0 or contentlengthremaining == 0:

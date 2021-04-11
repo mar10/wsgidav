@@ -15,7 +15,7 @@ import os
 import shelve
 import time
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.lock_manager import (
     generate_lock_token,
     lock_string,
@@ -301,7 +301,7 @@ class LockStorageDict(object):
         Returns:
             List of valid lock dictionaries (may be empty).
         """
-        assert compat.is_str(path)
+        assert util.is_str(path)
         assert path and path.startswith("/")
         assert include_root or include_children
 

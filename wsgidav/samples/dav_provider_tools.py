@@ -7,7 +7,7 @@ Tools that make it easier to implement custom WsgiDAV providers.
 import os
 import stat
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection
 
 __docformat__ = "reStructuredText en"
@@ -28,7 +28,7 @@ class VirtualCollection(DAVCollection):
 
     def __init__(self, path, environ, display_info, member_name_list):
         super(VirtualCollection, self).__init__(path, environ)
-        if compat.is_basestring(display_info):
+        if util.is_basestring(display_info):
             display_info = {"type": display_info}
         assert type(display_info) is dict
         assert type(member_name_list) is list
@@ -128,7 +128,7 @@ class VirtualTextResource(_VirtualNonCollection):
     #        return quote(self.provider.share_path + refPath)
 
     def get_content(self):
-        return compat.StringIO(self.content)
+        return util.StringIO(self.content)
 
 
 # ============================================================================

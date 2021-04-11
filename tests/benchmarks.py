@@ -55,17 +55,15 @@ import subprocess
 import sys
 
 from tests.util import Timing, WsgiDavTestServer
-from wsgidav import __version__, compat
+from wsgidav import __version__, util
 from wsgidav.xml_tools import use_lxml
 
 try:
     from io import StringIO
 except ImportError:  # Py2
-    from cStringIO import StringIO
+    from cStringIO import StringIO  # type: ignore
 
 try:
-    # from cherrypy import __version__ as cp_version
-
     from cheroot import wsgi
 
     cp_version = wsgi.Server.version
@@ -119,7 +117,7 @@ def _bench_script(opts):
     for i in range(10 * 1000):
         lines.append("%04i: %s\n" % (i, line))
     data_10m = "".join(lines)
-    data_10m = compat.to_bytes(data_10m)
+    data_10m = util.to_bytes(data_10m)
 
     with Timing("Setup fixture"):
         _setup_fixture(opts, client)
@@ -210,9 +208,9 @@ def run_benchmarks(opts):
     print("OS:       {}".format(platform.platform(aliased=True)))
 
     if use_lxml:
-        from lxml.etree import LXML_VERSION as lxml_version
+        import lxml.etree
 
-        print("lxml:     {}".format(lxml_version))
+        print("lxml:     {}".format(lxml.etree.LXML_VERSION))
     else:
         print("lxml:     (not installed)")
 

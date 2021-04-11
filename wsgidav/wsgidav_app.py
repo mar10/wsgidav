@@ -54,7 +54,7 @@ import sys
 import time
 from urllib.parse import unquote
 
-from wsgidav import __version__, compat, util
+from wsgidav import __version__, util
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.default_conf import DEFAULT_CONFIG
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -196,7 +196,7 @@ class WsgiDAVApp(object):
             # The middleware stack configuration may contain plain strings, dicts,
             # classes, or objects
             app = None
-            if compat.is_basestring(mw):
+            if util.is_basestring(mw):
                 # If a plain string is passed, try to import it, assuming
                 # `BaseMiddleware` signature
                 app_class = dynamic_import_class(mw)
@@ -293,7 +293,7 @@ class WsgiDAVApp(object):
         share = "/" + share.strip("/")
         assert share not in self.provider_map
 
-        if compat.is_basestring(provider):
+        if util.is_basestring(provider):
             # Syntax:
             #   <mount_path>: <folder_path>
             # We allow a simple string as 'provider'. In this case we interpret
@@ -380,7 +380,7 @@ class WsgiDAVApp(object):
         # example.
         # This is done by default for Python 3, but can be turned off in settings.
         if self.re_encode_path_info:
-            path = environ["PATH_INFO"] = compat.wsgi_to_bytes(path).decode()
+            path = environ["PATH_INFO"] = util.wsgi_to_bytes(path).decode()
 
         # We optionally unquote PATH_INFO here, although this should already be
         # done by the server (#8).
@@ -388,10 +388,10 @@ class WsgiDAVApp(object):
             path = unquote(environ["PATH_INFO"])
 
         # GC issue 22: Pylons sends root as u'/'
-        if not compat.is_str(path):
+        if not util.is_str(path):
             _logger.warning("Got non-native PATH_INFO: {!r}".format(path))
             # path = path.encode("utf8")
-            path = compat.to_str(path)
+            path = util.to_str(path)
 
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
@@ -432,7 +432,7 @@ class WsgiDAVApp(object):
             environ["PATH_INFO"] = path[len(share) :]
 
         # assert isinstance(path, str)
-        assert compat.is_str(path)
+        assert util.is_str(path)
         # See http://mail.python.org/pipermail/web-sig/2007-January/002475.html
         # for some clarification about SCRIPT_NAME/PATH_INFO format
         # SCRIPT_NAME starts with '/' or is empty

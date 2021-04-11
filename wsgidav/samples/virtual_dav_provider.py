@@ -100,7 +100,7 @@ import stat
 from io import BytesIO
 from urllib.parse import quote
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
     HTTP_INTERNAL_ERROR,
@@ -538,7 +538,7 @@ class VirtualArtifact(_VirtualNonCollection):
             html = self.data["description"]
         else:
             raise DAVError(HTTP_INTERNAL_ERROR, "Invalid artifact '%s'" % self.name)
-        return BytesIO(compat.to_bytes(html))
+        return BytesIO(util.to_bytes(html))
 
 
 # ============================================================================

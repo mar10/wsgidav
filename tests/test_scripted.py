@@ -18,7 +18,7 @@ from threading import Thread
 
 from tests import davclient
 from tests.util import WsgiDavTestServer
-from wsgidav import compat
+from wsgidav import util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.server.ext_wsgiutils_server import ExtServer
 from wsgidav.wsgidav_app import WsgiDAVApp
@@ -219,7 +219,7 @@ class ServerTest(unittest.TestCase):
         for i in range(10 * 1000):
             lines.append("%04i: %s\n" % (i, line))
         data3 = "".join(lines)
-        data3 = compat.to_bytes(data3)
+        data3 = util.to_bytes(data3)
 
         # Cleanup
         client.delete("/test/")
@@ -325,7 +325,7 @@ class ServerTest(unittest.TestCase):
     #
     #        # Request must not contain a body (expect '415 Media Type Not Supported')
     #        app.get("/file1.txt",
-    #                headers={"Content-Length": compat.to_str(len(data1))},
+    #                headers={"Content-Length": util.to_str(len(data1))},
     #                params=data1,
     #                status=415)
     #

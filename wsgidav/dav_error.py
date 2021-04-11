@@ -9,7 +9,7 @@ Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 import datetime
 from html import escape as html_escape
 
-from wsgidav import __version__, compat, xml_tools
+from wsgidav import __version__, util, xml_tools
 from wsgidav.xml_tools import etree
 
 __docformat__ = "reStructuredText"
@@ -159,7 +159,7 @@ class DAVErrorCondition(object):
         return error_el
 
     def as_string(self):
-        return compat.to_str(xml_tools.xml_to_bytes(self.as_xml(), True))
+        return util.to_str(xml_tools.xml_to_bytes(self.as_xml(), True))
 
 
 # ========================================================================
@@ -187,7 +187,7 @@ class DAVError(Exception):
         self.context_info = context_info
         self.src_exception = src_exception
         self.err_condition = err_condition
-        if compat.is_str(err_condition):
+        if util.is_str(err_condition):
             self.err_condition = DAVErrorCondition(err_condition)
         assert (
             self.err_condition is None or type(self.err_condition) is DAVErrorCondition
@@ -222,7 +222,7 @@ class DAVError(Exception):
         """Return a tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response
         if self.err_condition:
-            return ("application/xml", compat.to_bytes(self.err_condition.as_string()))
+            return ("application/xml", util.to_bytes(self.err_condition.as_string()))
 
         # Else return as HTML
         status = get_http_status_string(self)
@@ -247,7 +247,7 @@ class DAVError(Exception):
         )
         html.append("</body></html>")
         html = "\n".join(html)
-        return ("text/html", compat.to_bytes(html))
+        return ("text/html", util.to_bytes(html))
 
 
 def get_http_status_code(v):

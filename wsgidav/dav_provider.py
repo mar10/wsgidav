@@ -82,7 +82,7 @@ import time
 import traceback
 from urllib.parse import quote, unquote
 
-from wsgidav import compat, util, xml_tools
+from wsgidav import util, xml_tools
 from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
     HTTP_NOT_FOUND,
@@ -164,7 +164,7 @@ class _DAVResource(object):
     """
 
     def __init__(self, path, is_collection, environ):
-        assert compat.is_str(path)
+        assert util.is_str(path)
         assert path == "" or path.startswith("/")
         self.provider = environ["wsgidav.provider"]
         self.path = path

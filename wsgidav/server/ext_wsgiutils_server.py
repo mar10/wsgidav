@@ -53,35 +53,21 @@ can copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and us
 run the application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate
 paste configuration.
 """
+__docformat__ = "reStructuredText"
+
 import logging
 import socket
+import socketserver
 import sys
 import threading
 import time
 import traceback
+from http import client as http_client
+from http import server as BaseHTTPServer
 from io import StringIO
 from urllib.parse import urlparse
 
-from wsgidav import __version__, compat, util
-
-__docformat__ = "reStructuredText"
-
-
-try:
-    from http import client as http_client  # py3
-except ImportError:
-    import httplib as http_client
-
-try:
-    from http import server as BaseHTTPServer  # py3
-except ImportError:
-    import BaseHTTPServer
-
-try:
-    import socketserver  # py3
-except ImportError:
-    import SocketServer as socketserver
-
+from wsgidav import __version__, util
 
 _logger = util.get_module_logger(__name__)
 
@@ -206,7 +192,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
             "REMOTE_ADDR": self.client_address[0],
             "SERVER_NAME": self.server.server_address[0],
-            "SERVER_PORT": compat.to_str(self.server.server_address[1]),
+            "SERVER_PORT": util.to_str(self.server.server_address[1]),
             "SERVER_PROTOCOL": self.request_version,
         }
         for httpHeader, httpValue in self.headers.items():
@@ -279,13 +265,13 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # assert type(data) is str # If not, Content-Length is propably wrong!
         _logger.debug(
             "wsgiWriteData: write {} bytes: '{!r}'...".format(
-                len(data), compat.to_str(data[:50])
+                len(data), util.to_str(data[:50])
             )
         )
-        if compat.is_str(data):  # If not, Content-Length is propably wrong!
+        if util.is_str(data):  # If not, Content-Length is propably wrong!
             _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
-            # data = compat.wsgi_to_bytes(data)
-            data = compat.to_bytes(data)
+            # data = util.wsgi_to_bytes(data)
+            data = util.to_bytes(data)
 
         try:
             self.wfile.write(data)

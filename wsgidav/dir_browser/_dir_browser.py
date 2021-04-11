@@ -12,7 +12,7 @@ from urllib.parse import unquote
 
 from jinja2 import Environment, FileSystemLoader
 
-from wsgidav import __version__, compat, util
+from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import safe_re_encode
@@ -104,7 +104,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             ):
                 collectionUrl = util.make_complete_url(environ)
                 collectionUrl = collectionUrl.split("?", 1)[0]
-                res = compat.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
+                res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
                 # TODO: support <dm:open>%s</dm:open>
 
                 start_response(
@@ -121,7 +121,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             context = self._get_context(environ, dav_res)
 
             res = self.template.render(**context)
-            res = compat.to_bytes(res)
+            res = util.to_bytes(res)
             start_response(
                 "200 OK",
                 [
@@ -228,7 +228,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 dirInfoList.append(entry)
         #
         ignore_patterns = self.dir_config.get("ignore", [])
-        if compat.is_basestring(ignore_patterns):
+        if util.is_basestring(ignore_patterns):
             ignore_patterns = ignore_patterns.split(",")
 
         ignored_list = []

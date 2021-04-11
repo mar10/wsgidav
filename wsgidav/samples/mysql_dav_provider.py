@@ -64,7 +64,7 @@ from io import StringIO
 
 import MySQLdb  # @UnresolvedImport
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
     DAVError,
@@ -475,7 +475,7 @@ class MySQLBrowserProvider(DAVProvider):
         if row is None:
             cursor.close()
             return None
-        val = compat.to_str(row[field_name])
+        val = util.to_str(row[field_name])
         cursor.close()
         return val
 
@@ -526,7 +526,7 @@ class MySQLBrowserProvider(DAVProvider):
             cursor.close()
             return None
         for fname in row.keys():
-            dictRet[fname] = compat.to_str(row[fname])
+            dictRet[fname] = util.to_str(row[fname])
         cursor.close()
         return dictRet
 
@@ -552,7 +552,7 @@ class MySQLBrowserProvider(DAVProvider):
         cursor.execute("SELECT " + field_name + " FROM " + self._db + "." + table_name)
         result_set = cursor.fetchall()
         for row in result_set:
-            retlist.append(compat.to_str(row[field_name]))
+            retlist.append(util.to_str(row[field_name]))
         cursor.close()
         return retlist
 

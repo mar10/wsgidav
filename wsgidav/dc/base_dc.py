@@ -41,7 +41,7 @@ import sys
 from abc import ABC, abstractmethod
 from hashlib import md5
 
-from wsgidav import compat, util
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -198,7 +198,7 @@ class BaseDomainController(ABC):
     def _compute_http_digest_a1(self, realm, user_name, password):
         """Internal helper for derived classes to compute a digest hash (A1 part)."""
         data = user_name + ":" + realm + ":" + password
-        A1 = md5(compat.to_bytes(data)).hexdigest()
+        A1 = md5(util.to_bytes(data)).hexdigest()
         return A1
 
     def digest_auth_user(self, realm, user_name, environ):

@@ -22,7 +22,6 @@ from hashlib import md5
 from pprint import pformat
 from urllib.parse import quote
 
-from wsgidav import compat
 from wsgidav.dav_error import (
     HTTP_BAD_REQUEST,
     HTTP_CREATED,
@@ -45,6 +44,60 @@ _logger = logging.getLogger(BASE_LOGGER_NAME)
 PYTHON_VERSION = "{}.{}.{}".format(
     sys.version_info[0], sys.version_info[1], sys.version_info[2]
 )
+
+filesystemencoding = sys.getfilesystemencoding()
+
+
+# ========================================================================
+# String tools
+# ========================================================================
+
+
+def is_basestring(s):
+    """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
+    return isinstance(s, (str, bytes))
+
+
+def is_bytes(s):
+    """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
+    return isinstance(s, bytes)
+
+
+def is_str(s):
+    """Return True for native strings (for str on Py2 and Py3)."""
+    return isinstance(s, str)
+
+
+def to_bytes(s, encoding="utf8"):
+    """Convert a text string (unicode) to bytestring (str on Py2 and bytes on Py3)."""
+    if type(s) is not bytes:
+        s = bytes(s, encoding)
+    return s
+
+
+def to_str(s, encoding="utf8"):
+    """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
+    if type(s) is bytes:
+        s = str(s, encoding)
+    elif type(s) is not str:
+        s = str(s)
+    return s
+
+
+# --- WSGI support ---
+
+
+def unicode_to_wsgi(u):
+    """Convert an environment variable to a WSGI 'bytes-as-unicode' string."""
+    # Taken from PEP3333; the server should already have performed this, when
+    # passing environ to the WSGI application
+    return u.encode(filesystemencoding, "surrogateescape").decode("iso-8859-1")
+
+
+def wsgi_to_bytes(s):
+    """Convert a native string to a WSGI / HTTP compatible byte string."""
+    # Taken from PEP3333
+    return s.encode("iso-8859-1")
 
 
 # ========================================================================
@@ -302,7 +355,7 @@ def dynamic_instantiate_middleware(name, args, expand=None):
 
     def _expand(v):
         """Replace some string templates with defined values."""
-        if expand and compat.is_basestring(v) and v.lower() in expand:
+        if expand and is_basestring(v) and v.lower() in expand:
             return expand[v]
         return v
 
@@ -388,12 +441,12 @@ def split_namespace(clarkName):
 def to_unicode_safe(s):
     """Convert a binary string to Unicode using UTF-8 (fallback to ISO-8859-1)."""
     try:
-        u = compat.to_str(s, "utf8")
+        u = to_str(s, "utf8")
     except ValueError:
         _logger.error(
             "to_unicode_safe({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s)
         )
-        u = compat.to_str(s, "ISO-8859-1")
+        u = to_str(s, "ISO-8859-1")
     return u
 
 
@@ -408,7 +461,7 @@ def safe_re_encode(s, encoding_to, errors="backslashreplace"):
     # prev = s
     if not encoding_to:
         encoding_to = "ASCII"
-    if compat.is_bytes(s):
+    if is_bytes(s):
         s = s.decode(encoding_to, errors=errors).encode(encoding_to)
     else:
         s = s.encode(encoding_to, errors=errors).decode(encoding_to)
@@ -418,7 +471,7 @@ def safe_re_encode(s, encoding_to, errors="backslashreplace"):
 
 def string_repr(s):
     """Return a string as hex dump."""
-    if compat.is_bytes(s):
+    if is_bytes(s):
         res = "{!r}: ".format(s)
         for b in s:
             if type(b) is str:  # Py2
@@ -782,7 +835,7 @@ def parse_xml_body(environ, allow_empty=False):
         _logger.info(
             "{} XML request body:\n{}".format(
                 environ["REQUEST_METHOD"],
-                compat.to_str(xml_to_bytes(rootEL, pretty_print=True)),
+                to_str(xml_to_bytes(rootEL, pretty_print=True)),
             )
         )
         environ["wsgidav.dump_request_body"] = False
@@ -827,7 +880,7 @@ def send_status_response(environ, start_response, e, add_headers=None, is_head=F
     if is_head:
         body = b""
 
-    assert compat.is_bytes(body), body  # If not, Content-Length is wrong!
+    assert is_bytes(body), body  # If not, Content-Length is wrong!
     start_response(
         status,
         [
@@ -846,7 +899,7 @@ def send_multi_status_response(environ, start_response, multistatusEL):
     if environ.get("wsgidav.dump_response_body"):
         xml = "{} XML response body:\n{}".format(
             environ["REQUEST_METHOD"],
-            compat.to_str(xml_to_bytes(multistatusEL, pretty_print=True)),
+            to_str(xml_to_bytes(multistatusEL, pretty_print=True)),
         )
         environ["wsgidav.dump_response_body"] = xml
 
@@ -855,7 +908,7 @@ def send_multi_status_response(environ, start_response, multistatusEL):
     # (Vista and others would accept this).
     xml_data = xml_to_bytes(multistatusEL, pretty_print=False)
     # If not, Content-Length is wrong!
-    assert compat.is_bytes(xml_data), xml_data
+    assert is_bytes(xml_data), xml_data
 
     headers = [
         ("Content-Type", "application/xml"),
@@ -943,15 +996,15 @@ def add_property_response(multistatusEL, href, propList):
 
 def calc_hexdigest(s):
     """Return md5 digest for a string."""
-    s = compat.to_bytes(s)
+    s = to_bytes(s)
     return md5(s).hexdigest()  # return native string
 
 
 def calc_base64(s):
     """Return base64 encoded binarystring."""
-    s = compat.to_bytes(s)
+    s = to_bytes(s)
     s = base64.encodebytes(s).strip()  # return bytestring
-    return compat.to_str(s)
+    return to_str(s)
 
 
 def get_etag(file_path):
@@ -968,7 +1021,7 @@ def get_etag(file_path):
     # (At least on Vista) os.path.exists returns False, if a file name contains
     # special characters, even if it is correctly UTF-8 encoded.
     # So we convert to unicode. On the other hand, md5() needs a byte string.
-    if compat.is_bytes(file_path):
+    if is_bytes(file_path):
         unicodeFilePath = to_unicode_safe(file_path)
     else:
         unicodeFilePath = file_path
@@ -1283,7 +1336,7 @@ def test_if_header_dict(dav_res, dictIf, fullurl, locktokenlist, entitytag):
     return False
 
 
-test_if_header_dict.__test__ = False  # Tell nose to ignore this function
+# test_if_header_dict.__test__ = False  # Tell nose to ignore this function
 
 
 # ========================================================================

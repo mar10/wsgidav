@@ -79,7 +79,7 @@ import win32net
 import win32netcon
 import win32security
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
 
 __docformat__ = "reStructuredText"
@@ -173,11 +173,11 @@ class NTDomainController(BaseDomainController):
                     server, 0, win32netcon.FILTER_NORMAL_ACCOUNT, 0
                 )
                 # Make sure, we compare unicode
-                un = compat.to_str(user_name).lower()
+                un = util.to_str(user_name).lower()
                 for userinfo in users:
                     uiname = userinfo.get("name")
                     assert uiname
-                    assert compat.is_str(uiname)
+                    assert util.is_str(uiname)
                     if un == userinfo["name"].lower():
                         return True
             except win32net.error as e:
