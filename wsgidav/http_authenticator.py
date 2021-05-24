@@ -273,7 +273,7 @@ class HTTPAuthenticator(BaseMiddleware):
     def send_basic_auth_response(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
         _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realm))
-        wwwauthheaders = 'Basic realm="' + realm + '"'
+        wwwauthheaders = 'Basic realm="{}"'.format(realm)
 
         body = compat.to_bytes(self.error_message_401)
         start_response(
