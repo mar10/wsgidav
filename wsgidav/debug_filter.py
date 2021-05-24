@@ -79,7 +79,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         ]
 
     def __call__(self, environ, start_response):
-        """"""
+        """ """
         # srvcfg = environ["wsgidav.config"]
         verbose = self._config.get("verbose", 3)
 

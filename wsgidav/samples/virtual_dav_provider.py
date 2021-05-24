@@ -160,7 +160,7 @@ _resourceData = [
 
 
 def _get_res_list_by_attr(attrName, attrVal):
-    """"""
+    """ """
     assert attrName in RootCollection._visibleMemberNames
     if attrName == "by_status":
         return [data for data in _resourceData if data.get("status") == attrVal]
@@ -172,7 +172,7 @@ def _get_res_list_by_attr(attrName, attrVal):
 
 
 def _get_res_by_key(key):
-    """"""
+    """ """
     for data in _resourceData:
         if data["key"] == key:
             return data

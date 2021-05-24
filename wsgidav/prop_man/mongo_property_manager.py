@@ -142,7 +142,7 @@ class MongoPropertyManager(object):
         self.collection.save(doc)
 
     def remove_property(self, norm_url, name, dry_run=False, environ=None):
-        """"""
+        """ """
         _logger.debug("remove_property(%s, %s, dry_run=%s)" % (norm_url, name, dry_run))
         if dry_run:
             # TODO: can we check anything here?

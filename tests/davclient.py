@@ -496,7 +496,7 @@ class DAVClient(object):
             raise AppError("Bad response: %s (not %s)" % (full_status, status))
 
     def check_multi_status_response(self, expect_status=200):
-        """"""
+        """ """
         if isinstance(expect_status, tuple):
             pass
         elif not isinstance(expect_status, list):
