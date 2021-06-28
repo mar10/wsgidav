@@ -4,6 +4,7 @@
 
 - #201 Check also HTTP_X_FORWARDED_HOST as alternative to DESTINATION header
 - #220 Fix exception whenever user access unknown realm
+- #225 Include changelog in PyPI package
 
 ## 3.1.0 / 2021-01-04
 
