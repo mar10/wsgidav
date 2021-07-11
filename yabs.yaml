@@ -22,7 +22,8 @@ tasks:
     github: true            # GitHub repo name valid and online accessible
     clean: true             # Repo must/must not contain modifications
     os: null                # (str, list)
-    python: ">=3.5"         # SemVer specifier
+    # Build with Python 3.8 [issue #216](https://github.com/mar10/wsgidav/issues/216)
+    python: "==3.8"         # SemVer specifier
     twine: true             # `twine` is available
     up_to_date: true        # everything pulled from remote
     venv: true              # running inside a virtual environment
