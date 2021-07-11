@@ -1,10 +1,18 @@
 # Changelog
 
 ## 4.0.0 / Unreleased
-- Drop Python 2 support
 
-## 3.1.1 / Unreleased
+- Drop Python 2 support
+- TODO: #201, #220, #225
+
+## 3.1.2 / Unreleased
+
+## 3.1.1 / 2021-07-11
+
 - #201 Check also HTTP_X_FORWARDED_HOST as alternative to DESTINATION header
+- #216 Build with Python 3.8 (Py3.9 doesn't work on Windows7 / Windows Server 2008 R2 / Ealier)
+- #220 Fix exception whenever user access unknown realm
+- #225 Include changelog in PyPI package
 
 ## 3.1.0 / 2021-01-04
 
