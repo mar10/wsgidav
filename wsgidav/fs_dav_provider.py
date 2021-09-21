@@ -108,7 +108,7 @@ class FileResource(DAVNonCollection):
         self.remove_all_locks(True)
 
     def copy_move_single(self, dest_path, is_move):
-        """See DAVResource.copy_move_single() """
+        """See DAVResource.copy_move_single()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
@@ -137,7 +137,7 @@ class FileResource(DAVNonCollection):
         return True
 
     def move_recursive(self, dest_path):
-        """See DAVResource.move_recursive() """
+        """See DAVResource.move_recursive()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
@@ -288,7 +288,7 @@ class FolderResource(DAVCollection):
         self.remove_all_locks(True)
 
     def copy_move_single(self, dest_path, is_move):
-        """See DAVResource.copy_move_single() """
+        """See DAVResource.copy_move_single()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
@@ -324,7 +324,7 @@ class FolderResource(DAVCollection):
         return True
 
     def move_recursive(self, dest_path):
-        """See DAVResource.move_recursive() """
+        """See DAVResource.move_recursive()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
