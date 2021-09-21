@@ -4,7 +4,8 @@ language: python
 matrix:
     include:
         - python: "3.9"
-          env: TOXENV=check,lint,mypy
+          env: TOXENV=check,lint
+          # env: TOXENV=check,lint,mypy
         - python: "3.9"
           env: TOXENV=py39
         - python: "3.8"
