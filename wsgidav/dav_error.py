@@ -38,7 +38,9 @@ HTTP_SEE_OTHER = 303
 HTTP_NOT_MODIFIED = 304
 HTTP_USE_PROXY = 305
 HTTP_TEMP_REDIRECT = 307
+
 HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
 HTTP_PAYMENT_REQUIRED = 402
 HTTP_FORBIDDEN = 403
 HTTP_NOT_FOUND = 404
@@ -83,6 +85,7 @@ ERROR_DESCRIPTIONS = {
     HTTP_NO_CONTENT: "204 No Content",
     HTTP_NOT_MODIFIED: "304 Not Modified",
     HTTP_BAD_REQUEST: "400 Bad Request",
+    HTTP_UNAUTHORIZED: "401 Unauthorized",
     HTTP_FORBIDDEN: "403 Forbidden",
     HTTP_METHOD_NOT_ALLOWED: "405 Method Not Allowed",
     HTTP_NOT_FOUND: "404 Not Found",
@@ -106,6 +109,7 @@ ERROR_DESCRIPTIONS = {
 ERROR_RESPONSES = {
     HTTP_BAD_REQUEST: "An invalid request was specified",
     HTTP_NOT_FOUND: "The specified resource was not found",
+    HTTP_UNAUTHORIZED: "Invalid authentication credentials for the requested resource",
     HTTP_FORBIDDEN: "Access denied to the specified resource",
     HTTP_INTERNAL_ERROR: "An internal server error occurred",
     HTTP_NOT_IMPLEMENTED: "Not implemented",
