@@ -830,16 +830,44 @@ def _run_gunicorn(app, config, mode):
     GunicornApplication(app, options).run()
 
 
+def _run_uvicorn(app, config, mode):
+    """Run WsgiDAV using Uvicorn if installed."""
+    import uvicorn
+
+    # See https://www.uvicorn.org/settings/
+    server_args = {
+        "interface": "wsgi",
+        "host": config["host"],
+        "port": config["port"],
+        # TODO: see _run_cheroot()
+        # "ssl_keyfile": ssl_keyfile
+        # "ssl_certfile": ssl_certfile
+        # "ssl_keyfile_password": ssl_keyfile_password
+        # "ssl_version": ssl_version
+        # "ssl_cert_reqs": ssl_cert_reqs
+        # "ssl_ca_certs": ssl_ca_certs
+        # "ssl_ciphers": ssl_ciphers
+    }
+    # Override or add custom args
+    server_args.update(config.get("server_args", {}))
+
+    # server_name = "WsgiDAV/{} uvicorn/{} Python/{}".format(
+    #     __version__, uvicorn.__version__, util.PYTHON_VERSION
+    # )
+    uvicorn.run(app, **server_args)
+
+
 SUPPORTED_SERVERS = {
-    "paste": _run_paste,
-    "gevent": _run_gevent,
     "cheroot": _run_cheroot,
     "cherrypy": _run__cherrypy,
     "ext-wsgiutils": _run_ext_wsgiutils,
-    "flup-fcgi": _run_flup,
     "flup-fcgi_fork": _run_flup,
-    "wsgiref": _run_wsgiref,
+    "flup-fcgi": _run_flup,
+    "gevent": _run_gevent,
     "gunicorn": _run_gunicorn,
+    "paste": _run_paste,
+    "uvicorn": _run_uvicorn,
+    "wsgiref": _run_wsgiref,
 }
 
 
