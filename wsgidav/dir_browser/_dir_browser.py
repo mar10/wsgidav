@@ -39,6 +39,7 @@ msOfficeExtToTypeMap = {}
 for t, el in msOfficeTypeToExtMap.items():
     for e in el:
         msOfficeExtToTypeMap[e] = t
+open_office_extensions = {"odt", "odp", "odx"}
 
 
 class WsgiDavDirBrowser(BaseMiddleware):
@@ -202,15 +203,20 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
                 if not is_readonly and not res.is_collection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
+                    ms_sharepoint_support = self.dir_config.get("ms_sharepoint_support")
                     officeType = msOfficeExtToTypeMap.get(ext)
                     if officeType:
-                        if self.dir_config.get("ms_sharepoint_support"):
+                        if ms_sharepoint_support:
                             ofe_prefix = "ms-{}:ofe|u|".format(officeType)
                             a_classes.append("msoffice")
                         # elif self.dir_config.get("ms_sharepoint_plugin"):
                         #     a_classes.append("msoffice")
                         # elif self.dir_config.get("ms_sharepoint_urls"):
                         #     href = "ms-{}:ofe|u|{}".format(officeType, href)
+
+                    if ext in open_office_extensions:
+                        ofe_prefix = "vnd.libreoffice.command:ofv|u|"
+                        a_classes.append("msoffice")
 
                 entry = {
                     "href": href,

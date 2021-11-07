@@ -3,6 +3,7 @@
 ## 4.0.0 / Unreleased
 
 - Drop Python 2 support
+- uvicorn, LibreOffice
 - TODO: #201, #220, #225
 
 ## 3.1.2 / Unreleased

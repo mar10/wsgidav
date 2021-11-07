@@ -235,8 +235,6 @@ class WsgiDAVApp(object):
             else:
                 _logger.error("Could not add middleware {}.".format(mw))
 
-        domain_controller
-        # Print info
         _logger.info(
             "WsgiDAV/{} Python/{} {}".format(
                 __version__, util.PYTHON_VERSION, platform.platform(aliased=True)
