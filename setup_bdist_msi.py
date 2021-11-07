@@ -125,7 +125,7 @@ bdist_msi_options = {
 setup(
     name="WsgiDAV",
     version=version,
-    author="Martin Wendt, Ho Chun Wei",
+    author="Martin Wendt",
     author_email="wsgidav@wwwendt.de",
     maintainer="Martin Wendt",
     maintainer_email="wsgidav@wwwendt.de",
