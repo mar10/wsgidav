@@ -29,17 +29,17 @@ DAVMOUNT_TEMPLATE = """
 </dm:mount>
 """.strip()
 
-msOfficeTypeToExtMap = {
+MS_OFFICE_TYPE_TO_EXT_MAP = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
     "word": ("doc", "dot", "docm", "docx", "dotm", "dotx"),
     "visio": ("vsd", "vsdm", "vsdx", "vstm", "vstx"),
 }
-msOfficeExtToTypeMap = {}
-for t, el in msOfficeTypeToExtMap.items():
+MS_OFFICE_EXT_TO_TYPE_MAP = {}
+for t, el in MS_OFFICE_TYPE_TO_EXT_MAP.items():
     for e in el:
-        msOfficeExtToTypeMap[e] = t
-open_office_extensions = {"odt", "odp", "odx"}
+        MS_OFFICE_EXT_TO_TYPE_MAP[e] = t
+OPEN_OFFICE_EXTENSIONS = {"odt", "odp", "odx"}
 
 
 class WsgiDavDirBrowser(BaseMiddleware):
@@ -154,6 +154,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
         assert dav_res.is_collection
 
         is_readonly = environ["wsgidav.provider"].is_readonly()
+        ms_sharepoint_support = self.dir_config.get("ms_sharepoint_support")
+        libre_office_support = self.dir_config.get("libre_office_support")
+
+        # TODO: WebDAV URLs only on Windows?
+        # TODO: WebDAV URLs only on HTTPS?
+        is_windows = "Windows NT " in environ.get("HTTP_USER_AGENT", "")
 
         context = {
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
@@ -200,28 +206,33 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 a_classes = []
                 if res.is_collection:
                     tr_classes.append("directory")
+                add_link_html = []
 
                 if not is_readonly and not res.is_collection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
-                    ms_sharepoint_support = self.dir_config.get("ms_sharepoint_support")
-                    officeType = msOfficeExtToTypeMap.get(ext)
-                    if officeType:
+                    ms_office_type = MS_OFFICE_EXT_TO_TYPE_MAP.get(ext)
+                    if ms_office_type:
                         if ms_sharepoint_support:
-                            ofe_prefix = "ms-{}:ofe|u|".format(officeType)
+                            ofe_prefix = "ms-{}:ofe|u|".format(ms_office_type)
                             a_classes.append("msoffice")
-                        # elif self.dir_config.get("ms_sharepoint_plugin"):
-                        #     a_classes.append("msoffice")
-                        # elif self.dir_config.get("ms_sharepoint_urls"):
-                        #     href = "ms-{}:ofe|u|{}".format(officeType, href)
+                            if libre_office_support:
+                                add_link_html.append(f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{href}'>Edit</a>")
+                                # ofe_prefix_2 = "vnd.libreoffice.command:ofv|u|"
+                                # a_classes.append("msoffice")
+                        elif libre_office_support:
+                            ofe_prefix = "vnd.libreoffice.command:ofv|u|"
+                            # a_classes.append("msoffice")
 
-                    if ext in open_office_extensions:
-                        ofe_prefix = "vnd.libreoffice.command:ofv|u|"
-                        a_classes.append("msoffice")
+                    elif ext in OPEN_OFFICE_EXTENSIONS:
+                        if libre_office_support:
+                            ofe_prefix = "vnd.libreoffice.command:ofv|u|"
+                            a_classes.append("msoffice")
 
                 entry = {
                     "href": href,
                     "ofe_prefix": ofe_prefix,
                     "a_class": " ".join(a_classes),
+                    "add_link_html": "".join(add_link_html),
                     "tr_class": " ".join(tr_classes),
                     "display_name": res.get_display_name(),
                     "last_modified": res.get_last_modified(),

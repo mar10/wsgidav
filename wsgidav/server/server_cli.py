@@ -298,7 +298,7 @@ See https://github.com/mar10/wsgidav for additional information.
     return cmdLineOpts, parser
 
 
-def _read_config_file(config_file, verbose):
+def _read_config_file(config_file, _verbose):
     """Read configuration file options into a dictionary."""
 
     config_file = os.path.abspath(config_file)

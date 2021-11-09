@@ -75,6 +75,14 @@
           <a class="{{ row.a_class }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
               {{row.display_name}}
           </a>
+          {%- if row.href_2 %}
+            <a class="{{ row.a_class_2 }}" href="{{row.href_2}}" {% if row.ofe_prefix_2%} data-ofe="{{row.ofe_prefix_2}}" {% endif %} >
+                {{row.display_name_2}}
+            </a>
+          {% endif -%}
+          {%- if row.add_link_html %}
+              {{row.add_link_html}}
+          {% endif -%}
         </td>
         <td>{{ row.display_type }}</td>
         <td>{{ row.str_size }}</td>

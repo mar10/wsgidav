@@ -23,7 +23,7 @@ def setUpModule():
 
 
 def tearDownModule():
-    global _test_server
+    # global _test_server
 
     if _test_server:
         _test_server.stop()

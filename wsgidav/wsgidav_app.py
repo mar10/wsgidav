@@ -91,6 +91,7 @@ def _check_config(config):
         # "dir_browser.enable": "middleware_stack",
         "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
+        "dir_browser.ms_mount": "(no replacement)",
         "domain_controller": "http_authenticator.domain_controller",
         "domaincontroller": "http_authenticator.domain_controller",
         "emulate_win32_lastmod": "hotfix.emulate_win32_lastmod",

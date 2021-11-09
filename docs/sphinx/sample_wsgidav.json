@@ -30,7 +30,7 @@
         "user_mapping": {
             "*": {
                 "user1": {
-                    "password": "abc123",
+                    "password": "abc123"
                 }
             },
             "/share2": true  // Allow anonymous access

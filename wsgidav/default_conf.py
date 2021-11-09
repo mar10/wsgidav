@@ -89,8 +89,8 @@ DEFAULT_CONFIG = {
         "davmount": True,
         # Add 'Mount' link at the top
         "davmount_links": False,
-        "ms_sharepoint_support": True,  # Invoke MS Offce documents for editing using WebDAV
-        "libre_office_support": True,  # Invoke MS Offce documents for editing using WebDAV
+        "ms_sharepoint_support": True,  # Invoke MS Office documents for editing using WebDAV
+        "libre_office_support": True,  # Invoke Libre Office documents for editing using WebDAV
         # The path to the directory that contains template.html and associated assets.
         # The default is the htdocs directory within the dir_browser directory.
         "htdocs_path": None,

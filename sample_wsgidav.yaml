@@ -204,7 +204,7 @@ dir_browser:
     #: Send <dm:mount> response if request URL contains '?davmount'
     #: (See https://tools.ietf.org/html/rfc4709)
     davmount: true
-    #: Also add a respective link at the top of the listing
+    #: Add a 'Mount' link at the top of the listing
     davmount_links: false
     #: Invoke MS Office documents for editing using WebDAV by adding a JavaScript
     #: click handler.
@@ -213,6 +213,9 @@ dir_browser:
     #:   https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ff407576(v%3Doffice.14)
     #: - Otherwise the Office URL prefix is used (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
     ms_sharepoint_support: true
+    #:
+    libre_office_support: true
+    #:
     #: The path to the directory that contains template.html and associated
     #: assets.
     #: The default is the htdocs directory within the dir_browser directory.
