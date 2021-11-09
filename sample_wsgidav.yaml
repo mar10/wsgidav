@@ -202,11 +202,10 @@ dir_browser:
     show_user: true
     show_logout: true
     #: Send <dm:mount> response if request URL contains '?davmount'
-    #: Also add a respective link at the top of the listing
     #: (See https://tools.ietf.org/html/rfc4709)
-    davmount: false
-    #: Add an 'open as webfolder' link (requires Windows IE <= 7!)
-    ms_mount: false
+    davmount: true
+    #: Also add a respective link at the top of the listing
+    davmount_links: false
     #: Invoke MS Office documents for editing using WebDAV by adding a JavaScript
     #: click handler.
     #: - For IE 11 and below invokes the SharePoint ActiveXObject("SharePoint.OpenDocuments")

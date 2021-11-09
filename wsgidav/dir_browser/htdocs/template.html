@@ -19,16 +19,9 @@
     Index of {{ display_path }}
   </h1>
 
-  {% if config.davmount or config.ms_mount %}
+  {% if config.davmount_links %}
   <p class="links">
-    {%- if config.davmount %}
-      <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
-    {% endif -%}
-    {%- if config.ms_mount %}
-      {% if config.davmount %} &#8211; {% endif %}
-      <a title="Open as Web Folder (requires Microsoft Internet Explorer 7 or older!)"
-          href="" folder="{{ url }}">Open as Web Folder</a>
-    {% endif %}
+    <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
   </p>
   {% endif %}
 
