@@ -14,6 +14,7 @@ config:
       $ stressor run tests/stressor/test_rw -q
   verbose: 3
   base_url: http://127.0.0.1:8082
+  # base_url: https://127.0.0.1:8082
   request_timeout: 1
 
 # Initial context value definitions.
@@ -26,6 +27,7 @@ sessions:
   users: $load(users.yaml)
   count: 10
   # basic_auth: true
+  verify_ssl: false
 
 # Define what actions should be performed by every session
 scenario:

@@ -109,11 +109,10 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
 
-    server_version = "WsgiDAV/{} ExtServer/{} {} Python {}".format(
+    server_version = "WsgiDAV/{} ExtServer/{} {}".format(
         __version__,
         _version,
         BaseHTTPServer.BaseHTTPRequestHandler.server_version,
-        util.PYTHON_VERSION,
     )
 
     def log_message(self, *args):
@@ -262,7 +261,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        # assert type(data) is str # If not, Content-Length is propably wrong!
+        assert type(data) is bytes  # If not, Content-Length is propably wrong!
         _logger.debug(
             "wsgiWriteData: write {} bytes: '{!r}'...".format(
                 len(data), util.to_str(data[:50])
@@ -383,7 +382,7 @@ def serve(conf, app):
     server = ExtServer((host, port), {"": app})
     server_version = ExtHandler.server_version
     if conf.get("verbose") >= 1:
-        _logger.info("Running {}".format(server_version))
+        _logger.info(f"Running {server_version}")
         if host in ("", "0.0.0.0"):
             (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(
                 socket.gethostname()
@@ -396,9 +395,7 @@ def serve(conf, app):
         else:
             _logger.info("Serving at {}, port {}...".format(host, port))
     server.serve_forever()
-
-
-#    server.serve_forever_stoppable()
+    # server.serve_forever_stoppable()
 
 
 if __name__ == "__main__":

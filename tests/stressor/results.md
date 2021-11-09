@@ -9,6 +9,17 @@ We use it to test stressor against a locally running WsgiDAV server:
 3. Open a second terminal and run
   $ stressor run tests/stressor/test_rw.yaml -q
 ```
+## 2021-11-09
+> Seems that stressor is the limiting factor
+(MacBook, i5 2,9GHz, macOs 12.0.1, Py3.9)
+- Cheroot 8.5.2 Executed 9,700 activities
+- gevent 21.8.0 Executed 9,704 activities
+- gunicorn 20.1.0 Executed 9,324 activities
+- uvicorn 0.15.0 Executed 8,036 activities
+- paste 0.5 Executed 9,756 activities
+- wsgiref 0.2 Executed 8,188 activities ERRORS: 27 (NewConnectionError)
+- ext_wsgiutils Executed 9,668 activities
+
 ## 2021-01-04
 (PC, Windows 10)
 - Cheroot 8.5.1 Executed 16,660 activities
