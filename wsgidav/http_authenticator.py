@@ -86,6 +86,7 @@ from hashlib import md5
 from textwrap import dedent
 
 from wsgidav import util
+from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
 from wsgidav.dc.simple_dc import SimpleDomainController
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
@@ -350,6 +351,12 @@ class HTTPAuthenticator(BaseMiddleware):
     def handle_digest_auth_request(self, environ, start_response):
 
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
+
+        if not realm:
+            raise DAVError(
+                HTTP_NOT_FOUND,
+                context_info=f"Could not resolve realm for {environ['PATH_INFO']}",
+            )
 
         is_invalid_req = False
         invalid_req_reasons = []
