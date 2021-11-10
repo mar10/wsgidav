@@ -71,15 +71,13 @@ Requirements:
     from here: http://mercurial.berkwood.com/
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 """
-from __future__ import print_function
-
 import os
 import sys
 import time
 from hashlib import md5
 from pprint import pprint
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
 from wsgidav.dav_provider import DAVProvider, _DAVResource
 from wsgidav.samples.dav_provider_tools import VirtualCollection
@@ -184,7 +182,7 @@ class HgResource(_DAVResource):
         return (
             md5(self.path).hexdigest()
             + "-"
-            + compat.to_native(self.get_last_modified())
+            + util.to_str(self.get_last_modified())
             + "-"
             + str(self.get_content_length())
         )
@@ -200,7 +198,7 @@ class HgResource(_DAVResource):
 
     def get_member_names(self):
         assert self.is_collection
-        cache = self.environ["wsgidav.hg.cache"][compat.to_native(self.rev)]
+        cache = self.environ["wsgidav.hg.cache"][util.to_str(self.rev)]
         dirinfos = cache["dirinfos"]
         if self.localHgPath not in dirinfos:
             return []
@@ -251,15 +249,15 @@ class HgResource(_DAVResource):
             return self.fctx.branch()
         elif name == "{hg:}date":
             # (secs, tz-ofs)
-            return compat.to_native(self.fctx.date()[0])
+            return util.to_str(self.fctx.date()[0])
         elif name == "{hg:}description":
             return self.fctx.description()
         elif name == "{hg:}filerev":
-            return compat.to_native(self.fctx.filerev())
+            return util.to_str(self.fctx.filerev())
         elif name == "{hg:}rev":
-            return compat.to_native(self.fctx.rev())
+            return util.to_str(self.fctx.rev())
         elif name == "{hg:}user":
-            return compat.to_native(self.fctx.user())
+            return util.to_str(self.fctx.user())
 
         # Let base class implementation report live and dead properties
         return super(HgResource, self).get_property_value(name)
@@ -324,7 +322,7 @@ class HgResource(_DAVResource):
         """
         assert not self.is_collection
         d = self.fctx.data()
-        return compat.StringIO(d)
+        return util.StringIO(d)
 
     def begin_write(self, content_type=None):
         """Open content as a stream for writing.
@@ -522,9 +520,9 @@ class HgResourceProvider(DAVProvider):
                            }
         """
         caches = environ.setdefault("wsgidav.hg.cache", {})
-        if caches.get(compat.to_native(rev)) is not None:
+        if caches.get(util.to_str(rev)) is not None:
             _logger.debug("_get_repo_info(%s): cache hit." % rev)
-            return caches[compat.to_native(rev)]
+            return caches[util.to_str(rev)]
 
         start_time = time.time()
         self.ui.pushbuffer()
@@ -555,7 +553,7 @@ class HgResourceProvider(DAVProvider):
         files.sort()
 
         cache = {"files": files, "dirinfos": dirinfos, "filedict": filedict}
-        caches[compat.to_native(rev)] = cache
+        caches[util.to_str(rev)] = cache
         _logger.info("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time))
         return cache
 
@@ -598,7 +596,7 @@ class HgResourceProvider(DAVProvider):
             if rest == "/":
                 # Browse /archive: return a list of revision folders:
                 loglist = self._get_log(limit=10)
-                members = [compat.to_native(m["local_id"]) for m in loglist]
+                members = [util.to_str(m["local_id"]) for m in loglist]
                 return VirtualCollection(path, environ, "Revisions", members)
             revid, rest = util.pop_path(rest)
             try:

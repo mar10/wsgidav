@@ -8,10 +8,11 @@ WSGI middleware that handles GET requests on collections to display directories.
 import os
 import sys
 from fnmatch import fnmatch
+from urllib.parse import unquote
 
 from jinja2 import Environment, FileSystemLoader
 
-from wsgidav import __version__, compat, util
+from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.middleware import BaseMiddleware
 from wsgidav.util import safe_re_encode
@@ -28,16 +29,17 @@ DAVMOUNT_TEMPLATE = """
 </dm:mount>
 """.strip()
 
-msOfficeTypeToExtMap = {
+MS_OFFICE_TYPE_TO_EXT_MAP = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
     "word": ("doc", "dot", "docm", "docx", "dotm", "dotx"),
     "visio": ("vsd", "vsdm", "vsdx", "vstm", "vstx"),
 }
-msOfficeExtToTypeMap = {}
-for t, el in msOfficeTypeToExtMap.items():
+MS_OFFICE_EXT_TO_TYPE_MAP = {}
+for t, el in MS_OFFICE_TYPE_TO_EXT_MAP.items():
     for e in el:
-        msOfficeExtToTypeMap[e] = t
+        MS_OFFICE_EXT_TO_TYPE_MAP[e] = t
+OPEN_OFFICE_EXTENSIONS = {"odt", "odp", "odx"}
 
 
 class WsgiDavDirBrowser(BaseMiddleware):
@@ -103,7 +105,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             ):
                 collectionUrl = util.make_complete_url(environ)
                 collectionUrl = collectionUrl.split("?", 1)[0]
-                res = compat.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
+                res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
                 # TODO: support <dm:open>%s</dm:open>
 
                 start_response(
@@ -120,7 +122,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             context = self._get_context(environ, dav_res)
 
             res = self.template.render(**context)
-            res = compat.to_bytes(res)
+            res = util.to_bytes(res)
             start_response(
                 "200 OK",
                 [
@@ -152,12 +154,18 @@ class WsgiDavDirBrowser(BaseMiddleware):
         assert dav_res.is_collection
 
         is_readonly = environ["wsgidav.provider"].is_readonly()
+        ms_sharepoint_support = self.dir_config.get("ms_sharepoint_support")
+        libre_office_support = self.dir_config.get("libre_office_support")
+
+        # TODO: WebDAV URLs only on Windows?
+        # TODO: WebDAV URLs only on HTTPS?
+        is_windows = "Windows NT " in environ.get("HTTP_USER_AGENT", "")
 
         context = {
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
             "rows": [],
             "version": __version__,
-            "display_path": compat.unquote(dav_res.get_href()),
+            "display_path": unquote(dav_res.get_href()),
             "url": dav_res.get_href(),  # util.make_complete_url(environ),
             "parent_url": util.get_uri_parent(dav_res.get_href()),
             "config": self.dir_config,
@@ -198,23 +206,33 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 a_classes = []
                 if res.is_collection:
                     tr_classes.append("directory")
+                add_link_html = []
 
                 if not is_readonly and not res.is_collection:
                     ext = os.path.splitext(href)[1].lstrip(".").lower()
-                    officeType = msOfficeExtToTypeMap.get(ext)
-                    if officeType:
-                        if self.dir_config.get("ms_sharepoint_support"):
-                            ofe_prefix = "ms-{}:ofe|u|".format(officeType)
+                    ms_office_type = MS_OFFICE_EXT_TO_TYPE_MAP.get(ext)
+                    if ms_office_type:
+                        if ms_sharepoint_support:
+                            ofe_prefix = "ms-{}:ofe|u|".format(ms_office_type)
                             a_classes.append("msoffice")
-                        # elif self.dir_config.get("ms_sharepoint_plugin"):
-                        #     a_classes.append("msoffice")
-                        # elif self.dir_config.get("ms_sharepoint_urls"):
-                        #     href = "ms-{}:ofe|u|{}".format(officeType, href)
+                            if libre_office_support:
+                                add_link_html.append(f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{href}'>Edit</a>")
+                                # ofe_prefix_2 = "vnd.libreoffice.command:ofv|u|"
+                                # a_classes.append("msoffice")
+                        elif libre_office_support:
+                            ofe_prefix = "vnd.libreoffice.command:ofv|u|"
+                            # a_classes.append("msoffice")
+
+                    elif ext in OPEN_OFFICE_EXTENSIONS:
+                        if libre_office_support:
+                            ofe_prefix = "vnd.libreoffice.command:ofv|u|"
+                            a_classes.append("msoffice")
 
                 entry = {
                     "href": href,
                     "ofe_prefix": ofe_prefix,
                     "a_class": " ".join(a_classes),
+                    "add_link_html": "".join(add_link_html),
                     "tr_class": " ".join(tr_classes),
                     "display_name": res.get_display_name(),
                     "last_modified": res.get_last_modified(),
@@ -227,7 +245,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 dirInfoList.append(entry)
         #
         ignore_patterns = self.dir_config.get("ignore", [])
-        if compat.is_basestring(ignore_patterns):
+        if util.is_basestring(ignore_patterns):
             ignore_patterns = ignore_patterns.split(",")
 
         ignored_list = []
@@ -275,7 +293,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if "wsgidav.auth.user_name" in environ:
             context.update(
                 {
-                    "is_authenticated": True,
+                    "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
                     "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
                     "realm": environ.get("wsgidav.auth.realm"),
                     "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),

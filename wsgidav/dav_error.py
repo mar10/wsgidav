@@ -7,12 +7,10 @@
 Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
 import datetime
+from html import escape as html_escape
 
-from wsgidav import __version__, compat, xml_tools
+from wsgidav import __version__, util, xml_tools
 from wsgidav.xml_tools import etree
-
-# import traceback
-
 
 __docformat__ = "reStructuredText"
 
@@ -40,7 +38,9 @@ HTTP_SEE_OTHER = 303
 HTTP_NOT_MODIFIED = 304
 HTTP_USE_PROXY = 305
 HTTP_TEMP_REDIRECT = 307
+
 HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
 HTTP_PAYMENT_REQUIRED = 402
 HTTP_FORBIDDEN = 403
 HTTP_NOT_FOUND = 404
@@ -85,6 +85,7 @@ ERROR_DESCRIPTIONS = {
     HTTP_NO_CONTENT: "204 No Content",
     HTTP_NOT_MODIFIED: "304 Not Modified",
     HTTP_BAD_REQUEST: "400 Bad Request",
+    HTTP_UNAUTHORIZED: "401 Unauthorized",
     HTTP_FORBIDDEN: "403 Forbidden",
     HTTP_METHOD_NOT_ALLOWED: "405 Method Not Allowed",
     HTTP_NOT_FOUND: "404 Not Found",
@@ -108,6 +109,7 @@ ERROR_DESCRIPTIONS = {
 ERROR_RESPONSES = {
     HTTP_BAD_REQUEST: "An invalid request was specified",
     HTTP_NOT_FOUND: "The specified resource was not found",
+    HTTP_UNAUTHORIZED: "Invalid authentication credentials for the requested resource",
     HTTP_FORBIDDEN: "Access denied to the specified resource",
     HTTP_INTERNAL_ERROR: "An internal server error occurred",
     HTTP_NOT_IMPLEMENTED: "Not implemented",
@@ -161,7 +163,7 @@ class DAVErrorCondition(object):
         return error_el
 
     def as_string(self):
-        return compat.to_native(xml_tools.xml_to_bytes(self.as_xml(), True))
+        return util.to_str(xml_tools.xml_to_bytes(self.as_xml(), True))
 
 
 # ========================================================================
@@ -189,7 +191,7 @@ class DAVError(Exception):
         self.context_info = context_info
         self.src_exception = src_exception
         self.err_condition = err_condition
-        if compat.is_native(err_condition):
+        if util.is_str(err_condition):
             self.err_condition = DAVErrorCondition(err_condition)
         assert (
             self.err_condition is None or type(self.err_condition) is DAVErrorCondition
@@ -224,7 +226,7 @@ class DAVError(Exception):
         """Return a tuple (content-type, response page)."""
         # If it has pre- or post-condition: return as XML response
         if self.err_condition:
-            return ("application/xml", compat.to_bytes(self.err_condition.as_string()))
+            return ("application/xml", util.to_bytes(self.err_condition.as_string()))
 
         # Else return as HTML
         status = get_http_status_string(self)
@@ -240,16 +242,16 @@ class DAVError(Exception):
         html.append("  <title>{}</title>".format(status))
         html.append("</head><body>")
         html.append("  <h1>{}</h1>".format(status))
-        html.append("  <p>{}</p>".format(compat.html_escape(self.get_user_info())))
+        html.append("  <p>{}</p>".format(html_escape(self.get_user_info())))
         html.append("<hr/>")
         html.append(
             "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a> - {}".format(
-                __version__, compat.html_escape(str(datetime.datetime.now()), "utf-8")
+                __version__, html_escape(str(datetime.datetime.now()), "utf-8")
             )
         )
         html.append("</body></html>")
         html = "\n".join(html)
-        return ("text/html", compat.to_bytes(html))
+        return ("text/html", util.to_bytes(html))
 
 
 def get_http_status_code(v):

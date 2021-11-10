@@ -80,8 +80,11 @@ import os
 import sys
 import time
 import traceback
+from datetime import datetime
+from typing import Optional
+from urllib.parse import quote, unquote
 
-from wsgidav import compat, util, xml_tools
+from wsgidav import util, xml_tools
 from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
     HTTP_NOT_FOUND,
@@ -162,8 +165,8 @@ class _DAVResource(object):
     See also DAVProvider.get_resource_inst().
     """
 
-    def __init__(self, path, is_collection, environ):
-        assert compat.is_native(path)
+    def __init__(self, path: str, is_collection: bool, environ: dict):
+        assert util.is_str(path)
         assert path == "" or path.startswith("/")
         self.provider = environ["wsgidav.provider"]
         self.path = path
@@ -183,7 +186,7 @@ class _DAVResource(object):
     #        """
     #        raise NotImplementedError
 
-    def get_content_length(self):
+    def get_content_length(self) -> Optional[int]:
         """Contains the Content-Length header returned by a GET without accept
         headers.
 
@@ -196,7 +199,7 @@ class _DAVResource(object):
             return None
         raise NotImplementedError
 
-    def get_content_type(self):
+    def get_content_type(self) -> Optional[str]:
         """Contains the Content-Type header returned by a GET without accept
         headers.
 
@@ -210,7 +213,7 @@ class _DAVResource(object):
             return None
         raise NotImplementedError
 
-    def get_creation_date(self):
+    def get_creation_date(self) -> Optional[datetime]:
         """Records the time and date the resource was created.
 
         The creationdate property should be defined on all DAV compliant
@@ -233,7 +236,7 @@ class _DAVResource(object):
         assert self.is_collection
         return None
 
-    def get_display_name(self):
+    def get_display_name(self) -> str:
         """Provides a name for the resource that is suitable for presentation to
         a user.
 
@@ -360,7 +363,7 @@ class _DAVResource(object):
 
         See also comments in DEVELOPERS.txt glossary.
         """
-        return compat.quote(self.provider.share_path + self.get_preferred_path())
+        return quote(self.provider.share_path + self.get_preferred_path())
 
     #    def getRefKey(self):
     #        """Return an unambigous identifier string for a resource.
@@ -388,7 +391,7 @@ class _DAVResource(object):
         # Nautilus chokes, if href encodes '(' as '%28'
         # So we don't encode 'extra' and 'safe' characters (see rfc2068 3.2.1)
         safe = "/" + "!*'()," + "$-_|."
-        return compat.quote(
+        return quote(
             self.provider.mount_path
             + self.provider.share_path
             + self.get_preferred_path(),
@@ -404,6 +407,15 @@ class _DAVResource(object):
     #        if not parentpath:
     #            return None
     #        return self.provider.get_resource_inst(parentpath)
+
+    def get_member(self, name):
+        """Return child resource with a given name (None, if not found).
+
+        This method COULD be overridden by a derived class, for performance
+        reasons.
+        This default implementation calls self.provider.get_resource_inst().
+        """
+        raise NotImplementedError  # implemented by DAVCollecion
 
     def get_member_list(self):
         """Return a list of direct members (_DAVResource or derived objects).
@@ -1171,7 +1183,7 @@ class DAVNonCollection(_DAVResource):
     See also _DAVResource
     """
 
-    def __init__(self, path, environ):
+    def __init__(self, path: str, environ: dict):
         _DAVResource.__init__(self, path, False, environ)
 
     def get_content_length(self):
@@ -1471,9 +1483,7 @@ class DAVProvider(object):
 
         Used to calculate the <path> from a storage key by inverting get_ref_url().
         """
-        return "/" + compat.unquote(util.lstripstr(ref_url, self.share_path)).lstrip(
-            "/"
-        )
+        return "/" + unquote(util.lstripstr(ref_url, self.share_path)).lstrip("/")
 
     def get_resource_inst(self, path, environ):
         """Return a _DAVResource object for path.

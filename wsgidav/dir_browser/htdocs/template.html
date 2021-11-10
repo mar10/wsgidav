@@ -19,16 +19,9 @@
     Index of {{ display_path }}
   </h1>
 
-  {% if config.davmount or config.ms_mount %}
+  {% if config.davmount_links %}
   <p class="links">
-    {%- if config.davmount %}
-      <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
-    {% endif -%}
-    {%- if config.ms_mount %}
-      {% if config.davmount %} &#8211; {% endif %}
-      <a title="Open as Web Folder (requires Microsoft Internet Explorer 7 or older!)"
-          href="" folder="{{ url }}">Open as Web Folder</a>
-    {% endif %}
+    <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
   </p>
   {% endif %}
 
@@ -82,6 +75,14 @@
           <a class="{{ row.a_class }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
               {{row.display_name}}
           </a>
+          {%- if row.href_2 %}
+            <a class="{{ row.a_class_2 }}" href="{{row.href_2}}" {% if row.ofe_prefix_2%} data-ofe="{{row.ofe_prefix_2}}" {% endif %} >
+                {{row.display_name_2}}
+            </a>
+          {% endif -%}
+          {%- if row.add_link_html %}
+              {{row.add_link_html}}
+          {% endif -%}
         </td>
         <td>{{ row.display_type }}</td>
         <td>{{ row.str_size }}</td>

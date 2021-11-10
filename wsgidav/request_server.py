@@ -6,7 +6,9 @@
 """
 WSGI application that handles one single WebDAV request.
 """
-from wsgidav import compat, util, xml_tools
+from urllib.parse import unquote, urlparse
+
+from wsgidav import util, xml_tools
 from wsgidav.dav_error import (
     HTTP_BAD_GATEWAY,
     HTTP_BAD_REQUEST,
@@ -672,7 +674,7 @@ class RequestServer(object):
             WORKAROUND_CHUNK_LENGTH = False
             buf = environ["wsgi.input"].readline()
             environ["wsgidav.some_input_read"] = 1
-            if buf == compat.b_empty:
+            if buf == b"":
                 length = 0
             else:
                 length = int(buf, 16)
@@ -684,14 +686,14 @@ class RequestServer(object):
                 environ["wsgidav.some_input_read"] = 1
                 # Keep receiving until we read expected size or reach
                 # EOF
-                if buf == compat.b_empty:
+                if buf == b"":
                     length = 0
                 else:
                     length -= len(buf)
             else:
                 environ["wsgi.input"].readline()
                 buf = environ["wsgi.input"].readline()
-                if buf == compat.b_empty:
+                if buf == b"":
                     length = 0
                 else:
                     length = int(buf, 16)
@@ -922,7 +924,7 @@ class RequestServer(object):
 
         # Destination header may be quoted (e.g. DAV Explorer sends unquoted,
         # Windows quoted)
-        http_destination = compat.unquote(environ["HTTP_DESTINATION"])
+        http_destination = unquote(environ["HTTP_DESTINATION"])
 
         # Return fragments as part of <path>
         # Fixes litmus -> running `basic': 9. delete_fragment....... WARNING:
@@ -935,7 +937,7 @@ class RequestServer(object):
             _dest_params,
             _dest_query,
             _dest_frag,
-        ) = compat.urlparse(http_destination, allow_fragments=False)
+        ) = urlparse(http_destination, allow_fragments=False)
 
         if src_res.is_collection:
             dest_path = dest_path.rstrip("/") + "/"
@@ -1278,7 +1280,7 @@ class RequestServer(object):
 
         lock_type = None
         lock_scope = None
-        lock_owner = compat.to_bytes("")
+        lock_owner = util.to_bytes("")
         lock_depth = environ.setdefault("HTTP_DEPTH", "infinity")
 
         for linode in lockinfo_el:
@@ -1668,7 +1670,7 @@ class RequestServer(object):
                     readbuffer = fileobj.read(self.block_size)
                 else:
                     readbuffer = fileobj.read(contentlengthremaining)
-                assert compat.is_bytes(readbuffer)
+                assert util.is_bytes(readbuffer)
                 yield readbuffer
                 contentlengthremaining -= len(readbuffer)
                 if len(readbuffer) == 0 or contentlengthremaining == 0:

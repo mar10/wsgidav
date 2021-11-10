@@ -53,33 +53,21 @@ can copy ``ext_wsgi_server.py`` to ``<Paste-installation>/paste/servers`` and us
 run the application by specifying ``server='ext_wsgiutils'`` in the ``server.conf`` or appropriate
 paste configuration.
 """
+__docformat__ = "reStructuredText"
+
 import logging
 import socket
+import socketserver
 import sys
 import threading
 import time
 import traceback
+from http import client as http_client
+from http import server as BaseHTTPServer
+from io import StringIO
+from urllib.parse import urlparse
 
-from wsgidav import __version__, compat, util
-
-__docformat__ = "reStructuredText"
-
-
-try:
-    from http import client as http_client  # py3
-except ImportError:
-    import httplib as http_client
-
-try:
-    from http import server as BaseHTTPServer  # py3
-except ImportError:
-    import BaseHTTPServer
-
-try:
-    import socketserver  # py3
-except ImportError:
-    import SocketServer as socketserver
-
+from wsgidav import __version__, util
 
 _logger = util.get_module_logger(__name__)
 
@@ -121,11 +109,10 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
 
-    server_version = "WsgiDAV/{} ExtServer/{} {} Python {}".format(
+    server_version = "WsgiDAV/{} ExtServer/{} {}".format(
         __version__,
         _version,
         BaseHTTPServer.BaseHTTPRequestHandler.server_version,
-        util.PYTHON_VERSION,
     )
 
     def log_message(self, *args):
@@ -140,7 +127,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def getApp(self):
         # We want fragments to be returned as part of <path>
-        _protocol, _host, path, _parameters, query, _fragment = compat.urlparse(
+        _protocol, _host, path, _parameters, query, _fragment = urlparse(
             "http://dummyhost{}".format(self.path), allow_fragments=False
         )
         # Find any application we might have
@@ -204,7 +191,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "CONTENT_LENGTH": self.headers.get("Content-Length", ""),
             "REMOTE_ADDR": self.client_address[0],
             "SERVER_NAME": self.server.server_address[0],
-            "SERVER_PORT": compat.to_native(self.server.server_address[1]),
+            "SERVER_PORT": util.to_str(self.server.server_address[1]),
             "SERVER_PROTOCOL": self.request_version,
         }
         for httpHeader, httpValue in self.headers.items():
@@ -231,7 +218,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     result.close()
         except Exception:
             _logger.debug("runWSGIApp caught exception...")
-            errorMsg = compat.StringIO()
+            errorMsg = StringIO()
             traceback.print_exc(file=errorMsg)
             logging.error(errorMsg.getvalue())
             if not self.wsgiSentHeaders:
@@ -274,16 +261,16 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        # assert type(data) is str # If not, Content-Length is propably wrong!
+        assert type(data) is bytes  # If not, Content-Length is propably wrong!
         _logger.debug(
             "wsgiWriteData: write {} bytes: '{!r}'...".format(
-                len(data), compat.to_native(data[:50])
+                len(data), util.to_str(data[:50])
             )
         )
-        if compat.is_unicode(data):  # If not, Content-Length is propably wrong!
+        if util.is_str(data):  # If not, Content-Length is propably wrong!
             _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
-            # data = compat.wsgi_to_bytes(data)
-            data = compat.to_bytes(data)
+            # data = util.wsgi_to_bytes(data)
+            data = util.to_bytes(data)
 
         try:
             self.wfile.write(data)
@@ -292,7 +279,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # 10053: Software caused connection abort
             # 10054: Connection reset by peer
             if e.args[0] in (10053, 10054):
-                _logger.info("*** Caught socket.error: ", e, file=sys.stderr)
+                _logger.info("*** Caught socket.error: %s", e, file=sys.stderr)
             else:
                 raise
 
@@ -395,7 +382,7 @@ def serve(conf, app):
     server = ExtServer((host, port), {"": app})
     server_version = ExtHandler.server_version
     if conf.get("verbose") >= 1:
-        _logger.info("Running {}".format(server_version))
+        _logger.info(f"Running {server_version}")
         if host in ("", "0.0.0.0"):
             (hostname, _aliaslist, ipaddrlist) = socket.gethostbyname_ex(
                 socket.gethostname()
@@ -408,9 +395,7 @@ def serve(conf, app):
         else:
             _logger.info("Serving at {}, port {}...".format(host, port))
     server.serve_forever()
-
-
-#    server.serve_forever_stoppable()
+    # server.serve_forever_stoppable()
 
 
 if __name__ == "__main__":

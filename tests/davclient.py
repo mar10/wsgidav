@@ -26,42 +26,45 @@
 # - Use requests instead of http.client / httplib
 
 import copy
-import sys
+from base64 import encodebytes as base64_encodebytes
+from io import BytesIO
+from urllib.parse import urljoin, urlparse
+from xml.etree import ElementTree
 
 import requests
 
-PY2 = sys.version_info < (3, 0)
-
-if PY2:
-    from base64 import encodestring as base64_encodebytes
-
-    from cStringIO import StringIO
-
-    BytesIO = StringIO
-    from urlparse import urljoin, urlparse
-
-    is_bytes = lambda s: isinstance(s, str)  # noqa: E731
-    is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731, F821
-    to_native = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
-else:
-    from base64 import encodebytes as base64_encodebytes
-    from io import BytesIO, StringIO
-    from urllib.parse import urljoin, urlparse
-
-    xrange = range
-    is_bytes = lambda s: isinstance(s, bytes)  # noqa: E731
-    is_unicode = lambda s: isinstance(s, str)  # noqa: E731
-    to_native = lambda s: s if is_unicode(s) else s.decode("utf8")  # noqa: E731
-
-is_native = lambda s: isinstance(s, str)  # noqa: E731
-to_bytes = lambda s: s if is_bytes(s) else s.encode("utf8")  # noqa: E731
-
-try:
-    from xml.etree import ElementTree
-except Exception:
-    from elementtree import ElementTree
-
 __all__ = ["DAVClient"]
+
+
+def is_basestring(s):
+    """Return True for any string type (for str/unicode on Py2 and bytes/str on Py3)."""
+    return isinstance(s, (str, bytes))
+
+
+def is_bytes(s):
+    """Return True for bytestrings (for str on Py2 and bytes on Py3)."""
+    return isinstance(s, bytes)
+
+
+def is_str(s):
+    """Return True for native strings (for str on Py2 and Py3)."""
+    return isinstance(s, str)
+
+
+def to_bytes(s, encoding="utf8"):
+    """Convert a text string (unicode) to bytestring (str on Py2 and bytes on Py3)."""
+    if type(s) is not bytes:
+        s = bytes(s, encoding)
+    return s
+
+
+def to_str(s, encoding="utf8"):
+    """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
+    if type(s) is bytes:
+        s = str(s, encoding)
+    elif type(s) is not str:
+        s = str(s)
+    return s
 
 
 class AppError(Exception):
@@ -319,7 +322,7 @@ class DAVClient(object):
         """Property find. If properties arg is unspecified it defaults to 'allprop'."""
         # Build propfind xml
         root = ElementTree.Element("{DAV:}propfind")
-        if is_native(properties):
+        if is_str(properties):
             ElementTree.SubElement(root, "{DAV:}%s" % properties)
         else:
             props = ElementTree.SubElement(root, "{DAV:}prop")
@@ -453,7 +456,7 @@ class DAVClient(object):
 
         Inspired by paste.fixture
         """
-        __tracebackhide__ = True
+        __tracebackhide__ = True  # pylint: disable=unused-variable
         res = self.response
         full_status = "%s %s" % (res.status_code, res.reason)
 

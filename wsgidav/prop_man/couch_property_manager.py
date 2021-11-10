@@ -22,13 +22,12 @@ Valid options are (sample shows defaults)::
             }
 
 """
-from __future__ import print_function
-
+from urllib.parse import quote
 from uuid import uuid4
 
 import couchdb
 
-from wsgidav import compat, util
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -178,7 +177,7 @@ class CouchPropertyManager(object):
             doc = {
                 "_id": uuid4().hex,  # Documentation suggests to set the id
                 "url": norm_url,
-                "title": compat.quote(norm_url),
+                "title": quote(norm_url),
                 "type": "properties",
                 "properties": {name: property_value},
             }
@@ -215,7 +214,7 @@ class CouchPropertyManager(object):
         doc2 = {
             "_id": uuid4().hex,
             "url": destUrl,
-            "title": compat.quote(destUrl),
+            "title": quote(destUrl),
             "type": "properties",
             "properties": doc["properties"],
         }

@@ -24,12 +24,13 @@ Valid options are (sample shows defaults)::
             }
 
 """
+from io import StringIO
 from pprint import pformat
 
 import pymongo
 from bson.objectid import ObjectId
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.util import join_uri
 
@@ -88,7 +89,7 @@ class CollCollection(DAVCollection):
     def get_member_names(self):
         res = []
         for doc in self.coll.find():
-            res.append(compat.to_native(doc["_id"]))
+            res.append(util.to_str(doc["_id"]))
         return res
 
     def get_member(self, name):
@@ -105,7 +106,7 @@ class DocResource(DAVNonCollection):
 
     def get_content(self):
         html = "<pre>" + pformat(self.doc) + "</pre>"
-        return compat.StringIO(html.encode("utf8"))
+        return StringIO(html.encode("utf8"))
 
     def get_content_length(self):
         return len(self.get_content().read())
@@ -120,8 +121,8 @@ class DocResource(DAVNonCollection):
         elif doc.get("title"):
             return doc["title"].encode("utf8")
         elif doc.get("_id"):
-            return compat.to_native(doc["_id"])
-        return compat.to_native(doc["key"])
+            return util.to_str(doc["_id"])
+        return util.to_str(doc["key"])
 
     def get_display_info(self):
         return {"type": "Mongo document"}

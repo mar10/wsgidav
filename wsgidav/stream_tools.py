@@ -16,9 +16,9 @@ consumer at the same time::
         return queue
 
 """
-from __future__ import print_function
+import queue
 
-from wsgidav import compat, util
+from wsgidav import util
 
 __docformat__ = "reStructuredText"
 
@@ -49,7 +49,7 @@ class FileLikeQueue(object):
 
     def __init__(self, max_size=0):
         self.is_closed = False
-        self.queue = compat.queue.Queue(max_size)
+        self.queue = queue.Queue(max_size)
         self.unread = ""
 
     def read(self, size=0):
@@ -69,8 +69,8 @@ class FileLikeQueue(object):
             try:
                 # Read pending data, blocking if neccessary
                 # (but handle the case that close() is called while waiting)
-                res += compat.to_native(self.queue.get(True, 0.1))
-            except compat.queue.Empty:
+                res += util.to_str(self.queue.get(True, 0.1))
+            except queue.Empty:
                 # There was no pending data: wait for more, unless close() was called
                 if self.is_closed:
                     break
@@ -90,7 +90,7 @@ class FileLikeQueue(object):
             raise ValueError("Cannot write to closed object")
         # print("FileLikeQueue.write(), n={}".format(len(chunk)))
         # Add chunk to queue (blocks if queue is full)
-        if compat.is_basestring(chunk):
+        if util.is_basestring(chunk):
             self.queue.put(chunk)
         else:  # if not a string, assume an iterable
             for o in chunk:

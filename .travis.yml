@@ -3,30 +3,29 @@ language: python
 
 matrix:
     include:
-        - python: "2.7"
-          env: TOXENV=lint-py27
-        - python: "3.9"
-          env: TOXENV=check,lint-py3
-        - python: "2.7"
-          env: TOXENV=py27
-        - python: "3.9"
+        - python: "3.10"
+          env: TOXENV=check,lint
+          # env: TOXENV=check,lint,mypy
+        - python: "3.10"  # EOL 2026-10-04
+          env: TOXENV=py310
+        - python: "3.9"  # EOL 2025-10-05
           env: TOXENV=py39
-        - python: "3.8"
+        - python: "3.8"  # EOL 2024-10-14
           env: TOXENV=py38
-        - python: "3.7"
+        - python: "3.7"  # EOL 2023-06-27
           env: TOXENV=py37
           dist: xenial
-        - python: "3.6"
+        - python: "3.6"  # EOL 2021-12-21
           env: TOXENV=py36
-        - python: "3.5"
-          env: TOXENV=py35
+        # - python: "3.5"  # EOL 2020-09-13
+        #   env: TOXENV=py35
         # - python: "3.4"  # EOL 2019-03-18
         #   env: TOXENV=py34
-        - python: "3.10-dev"
-          env: TOXENV=py310
+        - python: "3.11-dev"
+          env: TOXENV=py311
     allow_failures:
-        - python: "3.10-dev"
-          env: TOXENV=py310
+        - python: "3.11-dev"
+          env: TOXENV=py311
 
 before_install:
     # See issue #80: litmus fails to build on travis

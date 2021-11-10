@@ -30,7 +30,7 @@
         "user_mapping": {
             "*": {
                 "user1": {
-                    "password": "abc123",
+                    "password": "abc123"
                 }
             },
             "/share2": true  // Allow anonymous access
@@ -39,8 +39,8 @@
     "dir_browser": {
         "enable": true,
         "response_trailer": "",
-        "davmount": false,
-        "ms_mount": false,
+        "davmount": true,
+        "davmount_links": false,
         "ms_sharepoint_support": true,
         "htdocs_path": null
     }

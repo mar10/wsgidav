@@ -48,57 +48,26 @@ Test cases
       subfolder10-10/
         file10-10-1.txt -> 1k
 """
-from __future__ import print_function
-
 import datetime
 import logging
-import os
 import platform
 import subprocess
 import sys
 
 from tests.util import Timing, WsgiDavTestServer
-from wsgidav import __version__
+from wsgidav import __version__, util
 from wsgidav.xml_tools import use_lxml
 
 try:
-    # WsgiDAV 2.x
-    from wsgidav import compat
-except ImportError:
-    # WsgiDAV 1.x: mock the compat module, so benchmark.py runs in both
-    # versions.
-    # Note that we only need to support Py2 for WsgiDAV 1.x
-    class compat(object):
-        xrange = xrange  # noqa: F821
-        is_unicode = lambda s: isinstance(s, unicode)  # noqa: E731, F821
-
-        @staticmethod
-        def to_bytes(s, encoding="utf8"):
-            """Convert unicode (text strings) to binary data, i.e. str on Py2 and bytes on Py3."""
-            if type(s) is unicode:  # noqa: F821
-                s = s.encode(encoding)
-            elif type(s) is not str:
-                s = str(s)
-            return s
-
+    from io import StringIO
+except ImportError:  # Py2
+    from cStringIO import StringIO  # type: ignore
 
 try:
-    try:
-        # from cherrypy import __version__ as cp_version
+    from cheroot import wsgi
 
-        from cheroot import wsgi
+    cp_version = wsgi.Server.version
 
-        cp_version = wsgi.Server.version
-
-    except ImportError:
-        # Bundled CherryPy wsgiserver in WsgDAV 1.x
-        server_folder = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "wsgidav", "server")
-        )
-        sys.path.append(server_folder)
-        from cherrypy import wsgiserver
-
-        cp_version = wsgiserver.CherryPyWSGIServer.version
 except ImportError:
     cp_version = "unknown"
     raise
@@ -145,37 +114,37 @@ def _bench_script(opts):
     # Prepare big file with 10 MB
     lines = []
     line = "." * (1000 - 6 - len("\n"))
-    for i in compat.xrange(10 * 1000):
+    for i in range(10 * 1000):
         lines.append("%04i: %s\n" % (i, line))
     data_10m = "".join(lines)
-    data_10m = compat.to_bytes(data_10m)
+    data_10m = util.to_bytes(data_10m)
 
     with Timing("Setup fixture"):
         _setup_fixture(opts, client)
 
     # PUT files
     with Timing("1000 x PUT 1 kB", 1000, "{:>6.1f} req/sec", 1, "{:>7,.3f} MB/sec"):
-        for _ in compat.xrange(1000):
+        for _ in range(1000):
             client.put("/test/file1.txt", data_1k)
         client.check_response()
 
     with Timing("10 x PUT 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
-        for _ in compat.xrange(10):
+        for _ in range(10):
             client.put("/test/bigfile.txt", data_10m)
         client.check_response()
 
     with Timing("1000 x GET 1 kB", 1000, "{:>6.1f} req/sec", 1, "{:>7,.3f} MB/sec"):
-        for _ in compat.xrange(1000):
-            body = client.get("/test/file1.txt")
+        for _ in range(1000):
+            _body = client.get("/test/file1.txt")
         client.check_response()
 
     with Timing("10 x GET 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
-        for _ in compat.xrange(10):
-            body = client.get("/test/bigfile.txt")  # noqa F841
+        for _ in range(10):
+            _body = client.get("/test/bigfile.txt")  # noqa F841
         client.check_response()
 
     with Timing("10 x COPY 10 MB", 10, "{:>6.1f} req/sec", 100, "{:>7,.3f} MB/sec"):
-        for _ in compat.xrange(10):
+        for _ in range(10):
             client.copy(
                 "/test/bigfile.txt",
                 "/test/bigfile-copy.txt",
@@ -186,14 +155,14 @@ def _bench_script(opts):
 
     with Timing("100 x MOVE 10 MB", 100, "{:>6.1f} req/sec"):
         name_from = "/test/bigfile-copy.txt"
-        for i in compat.xrange(100):
+        for i in range(100):
             name_to = "/test/bigfile-copy-{}.txt".format(i)
             client.move(name_from, name_to, depth="infinity", overwrite=True)
             name_from = name_to
         client.check_response()
 
     with Timing("100 x LOCK/UNLOCK", 200, "{:>6.1f} req/sec"):
-        for _ in compat.xrange(100):
+        for _ in range(100):
             locks = client.set_lock(
                 "/test/lock-0",
                 owner="test-bench",
@@ -206,7 +175,7 @@ def _bench_script(opts):
         client.check_response()
 
     with Timing("1000 x PROPPATCH", 1000, "{:>6.1f} req/sec"):
-        for _ in compat.xrange(1000):
+        for _ in range(1000):
             client.proppatch(
                 "/test/file1.txt",
                 set_props=[("{testns:}testname", "testval")],
@@ -215,7 +184,7 @@ def _bench_script(opts):
         client.check_response()
 
     with Timing("500 x PROPFIND", 500, "{:>6.1f} req/sec"):
-        for _ in compat.xrange(500):
+        for _ in range(500):
             client.propfind(
                 "/", properties="allprop", namespace="DAV:", depth=None, headers=None
             )
@@ -239,9 +208,9 @@ def run_benchmarks(opts):
     print("OS:       {}".format(platform.platform(aliased=True)))
 
     if use_lxml:
-        from lxml.etree import LXML_VERSION as lxml_version
+        import lxml.etree
 
-        print("lxml:     {}".format(lxml_version))
+        print("lxml:     {}".format(lxml.etree.LXML_VERSION))
     else:
         print("lxml:     (not installed)")
 
@@ -263,9 +232,9 @@ def run_benchmarks(opts):
 
                 prof = cProfile.Profile()
                 prof = prof.runctx("_runner(opts)", globals(), locals())
-                stream = compat.StringIO()
+                stream = StringIO()
                 stats = pstats.Stats(prof, stream=stream)
-                #        stats.sort_stats("time")  # Or cumulative
+                # stats.sort_stats("time")  # Or cumulative
                 stats.sort_stats("cumulative")  # Or time
                 stats.print_stats(20)  # 80 = how many to print
                 # The rest is optional.

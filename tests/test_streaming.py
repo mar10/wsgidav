@@ -15,7 +15,7 @@ from tempfile import gettempdir
 import requests
 
 from tests.util import Timing, WsgiDavTestServer, write_test_file
-from wsgidav import compat
+from wsgidav import util
 from wsgidav.dav_provider import DAVNonCollection, DAVProvider
 from wsgidav.stream_tools import FileLikeQueue
 
@@ -53,7 +53,7 @@ class MockProxyResource(DAVNonCollection):
                 while data:
                     s += len(data)
                     # print("_consumer: read(): write")
-                    f.write(compat.to_bytes(data))
+                    f.write(util.to_bytes(data))
                     data = queue.read()
             # print("_consumer(): done", s)
 

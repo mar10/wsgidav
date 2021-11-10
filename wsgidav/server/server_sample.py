@@ -5,8 +5,6 @@
 """
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 """
-from __future__ import print_function
-
 from tempfile import gettempdir
 
 from wsgidav import __version__

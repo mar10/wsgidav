@@ -1,10 +1,22 @@
 # Changelog
 
+## 4.0.0 / Unreleased
+
+- Drop Python 2 support
+- Add uvicorn server support to CLI, drop flup and CherryPy
+- Support LibreOffice in dir_browser
+- DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
+  The new option `dir_browser.davmount_links` is false by default.
+- Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
+- TODO: #201, #220
+
+## 3.1.2 / Unreleased
+
 ## 3.1.1 / 2021-07-11
 
 - #201 Check also HTTP_X_FORWARDED_HOST as alternative to DESTINATION header
-- #216 Build with Python 3.8 (Py3.9 doesn't work on Windows7 / Windows Server 2008 R2 / Ealier)
-- #220 Fix exception whenever user access unknown realm
+- #216 Build with Python 3.8 (Py3.9 doesn't work on Windows7 / Windows Server 2008 R2 / earlier)
+- #220 Fix exception whenever users access unknown realm
 - #225 Include changelog in PyPI package
 
 ## 3.1.0 / 2021-01-04

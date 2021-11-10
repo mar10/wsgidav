@@ -9,15 +9,13 @@ Example:
     with WsgiDavTestServer(opts):
         ... test methods
 """
-from __future__ import print_function
-
 import multiprocessing
 import os
 import sys
 import time
 from tempfile import gettempdir
 
-from wsgidav import compat, util
+from wsgidav import util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 
@@ -61,7 +59,7 @@ class Timing(object):
 def write_test_file(name, size):
     path = os.path.join(gettempdir(), name)
     with open(path, "wb") as f:
-        f.write(compat.to_bytes("*") * size)
+        f.write(util.to_bytes("*") * size)
     return path
 
 

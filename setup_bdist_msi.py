@@ -69,7 +69,6 @@ install_requires = [
     "jinja2",  # NOTE: we must use lower-case name, otherwise import will fail
     "json5",
     "yaml",  # NOTE: must import 'yaml' (but dependency is names 'PyYAML')
-    "six",
     # Used by wsgidav.dc.nt_dc:
     "win32net",
     "win32netcon",
@@ -126,7 +125,7 @@ bdist_msi_options = {
 setup(
     name="WsgiDAV",
     version=version,
-    author="Martin Wendt, Ho Chun Wei",
+    author="Martin Wendt",
     author_email="wsgidav@wwwendt.de",
     maintainer="Martin Wendt",
     maintainer_email="wsgidav@wwwendt.de",

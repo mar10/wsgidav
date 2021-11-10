@@ -22,8 +22,7 @@ tasks:
     github: true            # GitHub repo name valid and online accessible
     clean: true             # Repo must/must not contain modifications
     os: null                # (str, list)
-    # Build with Python 3.8 [issue #216](https://github.com/mar10/wsgidav/issues/216)
-    python: "==3.8"         # SemVer specifier
+    python: ">=3.9"         # SemVer specifier
     twine: true             # `twine` is available
     up_to_date: true        # everything pulled from remote
     venv: true              # running inside a virtual environment
@@ -31,7 +30,7 @@ tasks:
 
   # 'exec': Run arbitrary shell command
   - task: exec
-    args: ["tox", "-e", "lint-py3,lint-py27,check"]     # shell command and optional arguments
+    args: ["tox", "-e", "lint,check"]     # shell command and optional arguments
     always: true            # `true`: run even in dry-run mode
     # silent: true            # `true`: suppress output
     stream: true

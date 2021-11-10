@@ -5,8 +5,6 @@
 Wrapper for ``server_cli``, that restarts the server when source code is
 modified.
 """
-from __future__ import print_function
-
 import os
 import sys
 from subprocess import Popen
