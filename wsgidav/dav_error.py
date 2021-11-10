@@ -128,7 +128,7 @@ PRECONDITION_CODE_LockConflict = "{DAV:}no-conflicting-lock"
 PRECONDITION_CODE_PropfindFiniteDepth = "{DAV:}propfind-finite-depth"
 
 
-class DAVErrorCondition(object):
+class DAVErrorCondition:
     """May be embedded in :class:`DAVError` instances to store additional data.
 
     Args:

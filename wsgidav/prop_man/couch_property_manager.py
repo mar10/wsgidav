@@ -38,7 +38,7 @@ _logger = util.get_module_logger(__name__)
 # ============================================================================
 
 
-class CouchPropertyManager(object):
+class CouchPropertyManager:
     """Implements a property manager based on CouchDB."""
 
     def __init__(self, options):

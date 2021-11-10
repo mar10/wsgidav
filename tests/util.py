@@ -24,7 +24,7 @@ from wsgidav.wsgidav_app import WsgiDAVApp
 # ========================================================================
 
 
-class Timing(object):
+class Timing:
     """Print timing"""
 
     def __init__(self, name, count=None, fmt=None, count2=None, fmt2=None, stream=None):
@@ -155,7 +155,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 # ========================================================================
 
 
-class WsgiDavTestServer(object):
+class WsgiDavTestServer:
     """Run wsgidav in a separate process."""
 
     def __init__(

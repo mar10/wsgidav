@@ -6,7 +6,7 @@ Abstract base middleware class (optional use).
 __docformat__ = "reStructuredText"
 
 
-class BaseMiddleware(object):
+class BaseMiddleware:
     """Abstract base middleware class (optional).
 
     Note: this is a convenience class, that *may* be used to implement WsgiDAV

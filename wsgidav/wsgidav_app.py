@@ -124,7 +124,7 @@ def _check_config(config):
 # ========================================================================
 # WsgiDAVApp
 # ========================================================================
-class WsgiDAVApp(object):
+class WsgiDAVApp:
     def __init__(self, config):
 
         self.config = copy.deepcopy(DEFAULT_CONFIG)

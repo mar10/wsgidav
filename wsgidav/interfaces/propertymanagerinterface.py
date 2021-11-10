@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class PropertyManagerInterface(object):
+class PropertyManagerInterface:
     """
      +----------------------------------------------------------------------+
      | TODO: document this interface                                        |

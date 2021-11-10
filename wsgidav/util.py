@@ -640,7 +640,7 @@ def fail(value, context_info=None, src_exception=None, err_condition=None):
 # ========================================================================
 # SubAppStartResponse
 # ========================================================================
-class SubAppStartResponse(object):
+class SubAppStartResponse:
     def __init__(self):
         self.__status = ""
         self.__response_headers = []

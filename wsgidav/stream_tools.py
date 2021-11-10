@@ -30,7 +30,7 @@ _logger = util.get_module_logger(__name__)
 # ============================================================================
 
 
-class FileLikeQueue(object):
+class FileLikeQueue:
     """A queue for chunks that behaves like a file-like.
 
     read() and write() are typically called from different threads.
@@ -122,7 +122,7 @@ class FileLikeQueue(object):
 # ============================================================================
 
 
-class StreamingFile(object):
+class StreamingFile:
     """A file object wrapped around an iterator / data stream."""
 
     def __init__(self, data_stream):

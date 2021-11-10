@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class IDomainController(object):
+class IDomainController:
     """
     +----------------------------------------------------------------------+
     | TODO: document this interface                                        |

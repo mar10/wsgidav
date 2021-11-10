@@ -184,7 +184,7 @@ class FileResource(_VirtualNonCollection):
 # ============================================================================
 # Resolvers
 # ============================================================================
-class DAVResolver(object):
+class DAVResolver:
     """Return a DAVResource object for a path (None, if not found)."""
 
     def __init__(self, parent_resolver, name):

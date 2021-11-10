@@ -117,7 +117,7 @@ def validate_lock(lock):
 # ========================================================================
 # LockManager
 # ========================================================================
-class LockManager(object):
+class LockManager:
     """
     Implements locking functionality using a custom storage layer.
 

@@ -108,7 +108,7 @@ def object_to_etree(parent, obj, namespace=""):
         raise TypeError("%s is an unsupported type" % type(obj))
 
 
-class DAVClient(object):
+class DAVClient:
     def __init__(self, url="http://localhost:8080", logger=None):
         """Initialization"""
 

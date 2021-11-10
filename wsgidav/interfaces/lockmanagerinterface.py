@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class LockManagerInterface(object):
+class LockManagerInterface:
     """
     +----------------------------------------------------------------------+
     | TODO: document this interface                                        |

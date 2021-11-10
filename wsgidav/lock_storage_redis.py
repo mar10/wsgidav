@@ -19,7 +19,7 @@ from wsgidav.lock_manager import (
 _logger = util.get_module_logger(__name__)
 
 
-class LockStorageRedis(object):
+class LockStorageRedis:
     """
     A (high performance?) lock manager implementation using redis!
     """

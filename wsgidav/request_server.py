@@ -44,7 +44,7 @@ DEFAULT_BLOCK_SIZE = 8192
 # ========================================================================
 # RequestServer
 # ========================================================================
-class RequestServer(object):
+class RequestServer:
     def __init__(self, dav_provider):
         self._davProvider = dav_provider
         self.allow_propfind_infinite = True

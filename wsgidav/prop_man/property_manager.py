@@ -44,7 +44,7 @@ _logger = util.get_module_logger(__name__)
 # ========================================================================
 # PropertyManager
 # ========================================================================
-class PropertyManager(object):
+class PropertyManager:
     """
     An in-memory property manager implementation using a dictionary.
 

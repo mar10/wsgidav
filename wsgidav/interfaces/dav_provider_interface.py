@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class IDAVProvider(object):
+class IDAVProvider:
     """
     +----------------------------------------------------------------------+
     | TODO: document this interface                                        |

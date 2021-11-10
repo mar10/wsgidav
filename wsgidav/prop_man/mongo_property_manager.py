@@ -54,7 +54,7 @@ def decode_mongo_key(key):
 # ============================================================================
 # MongoPropertyManager
 # ============================================================================
-class MongoPropertyManager(object):
+class MongoPropertyManager:
     """Implements a property manager based on MongoDB."""
 
     def __init__(self, options):

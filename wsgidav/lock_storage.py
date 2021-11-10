@@ -44,7 +44,7 @@ _logger = util.get_module_logger(__name__)
 # ========================================================================
 # LockStorageDict
 # ========================================================================
-class LockStorageDict(object):
+class LockStorageDict:
     """
     An in-memory lock manager storage implementation using a dictionary.
 
