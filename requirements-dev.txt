@@ -3,8 +3,6 @@
 -r requirements.txt
 
 cheroot~=8.5
-# Installed by PS script from vendored wheel (see release_wsgidav.ps1):
-#cx_Freeze
 Paste~=2.0
 # Black is beta and therefore requires --pre flag for installation unless we give the exact number
 black~=20.8b1

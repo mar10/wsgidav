@@ -159,7 +159,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         # TODO: WebDAV URLs only on Windows?
         # TODO: WebDAV URLs only on HTTPS?
-        is_windows = "Windows NT " in environ.get("HTTP_USER_AGENT", "")
+        # is_windows = "Windows NT " in environ.get("HTTP_USER_AGENT", "")
 
         context = {
             "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
@@ -216,7 +216,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
                             ofe_prefix = "ms-{}:ofe|u|".format(ms_office_type)
                             a_classes.append("msoffice")
                             if libre_office_support:
-                                add_link_html.append(f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{href}'>Edit</a>")
+                                add_link_html.append(
+                                    f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{href}'>Edit</a>"
+                                )
                                 # ofe_prefix_2 = "vnd.libreoffice.command:ofv|u|"
                                 # a_classes.append("msoffice")
                         elif libre_office_support:

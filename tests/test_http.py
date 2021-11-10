@@ -54,7 +54,6 @@ class DirbrowserTest(unittest.TestCase):
 
         res = requests.get(self.url + "?davmount", auth=self.auth)
         assert res.status_code == 200
-        # dir_browser.davmount option is not set, so we don't expect it:
-        assert res.headers["Content-Type"] == "text/html"
-        # assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
-        # assert res.headers["Content-Type"] == "application/davmount+xml"
+        # dir_browser.davmount option is true by default:
+        assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
+        assert res.headers["Content-Type"] == "application/davmount+xml"

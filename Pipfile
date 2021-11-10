@@ -40,8 +40,7 @@ PyYAML = "*"  # "~=5.1"
 json5 = "*"
 
 [requires]
-# Build with Python 3.8 [issue #216](https://github.com/mar10/wsgidav/issues/216)
-python_version = "3.8"
+python_version = "3.9"
 
 [pipenv]
 # allow_prereleases = true
