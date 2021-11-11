@@ -212,15 +212,17 @@ class WsgiDAVApp:
             elif type(mw) is dict:
                 # If a dict with one entry is passed, use the key as module/class name
                 # and the value as constructor arguments (positional or kwargs).
-                assert len(mw) == 1
+                if len(mw) != 1:
+                    raise ValueError(f"Invalid middleware opts: {mw}")
                 name, args = list(mw.items())[0]
+                if type(args) not in (dict, list, tuple):
+                    raise ValueError(f"Invalid middleware opts for {name}: {args}")
                 expand = {"${application}": self.application}
                 app = dynamic_instantiate_middleware(name, args, expand)
             elif inspect.isclass(mw):
                 # If a class is passed, assume BaseMiddleware (or compatible)
-                assert issubclass(
-                    mw, BaseMiddleware
-                )  # TODO: remove this assert with 3.0
+                # TODO: remove this assert with 3.0
+                assert issubclass(mw, BaseMiddleware)
                 app = mw(self, self.application, config)
             else:
                 # Otherwise assume an initialized middleware instance

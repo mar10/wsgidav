@@ -194,6 +194,16 @@ should be explicitly listed::
         - wsgidav.dir_browser.WsgiDavDirBrowser
         - wsgidav.request_resolver.RequestResolver
 
+It is also possible to pass options as named args (i.e. 'kwargs')::
+
+    ...
+    middleware_stack:
+        ...
+        - dozer.Profiler:
+            app: "${application}"
+            profile_path: /tmp
+        ...
+
 Note that the external middleware must be available, for example by calling
 ``pip install Doze``, so this will not be possible if WsgiDAV is running from
 the MSI installer.

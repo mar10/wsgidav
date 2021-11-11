@@ -24,6 +24,8 @@ __docformat__ = "reStructuredText"
 
 # Use these settings, if config file does not define them (or is totally missing)
 DEFAULT_VERBOSE = 3
+DEFAULT_LOGGER_DATE_FORMAT = "%H:%M:%S"
+DEFAULT_LOGGER_FORMAT = "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s"
 
 DEFAULT_CONFIG = {
     "server": "cheroot",
@@ -73,8 +75,8 @@ DEFAULT_CONFIG = {
     "verbose": DEFAULT_VERBOSE,
     #: Log options
     "logging": {
-        "logger_date_format": "%H:%M:%S",
-        "logger_format": "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s",
+        "logger_date_format": DEFAULT_LOGGER_DATE_FORMAT,
+        "logger_format": DEFAULT_LOGGER_FORMAT,
         "enable_loggers": [],
         "debug_methods": [],
     },

@@ -234,19 +234,23 @@ def init_logging(config):
     +---------+--------+-------------+------------------------+------------------------+
 
     """
+    from wsgidav.default_conf import DEFAULT_LOGGER_DATE_FORMAT, DEFAULT_LOGGER_FORMAT
+
     verbose = config.get("verbose", 3)
-    log_opts = config.get("logging", {})
+    log_opts = config.get("logging") or {}
 
     enable_loggers = log_opts.get("enable_loggers", [])
     if enable_loggers is None:
         enable_loggers = []
 
+    logger_date_format = log_opts.get("logger_date_format", DEFAULT_LOGGER_DATE_FORMAT)
+    logger_format = log_opts.get("logger_format", DEFAULT_LOGGER_FORMAT)
     # Verbose format by default (but wsgidav.util.DEFAULT_CONFIG defines a short format)
-    logger_date_format = log_opts.get("logger_date_format", "%Y-%m-%d %H:%M:%S")
-    logger_format = log_opts.get(
-        "logger_format",
-        "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s",
-    )
+    # logger_date_format = log_opts.get("logger_date_format", "%Y-%m-%d %H:%M:%S")
+    # logger_format = log_opts.get(
+    #     "logger_format",
+    #     "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s",
+    # )
 
     formatter = logging.Formatter(logger_format, logger_date_format)
 
@@ -338,12 +342,12 @@ def dynamic_import_class(name):
     return the_class
 
 
-def dynamic_instantiate_middleware(name, args, expand=None):
+def dynamic_instantiate_middleware(name, options, expand=None):
     """Import a class and instantiate with custom args.
 
-    Example:
+    Examples:
         name = "my.module.Foo"
-        args_dict = {
+        options = {
             "bar": 42,
             "baz": "qux"
             }
@@ -361,17 +365,25 @@ def dynamic_instantiate_middleware(name, args, expand=None):
     try:
         the_class = dynamic_import_class(name)
         inst = None
-        if type(args) in (tuple, list):
-            args = tuple(map(_expand, args))
-            inst = the_class(*args)
+        pos_args = []
+        kwargs = {}
+        if type(options) in (tuple, list):
+            pos_args = tuple(map(_expand, options))
+        elif type(options) is dict:
+            kwargs = {k: _expand(v) for k, v in options.items()}
         else:
-            assert type(args) is dict
-            args = {k: _expand(v) for k, v in args.items()}
-            inst = the_class(**args)
+            raise ValueError(f"Unexpected options format: {options}")
 
-        _logger.debug("Instantiate {}({}) => {}".format(name, args, inst))
+        inst = the_class(*pos_args, **kwargs)
+
+        disp_args = [f"{o}" for o in pos_args] + [
+            f"{k}={v!r}" for k, v in kwargs.items()
+        ]
+        _logger.debug(
+            "Instantiate {}({}) => {}".format(name, ", ".join(disp_args), inst)
+        )
     except Exception:
-        _logger.exception("ERROR: Instantiate {}({}) => {}".format(name, args, inst))
+        _logger.exception("ERROR: Instantiate {}({}) => {}".format(name, options, inst))
 
     return inst
 

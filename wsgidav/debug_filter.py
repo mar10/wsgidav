@@ -67,7 +67,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
         super(WsgiDavDebugFilter, self).__init__(wsgidav_app, next_app, config)
         self._config = config
-        log_opts = config.get("logging", {})
+        log_opts = config.get("logging") or {}
         # self.out = sys.stdout
         self.passedLitmus = {}
         # These methods boost verbose=2 to verbose=3
