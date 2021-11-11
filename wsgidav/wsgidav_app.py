@@ -91,10 +91,11 @@ def _check_config(config):
         # "dir_browser.enable": "middleware_stack",
         "dir_browser.ms_sharepoint_plugin": "dir_browser.ms_sharepoint_support",
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
-        "dir_browser.ms_mount": "(no replacement)",
+        "dir_browser.ms_mount": "(removed)",
         "domain_controller": "http_authenticator.domain_controller",
         "domaincontroller": "http_authenticator.domain_controller",
         "emulate_win32_lastmod": "hotfix.emulate_win32_lastmod",
+        "error_printer.catch_all": "(removed)",
         "http_authenticator.preset_domain": "nt_dc.preset_domain",
         "http_authenticator.preset_server": "nt_dc.preset_server",
         "locksmanager": "lock_manager",
@@ -108,7 +109,7 @@ def _check_config(config):
     for old, new in deprecated_fields.items():
         if "." in old:
             k, v = old.split(".", 1)
-            d = config[k]
+            d = config.get(k, {})
         else:
             d, v = config, old
 

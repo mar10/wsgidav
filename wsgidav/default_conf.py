@@ -72,7 +72,6 @@ DEFAULT_CONFIG = {
     #     request body and GET response bodies not shown
     "verbose": DEFAULT_VERBOSE,
     # Error printer options
-    "error_printer": {"catch_all": True},  # False,
     "enable_loggers": [],
     "dir_browser": {
         "enable": True,  # Render HTML listing for GET requests on collections

@@ -32,7 +32,6 @@ class ErrorPrinter(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
         super(ErrorPrinter, self).__init__(wsgidav_app, next_app, config)
         self.err_config = config.get("error_printer", {})
-        self.catch_all_exceptions = self.err_config.get("catch_all", False)
 
     def is_disabled(self):
         return self.err_config.get("enable") is False
@@ -80,17 +79,10 @@ class ErrorPrinter(BaseMiddleware):
                 raise
             except Exception as e:
                 # Caught a non-DAVError
-                if self.catch_all_exceptions:
-                    # Catch all exceptions to return as 500 Internal Error
-                    # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
-                    _logger.error("{}".format(traceback.format_exc(10)))
-                    raise as_DAVError(e)
-                else:
-                    _logger.error(
-                        "Caught Exception\n{}".format(traceback.format_exc(10))
-                    )
-                    # traceback.print_exc(10, sys.stderr)
-                    raise
+                # Catch all exceptions to return as 500 Internal Error
+                # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
+                _logger.error("{}".format(traceback.format_exc(10)))
+                raise as_DAVError(e)
         except DAVError as e:
             _logger.debug("caught {}".format(e))
 

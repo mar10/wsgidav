@@ -58,8 +58,6 @@ verbose: 3
 #logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s:  %(message)s"
 #logger_date_format: "%H:%M:%S"
 
-#catch_all: false
-
 # Enable max. logging for certain http methods
 # E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
 debug_methods: []
