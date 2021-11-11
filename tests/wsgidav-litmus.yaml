@@ -55,16 +55,17 @@ simple_dc:
 
 verbose: 3
 
-#logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s:  %(message)s"
-#logger_date_format: "%H:%M:%S"
+logging:
+    #logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s:  %(message)s"
+    #logger_date_format: "%H:%M:%S"
 
-# Enable max. logging for certain http methods
-# E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
-debug_methods: []
+    # Enable max. logging for certain http methods
+    # E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
+    debug_methods: []
 
-# Enable max. logging during  litmus suite tests that contain certain strings
-# E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
-debug_litmus: []
+    # Enable max. logging during  litmus suite tests that contain certain strings
+    # E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
+    debug_litmus: []
 
 property_manager: true
 

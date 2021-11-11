@@ -110,11 +110,13 @@ class WsgiDAVServerThread(Thread):
             "http_authenticator": {"domain_controller": None},
             "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
             "verbose": 4,
-            "enable_loggers": [
-                # "http_authenticator",
-                # "lock_manager",
-            ],
-            "debug_methods": [],
+            "logging": {
+                "enable_loggers": [
+                    # "http_authenticator",
+                    # "lock_manager",
+                ],
+                "debug_methods": [],
+            },
             "property_manager": True,  # True: use lock_manager.LockManager
             "lock_manager": True,  # True: use lock_manager.LockManager
         }

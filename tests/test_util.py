@@ -161,7 +161,12 @@ class LoggerTest(unittest.TestCase):
 
     def testCliLogging(self):
         """CLI initializes logging."""
-        config = {"verbose": 3, "enable_loggers": ["test"]}
+        config = {
+            "verbose": 3,
+            "logging": {
+                "enable_loggers": ["test"],
+            },
+        }
         init_logging(config)
 
         _baseLogger = logging.getLogger(BASE_LOGGER_NAME)

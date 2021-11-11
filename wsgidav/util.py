@@ -184,11 +184,6 @@ def init_logging(config):
     The base logger is filtered by the `verbose` configuration option.
     Log entries will have a time stamp and thread id.
 
-    :Parameters:
-        verbose : int
-            Verbosity configuration (0..5)
-        enable_loggers : string list
-            List of module logger names, that will be switched to DEBUG level.
 
     Module loggers
     ~~~~~~~~~~~~~~
@@ -211,7 +206,7 @@ def init_logging(config):
 
     This logger would be enabled by passing its name to init_logging()::
 
-        enable_loggers = ["lock_manager",
+        config.logging.enable_loggers = ["lock_manager",
                           "property_manager",
                          ]
         util.init_logging(2, enable_loggers)
@@ -240,13 +235,15 @@ def init_logging(config):
 
     """
     verbose = config.get("verbose", 3)
+    log_opts = config.get("logging", {})
 
-    enable_loggers = config.get("enable_loggers", [])
+    enable_loggers = log_opts.get("enable_loggers", [])
     if enable_loggers is None:
         enable_loggers = []
 
-    logger_date_format = config.get("logger_date_format", "%Y-%m-%d %H:%M:%S")
-    logger_format = config.get(
+    # Verbose format by default (but wsgidav.util.DEFAULT_CONFIG defines a short format)
+    logger_date_format = log_opts.get("logger_date_format", "%Y-%m-%d %H:%M:%S")
+    logger_format = log_opts.get(
         "logger_format",
         "%(asctime)s.%(msecs)03d - <%(thread)d> %(name)-27s %(levelname)-8s:  %(message)s",
     )
@@ -296,6 +293,7 @@ def init_logging(config):
                 e = BASE_LOGGER_NAME + "." + e
             lg = logging.getLogger(e.strip())
             lg.setLevel(logging.DEBUG)
+    return
 
 
 def get_module_logger(moduleName, defaultToVerbose=False):

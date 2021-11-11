@@ -62,17 +62,23 @@ DEFAULT_CONFIG = {
     },
     #: Used by SimpleDomainController only
     "simple_dc": {"user_mapping": {}},  # NO anonymous access by default
-    # Verbose Output
-    # 0 - no output
-    # 1 - no output (excepting application exceptions)
-    # 2 - show warnings
-    # 3 - show single line request summaries (for HTTP logging)
-    # 4 - show additional events
-    # 5 - show full request/response header info (HTTP Logging)
-    #     request body and GET response bodies not shown
+    #: Verbose Output
+    #: 0 - no output
+    #: 1 - no output (excepting application exceptions)
+    #: 2 - show warnings
+    #: 3 - show single line request summaries (for HTTP logging)
+    #: 4 - show additional events
+    #: 5 - show full request/response header info (HTTP Logging)
+    #:     request body and GET response bodies not shown
     "verbose": DEFAULT_VERBOSE,
-    # Error printer options
-    "enable_loggers": [],
+    #: Log options
+    "logging": {
+        "logger_date_format": "%H:%M:%S",
+        "logger_format": "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s",
+        "enable_loggers": [],
+        "debug_methods": [],
+    },
+    #: Options for `WsgiDavDirBrowser`
     "dir_browser": {
         "enable": True,  # Render HTML listing for GET requests on collections
         # List of fnmatch patterns:

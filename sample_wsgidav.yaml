@@ -161,23 +161,26 @@ pam_dc:
 #: Set verbosity level (but will be overridden by -v or -q arguments)
 verbose: 3
 
-#: Set logging output format
-#: (see https://docs.python.org/3/library/logging.html#logging.Formatter)
-logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s: %(message)s"
-#logger_format: "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s"
-logger_date_format: "%H:%M:%S"
+logging:
+    #: Set logging output format
+    #: (see https://docs.python.org/3/library/logging.html#logging.Formatter)
+    logger_date_format: "%H:%M:%S"
+    logger_format: "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s"
+    # Example: Add date,thread id, and logger name:
+    # logger_date_format: ""%Y-%m-%d %H:%M:%S"
+    # logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s: %(message)s"
 
-# Enable specific module loggers
-# E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
-# enable_loggers: ["http_authenticator", ]
+    # Enable specific module loggers
+    # E.g. ["lock_manager", "property_manager", "http_authenticator", ...]
+    # enable_loggers: ["http_authenticator", ]
 
-# Enable max. logging for certain http methods
-# E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
-debug_methods: []
+    # Enable max. logging for certain http methods
+    # E.g. ["COPY", "DELETE", "GET", "HEAD", "LOCK", "MOVE", "OPTIONS", "PROPFIND", "PROPPATCH", "PUT", "UNLOCK"]
+    debug_methods: []
 
-# Enable max. logging during  litmus suite tests that contain certain strings
-# E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
-debug_litmus: []
+    # Enable max. logging during  litmus suite tests that contain certain strings
+    # E.g. ["lock_excl", "notowner_modify", "fail_cond_put_unlocked", ...]
+    debug_litmus: []
 
 
 # ----------------------------------------------------------------------------

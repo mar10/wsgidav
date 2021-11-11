@@ -90,7 +90,10 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         "http_authenticator": {"domain_controller": None},
         "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
         "verbose": 1,
-        "enable_loggers": [],
+        "logging": {
+            "enable_loggers": [],
+            # "debug_methods": [],
+        },
         "property_manager": True,  # None: no property manager
         "lock_manager": True,  # True: use lock_manager.LockManager
     }

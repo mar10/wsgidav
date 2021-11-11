@@ -39,7 +39,6 @@ import os
 import platform
 import sys
 import webbrowser
-from inspect import isfunction
 from pprint import pformat
 from threading import Timer
 

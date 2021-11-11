@@ -9,6 +9,7 @@
   The new option `dir_browser.davmount_links` is false by default.
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
 - Drop support for Python syntax in config files (wsgidav.conf)
+- Move logging option to 'logging' section
 
 ## 3.1.2 / Unreleased
 

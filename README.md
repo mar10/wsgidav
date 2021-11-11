@@ -16,18 +16,19 @@ Main features:
     installed and run as Python command line script on Linux, OSX, and Windows:<br>
     ```
     $ pip install wsgidav cheroot
-    $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp
+    $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=anonymous
     WARNING: share '/' will allow anonymous access.
     Running WsgiDAV/2.2.2 Cheroot/5.5.0 Python/3.4.2
     Serving on http://0.0.0.0:8080 ...
     ```
     Run `wsgidav --help` for a list of available options.<br>
-    **Note:** The syntax changed slightly with v3.0.
+
   - **Note:** python-pam is needed if using pam-login on Linux or OSX:
     ```
     $ pip install python-pam
     $ wsgidav --auth=pam-login --host=0.0.0.0 --port=8080 --root=/tmp
     ```
+
   - **Note:** Windows users may prefer the
     [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
     (see <kbd>Assets</kbd> section).

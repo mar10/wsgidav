@@ -25,7 +25,9 @@ def main():
         },
         "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
         "verbose": 1,
-        "enable_loggers": [],
+        "logging": {
+            "enable_loggers": [],
+        },
         "property_manager": True,  # True: use property_manager.PropertyManager
         "lock_manager": True,  # True: use lock_manager.LockManager
     }
