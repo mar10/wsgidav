@@ -8,7 +8,7 @@
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
   The new option `dir_browser.davmount_links` is false by default.
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
-- TODO: #201, #220
+- Drop support for Python syntax in config files (wsgidav.conf)
 
 ## 3.1.2 / Unreleased
 

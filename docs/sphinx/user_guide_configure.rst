@@ -8,8 +8,6 @@ Configuration
 .. toctree::
    :maxdepth: 1
 
-   sample_wsgidav_conf
-
 
 The :class:`~wsgidav.wsgidav_app.WsgiDAVApp` object is configured by passing
 a Python ``dict`` with distinct options, that define
@@ -390,15 +388,3 @@ The structure is identical to the YAML format.
 
 See the :doc:`sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)
-
-
-Sample ``wsgidav.conf``
------------------------
-
-This format uses plain Python syntax, which allows us to use Python data
-structures, and even write helper functions, etc.
-
-This is the most powerful and flexible format, that can be used in complex
-scenarios.
-
-See the :doc:`sample_wsgidav_conf` example.

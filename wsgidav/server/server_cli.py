@@ -19,7 +19,7 @@ Configuration is defined like this:
 
     1. Get the name of a configuration file from command line option
        ``--config-file=FILENAME`` (or short ``-cFILENAME``).
-       If this option is omitted, we use ``wsgidav.conf`` in the current
+       If this option is omitted, we use ``wsgidav.yaml`` in the current
        directory.
     2. Set reasonable default settings.
     3. If configuration file exists: read and use it to overwrite defaults.
@@ -34,12 +34,10 @@ Configuration is defined like this:
 """
 import argparse
 import copy
-import io
 import logging
 import os
 import platform
 import sys
-import traceback
 import webbrowser
 from inspect import isfunction
 from pprint import pformat
@@ -63,7 +61,7 @@ except ImportError:
 __docformat__ = "reStructuredText"
 
 #: Try this config files if no --config=... option is specified
-DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json", "wsgidav.conf")
+DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json")
 
 _logger = logging.getLogger("wsgidav")
 
@@ -307,38 +305,17 @@ def _read_config_file(config_file, _verbose):
         raise RuntimeError("Couldn't open configuration file '{}'.".format(config_file))
 
     if config_file.endswith(".json"):
-        with io.open(config_file, mode="r", encoding="utf-8") as json_file:
-            conf = json_load(json_file)
+        with open(config_file, mode="rt", encoding="utf-8-sig") as fp:
+            conf = json_load(fp)
 
     elif config_file.endswith(".yaml"):
-        with io.open(config_file, mode="r", encoding="utf-8") as yaml_file:
-            conf = yaml.safe_load(yaml_file)
+        with open(config_file, mode="rt", encoding="utf-8-sig") as fp:
+            conf = yaml.safe_load(fp)
 
     else:
-        try:
-            import imp
-
-            conf = {}
-            configmodule = imp.load_source("configuration_module", config_file)
-
-            for k, v in vars(configmodule).items():
-                if k.startswith("__"):
-                    continue
-                elif isfunction(v):
-                    continue
-                conf[k] = v
-        except Exception:
-            exc_type, exc_value = sys.exc_info()[:2]
-            exc_info_list = traceback.format_exception_only(exc_type, exc_value)
-            exc_text = "\n".join(exc_info_list)
-            print(
-                "Failed to read configuration file: "
-                + config_file
-                + "\nDue to "
-                + exc_text,
-                file=sys.stderr,
-            )
-            raise
+        raise RuntimeError(
+            f"Unsupported config file format (expected yaml or json): {config_file}"
+        )
 
     conf["_config_file"] = config_file
     return conf
