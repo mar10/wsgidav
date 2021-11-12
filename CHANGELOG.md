@@ -3,13 +3,16 @@
 ## 4.0.0 / Unreleased
 
 - Drop Python 2 support
-- Add uvicorn server support to CLI, drop flup and CherryPy
-- Support LibreOffice in dir_browser
-- DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
-  The new option `dir_browser.davmount_links` is false by default.
-- Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
 - Drop support for Python syntax in config files (wsgidav.conf)
-- Move logging option to 'logging' section
+- Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
+- DAVCollection, DAVNonCollection, DAVProvider are ABCs now
+- Move logging options to 'logging' section
+- Add uvicorn server support to CLI, drop flup and CherryPy
+- DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
+  The new option `dir_browser.davmount_links` controls link display (default: false).
+- TODO: #222 Discrepancy between "getetag" property and ETag header
+- TODO: Support LibreOffice in dir_browser
+- TODO: #185 FileLikeQueue not compatible with Python3
 
 ## 3.1.2 / Unreleased
 

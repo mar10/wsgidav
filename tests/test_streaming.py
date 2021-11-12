@@ -37,6 +37,12 @@ class MockProxyResource(DAVNonCollection):
         self.target_path = target_path
         self.worker = None
 
+    def get_content(self):  # Keep ABC happy
+        raise NotImplementedError
+
+    def get_content_length(self):  # Keep ABC happy
+        raise NotImplementedError
+
     def begin_write(self, content_type=None):
         # print("begin_write: {}".format(self.target_path))
         queue = FileLikeQueue(max_size=1)

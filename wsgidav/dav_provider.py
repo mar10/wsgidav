@@ -80,6 +80,7 @@ import os
 import sys
 import time
 import traceback
+from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
 from urllib.parse import quote, unquote
@@ -117,7 +118,7 @@ _lockPropertyNames = ["{DAV:}lockdiscovery", "{DAV:}supportedlock"]
 # ========================================================================
 
 
-class _DAVResource:
+class _DAVResource(ABC):
     r"""Represents a single existing DAV resource instance.
 
     A resource may be a collection (aka 'folder') or a non-collection (aka
@@ -1186,6 +1187,7 @@ class DAVNonCollection(_DAVResource):
     def __init__(self, path: str, environ: dict):
         _DAVResource.__init__(self, path, False, environ)
 
+    @abstractmethod
     def get_content_length(self):
         """Returns the byte length of the content.
 
@@ -1202,9 +1204,12 @@ class DAVNonCollection(_DAVResource):
         This getcontenttype property MUST be defined on any DAV compliant
         resource that returns the Content-Type header in response to a GET.
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getcontenttype
-        """
-        raise NotImplementedError
 
+        This default implementation guesses the type from the filen name.
+        """
+        return util.guess_mime_type(self.path)
+
+    @abstractmethod
     def get_content(self):
         """Open content as a stream for reading.
 
@@ -1356,6 +1361,7 @@ class DAVCollection(_DAVResource):
             util.join_uri(self.path, name), self.environ
         )
 
+    @abstractmethod
     def get_member_names(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
 
@@ -1421,7 +1427,7 @@ class DAVCollection(_DAVResource):
 # ========================================================================
 
 
-class DAVProvider:
+class DAVProvider(ABC):
     """Abstract base class for DAV resource providers.
 
     There will be only one DAVProvider instance per share (not per request).
@@ -1485,6 +1491,7 @@ class DAVProvider:
         """
         return "/" + unquote(util.lstripstr(ref_url, self.share_path)).lstrip("/")
 
+    @abstractmethod
     def get_resource_inst(self, path, environ):
         """Return a _DAVResource object for path.
 
