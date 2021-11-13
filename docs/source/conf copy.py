@@ -105,6 +105,7 @@ copyright = u'2009-2021 Martin Wendt, 2005 Ho Chun Wei'
 # The full version, including alpha/beta/rc tags.
 #release = '1.0'
 import pkg_resources
+
 try:
     release = pkg_resources.get_distribution('wsgidav').version
 except pkg_resources.DistributionNotFound:
@@ -118,6 +119,7 @@ except pkg_resources.DistributionNotFound:
     for fn in os.listdir(package_root):
         print("-", fn)
     sys.exit(1)
+
 del pkg_resources
 
 version = '.'.join(release.split('.')[:2])

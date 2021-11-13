@@ -7,8 +7,8 @@
 .vscode
 .pytest_cache/
 build/
-docs/sphinx/_autosummary/
-docs/sphinx/_build/
+docs/source/_autosummary/
+docs/build/
 docs/sphinx/_generated/
 docs/sphinx-build/
 htmlcov/
@@ -33,3 +33,4 @@ pip-wheel-metadata/
 wsgidav.yaml
 wsgidav_2x.yaml
 wsgidav_custom.yaml
+
