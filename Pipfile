@@ -22,8 +22,8 @@ recommonmark = "*"
 requests = "*"
 rope = "*"
 setuptools = "*"
-Sphinx = "*"  # "~=1.6"
-sphinx_rtd_theme = "*"
+Sphinx = "~=4.3"  # "~=1.6"
+sphinx_rtd_theme = "~=1.0"
 stressor = "*"
 tox = "*"  # "~=3.13"
 twine = "*"
@@ -38,6 +38,7 @@ defusedxml = "*"  # "~=0.5"
 Jinja2 = "*"  # "~=2.10"
 PyYAML = "*"  # "~=5.1"
 json5 = "*"
+wsgidav = {editable = true, path = "."}
 
 [requires]
 python_version = "3.9"
