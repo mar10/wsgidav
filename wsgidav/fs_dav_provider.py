@@ -62,7 +62,7 @@ class FileResource(DAVNonCollection):
         return self.name
 
     def get_etag(self):
-        return util.get_etag(self._file_path)
+        return util.get_file_etag(self._file_path)
 
     def get_last_modified(self):
         return self.file_stat[stat.ST_MTIME]
@@ -237,7 +237,7 @@ class FolderResource(DAVCollection):
         """
         assert util.is_str(name), "{!r}".format(name)
         fp = os.path.join(self._file_path, util.to_str(name))
-        #        name = name.encode("utf8")
+        # name = name.encode("utf8")
         path = util.join_uri(self.path, name)
         if os.path.isdir(fp):
             res = FolderResource(path, self.environ, fp)

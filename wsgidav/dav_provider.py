@@ -310,11 +310,10 @@ class _DAVResource(ABC):
         return self.get_content_length() is not None
 
     def support_etag(self):
-        """Return True, if this resource supports ETags.
-
-        This default implementation checks `self.get_etag() is None`.
-        """
-        return self.get_etag() is not None
+        """Return True, if this resource supports ETags."""
+        raise NotImplementedError
+        # This default implementation checks `self.get_etag() is None`.
+        # return self.get_etag() is not None
 
     def support_modified(self):
         """Return True, if this resource supports last modified dates.
@@ -1221,6 +1220,23 @@ class DAVNonCollection(_DAVResource):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def get_etag(self):
+        """
+        See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getetag
+
+        This method SHOULD be implemented, especially by non-collections.
+        Return None if not supported for this resource instance.
+        See also `DAVNonCollection.support_etag()` and `util.get_file_etag(path)`.
+        """
+
+    @abstractmethod
+    def support_etag(self):
+        """Return True, if this resource supports ETags.
+
+        See also `DAVNonCollection.get_etag()`.
+        """
+
     def support_ranges(self):
         """Return True, if this non-resource supports Range on GET requests.
 
@@ -1349,6 +1365,15 @@ class DAVCollection(_DAVResource):
         assert self.is_collection
         raise DAVError(HTTP_FORBIDDEN)
 
+    def get_etag(self):
+        """
+        See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getetag
+
+        For non-collections we default to None, because it is harder to implement.
+        See also `DAVCollection.support_etag()`.
+        """
+        return None
+
     def get_member(self, name):
         """Return child resource with a given name (None, if not found).
 
@@ -1369,6 +1394,14 @@ class DAVCollection(_DAVResource):
         """
         assert self.is_collection
         raise NotImplementedError
+
+    def support_etag(self):
+        """Return True, if this resource supports ETags.
+
+        For non-collections we default to False, because it is harder to implement.
+        See also `DAVCollection.get_etag()`.
+        """
+        return False
 
     def support_recursive_delete(self):
         """Return True, if delete() may be called on non-empty collections

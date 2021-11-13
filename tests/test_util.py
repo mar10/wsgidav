@@ -11,12 +11,14 @@ from io import StringIO
 
 from wsgidav.util import (
     BASE_LOGGER_NAME,
+    checked_etag,
     get_module_logger,
     init_logging,
     is_child_uri,
     is_equal_or_child_uri,
     join_uri,
     lstripstr,
+    parse_if_match_header,
     pop_path,
     shift_path,
 )
@@ -78,6 +80,19 @@ class BasicTest(unittest.TestCase):
         self.assertEqual(shift_path("/a/b", "/c"), ("c", "/a/b/c", ""))
         self.assertEqual(shift_path("/a/b/c", "/"), ("", "/a/b/c", ""))
         self.assertEqual(shift_path("/a/b/c", ""), ("", "/a/b/c", ""))
+
+        assert checked_etag(None, allow_none=True) is None
+        assert checked_etag("abc") == "abc"
+        self.assertRaises(ValueError, checked_etag, '"abc"')
+        self.assertRaises(ValueError, checked_etag, 'W/"abc"')
+
+        assert parse_if_match_header("") == []
+        assert parse_if_match_header("  ") == []
+        assert parse_if_match_header("*") == ["*"]
+        assert parse_if_match_header("abc,def") == ["abc", "def"]
+        assert parse_if_match_header(" abc , def") == ["abc", "def"]
+        assert parse_if_match_header(' "abc" , def ') == ["abc", "def"]
+        assert parse_if_match_header(' W/"abc" , def ') == ["abc", "def"]
 
 
 class LoggerTest(unittest.TestCase):

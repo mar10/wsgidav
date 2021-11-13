@@ -32,7 +32,7 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
-from wsgidav.util import etree
+from wsgidav.util import checked_etag, etree
 
 __docformat__ = "reStructuredText"
 
@@ -233,11 +233,12 @@ class RequestServer:
         # Raise HTTP_PRECONDITION_FAILED or HTTP_NOT_MODIFIED, if standard
         # HTTP condition fails
         last_modified = -1  # nonvalid modified time
-        entitytag = "[]"  # Non-valid entity tag
         if res.get_last_modified() is not None:
             last_modified = int(res.get_last_modified())
-        if res.get_etag() is not None:
-            entitytag = res.get_etag()
+
+        entitytag = checked_etag(res.get_etag(), allow_none=True)
+        if entitytag is None:
+            entitytag = "[]"  # Non-valid entity tag
 
         if (
             "HTTP_IF_MODIFIED_SINCE" in environ
@@ -844,7 +845,7 @@ class RequestServer:
 
         headers = None
         if res.support_etag():
-            entitytag = res.get_etag()
+            entitytag = checked_etag(res.get_etag(), allow_none=True)
             if entitytag is not None:
                 headers = [("ETag", '"{}"'.format(entitytag))]
 
@@ -1565,7 +1566,7 @@ class RequestServer:
         if last_modified is None:
             last_modified = -1
 
-        entitytag = res.get_etag()
+        entitytag = checked_etag(res.get_etag(), allow_none=True)
         if entitytag is None:
             entitytag = "[]"
 

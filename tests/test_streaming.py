@@ -43,6 +43,12 @@ class MockProxyResource(DAVNonCollection):
     def get_content_length(self):  # Keep ABC happy
         raise NotImplementedError
 
+    def get_etag(self):
+        return None
+
+    def support_etag(self):
+        return False
+
     def begin_write(self, content_type=None):
         # print("begin_write: {}".format(self.target_path))
         queue = FileLikeQueue(max_size=1)

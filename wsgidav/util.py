@@ -1018,8 +1018,47 @@ def calc_base64(s):
     return to_str(s)
 
 
-def get_etag(file_path):
-    """Return a strong Entity Tag for a (file)path.
+def checked_etag(etag, *, allow_none=False):
+    """Validate etag string to ensure propare comparison.
+
+    This function is used to assert that `DAVResource.get_etag()` does not add
+    quotes, so it can be passed as `ETag: "<etag_value>"` header.
+    Note that we also reject weak entity tags (W/"<etag_value>"), since WebDAV
+    servers commonly use strong ETags.
+    """
+    if etag is None and allow_none:
+        return None
+    etag = etag.strip()
+    if not etag or '"' in etag or etag.startswith("W/"):
+        # This is an internal server error
+        raise ValueError(f"Invalid ETag format: '{etag!r}'.")
+    return etag
+
+
+def parse_if_match_header(value):
+    """Return a list of etag-values for a `If-Match` or `If-Not-Match` header.
+
+    Remove enclosing quotes for easy comparison with the `DAVResource.get_etag()`
+    results.
+    We strip the weak-ETag prefix, because WebDAV servers commonly use strong
+    ETags. If the client sends a weak tag, it should not hurt to compare
+    against the resources strong etag however(?).
+    """
+    res = []
+    for etag in value.split(","):
+        etag = etag.strip().removeprefix("W/")
+        if etag.startswith('"') and etag.endswith('"'):
+            etag = etag[1:-1]
+        if etag:
+            res.append(etag)
+        elif '"' in etag:
+            # Client error
+            raise DAVError(HTTP_BAD_REQUEST, f"Invalid ETag format: '{value!r}'.")
+    return res
+
+
+def get_file_etag(file_path):
+    """Return a strong, unquoted Entity Tag for a (file)path.
 
     http://www.webdav.org/specs/rfc4918.html#etag
 
@@ -1033,32 +1072,29 @@ def get_etag(file_path):
     # special characters, even if it is correctly UTF-8 encoded.
     # So we convert to unicode. On the other hand, md5() needs a byte string.
     if is_bytes(file_path):
-        unicodeFilePath = to_unicode_safe(file_path)
+        unicode_file_path = to_unicode_safe(file_path)
     else:
-        unicodeFilePath = file_path
+        unicode_file_path = file_path
         file_path = file_path.encode("utf8", "surrogateescape")
 
-    if not os.path.isfile(unicodeFilePath):
+    if not os.path.isfile(unicode_file_path):
         return md5(file_path).hexdigest()
 
+    fstat = os.stat(unicode_file_path)
     if sys.platform == "win32":
-        statresults = os.stat(unicodeFilePath)
-        return (
-            md5(file_path).hexdigest()
-            + "-"
-            + str(statresults[stat.ST_MTIME])
-            + "-"
-            + str(statresults[stat.ST_SIZE])
+        etag = "{}-{}-{}".format(
+            md5(file_path).hexdigest(),
+            fstat[stat.ST_MTIME],
+            fstat[stat.ST_SIZE],
         )
     else:
-        statresults = os.stat(unicodeFilePath)
-        return (
-            str(statresults[stat.ST_INO])
-            + "-"
-            + str(statresults[stat.ST_MTIME])
-            + "-"
-            + str(statresults[stat.ST_SIZE])
+        etag = "{}-{}-{}".format(
+            fstat[stat.ST_INO],
+            fstat[stat.ST_MTIME],
+            fstat[stat.ST_SIZE],
         )
+    return etag
+
 
 
 # ========================================================================
@@ -1200,11 +1236,13 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
     # is consistent with all of the conditional header fields in the request.
 
     if "HTTP_IF_MATCH" in environ and dav_res.support_etag():
-        ifmatchlist = environ["HTTP_IF_MATCH"].split(",")
-        for ifmatchtag in ifmatchlist:
-            ifmatchtag = ifmatchtag.strip(' "\t')
-            if ifmatchtag == entitytag or ifmatchtag == "*":
+        token_list = parse_if_match_header(environ["HTTP_IF_MATCH"])
+        match = False
+        for token in token_list:
+            if token == entitytag or token == "*":
+                match = True
                 break
+        if not match:
             raise DAVError(HTTP_PRECONDITION_FAILED, "If-Match header condition failed")
 
     # TODO: after the refactoring
@@ -1221,10 +1259,9 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
     # a 304 (Not Modified) response.
     ignoreIfModifiedSince = False
     if "HTTP_IF_NONE_MATCH" in environ and dav_res.support_etag():
-        ifmatchlist = environ["HTTP_IF_NONE_MATCH"].split(",")
-        for ifmatchtag in ifmatchlist:
-            ifmatchtag = ifmatchtag.strip(' "\t')
-            if ifmatchtag == entitytag or ifmatchtag == "*":
+        token_list = parse_if_match_header(environ["HTTP_IF_NONE_MATCH"])
+        for token in token_list:
+            if token == entitytag or token == "*":
                 # ETag matched. If it's a GET request and we don't have an
                 # conflicting If-Modified header, we return NOT_MODIFIED
                 if (
