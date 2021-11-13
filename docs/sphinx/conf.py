@@ -56,6 +56,7 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.napoleon',
     # 'sphinx_automodapi.automodapi',
+    'sphinx_search.extension',
 ]
 
 # Included at the beginning of every file:
