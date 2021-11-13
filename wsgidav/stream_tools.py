@@ -50,7 +50,7 @@ class FileLikeQueue:
     def __init__(self, max_size=0):
         self.is_closed = False
         self.queue = queue.Queue(max_size)
-        self.unread = ""
+        self.unread = b""
 
     def read(self, size=0):
         """Read a chunk of bytes from queue.
@@ -63,13 +63,13 @@ class FileLikeQueue:
         However, if close() was called, '' is returned immediately.
         """
         res = self.unread
-        self.unread = ""
+        self.unread = b""
         # Get next chunk, cumulating requested size as needed
-        while res == "" or size < 0 or (size > 0 and len(res) < size):
+        while res == b"" or size < 0 or (size > 0 and len(res) < size):
             try:
                 # Read pending data, blocking if neccessary
                 # (but handle the case that close() is called while waiting)
-                res += util.to_str(self.queue.get(True, 0.1))
+                res += self.queue.get(True, 0.1)
             except queue.Empty:
                 # There was no pending data: wait for more, unless close() was called
                 if self.is_closed:
@@ -79,6 +79,7 @@ class FileLikeQueue:
             self.unread = res[size:]
             res = res[:size]
         # print("FileLikeQueue.read({}) => {} bytes".format(size, len(res)))
+        assert type(res) is bytes
         return res
 
     def write(self, chunk):
@@ -86,6 +87,7 @@ class FileLikeQueue:
 
         May block if max_size number of chunks is reached.
         """
+        assert type(chunk) is bytes
         if self.is_closed:
             raise ValueError("Cannot write to closed object")
         # print("FileLikeQueue.write(), n={}".format(len(chunk)))

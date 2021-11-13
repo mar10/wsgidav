@@ -117,8 +117,8 @@ class BasicTest(unittest.TestCase):
     def testFileLikeQueueUnsized(self):
         # queue of unlimited size
         q = FileLikeQueue()
-        q.write("*" * 42)
-        q.write("*" * 3)
+        q.write(b"*" * 42)
+        q.write(b"*" * 3)
         # unsized reads will return chunks as queued
         res = q.read()
         self.assertEqual(len(res), 42)
@@ -126,34 +126,34 @@ class BasicTest(unittest.TestCase):
         self.assertEqual(len(res), 3)
         q.close()  # subsequent reads will return "" instead of blocking
         res = q.read()
-        self.assertEqual(res, "", "Read after close() returns ''")
+        self.assertEqual(res, b"", "Read after close() returns ''")
         # subsequent write will raise
-        self.assertRaises(ValueError, q.write, "***")
+        self.assertRaises(ValueError, q.write, b"***")
 
     def testFileLikeQueue(self):
         # queue of unlimited size
         q = FileLikeQueue()
         # queue 32 bytes
-        q.write("*" * 7)
-        q.write("*" * 11)
-        q.write("*" * 5)
-        q.write("*" * 9)
+        q.write(b"*" * 7)
+        q.write(b"*" * 11)
+        q.write(b"*" * 5)
+        q.write(b"*" * 9)
         q.close()
         # sized reads will return chunks as demanded
         for _ in range(6):
             self.assertEqual(len(q.read(5)), 5)
         self.assertEqual(len(q.read(5)), 2, "last chunk delivers the reminder")
-        self.assertEqual(len(q.read(5)), 0, "furtehr read() returns ''")
+        self.assertEqual(len(q.read(5)), 0, "further read() returns ''")
         # self.assertEqual(q.size, 0)
 
     def testFileLikeQueueAll(self):
         # queue of unlimited size
         q = FileLikeQueue()
         # queue 32 bytes
-        q.write("*" * 7)
-        q.write("*" * 11)
-        q.write("*" * 5)
-        q.write("*" * 9)
+        q.write(b"*" * 7)
+        q.write(b"*" * 11)
+        q.write(b"*" * 5)
+        q.write(b"*" * 9)
         q.close()
         # read(-1) returns all, then ''
         self.assertEqual(len(q.read(-1)), 32)
