@@ -11,6 +11,7 @@ Example:
 """
 import multiprocessing
 import os
+import shutil
 import sys
 import time
 from tempfile import gettempdir
@@ -18,6 +19,8 @@ from tempfile import gettempdir
 from wsgidav import util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
+
+FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "fixtures")
 
 # ========================================================================
 # Timing
@@ -59,7 +62,16 @@ class Timing:
 def write_test_file(name, size):
     path = os.path.join(gettempdir(), name)
     with open(path, "wb") as f:
-        f.write(util.to_bytes("*") * size)
+        f.write(b"*" * size)
+    return path
+
+
+def create_test_folder(name):
+    path = os.path.join(gettempdir(), name)
+    # copytree fails if dir exists. Since Py3.8 we could add `dirs_exist_ok=True`
+    # but this would break tests on 3.6/3.7.
+    shutil.rmtree(util.to_str(path), ignore_errors=True)
+    shutil.copytree(os.path.join(FIXTURE_PATH, "share"), path)
     return path
 
 

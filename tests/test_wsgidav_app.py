@@ -11,13 +11,12 @@
     See http://webtest.readthedocs.org/en/latest/
         (successor of http://pythonpaste.org/testing-applications.html)
 """
-import os
 import shutil
 import sys
 import unittest
-from tempfile import gettempdir
 from urllib.parse import quote
 
+from tests.util import create_test_folder
 from wsgidav import util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
@@ -42,11 +41,8 @@ except ImportError:
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using paste.fixture."""
 
-    def _makeWsgiDAVApp(self, withAuthentication):
-        self.rootpath = os.path.join(gettempdir(), "wsgidav-test")
-        if not os.path.exists(self.rootpath):
-            os.mkdir(self.rootpath)
-        provider = FilesystemProvider(self.rootpath)
+    def _makeWsgiDAVApp(self, share_path, with_authentication):
+        provider = FilesystemProvider(share_path)
 
         # config = DEFAULT_CONFIG.copy()
         # config.update({
@@ -61,7 +57,7 @@ class ServerTest(unittest.TestCase):
             "lock_manager": True,  # True: use lock_manager.LockManager
         }
 
-        if withAuthentication:
+        if with_authentication:
             config["http_authenticator"].update(
                 {
                     "accept_basic": True,
@@ -76,12 +72,13 @@ class ServerTest(unittest.TestCase):
         return WsgiDAVApp(config)
 
     def setUp(self):
-        wsgi_app = self._makeWsgiDAVApp(False)
+        self.root_path = create_test_folder("wsgidav-test")
+        wsgi_app = self._makeWsgiDAVApp(self.root_path, False)
         self.app = webtest.TestApp(wsgi_app)
 
     def tearDown(self):
-        shutil.rmtree(util.to_str(self.rootpath))
         del self.app
+        shutil.rmtree(self.root_path, ignore_errors=True)
 
     def testPreconditions(self):
         """Environment must be set."""
@@ -95,6 +92,8 @@ class ServerTest(unittest.TestCase):
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
         assert "WsgiDAV - Index of /" in res, "Could not list root share"
+        assert "readme.txt" in res, "Fixture content"
+        assert "Lotosblütenstengel (蓮花莖).docx" in res, "Encoded fixture content"
 
         # Access unmapped resource (expect '404 Not Found')
         res = app.get("/not-existing-124/", status=404)
@@ -217,7 +216,7 @@ class ServerTest(unittest.TestCase):
         app.get("/file1.txt", status=200)
 
         # Re-create test app with authentication
-        wsgi_app = self._makeWsgiDAVApp(True)
+        wsgi_app = self._makeWsgiDAVApp(self.root_path, True)
         app = self.app = webtest.TestApp(wsgi_app)
 
         # Anonymous access must fail (expect 401 Not Authorized)
