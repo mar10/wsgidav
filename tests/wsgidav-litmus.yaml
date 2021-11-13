@@ -1,7 +1,7 @@
 server: "cheroot"
 server_args: {}
 
-host: 192.168.178.44
+host: 192.168.178.35
 # host: 0.0.0.0
 port: 8080
 
@@ -19,7 +19,7 @@ middleware_stack:
     - wsgidav.request_resolver.RequestResolver
 
 provider_mapping:
-    "/": "/temp"
+    "/": "/tmp"
 
 
 # ==============================================================================

@@ -233,6 +233,15 @@ Gain additional Kudos by first adding a test that fails without your changes and
 after they are applied. |br|
 New unit tests should be included in the ``tests`` directory whenever possible.
 
+Run Litmus Test Suite
+---------------------
+
+'`litmus <http://www.webdav.org/neon/litmus/>`' is the reference test suite for
+WebDAV - although unmaintained now.
+
+See the docstring in
+`test_litmus.py <https://github.com/mar10/wsgidav/blob/master/tests/test_litmus.py>`
+for details.
 
 Create a Pull Request
 ---------------------

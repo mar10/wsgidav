@@ -3,7 +3,75 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
-    Run litmus against WsgiDAV server.
+Run the [Litmus test suite](http://www.webdav.org/neon/litmus/) against WsgiDAV
+server.
+
+## Usage
+
+**NOTE:** replace <HOST_IP> with the real IP address of the test client.
+
+
+### 1. Edit Configuration File
+
+
+```yaml
+host: <HOST_IP>
+port: 8080
+...
+```
+
+### 2. Run WsgiDAV
+
+```bash
+$ cd WSGIDAV-ROOT
+$ wsgidav --config tests\wsgidav-litmus.yaml -H <HOST_IP>
+```
+
+
+### 3. Run Litmus Suite as Docker Container
+
+[Install Docker](https://docs.docker.com/desktop/).
+
+Then open a new console and run these commands:
+
+```bash
+$ docker pull mar10/docker-litmus
+$ docker run --rm -ti mar10/docker-litmus https://<HOST_IP>:8080/ tester secret
+```
+
+Output should look something like this:
+```
+$ docker run --rm -ti mar10/docker-litmus https://192.168.178.35:8080 tester secret
+-> running `basic':
+ 0. init.................. pass
+ ...
+15. finish................ pass
+<- summary for `basic': of 16 tests run: 16 passed, 0 failed. 100.0%
+-> running `copymove':
+ 0. init.................. pass
+ ...
+12. finish................ pass
+<- summary for `copymove': of 13 tests run: 13 passed, 0 failed. 100.0%
+-> running `props':
+ 0. init.................. pass
+ ...
+29. finish................ pass
+<- summary for `props': of 30 tests run: 30 passed, 0 failed. 100.0%
+-> running `locks':
+ 0. init.................. pass
+ ...
+40. finish................ pass
+<- summary for `locks': of 41 tests run: 41 passed, 0 failed. 100.0%
+-> running `http':
+ 0. init.................. pass
+ ...
+ 3. finish................ pass
+-> 1 test was skipped.
+<- summary for `http': of 3 tests run: 3 passed, 0 failed. 100.0%
+$
+```
+
+See here for details on the Docker image: https://github.com/mar10/docker-litmus
 """
 import subprocess
 import unittest
@@ -27,7 +95,7 @@ class WsgiDAVLitmusTest(unittest.TestCase):
     def _report_missing_litmus(self):
         print("*" * 70)
         print("This test requires the litmus test suite.")
-        print("See http://www.webdav.org/neon/litmus/")
+        print("See https://github.com/mar10/docker-litmus")
         print("*" * 70)
         raise unittest.SkipTest("Test requires litmus test suite")
 
