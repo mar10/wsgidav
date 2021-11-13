@@ -111,7 +111,7 @@ except pkg_resources.DistributionNotFound:
     print('To build the documentation, The distribution information')
     print('has to be available. Either install the package into your')
     print('development environment or run "setup.py develop" to setup the')
-    print('metadata.  A virtualenv is recommended!')
+    print('metadata. A virtualenv is recommended!')
 
     print(f"sys.path: {sys.path}")
     print(f"package_root: {package_root}")
