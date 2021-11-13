@@ -10,9 +10,9 @@
 - Add uvicorn server support to CLI, drop flup and CherryPy
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
   The new option `dir_browser.davmount_links` controls link display (default: false).
+- #185 Fix FileLikeQueue for Python 3
 - #222 Discrepancy between "getetag" property and ETag header
 - TODO: Support LibreOffice in dir_browser
-- TODO: #185 FileLikeQueue USE BYTES
 
 ## 3.1.2 / Unreleased
 

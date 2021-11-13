@@ -16,7 +16,7 @@ Main features:
 
   - WsgiDAV is a stand-alone WebDAV server with SSL support, that can be
     installed and run as Python command line script on Linux, OSX, and Windows:<br>
-    ```bash
+    ```
     $ pip install wsgidav cheroot
     $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
     Running without configuration file.
@@ -32,7 +32,7 @@ Main features:
     Run `wsgidav --help` for a list of available options.<br>
 
   - python-pam is needed if using pam-login on Linux or OSX:
-    ```bash
+    ```
     $ pip install python-pam
     $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=pam-login
     ```

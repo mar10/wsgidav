@@ -33,9 +33,6 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 package_root = os.path.abspath('../..')
 sys.path.insert(0, package_root)
-print("Add package root to sys.path: %r" % package_root)
-# for fn in os.listdir(package_root):
-#   print "-", fn
 
 # -- General configuration ------------------------------------------------
 
@@ -112,9 +109,14 @@ try:
     release = pkg_resources.get_distribution('wsgidav').version
 except pkg_resources.DistributionNotFound:
     print('To build the documentation, The distribution information')
-    print('Has to be available.  Either install the package into your')
+    print('has to be available. Either install the package into your')
     print('development environment or run "setup.py develop" to setup the')
     print('metadata.  A virtualenv is recommended!')
+
+    print(f"sys.path: {sys.path}")
+    print(f"package_root: {package_root}")
+    for fn in os.listdir(package_root):
+        print("-", fn)
     sys.exit(1)
 del pkg_resources
 

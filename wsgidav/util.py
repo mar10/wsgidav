@@ -492,6 +492,21 @@ def string_repr(s):
     return "{}".format(s)
 
 
+def removeprefix(self: str, prefix: str, /) -> str:
+    """Drop in for string.removeprefix(prefix) (since Python 3.9)."""
+    if self.startswith(prefix):
+        return self[len(prefix) :]
+    return self[:]
+
+
+def removesuffix(self: str, suffix: str, /) -> str:
+    """Drop in for string.removesuffix(prefix) (since Python 3.9)."""
+    # suffix='' should not call self[:-0].
+    if suffix and self.endswith(suffix):
+        return self[: -len(suffix)]
+    return self[:]
+
+
 def get_file_extension(path):
     ext = os.path.splitext(path)[1]
     return ext
@@ -1046,7 +1061,7 @@ def parse_if_match_header(value):
     """
     res = []
     for etag in value.split(","):
-        etag = etag.strip().removeprefix("W/")
+        etag = removeprefix(etag.strip(), "W/")
         if etag.startswith('"') and etag.endswith('"'):
             etag = etag[1:-1]
         if etag:
