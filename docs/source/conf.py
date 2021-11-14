@@ -11,7 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import pkg_resources
+import importlib.metadata
 import sys
 
 sys.path.insert(0, os.path.abspath("../.."))
@@ -31,8 +31,9 @@ author = "Martin Wendt"
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 try:
-    release = pkg_resources.get_distribution("wsgidav").version
-except pkg_resources.DistributionNotFound:
+    # release = pkg_resources.get_distribution("wsgidav").version
+    release = importlib.metadata.version("wsgidav")
+except importlib.metadata.PackageNotFoundError:
     print("To build the documentation, The distribution information")
     print("has to be available. Either install the package into your")
     print('development environment or run "setup.py develop" to setup the')
@@ -44,7 +45,7 @@ except pkg_resources.DistributionNotFound:
         print("-", fn)
     sys.exit(1)
 
-del pkg_resources
+del importlib.metadata
 
 version = ".".join(release.split(".")[:2])
 

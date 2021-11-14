@@ -39,8 +39,8 @@ WsgiDAV requires
     improvements (speed up performance of PROPPATCH requests up to 10%).
 
 
-Unix / Linux
-------------
+Linux / macOS
+-------------
 
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_ and can
 be installed using `pip <http://www.pip-installer.org/>`_::
