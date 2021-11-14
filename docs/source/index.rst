@@ -17,7 +17,7 @@ written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-3333/>`
 
    Overview<self>
    installation
-   user_guide.md
+   user_guide
    reference_guide
    development
    changes
@@ -43,7 +43,7 @@ Main Features
 
 .. note::
 
-  Release 3.0 introduces some refactorings and breaking changes. |br|
+  Release 4.0 introduces some refactorings and breaking changes. |br|
   See :doc:`changes` for details.
 
 
@@ -86,7 +86,7 @@ Supported Clients
 WsgiDAV comes with a web interface and was tested with different clients
 (Windows File Explorer and drive mapping, MS Office, Ubuntu, Mac OS X, ...).
 
-.. image:: ../teaser.png
+.. image:: teaser.png
   :name: WsgiDAV clients
 
 ..
@@ -94,7 +94,7 @@ WsgiDAV comes with a web interface and was tested with different clients
   	:doc:`run-access`
 
 
-.. |logo| image:: ../logo.png
+.. |logo| image:: logo.png
 
 .. |travis_badge| image:: https://travis-ci.org/mar10/wsgidav.svg?branch=master
    :alt: Build Status
@@ -109,5 +109,5 @@ WsgiDAV comes with a web interface and was tested with different clients
    :target: https://github.com/mar10/wsgidav/blob/master/LICENSE
 
 .. |rtd_badge| image:: https://readthedocs.org/projects/wsgidav/badge/?version=latest
-   :target: http://wsgidav.readthedocs.io/
+   :target: https://wsgidav.readthedocs.io/
    :alt: Documentation Status

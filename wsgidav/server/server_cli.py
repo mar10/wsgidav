@@ -551,7 +551,7 @@ def _run_ext_wsgiutils(app, config, _server):
 
 
 def _run_gevent(app, config, server):
-    """Run WsgiDAV using gevent if gevent (http://www.gevent.org).
+    """Run WsgiDAV using gevent if gevent (https://www.gevent.org).
 
     See
       https://github.com/gevent/gevent/blob/master/src/gevent/pywsgi.py#L1356

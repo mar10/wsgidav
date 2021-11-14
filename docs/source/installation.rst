@@ -14,20 +14,21 @@ Preconditions
 
 WsgiDAV server was tested with these operating systems (among others):
 
-  * Linux (Ubuntu 13)
-  * Mac OS X 10.9
-  * Windows (Windows 10, 8, 7, Vista, XP)
+  * Linux
+  * Mac OS
+  * Windows
 
 WsgiDAV requires
 
-  * `Python <https://www.python.org/downloads/>`_ 2.7 or 3.4+
+  * `Python <https://www.python.org/downloads/>`_ 3.6 or later.
   * A WSGI compliant web server. |br|
     WsigDAV is a WSGI application, that must be served by a compliant web server.
-    Among others, there are `CherryPy / Cheroot <https://github.com/cherrypy/cheroot>`_,
-    `gevent <http://www.gevent.org/>`_,
-    `gunicorn <http://gunicorn.org/>`_,
-    `mod_wsgi <http://modwsgi.readthedocs.io/>`_,
-    `uWSGI <https://uwsgi-docs.readthedocs.io/>`_,
+    Among others, there are
+    `Cheroot <https://cheroot.cherrypy.dev/>`_,
+    `gevent <https://www.gevent.org/>`_,
+    `Gunicorn <https://gunicorn.org/>`_,
+    `Uvicorn <https://www.uvicorn.org/>`_,
+    `wsgiref <https://docs.python.org/3/library/wsgiref.html>`_,
     and many more.
     |br|
     Simply choose a server that suites you best.
@@ -38,8 +39,8 @@ WsgiDAV requires
     improvements (speed up performance of PROPPATCH requests up to 10%).
 
 
-Unix / Linux
-------------
+Linux / macOS
+-------------
 
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_ and can
 be installed using `pip <http://www.pip-installer.org/>`_::
@@ -67,9 +68,6 @@ If everything is cool, this should work now::
     WsgiDAV/2.4.0 Python/3.6.1 Darwin-17.5.0-x86_64-i386-64bit
     $ wsgidav --help
 
-..
-    $ wsgidav --version
-    bash-3.2$     2.3.1
 
 .. seealso::
 

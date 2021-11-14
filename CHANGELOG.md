@@ -12,7 +12,7 @@
   The new option `dir_browser.davmount_links` controls link display (default: false).
 - #185 Fix FileLikeQueue for Python 3
 - #222 Discrepancy between "getetag" property and ETag header
-- TODO: Support LibreOffice in dir_browser
+
 
 ## 3.1.2 / Unreleased
 

@@ -1,3 +1,4 @@
+# Requirements used by Sphinx / RTD
 defusedxml~=0.5
 Jinja2~=2.10
 json5~=0.8.5
