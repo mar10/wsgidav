@@ -1,0 +1,7 @@
+# Used by Sphinx/RTD
+docutils<0.18  # Workaround https://github.com/readthedocs/readthedocs.org/issues/8639
+recommonmark
+requests
+setuptools~=40.2
+sphinx_rtd_theme
+sphinx~=1.6
