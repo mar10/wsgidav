@@ -8,11 +8,11 @@ config:
   gh_auth:
     oauth_token_var: GITHUB_OAUTH_TOKEN
   version:
-    - type: __version__        # First entry is master for synchronizing
+    - type: __version__      # First entry is master for synchronizing
       file: wsgidav/__init__.py
   max_increment: minor
   branches:                  # Allowed git branches
-    - master
+    - maintain_3.x
 
 tasks:
   # 'check': Assert preconditons and fail otherwise
