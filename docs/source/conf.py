@@ -14,10 +14,12 @@ import os
 import importlib.metadata
 import sys
 
-sys.path.insert(0, os.path.abspath("../.."))
+package_root = os.path.abspath("../..")
+sys.path.insert(0, package_root)
 
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
+print(f"on_rtd: {on_rtd}")
 
 # -- Project information -----------------------------------------------------
 
