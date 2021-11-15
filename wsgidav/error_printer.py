@@ -74,17 +74,15 @@ class ErrorPrinter(BaseMiddleware):
                     )
 
                 return
-            except DAVError as e:
-                _logger.debug("re-raising {}".format(e))
-                raise
+            except DAVError:
+                raise  # Deliberately generated or already converted
             except Exception as e:
                 # Caught a non-DAVError
                 # Catch all exceptions to return as 500 Internal Error
-                # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stderr)
                 _logger.error("{}".format(traceback.format_exc(10)))
                 raise as_DAVError(e)
         except DAVError as e:
-            _logger.debug("caught {}".format(e))
+            _logger.debug("Caught {}".format(e))
 
             status = get_http_status_string(e)
             # Dump internal errors to console

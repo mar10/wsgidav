@@ -6,13 +6,13 @@
 - Drop support for Python syntax in config files (wsgidav.conf)
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
 - DAVCollection, DAVNonCollection, DAVProvider are ABCs now
+- API enforces some named keyword args (`..., *, ...`)
 - Move logging options to 'logging' section
 - Add uvicorn server support to CLI, drop flup and CherryPy
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
   The new option `dir_browser.davmount_links` controls link display (default: false).
 - #185 Fix FileLikeQueue for Python 3
 - #222 Discrepancy between "getetag" property and ETag header
-
 
 ## 3.1.2 / Unreleased
 

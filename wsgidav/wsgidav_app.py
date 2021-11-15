@@ -218,7 +218,7 @@ class WsgiDAVApp:
                 if type(args) not in (dict, list, tuple):
                     raise ValueError(f"Invalid middleware opts for {name}: {args}")
                 expand = {"${application}": self.application}
-                app = dynamic_instantiate_middleware(name, args, expand)
+                app = dynamic_instantiate_middleware(name, args, expand=expand)
             elif inspect.isclass(mw):
                 # If a class is passed, assume BaseMiddleware (or compatible)
                 # TODO: remove this assert with 3.0
@@ -297,7 +297,7 @@ class WsgiDAVApp:
                     )
         return
 
-    def add_provider(self, share, provider, readonly=False):
+    def add_provider(self, share, provider, *, readonly=False):
         """Add a provider to the provider_map routing table."""
         # Make sure share starts with, or is '/'
         share = "/" + share.strip("/")
@@ -308,7 +308,7 @@ class WsgiDAVApp:
             #   <mount_path>: <folder_path>
             # We allow a simple string as 'provider'. In this case we interpret
             # it as a file system root folder that is published.
-            provider = FilesystemProvider(provider, readonly)
+            provider = FilesystemProvider(provider, readonly=readonly)
         elif type(provider) in (dict,):
             if "provider" in provider:
                 # Syntax:
@@ -321,7 +321,7 @@ class WsgiDAVApp:
                 # Syntax:
                 #   <mount_path>: {"root": <path>, "redaonly": <bool>}
                 provider = FilesystemProvider(
-                    provider["root"], bool(provider.get("readonly", False))
+                    provider["root"], readonly=bool(provider.get("readonly", False))
                 )
         elif type(provider) in (list, tuple):
             raise ValueError(

@@ -2,11 +2,12 @@
 """
 Abstract base middleware class (optional use).
 """
+from abc import ABC, abstractmethod
 
 __docformat__ = "reStructuredText"
 
 
-class BaseMiddleware:
+class BaseMiddleware(ABC):
     """Abstract base middleware class (optional).
 
     Note: this is a convenience class, that *may* be used to implement WsgiDAV
@@ -28,10 +29,11 @@ class BaseMiddleware:
         self.config = config
         self.verbose = config.get("verbose", 3)
 
+    @abstractmethod
     def __call__(self, environ, start_response):
         raise NotImplementedError
 
-    def __str__(self):
+    def __repr__(self):
         return "{}.{}".format(self.__module__, self.__class__.__name__)
 
     def is_disabled(self):

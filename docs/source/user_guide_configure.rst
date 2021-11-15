@@ -56,14 +56,14 @@ An alternative file name can be specified like so::
 
     $ wsgidav --config=my_config.yaml
 
-To *prevent* the use of of a local default configuration file, use this option::
+To *prevent* the use of a local default configuration file, use this option::
 
     $ wsgidav --no-config
 
 The options described below can be defined for the CLI either
 
-  * in `YAML <http://yaml.org/spec/1.2/spec.html>`_ syntax inside a wsgidav.yaml file
-  * or `JSON <http://www.json.org>`_ syntax inside a wsgidav.json file
+  * in `YAML <https://yaml.org/spec/>`_ syntax inside a wsgidav.yaml file
+  * or `JSON <https://www.json.org/>`_ syntax inside a wsgidav.json file
 
 .. note::
    The three supported file formats are just different ways for the CLI to

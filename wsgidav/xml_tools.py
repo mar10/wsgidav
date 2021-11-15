@@ -69,7 +69,7 @@ def string_to_xml(text):
         raise
 
 
-def xml_to_bytes(element, pretty_print=False):
+def xml_to_bytes(element, *, pretty=False):
     """Wrapper for etree.tostring, that takes care of unsupported pretty_print
     option and prepends an encoding header."""
     if use_lxml:
@@ -77,7 +77,7 @@ def xml_to_bytes(element, pretty_print=False):
             element,
             encoding="UTF-8",
             xml_declaration=True,
-            pretty_print=pretty_print,
+            pretty_print=pretty,
         )
     else:
         xml = etree.tostring(element, encoding="UTF-8")
@@ -95,14 +95,14 @@ def make_multistatus_el():
     return etree.Element("{DAV:}multistatus")
 
 
-def make_prop_el():
+def make_prop_elem():
     """Wrapper for etree.Element, that takes care of unsupported nsmap option."""
     if use_lxml:
         return etree.Element("{DAV:}prop", nsmap={"D": "DAV:"})
     return etree.Element("{DAV:}prop")
 
 
-def make_sub_element(parent, tag, nsmap=None):
+def make_sub_element(parent, tag, *, nsmap=None):
     """Wrapper for etree.SubElement, that takes care of unsupported nsmap option."""
     if use_lxml:
         return etree.SubElement(parent, tag, nsmap=nsmap)
@@ -120,8 +120,8 @@ def element_content_as_string(element):
         return element.text or ""  # Make sure, None is returned as ''
     stream = StringIO()
     for childnode in element:
-        stream.write(xml_to_bytes(childnode, pretty_print=False) + "\n")
-        # print(xml_to_bytes(childnode, pretty_print=False), file=stream)
+        stream.write(xml_to_bytes(childnode, pretty=False) + "\n")
+        # print(xml_to_bytes(childnode, pretty=False), file=stream)
     s = stream.getvalue()
     stream.close()
     return s

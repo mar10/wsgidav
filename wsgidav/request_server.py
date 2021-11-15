@@ -64,9 +64,9 @@ class RequestServer:
             if self._davProvider.lock_manager is not None:
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
-    def __del__(self):
-        # _logger.debug("RequestServer: __del__")
-        pass
+    # def __del__(self):
+    #     # _logger.debug("RequestServer: __del__")
+    #     pass
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
@@ -148,7 +148,12 @@ class RequestServer:
 
     def _fail(self, value, context_info=None, src_exception=None, err_condition=None):
         """Wrapper to raise (and log) DAVError."""
-        util.fail(value, context_info, src_exception, err_condition)
+        util.fail(
+            value,
+            context_info,
+            src_exception=src_exception,
+            err_condition=err_condition,
+        )
 
     def _send_response(
         self, environ, start_response, root_res, success_code, error_list
@@ -200,10 +205,10 @@ class RequestServer:
 
         # raise HTTP_LOCKED if conflict exists
         lock_man.check_write_permission(
-            ref_url,
-            depth,
-            environ["wsgidav.ifLockTokenList"],
-            environ["wsgidav.user_name"],
+            url=ref_url,
+            depth=depth,
+            token_list=environ["wsgidav.ifLockTokenList"],
+            principal=environ["wsgidav.user_name"],
         )
 
     def _evaluate_if_headers(self, res, environ):
@@ -261,7 +266,7 @@ class RequestServer:
         locktokenlist = []
         if lock_man:
             lockList = lock_man.get_indirect_url_lock_list(
-                ref_url, environ["wsgidav.user_name"]
+                ref_url, principal=environ["wsgidav.user_name"]
             )
             for lock in lockList:
                 locktokenlist.append(lock["token"])
@@ -647,7 +652,7 @@ class RequestServer:
                     raise DAVError(
                         HTTP_INTERNAL_ERROR, "Resource could not be deleted."
                     )
-            except Exception as e:
+            except DAVError as e:
                 error_list.append((childRes.get_href(), as_DAVError(e)))
                 ignore_dict[util.get_uri_parent(childRes.path)] = True
 
@@ -841,7 +846,7 @@ class RequestServer:
             _logger.exception("PUT: byte copy failed")
             util.fail(e)
 
-        res.end_write(hasErrors)
+        res.end_write(with_errors=hasErrors)
 
         headers = None
         if res.support_etag():
@@ -877,8 +882,12 @@ class RequestServer:
 
         def _debug_exception(e):
             """Log internal exceptions with stacktrace that otherwise would be hidden."""
-            if self._verbose >= 5:
-                _logger.exception("_debug_exception")
+            if isinstance(e, DAVError):
+                if self._verbose >= 5:
+                    _logger.exception("_debug_exception")
+            else:
+                if self._verbose >= 3:
+                    _logger.exception("_debug_exception")
             return
 
         # --- Check source ----------------------------------------------------
@@ -1023,7 +1032,7 @@ class RequestServer:
                 handled = src_res.handle_move(dest_path)
             else:
                 isInfinity = environ["HTTP_DEPTH"] == "infinity"
-                handled = src_res.handle_copy(dest_path, isInfinity)
+                handled = src_res.handle_copy(dest_path, depth_infinity=isInfinity)
             assert handled in (True, False) or type(handled) is list
             if type(handled) is list:
                 error_list = handled
@@ -1140,7 +1149,7 @@ class RequestServer:
                 # We copy resources and their properties top-down.
                 # Collections are simply created (without members), for
                 # non-collections bytes are copied (overwriting target)
-                sres.copy_move_single(dpath, is_move)
+                sres.copy_move_single(dpath, is_move=is_move)
 
                 # If copy succeeded, and it was a non-collection delete it now.
                 # So the source tree shrinks while the destination grows and we
@@ -1251,13 +1260,13 @@ class RequestServer:
                 )
             # TODO: test, if token is owned by user
 
-            lock = lock_man.refresh(submitted_token_list[0], timeout_secs)
+            lock = lock_man.refresh(submitted_token_list[0], timeout=timeout_secs)
 
             # The lock root may be <path>, or a parent of <path>.
             lock_path = provider.ref_url_to_path(lock["root"])
             lock_res = provider.get_resource_inst(lock_path, environ)
 
-            prop_el = xml_tools.make_prop_el()
+            prop_el = xml_tools.make_prop_elem()
             # TODO: handle exceptions in get_property_value
             lockdiscovery_el = lock_res.get_property_value("{DAV:}lockdiscovery")
             prop_el.append(lockdiscovery_el)
@@ -1300,7 +1309,7 @@ class RequestServer:
 
             elif linode.tag == "{DAV:}owner":
                 # Store whole <owner> tag, so we can use etree.XML() later
-                lock_owner = xml_tools.xml_to_bytes(linode, pretty_print=False)
+                lock_owner = xml_tools.xml_to_bytes(linode, pretty=False)
 
             else:
                 self._fail(HTTP_BAD_REQUEST, "Invalid node '{}'.".format(linode.tag))
@@ -1329,18 +1338,18 @@ class RequestServer:
 
         # May raise DAVError(HTTP_LOCKED):
         lock = lock_man.acquire(
-            res.get_ref_url(),
-            lock_type,
-            lock_scope,
-            lock_depth,
-            lock_owner,
-            timeout_secs,
-            environ["wsgidav.user_name"],
-            submitted_token_list,
+            url=res.get_ref_url(),
+            lock_type=lock_type,
+            lock_scope=lock_scope,
+            lock_depth=lock_depth,
+            lock_owner=lock_owner,
+            timeout=timeout_secs,
+            principal=environ["wsgidav.user_name"],
+            token_list=submitted_token_list,
         )
 
         # Lock succeeded
-        prop_el = xml_tools.make_prop_el()
+        prop_el = xml_tools.make_prop_elem()
         # TODO: handle exceptions in get_property_value
         lockdiscovery_el = res.get_property_value("{DAV:}lockdiscovery")
         prop_el.append(lockdiscovery_el)

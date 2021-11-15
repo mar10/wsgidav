@@ -17,9 +17,9 @@ from wsgidav.util import (
     is_child_uri,
     is_equal_or_child_uri,
     join_uri,
-    lstripstr,
     parse_if_match_header,
     pop_path,
+    removeprefix,
     shift_path,
 )
 
@@ -64,9 +64,9 @@ class BasicTest(unittest.TestCase):
         assert is_equal_or_child_uri("/a/b", "/a/b/c")
         assert is_equal_or_child_uri("/a/b", "/a/b/c")
 
-        assert lstripstr("/dav/a/b", "/dav") == "/a/b"
-        assert lstripstr("/dav/a/b", "/DAV") == "/dav/a/b"
-        assert lstripstr("/dav/a/b", "/DAV", True) == "/a/b"
+        assert removeprefix("/dav/a/b", "/dav") == "/a/b"
+        assert removeprefix("/dav/a/b", "/DAV") == "/dav/a/b"
+        assert removeprefix("/dav/a/b", "/DAV", ignore_case=True) == "/a/b"
 
         assert pop_path("/a/b/c") == ("a", "/b/c")
         assert pop_path("/a/b/") == ("a", "/b/")

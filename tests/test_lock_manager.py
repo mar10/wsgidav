@@ -60,14 +60,14 @@ class BasicTest(unittest.TestCase):
         """Wrapper for lm.acquire, that returns None instead of raising DAVError."""
         try:
             return self.lm.acquire(
-                url,
-                lock_type,
-                lock_scope,
-                lock_depth,
-                lock_owner,
-                timeout,
-                principal,
-                token_list,
+                url=url,
+                lock_type=lock_type,
+                lock_scope=lock_scope,
+                lock_depth=lock_depth,
+                lock_owner=lock_owner,
+                timeout=timeout,
+                principal=principal,
+                token_list=token_list,
             )
         except DAVError:
             return None
@@ -213,7 +213,7 @@ class BasicTest(unittest.TestCase):
 
         # Test lookup
         tok = lock_dict.get("token")
-        assert lm.get_lock(tok, "root") == url
+        assert lm.get_lock(tok, key="root") == url
 
         lock_dict = lm.get_lock(tok)
 
@@ -271,7 +271,7 @@ class BasicTest(unittest.TestCase):
 
         assert lock_dict is not None
         tok = lock_dict.get("token")
-        assert lm.get_lock(tok, "root") == self.root
+        assert lm.get_lock(tok, key="root") == self.root
 
         sleep(timeout - 0.5)
         lock_dict = lm.get_lock(tok)

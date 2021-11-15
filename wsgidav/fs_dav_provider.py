@@ -84,7 +84,7 @@ class FileResource(DAVNonCollection):
         # content-length will be wrong.
         return open(self._file_path, "rb", BUFFER_SIZE)
 
-    def begin_write(self, content_type=None):
+    def begin_write(self, *, content_type=None):
         """Open content as a stream for writing.
 
         See DAVResource.begin_write()
@@ -104,10 +104,10 @@ class FileResource(DAVNonCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         os.unlink(self._file_path)
-        self.remove_all_properties(True)
-        self.remove_all_locks(True)
+        self.remove_all_properties(recursive=True)
+        self.remove_all_locks(recursive=True)
 
-    def copy_move_single(self, dest_path, is_move):
+    def copy_move_single(self, dest_path, *, is_move):
         """See DAVResource.copy_move_single()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
@@ -156,7 +156,7 @@ class FileResource(DAVNonCollection):
                 environ=self.environ,
             )
 
-    def set_last_modified(self, dest_path, time_stamp, dry_run):
+    def set_last_modified(self, dest_path, time_stamp, *, dry_run):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         # Translate time from RFC 1123 to seconds since epoch format
         secs = util.parse_time_string(time_stamp)
@@ -177,7 +177,6 @@ class FolderResource(DAVCollection):
     def __init__(self, path, environ, file_path):
         super(FolderResource, self).__init__(path, environ)
         self._file_path = file_path
-        #        self._dict = None
         self.file_stat = os.stat(self._file_path)
         # Setting the name from the file path should fix the case on Windows
         self.name = os.path.basename(self._file_path)
@@ -284,10 +283,10 @@ class FolderResource(DAVCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         shutil.rmtree(self._file_path, ignore_errors=False)
-        self.remove_all_properties(True)
-        self.remove_all_locks(True)
+        self.remove_all_properties(recursive=True)
+        self.remove_all_locks(recursive=True)
 
-    def copy_move_single(self, dest_path, is_move):
+    def copy_move_single(self, dest_path, *, is_move):
         """See DAVResource.copy_move_single()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
@@ -343,7 +342,7 @@ class FolderResource(DAVCollection):
                 environ=self.environ,
             )
 
-    def set_last_modified(self, dest_path, time_stamp, dry_run):
+    def set_last_modified(self, dest_path, time_stamp, *, dry_run):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         # Translate time from RFC 1123 to seconds since epoch format
         secs = util.parse_time_string(time_stamp)
@@ -356,7 +355,7 @@ class FolderResource(DAVCollection):
 # FilesystemProvider
 # ========================================================================
 class FilesystemProvider(DAVProvider):
-    def __init__(self, root_folder_path, readonly=False):
+    def __init__(self, root_folder_path, *, readonly=False):
         # Expand leading '~' as user home dir; expand %VAR%, $Var, ..
         root_folder_path = os.path.expandvars(os.path.expanduser(root_folder_path))
         root_folder_path = os.path.abspath(root_folder_path)

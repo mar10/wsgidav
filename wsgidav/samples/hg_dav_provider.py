@@ -218,13 +218,13 @@ class HgResource(_DAVResource):
             return {"type": "Directory"}
         return {"type": "File"}
 
-    def get_property_names(self, is_allprop):
+    def get_property_names(self, *, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super(HgResource, self).get_property_names(is_allprop)
+        propNameList = super(HgResource, self).get_property_names(is_allprop=is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
         if self.fctx:
             propNameList.extend(
@@ -324,7 +324,7 @@ class HgResource(_DAVResource):
         d = self.fctx.data()
         return util.StringIO(d)
 
-    def begin_write(self, content_type=None):
+    def begin_write(self, *, content_type=None):
         """Open content as a stream for writing.
 
         See DAVResource.begin_write()
@@ -337,7 +337,7 @@ class HgResource(_DAVResource):
         #            mode = "w"
         return open(self.absFilePath, mode, BUFFER_SIZE)
 
-    def end_write(self, with_errors):
+    def end_write(self, *, with_errors):
         """Called when PUT has finished writing.
 
         See DAVResource.end_write()
@@ -363,7 +363,7 @@ class HgResource(_DAVResource):
         filepath = self._getFilePath()
         commands.remove(self.provider.ui, self.provider.repo, filepath, force=True)
 
-    def handle_copy(self, dest_path, depth_infinity):
+    def handle_copy(self, dest_path, *, depth_infinity):
         """Handle a COPY request natively."""
         destType, destHgPath = util.pop_path(dest_path)
         destHgPath = destHgPath.strip("/")

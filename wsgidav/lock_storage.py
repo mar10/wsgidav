@@ -99,8 +99,8 @@ class LockStorageDict:
     def __repr__(self):
         return self.__class__.__name__
 
-    def __del__(self):
-        pass
+    # def __del__(self):
+    #     pass
 
     def _flush(self):
         """Overloaded by Shelve implementation."""
@@ -222,7 +222,7 @@ class LockStorageDict:
         finally:
             self._lock.release()
 
-    def refresh(self, token, timeout):
+    def refresh(self, token, *, timeout):
         """Modify an existing lock's timeout.
 
         token:
@@ -283,7 +283,7 @@ class LockStorageDict:
             self._lock.release()
         return True
 
-    def get_lock_list(self, path, include_root, include_children, token_only):
+    def get_lock_list(self, path, *, include_root, include_children, token_only):
         """Return a list of direct locks for <path>.
 
         Expired locks are *not* returned (but may be purged).

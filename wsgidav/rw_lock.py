@@ -63,7 +63,7 @@ class ReadWriteLock:
         # Initialize with no readers.
         self.__readers = {}
 
-    def acquire_read(self, timeout=None):
+    def acquire_read(self, *, timeout=None):
         """Acquire a read lock for the current thread, waiting at most
         timeout seconds or doing a non-blocking check in case timeout is <= 0.
 
@@ -110,7 +110,7 @@ class ReadWriteLock:
         finally:
             self.__condition.release()
 
-    def acquire_write(self, timeout=None):
+    def acquire_write(self, *, timeout=None):
         """Acquire a write lock for the current thread, waiting at most
         timeout seconds or doing a non-blocking check in case timeout is <= 0.
 

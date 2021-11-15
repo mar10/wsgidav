@@ -300,7 +300,7 @@ def init_logging(config):
     return
 
 
-def get_module_logger(moduleName, defaultToVerbose=False):
+def get_module_logger(moduleName, *, default_to_verbose=False):
     """Create a module logger, that can be en/disabled by configuration.
 
     @see: unit.init_logging
@@ -309,7 +309,7 @@ def get_module_logger(moduleName, defaultToVerbose=False):
     if not moduleName.startswith(BASE_LOGGER_NAME + "."):
         moduleName = BASE_LOGGER_NAME + "." + moduleName
     logger = logging.getLogger(moduleName)
-    # if logger.level == logging.NOTSET and not defaultToVerbose:
+    # if logger.level == logging.NOTSET and not default_to_verbose:
     #     logger.setLevel(logging.INFO)  # Disable debug messages by default
     return logger
 
@@ -342,7 +342,7 @@ def dynamic_import_class(name):
     return the_class
 
 
-def dynamic_instantiate_middleware(name, options, expand=None):
+def dynamic_instantiate_middleware(name, options, *, expand=None):
     """Import a class and instantiate with custom args.
 
     Examples:
@@ -393,8 +393,9 @@ def dynamic_instantiate_middleware(name, options, expand=None):
 # ========================================================================
 
 
-def lstripstr(s, prefix, ignoreCase=False):
-    if ignoreCase:
+def removeprefix(s: str, prefix: str, ignore_case: bool = False) -> str:
+    """Replacement for str.removeprefix() (Py3.9+) with ignore_case option."""
+    if ignore_case:
         if not s.lower().startswith(prefix.lower()):
             return s
     else:
@@ -435,7 +436,7 @@ def shift_path(script_name, path_info):
     return (segment, join_uri(script_name.rstrip("/"), segment), rest.rstrip("/"))
 
 
-def split_namespace(clarkName):
+def split_namespace(clark_name):
     """Return (namespace, localname) tuple for a property name in Clark Notation.
 
     Namespace defaults to ''.
@@ -443,10 +444,10 @@ def split_namespace(clarkName):
     '{DAV:}foo'  -> ('DAV:', 'foo')
     'bar'  -> ('', 'bar')
     """
-    if clarkName.startswith("{") and "}" in clarkName:
-        ns, localname = clarkName.split("}", 1)
+    if clark_name.startswith("{") and "}" in clark_name:
+        ns, localname = clark_name.split("}", 1)
         return (ns[1:], localname)
-    return ("", clarkName)
+    return ("", clark_name)
 
 
 def to_unicode_safe(s):
@@ -461,7 +462,7 @@ def to_unicode_safe(s):
     return u
 
 
-def safe_re_encode(s, encoding_to, errors="backslashreplace"):
+def safe_re_encode(s, encoding_to, *, errors="backslashreplace"):
     """Re-encode str or binary so that is compatible with a given encoding (replacing
     unsupported chars).
 
@@ -492,27 +493,13 @@ def string_repr(s):
     return "{}".format(s)
 
 
-def removeprefix(self: str, prefix: str) -> str:
-    """Drop in for string.removeprefix(prefix) (since Python 3.9)."""
-    if self.startswith(prefix):
-        return self[len(prefix) :]
-    return self[:]
-
-
-def removesuffix(self: str, suffix: str) -> str:
-    """Drop in for string.removesuffix(prefix) (since Python 3.9)."""
-    if suffix and self.endswith(suffix):
-        return self[: -len(suffix)]
-    return self[:]
-
-
 def get_file_extension(path):
     ext = os.path.splitext(path)[1]
     return ext
 
 
 def byte_number_string(
-    number, thousandsSep=True, partition=False, base1024=True, appendBytes=True
+    number, *, thousands_sep=True, partition=False, base1024=True, append_bytes=True
 ):
     """Convert bytes into human-readable representation."""
     magsuffix = ""
@@ -533,13 +520,13 @@ def byte_number_string(
         # http://en.wikipedia.org/wiki/Kibi-#IEC_standard_prefixes
         magsuffix = ["", "K", "M", "G", "T", "P"][magnitude]
 
-    if appendBytes:
+    if append_bytes:
         if number == 1:
             bytesuffix = " Byte"
         else:
             bytesuffix = " Bytes"
 
-    if thousandsSep and (number >= 1000 or magsuffix):
+    if thousands_sep and (number >= 1000 or magsuffix):
         # locale.setlocale(locale.LC_ALL, "")
         # # TODO: make precision configurable
         # snum = locale.format("%d", number, thousandsSep)
@@ -651,12 +638,17 @@ def read_and_discard_input(environ):
             _logger.error("--> wsgi_input.read(): {}".format(sys.exc_info()))
 
 
-def fail(value, context_info=None, src_exception=None, err_condition=None):
+def fail(value, context_info=None, *, src_exception=None, err_condition=None):
     """Wrapper to raise (and log) DAVError."""
     if isinstance(value, Exception):
         e = as_DAVError(value)
     else:
-        e = DAVError(value, context_info, src_exception, err_condition)
+        e = DAVError(
+            value,
+            context_info,
+            src_exception=src_exception,
+            err_condition=err_condition,
+        )
     _logger.debug("Raising DAVError {}".format(e.get_user_info()))
     raise e
 
@@ -722,34 +714,34 @@ def get_uri_parent(uri: str) -> Optional[str]:
     return uri.rstrip("/").rsplit("/", 1)[0] + "/"
 
 
-def is_child_uri(parentUri: str, childUri: str) -> bool:
-    """Return True, if childUri is a child of parentUri.
+def is_child_uri(parent_uri: str, child_uri: str) -> bool:
+    """Return True, if child_uri is a child of parent_uri.
 
     This function accounts for the fact that '/a/b/c' and 'a/b/c/' are
     children of '/a/b' (and also of '/a/b/').
     Note that '/a/b/cd' is NOT a child of 'a/b/c'.
     """
     return (
-        bool(parentUri)
-        and bool(childUri)
-        and childUri.rstrip("/").startswith(parentUri.rstrip("/") + "/")
+        bool(parent_uri)
+        and bool(child_uri)
+        and child_uri.rstrip("/").startswith(parent_uri.rstrip("/") + "/")
     )
 
 
-def is_equal_or_child_uri(parentUri, childUri):
-    """Return True, if childUri is a child of parentUri or maps to the same resource.
+def is_equal_or_child_uri(parent_uri, child_uri):
+    """Return True, if child_uri is a child of parent_uri or maps to the same resource.
 
     Similar to <util.is_child_uri>_ ,  but this method also returns True, if parent
     equals child. ('/a/b' is considered identical with '/a/b/').
     """
     return (
-        parentUri
-        and childUri
-        and (childUri.rstrip("/") + "/").startswith(parentUri.rstrip("/") + "/")
+        parent_uri
+        and child_uri
+        and (child_uri.rstrip("/") + "/").startswith(parent_uri.rstrip("/") + "/")
     )
 
 
-def make_complete_url(environ, localUri=None):
+def make_complete_url(environ, local_uri=None):
     """URL reconstruction according to PEP 333.
     @see https://www.python.org/dev/peps/pep-3333/#url-reconstruction
     """
@@ -769,12 +761,12 @@ def make_complete_url(environ, localUri=None):
 
     url += quote(environ.get("SCRIPT_NAME", ""))
 
-    if localUri is None:
+    if local_uri is None:
         url += quote(environ.get("PATH_INFO", ""))
         if environ.get("QUERY_STRING"):
             url += "?" + environ["QUERY_STRING"]
     else:
-        url += localUri  # TODO: quote?
+        url += local_uri  # TODO: quote?
     return url
 
 
@@ -783,7 +775,7 @@ def make_complete_url(environ, localUri=None):
 # ========================================================================
 
 
-def parse_xml_body(environ, allow_empty=False):
+def parse_xml_body(environ, *, allow_empty=False):
     """Read request body XML into an etree.Element.
 
     Return None, if no request body was sent.
@@ -860,7 +852,7 @@ def parse_xml_body(environ, allow_empty=False):
         _logger.info(
             "{} XML request body:\n{}".format(
                 environ["REQUEST_METHOD"],
-                to_str(xml_to_bytes(rootEL, pretty_print=True)),
+                to_str(xml_to_bytes(rootEL, pretty=True)),
             )
         )
         environ["wsgidav.dump_request_body"] = False
@@ -879,7 +871,9 @@ def parse_xml_body(environ, allow_empty=False):
 #    return [ body ]
 
 
-def send_status_response(environ, start_response, e, add_headers=None, is_head=False):
+def send_status_response(
+    environ, start_response, e, *, add_headers=None, is_head=False
+):
     """Start a WSGI response for a DAVError or status code."""
     status = get_http_status_string(e)
     headers = []
@@ -918,20 +912,20 @@ def send_status_response(environ, start_response, e, add_headers=None, is_head=F
     return [body]
 
 
-def send_multi_status_response(environ, start_response, multistatusEL):
+def send_multi_status_response(environ, start_response, multistatus_elem):
     # If logging of the body is desired, then this is the place to do it
     # pretty:
     if environ.get("wsgidav.dump_response_body"):
         xml = "{} XML response body:\n{}".format(
             environ["REQUEST_METHOD"],
-            to_str(xml_to_bytes(multistatusEL, pretty_print=True)),
+            to_str(xml_to_bytes(multistatus_elem, pretty=True)),
         )
         environ["wsgidav.dump_response_body"] = xml
 
     # Hotfix for Windows XP
     # PROPFIND XML response is not recognized, when pretty_print = True!
     # (Vista and others would accept this).
-    xml_data = xml_to_bytes(multistatusEL, pretty_print=False)
+    xml_data = xml_to_bytes(multistatus_elem, pretty=False)
     # If not, Content-Length is wrong!
     assert is_bytes(xml_data), xml_data
 
@@ -950,7 +944,7 @@ def send_multi_status_response(environ, start_response, multistatusEL):
     return [xml_data]
 
 
-def add_property_response(multistatusEL, href, propList):
+def add_property_response(multistatus_elem, href, prop_list):
     """Append <response> element to <multistatus> element.
 
     <prop> node depends on the value type:
@@ -959,17 +953,17 @@ def add_property_response(multistatusEL, href, propList):
       - etree.Element: add XML element as child
       - DAVError: add an empty element to an own <propstatus> for this status code
 
-    @param multistatusEL: etree.Element
+    @param multistatus_elem: etree.Element
     @param href: global URL of the resource, e.g. 'http://server:port/path'.
-    @param propList: list of 2-tuples (name, value)
+    @param prop_list: list of 2-tuples (name, value)
     """
-    # Split propList by status code and build a unique list of namespaces
+    # Split prop_list by status code and build a unique list of namespaces
     nsCount = 1
     nsDict = {}
     nsMap = {}
     propDict = {}
 
-    for name, value in propList:
+    for name, value in prop_list:
         status = "200 OK"
         if isinstance(value, DAVError):
             status = get_http_status_string(value)
@@ -987,7 +981,7 @@ def add_property_response(multistatusEL, href, propList):
         propDict.setdefault(status, []).append((name, value))
 
     # <response>
-    responseEL = make_sub_element(multistatusEL, "{DAV:}response", nsmap=nsMap)
+    responseEL = make_sub_element(multistatus_elem, "{DAV:}response", nsmap=nsMap)
 
     #    log("href value:{}".format(string_repr(href)))
     #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)

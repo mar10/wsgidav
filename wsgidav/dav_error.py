@@ -163,7 +163,7 @@ class DAVErrorCondition:
         return error_el
 
     def as_string(self):
-        return util.to_str(xml_tools.xml_to_bytes(self.as_xml(), True))
+        return util.to_str(xml_tools.xml_to_bytes(self.as_xml(), pretty=True))
 
 
 # ========================================================================
@@ -183,7 +183,7 @@ class DAVError(Exception):
     #     This would be helpful for debugging.
 
     def __init__(
-        self, status_code, context_info=None, src_exception=None, err_condition=None
+        self, status_code, context_info=None, *, src_exception=None, err_condition=None
     ):
         # allow passing of Pre- and Postconditions, see
         # http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
@@ -199,9 +199,6 @@ class DAVError(Exception):
 
     def __repr__(self):
         return "DAVError({})".format(self.get_user_info())
-
-    def __str__(self):  # Required for 2.4
-        return self.__repr__()
 
     def get_user_info(self):
         """Return readable string."""

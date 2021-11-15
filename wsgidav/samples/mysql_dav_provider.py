@@ -244,7 +244,7 @@ class MySQLBrowserResource(_DAVResource):
         filestream.seek(0)
         return filestream
 
-    def get_property_names(self, is_allprop):
+    def get_property_names(self, *, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         Return supported live and dead properties. (See also DAVProvider.get_property_names().)
@@ -252,7 +252,9 @@ class MySQLBrowserResource(_DAVResource):
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super(MySQLBrowserResource, self).get_property_names(is_allprop)
+        propNames = super(MySQLBrowserResource, self).get_property_names(
+            is_allprop=is_allprop
+        )
         # Add fieldnames as properties
         tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:

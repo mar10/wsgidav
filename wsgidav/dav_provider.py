@@ -176,7 +176,7 @@ class _DAVResource(ABC):
         self.name = util.get_uri_name(self.path)
 
     def __repr__(self):
-        return "{}({!r})".format(self.__class__.__name__, self.path)
+        return f"{self.__class__.__name__}({self.path!r})"
 
     #    def getContentLanguage(self):
     #        """Contains the Content-Language header returned by a GET without accept
@@ -291,7 +291,7 @@ class _DAVResource(ABC):
         """
         return None
 
-    def set_last_modified(self, dest_path, time_stamp, dry_run):
+    def set_last_modified(self, dest_path, time_stamp, *, dry_run):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         raise NotImplementedError
 
@@ -442,6 +442,7 @@ class _DAVResource(ABC):
 
     def get_descendants(
         self,
+        *,
         collections=True,
         resources=True,
         depth_first=False,
@@ -480,7 +481,11 @@ class _DAVResource(ABC):
                 if child.is_collection and depth == "infinity":
                     res.extend(
                         child.get_descendants(
-                            collections, resources, depth_first, depth, add_self=False
+                            collections=collections,
+                            resources=resources,
+                            depth_first=depth_first,
+                            depth=depth,
+                            add_self=False,
                         )
                     )
                 if want and depth_first:
@@ -491,7 +496,7 @@ class _DAVResource(ABC):
 
     # --- Properties ---------------------------------------------------------
 
-    def get_property_names(self, is_allprop):
+    def get_property_names(self, *, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         Note that 'allprop', despite its name, which remains for
@@ -542,7 +547,7 @@ class _DAVResource(ABC):
 
         return propNameList
 
-    def get_properties(self, mode, name_list=None):
+    def get_properties(self, mode, *, name_list=None):
         """Return properties as list of 2-tuples (name, value).
 
         If mode is 'name', then None is returned for the value.
@@ -568,7 +573,7 @@ class _DAVResource(ABC):
             # TODO: 'allprop' could have nameList, when <include> option is
             # implemented
             assert name_list is None
-            name_list = self.get_property_names(mode == "allprop")
+            name_list = self.get_property_names(is_allprop=mode == "allprop")
         else:
             assert name_list is not None
 
@@ -726,7 +731,7 @@ class _DAVResource(ABC):
         # No persistence available, or property not found
         raise DAVError(HTTP_NOT_FOUND)
 
-    def set_property_value(self, name, value, dry_run=False):
+    def set_property_value(self, name, value, *, dry_run=False):
         """Set a property value or remove a property.
 
         value == None means 'remove property'.
@@ -817,7 +822,7 @@ class _DAVResource(ABC):
 
         raise DAVError(HTTP_FORBIDDEN)
 
-    def remove_all_properties(self, recursive):
+    def remove_all_properties(self, *, recursive):
         """Remove all associated dead properties."""
         if self.provider.prop_manager:
             self.provider.prop_manager.remove_properties(
@@ -841,7 +846,7 @@ class _DAVResource(ABC):
             return False
         return self.provider.lock_manager.is_url_locked(self.get_ref_url())
 
-    def remove_all_locks(self, recursive):
+    def remove_all_locks(self, *, recursive):
         if self.provider.lock_manager:
             self.provider.lock_manager.remove_all_locks_from_url(self.get_ref_url())
 
@@ -895,7 +900,7 @@ class _DAVResource(ABC):
         assert not self.is_collection
         raise NotImplementedError
 
-    def begin_write(self, content_type=None):
+    def begin_write(self, *, content_type=None):
         """Open content as a stream for writing.
 
         This method MUST be implemented by all providers that support write
@@ -904,7 +909,7 @@ class _DAVResource(ABC):
         assert not self.is_collection
         raise DAVError(HTTP_FORBIDDEN)
 
-    def end_write(self, with_errors):
+    def end_write(self, *, with_errors):
         """Called when PUT has finished writing.
 
         This is only a notification. that MAY be handled.
@@ -989,7 +994,7 @@ class _DAVResource(ABC):
         """
         raise NotImplementedError
 
-    def handle_copy(self, dest_path, depth_infinity):
+    def handle_copy(self, dest_path, *, depth_infinity):
         """Handle a COPY request natively.
 
         This method is called by the COPY handler after checking for valid
@@ -1026,7 +1031,7 @@ class _DAVResource(ABC):
         """
         return False
 
-    def copy_move_single(self, dest_path, is_move):
+    def copy_move_single(self, dest_path, *, is_move):
         """Copy or move this resource to destPath (non-recursive).
 
         Preconditions (ensured by caller):
@@ -1244,7 +1249,7 @@ class DAVNonCollection(_DAVResource):
         """
         return False
 
-    def begin_write(self, content_type=None):
+    def begin_write(self, *, content_type=None):
         """Open content as a stream for writing.
 
         This method MUST be implemented by all providers that support write
@@ -1252,7 +1257,7 @@ class DAVNonCollection(_DAVResource):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def end_write(self, with_errors):
+    def end_write(self, *, with_errors):
         """Called when PUT has finished writing.
 
         This is only a notification that MAY be handled.
@@ -1420,7 +1425,7 @@ class DAVCollection(_DAVResource):
         """
         raise DAVError(HTTP_FORBIDDEN)
 
-    def copy_move_single(self, dest_path, is_move):
+    def copy_move_single(self, dest_path, *, is_move):
         """Copy or move this resource to destPath (non-recursive).
 
         This method MUST be implemented if resource allows write access.
@@ -1522,7 +1527,7 @@ class DAVProvider(ABC):
 
         Used to calculate the <path> from a storage key by inverting get_ref_url().
         """
-        return "/" + unquote(util.lstripstr(ref_url, self.share_path)).lstrip("/")
+        return "/" + unquote(util.removeprefix(ref_url, self.share_path)).lstrip("/")
 
     @abstractmethod
     def get_resource_inst(self, path, environ):

@@ -49,7 +49,7 @@ class MockProxyResource(DAVNonCollection):
     def support_etag(self):
         return False
 
-    def begin_write(self, content_type=None):
+    def begin_write(self, *, content_type=None):
         # print("begin_write: {}".format(self.target_path))
         queue = FileLikeQueue(max_size=1)
 
@@ -74,7 +74,7 @@ class MockProxyResource(DAVNonCollection):
         self.worker.start()
         return queue
 
-    def end_write(self, with_errors):
+    def end_write(self, *, with_errors):
         print("end_write: {}".format(self.target_path))
         self.worker.join()
 

@@ -321,7 +321,7 @@ class VirtualResource(DAVCollection):
         self.data["tags"].remove(tag)
         return True  # OK
 
-    def handle_copy(self, dest_path, depth_infinity):
+    def handle_copy(self, dest_path, *, depth_infinity):
         """Change semantic of COPY to add resource tags."""
         # destPath must be '/by_tag/<tag>/<resname>'
         if "/by_tag/" not in dest_path:
@@ -353,13 +353,15 @@ class VirtualResource(DAVCollection):
         refPath = "/by_key/%s" % self.data["key"]
         return quote(self.provider.share_path + refPath)
 
-    def get_property_names(self, is_allprop):
+    def get_property_names(self, *, is_allprop):
         """Return list of supported property names in Clark Notation.
 
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super(VirtualResource, self).get_property_names(is_allprop)
+        propNameList = super(VirtualResource, self).get_property_names(
+            is_allprop=is_allprop
+        )
         # Add custom live properties (report on 'allprop' and 'propnames')
         propNameList.extend(VirtualResource._supportedProps)
         return propNameList

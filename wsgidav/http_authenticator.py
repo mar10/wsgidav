@@ -492,7 +492,7 @@ class HTTPAuthenticator(BaseMiddleware):
         if not is_invalid_req:
             req_method = environ["REQUEST_METHOD"]
 
-            required_digest = self.compute_digest_response(
+            required_digest = self._compute_digest_response(
                 realm,
                 req_username,
                 req_method,
@@ -514,14 +514,14 @@ class HTTPAuthenticator(BaseMiddleware):
                 )
             elif required_digest != req_response:
                 warning_msg = (
-                    "compute_digest_response('{}', '{}', ...): {} != {}".format(
+                    "_compute_digest_response('{}', '{}', ...): {} != {}".format(
                         realm, req_username, required_digest, req_response
                     )
                 )
                 if self.winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest
-                    root_digest = self.compute_digest_response(
+                    root_digest = self._compute_digest_response(
                         "/",
                         req_username,
                         req_method,
@@ -571,7 +571,7 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["wsgidav.auth.user_name"] = req_username
         return self.next_app(environ, start_response)
 
-    def compute_digest_response(
+    def _compute_digest_response(
         self, realm, user_name, method, uri, nonce, cnonce, qop, nc, environ
     ):
         """Computes digest hash.
