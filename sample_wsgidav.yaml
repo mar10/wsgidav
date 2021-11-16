@@ -35,18 +35,22 @@ hotfixes:
     win_accept_anonymous_options: false
     #: See issue #8
     unquote_path_info: false
-    #: (See issue #73) Set null to activate on Python 3 only
-    re_encode_path_info: null
-    # Handle Microsoft's Win32LastModifiedTime property.
-    # This is useful only in the case when you copy files from a Windows
-    # client into a WebDAV share. Windows sends the "last modified" time of
-    # the file in a Microsoft extended property called "Win32LastModifiedTime"
-    # instead of the standard WebDAV property "getlastmodified". So without
-    # this config option set to "True", the "last modified" time of the copied
-    # file will be "now" instead of its original value.
-    # The proper solution for dealing with the Windows WebDAV client is to use
-    # a persistent property manager. This setting is merely a work-around.
-    # NOTE: Works with Win10, can't work with Win7. Other versions untested.
+    #: Re-encode PATH_INFO using UTF-8 (falling back to ISO-8859-1).
+    #: This seems to be wrong, since per PEP 3333 PATH_INFO is always ISO-8859-1
+    #: encoded (see https://www.python.org/dev/peps/pep-3333/#unicode-issues).
+    #: However it also seems to resolve errors when accessing resources with
+    #: Chinese characters, for example (see issue #73).
+    re_encode_path_info: true
+    #: Handle Microsoft's Win32LastModifiedTime property.
+    #: This is useful only in the case when you copy files from a Windows
+    #: client into a WebDAV share. Windows sends the "last modified" time of
+    #: the file in a Microsoft extended property called "Win32LastModifiedTime"
+    #: instead of the standard WebDAV property "getlastmodified". So without
+    #: this config option set to "True", the "last modified" time of the copied
+    #: file will be "now" instead of its original value.
+    #: The proper solution for dealing with the Windows WebDAV client is to use
+    #: a persistent property manager. This setting is merely a work-around.
+    #: NOTE: Works with Win10, can't work with Win7. Other versions untested.
     emulate_win32_lastmod: true
 
 

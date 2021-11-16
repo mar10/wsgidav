@@ -95,7 +95,7 @@ def _check_config(config):
         "dir_browser.ms_sharepoint_url": "dir_browser.ms_sharepoint_support",
         "domain_controller": "http_authenticator.domain_controller",
         "domaincontroller": "http_authenticator.domain_controller",
-        "emulate_win32_lastmod": "hotfix.emulate_win32_lastmod",
+        "emulate_win32_lastmod": "hotfixes.emulate_win32_lastmod",
         "enable_loggers": "logging.enable_loggers",
         "error_printer.catch_all": "(removed)",
         "http_authenticator.preset_domain": "nt_dc.preset_domain",
@@ -106,9 +106,9 @@ def _check_config(config):
         "logging.verbose": "verbose",  # prevent a likely mistake
         "mutableLiveProps": "mutable_live_props",
         "propsmanager": "property_manager",
-        "re_encode_path_info": "hotfix.re_encode_path_info",
+        "re_encode_path_info": "hotfixes.re_encode_path_info",
         "trusted_auth_header": "http_authenticator.trusted_auth_header",
-        "unquote_path_info": "hotfix.unquote_path_info",
+        "unquote_path_info": "hotfixes.unquote_path_info",
         "user_mapping": "simple_dc.user_mapping",
         # "dir_browser.enable": "middleware_stack",
     }
@@ -145,10 +145,7 @@ class WsgiDAVApp:
 
         hotfixes = config.get("hotfixes", {})
 
-        self.re_encode_path_info = hotfixes.get("re_encode_path_info", None)
-        if self.re_encode_path_info is None:
-            self.re_encode_path_info = True
-
+        self.re_encode_path_info = hotfixes.get("re_encode_path_info", True)
         self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
         lock_storage = config.get("lock_manager")

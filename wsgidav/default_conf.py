@@ -37,7 +37,7 @@ DEFAULT_CONFIG = {
     "add_header_MS_Author_Via": True,
     "hotfixes": {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
-        "re_encode_path_info": None,  # (See issue #73) None: activate on Python 3
+        "re_encode_path_info": True,  # (See issue #73)
         "unquote_path_info": False,  # See issue #8
         "win_accept_anonymous_options": False,
         "winxp_accept_root_share_login": False,  # Was True in v2.4
