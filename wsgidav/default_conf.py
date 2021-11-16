@@ -38,9 +38,9 @@ DEFAULT_CONFIG = {
     "hotfixes": {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
         "re_encode_path_info": True,  # (See issue #73)
-        "unquote_path_info": False,  # See issue #8
-        "win_accept_anonymous_options": False,
-        "winxp_accept_root_share_login": False,  # Was True in v2.4
+        "unquote_path_info": False,  # See issue #8, #228
+        # "win_accept_anonymous_options": False,
+        # "winxp_accept_root_share_login": False,
     },
     "property_manager": None,  # True: use property_manager.PropertyManager
     "mutable_live_props": [],

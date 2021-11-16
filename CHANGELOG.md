@@ -6,8 +6,9 @@
 - Drop support for Python syntax in config files (wsgidav.conf)
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
 - DAVCollection, DAVNonCollection, DAVProvider are ABCs now
-- hotfixes.re_encode_path_info is now true by default (null evaluates to false!)
 - API enforces some named keyword args (`..., *, ...`)
+- hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
+- Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
 - Move logging options to 'logging' section
 - Add uvicorn server support to CLI, drop flup and CherryPy
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).

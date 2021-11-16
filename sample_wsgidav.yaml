@@ -31,16 +31,6 @@ block_size: 8192
 add_header_MS_Author_Via: true
 
 hotfixes:
-    winxp_accept_root_share_login: false
-    win_accept_anonymous_options: false
-    #: See issue #8
-    unquote_path_info: false
-    #: Re-encode PATH_INFO using UTF-8 (falling back to ISO-8859-1).
-    #: This seems to be wrong, since per PEP 3333 PATH_INFO is always ISO-8859-1
-    #: encoded (see https://www.python.org/dev/peps/pep-3333/#unicode-issues).
-    #: However it also seems to resolve errors when accessing resources with
-    #: Chinese characters, for example (see issue #73).
-    re_encode_path_info: true
     #: Handle Microsoft's Win32LastModifiedTime property.
     #: This is useful only in the case when you copy files from a Windows
     #: client into a WebDAV share. Windows sends the "last modified" time of
@@ -52,6 +42,16 @@ hotfixes:
     #: a persistent property manager. This setting is merely a work-around.
     #: NOTE: Works with Win10, can't work with Win7. Other versions untested.
     emulate_win32_lastmod: true
+    #: Re-encode PATH_INFO using UTF-8 (falling back to ISO-8859-1).
+    #: This seems to be wrong, since per PEP 3333 PATH_INFO is always ISO-8859-1
+    #: encoded (see https://www.python.org/dev/peps/pep-3333/#unicode-issues).
+    #: However it also seems to resolve errors when accessing resources with
+    #: Chinese characters, for example (see issue #73).
+    re_encode_path_info: true
+    #: Force unquoting of PATH_INFO. This should already be done by the WSGI
+    #: Framework, so this setting should only be used to fix unexpected problems
+    #: there (false fixes issue #8, true fixes issue #228).
+    unquote_path_info: false
 
 
 # ----------------------------------------------------------------------------

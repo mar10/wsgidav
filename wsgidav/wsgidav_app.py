@@ -390,7 +390,7 @@ class WsgiDAVApp:
             path = environ["PATH_INFO"] = util.wsgi_to_bytes(path).decode()
 
         # We optionally unquote PATH_INFO here, although this should already be
-        # done by the server (#8).
+        # done by the server (#8, #228).
         if self.unquote_path_info:
             path = unquote(environ["PATH_INFO"])
 
