@@ -7,20 +7,16 @@
 
 **Which web servers are supported?**
     WsgiDAV comes with a standalone server, to run out of the box.
-    There is also built-in support for CherryPy, Paste, and wsgiref servers, as
-    long as these packages are installed.
-    (Fast)CGI should be possible using `flup <http://trac.saddi.com/flup>`_.
-
-    Basically, it runs with all WSGI servers. Currently we tested with Pylons,
-    CherryPy, Paste server.
+    There is also built-in support for cheroot, ext-wsgiutils, gevent, gunicorn,
+    paste, uvicorn, and wsgiref.
 
     See :doc:`run-configure` for details.
 
 **Which configuration do you recommend?**
-    Currently CherryPy seems to be very robust. Also installing lxml is
+    Currently Cherroot seems to be very robust. Also installing lxml is
     recommended.
 
-    But since WsgiDAV is pretty new, please provide feedback on your experience.
+    But since servers are improved over time, please provide feedback on your experience.
 
 **Which WebDAV clients are supported?**
     Basically all WebDAV clients on all platforms, though some of them show odd
