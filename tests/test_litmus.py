@@ -86,18 +86,22 @@ from tests.util import WsgiDavTestServer
 class WsgiDAVLitmusTest(unittest.TestCase):
     """Run litmus test suite against builtin server."""
 
+    _litmus_connect_failed = None
+
     def setUp(self):
-        pass
+        if WsgiDAVLitmusTest._litmus_connect_failed:
+            self._report_missing_litmus(" (again)")
 
     def tearDown(self):
         pass
 
-    def _report_missing_litmus(self):
+    def _report_missing_litmus(self, extra=""):
+        WsgiDAVLitmusTest._litmus_connect_failed = True
         print("*" * 70)
         print("This test requires the litmus test suite.")
         print("See https://github.com/mar10/docker-litmus")
         print("*" * 70)
-        raise unittest.SkipTest("Test requires litmus test suite")
+        raise unittest.SkipTest(f"Test requires litmus test suite{extra}")
 
     def test_litmus_with_authentication(self):
         """Run litmus test suite on HTTP with authentification."""
