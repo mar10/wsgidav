@@ -34,7 +34,6 @@ from wsgidav.dav_error import (
 )
 from wsgidav.util import append_custom_headers, checked_etag, etree
 
-
 __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
@@ -1264,13 +1263,17 @@ class RequestServer:
 
             # Lock-Token header is not returned
             xml = xml_tools.xml_to_bytes(prop_el)
+
+            headers = [
+                ("Content-Type", "application/xml"),
+                ("Content-Length", str(len(xml))),
+                ("Date", util.get_rfc1123_time()),
+            ]
+            append_custom_headers(environ, headers)
+
             start_response(
                 "200 OK",
-                [
-                    ("Content-Type", "application/xml"),
-                    ("Content-Length", str(len(xml))),
-                    ("Date", util.get_rfc1123_time()),
-                ],
+                headers,
             )
             return [xml]
 
@@ -1350,14 +1353,16 @@ class RequestServer:
             respcode = "201 Created"
 
         xml = xml_tools.xml_to_bytes(prop_el)
+        headers = [
+            ("Content-Type", "application/xml"),
+            ("Content-Length", str(len(xml))),
+            ("Lock-Token", lock["token"]),
+            ("Date", util.get_rfc1123_time()),
+        ]
+        append_custom_headers(environ, headers)
         start_response(
             respcode,
-            [
-                ("Content-Type", "application/xml"),
-                ("Content-Length", str(len(xml))),
-                ("Lock-Token", lock["token"]),
-                ("Date", util.get_rfc1123_time()),
-            ],
+            headers,
         )
         return [xml]
 
@@ -1514,6 +1519,7 @@ class RequestServer:
             self._fail(HTTP_NOT_FOUND, path)
 
         headers.append(("Allow", ", ".join(allow)))
+        headers.append(("Access-Control-Allow-Methods", ", ".join(allow)))
 
         if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
             headers.append(("MS-Author-Via", "DAV"))

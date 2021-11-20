@@ -198,9 +198,12 @@ class RequestResolver(BaseMiddleware):
 
             possbile_methods = util.get_possible_methods(provider)
             if possbile_methods:
+                headers.append(("Allow", ", ".join(possbile_methods)))
                 headers.append(
-                    ("Access-Control-Allow-Methods", ",".join(possbile_methods))
+                    ("Access-Control-Allow-Methods", ", ".join(possbile_methods))
                 )
+
+            util.append_custom_headers(environ, headers)
 
             start_response("200 OK", headers)
             yield b""
