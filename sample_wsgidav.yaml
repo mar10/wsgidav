@@ -72,6 +72,9 @@ hotfixes:
     #: there (false fixes issue #8, true fixes issue #228).
     unquote_path_info: false
 
+    #: Allow anonymous OPTIONS or not in basic/digest authentication
+    win_accept_anonymous_options: false
+
 
 # ----------------------------------------------------------------------------
 # SSL Support
