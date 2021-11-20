@@ -1480,6 +1480,7 @@ class RequestServer:
             # type of method; it does nothing beyond allowing the client to test the
             # capabilities of the server. For example, this can be used to test a
             # proxy for HTTP/1.1 compliance (or lack thereof).
+            append_custom_headers(environ, headers)
             start_response("200 OK", headers)
             return [b""]
 
