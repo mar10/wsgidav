@@ -158,11 +158,6 @@ class LockManager:
             ownerDict.setdefault(lock["owner"], []).append(tok)
             urlDict.setdefault(lock["root"], []).append(tok)
 
-        #            assert ("URL2TOKEN:" + v["root"]) in self._dict, ("Inconsistency: missing"
-        #                "URL2TOKEN:%s") % v["root"]
-        #            assert v["token"] in self._dict["URL2TOKEN:" + v["root"]], ("Inconsistency: missing "
-        #                "token %s in URL2TOKEN:%s" % (v["token"], v["root"])
-
         _logger.info("Locks:\n{}".format(pformat(tokenDict, indent=0, width=255)))
         if tokenDict:
             _logger.info(

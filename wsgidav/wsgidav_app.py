@@ -101,6 +101,7 @@ def _check_config(config):
         "http_authenticator.preset_domain": "nt_dc.preset_domain",
         "http_authenticator.preset_server": "nt_dc.preset_server",
         "locksmanager": "lock_manager",
+        "lock_manager": "lock_storage",
         "logger_date_format": "logging.logger_date_format",
         "logger_format": "logging.logger_format",
         "logging.verbose": "verbose",  # prevent a likely mistake
@@ -148,13 +149,14 @@ class WsgiDAVApp:
         self.re_encode_path_info = hotfixes.get("re_encode_path_info", True)
         self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
-        lock_storage = config.get("lock_manager")
+        lock_storage = config.get("lock_storage")
         if lock_storage is True:
             lock_storage = LockStorageDict()
 
         if not lock_storage:
             self.lock_manager = None
         else:
+            assert hasattr(lock_storage, "refresh")
             self.lock_manager = LockManager(lock_storage)
 
         self.prop_manager = config.get("property_manager")

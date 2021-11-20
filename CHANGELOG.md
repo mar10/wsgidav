@@ -7,6 +7,7 @@
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
 - DAVCollection, DAVNonCollection, DAVProvider are ABCs now
 - API enforces some named keyword args (`..., *, ...`)
+- Rename option `lock_manager` to `lock_storage`.
 - hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
 - Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
 - Move logging options to 'logging' section

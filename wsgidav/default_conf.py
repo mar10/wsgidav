@@ -44,7 +44,7 @@ DEFAULT_CONFIG = {
     },
     "property_manager": None,  # True: use property_manager.PropertyManager
     "mutable_live_props": [],
-    "lock_manager": True,  # True: use lock_manager.LockManager
+    "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
     "middleware_stack": [
         WsgiDavDebugFilter,
         ErrorPrinter,

@@ -106,8 +106,8 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
             "enable_loggers": [],
             # "debug_methods": [],
         },
-        "property_manager": True,  # None: no property manager
-        "lock_manager": True,  # True: use lock_manager.LockManager
+        "property_manager": True,  # True: use property_manager.PropertyManager
+        "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
     }
 
     if with_auth:

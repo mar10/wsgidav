@@ -151,11 +151,12 @@ class DAVClient:
         # Try to parse and get an etree
         try:
             self._get_response_tree()
-        except Exception:
-            pass
+        except Exception as e:
+            self.log(f"Could not parse response XML: {e}\n{res.text}")
 
     def _get_response_tree(self):
         """Parse the response body into an elementree object"""
+        self.response.tree = None
         self.response.tree = ElementTree.fromstring(self.response.content)
         return self.response.tree
 

@@ -207,19 +207,19 @@ mutable_live_props:
     - "{DAV:}getlastmodified"
 
 # ----------------------------------------------------------------------------
-# Lock Manager
+# Lock Manager Storage
 #
 # Default:        true, i.e. use wsgidav.lock_storage.LockStorageDict
 # Also available: wsgidav.lock_storage.LockStorageShelve
 #
-# Check the documentation on how to develop custom lock managers.
+# Check the documentation on how to develop custom lock storage.
 # Note that the default LockStorageDict works in-memory, so it is NOT
 # persistent.
 # Example:
-#   Use PERSISTENT shelve based lock manager
+#   Use PERSISTENT shelve based lock storage
 #   from wsgidav.lock_storage import LockStorageShelve
-#   lock_manager = LockStorageShelve("wsgidav-locks.shelve")
-lock_manager: true
+#   lock_storage = LockStorageShelve("wsgidav-locks.shelve")
+lock_storage: true
 
 
 

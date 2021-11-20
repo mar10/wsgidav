@@ -117,18 +117,19 @@ Lock Managers
    :parts: 2
    :private-bases:
 
-DAV providers may use a lock manager to support exclusive and shared write
-locking.
+DAV providers have a :class:`~wsgidav.lock_manager.LockManager` to support
+exclusive and shared write locking.
+The lock manager uses a lock storage implementation for persistence.
 
 WsgiDAV comes with two default implementations, one based on a in-memory
 dictionary, and a persistent one based on shelve::
 
-    lock_manager.LockManager
-    lock_manager.ShelveLockManager
+    lock_storage.LockStorage
+    lock_storage.ShelveLockStorage
 
-:class:`~wsgidav.property_manager.LockManager` is used by default, but
-:class:`~wsgidav.property_manager.ShelveLockManager` can be
-enabled by uncommenting two lines in the configuration file.
+:class:`~wsgidav.lock_storage.LockStorage` is used by default, but
+:class:`~wsgidav.lock_storage.ShelveLockStorage` can be enabled by uncommenting
+two lines in the configuration file.
 
 In addition, this may be replaced by a custom version, as long as the required
 interface is implemented.

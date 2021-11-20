@@ -75,4 +75,4 @@ mutable_live_props:
     # preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
     - "{DAV:}getlastmodified"
 
-lock_manager: true
+lock_storage: true

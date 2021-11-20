@@ -66,13 +66,16 @@ propertyManager
    using shelve.
 
 lockManager
+   An object that implements locking on webDAV resources.
+   It contains an instance of ``LockStorage``
+
+lockStorage
    An object that provides storage for locks made on webDAV resources.
 
-   LockManagers must provide the methods as described in
+   LockStorages must provide the methods as described in
    ``wsgidav.interfaces.lockmanagerinterface``
 
-   See lock_manager.LockManager for a sample implementation
-   using shelve.
+   See lock_storage for a sample implementation using shelve.
 
 See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """

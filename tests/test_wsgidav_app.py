@@ -54,7 +54,7 @@ class ServerTest(unittest.TestCase):
             "verbose": 1,
             "logging": {"enable_loggers": []},
             "property_manager": None,  # None: no property manager
-            "lock_manager": True,  # True: use lock_manager.LockManager
+            "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
         }
 
         if with_authentication:

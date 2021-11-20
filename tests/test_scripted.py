@@ -117,8 +117,8 @@ class WsgiDAVServerThread(Thread):
                 ],
                 "debug_methods": [],
             },
-            "property_manager": True,  # True: use lock_manager.LockManager
-            "lock_manager": True,  # True: use lock_manager.LockManager
+            "property_manager": True,  # True: use property_manager.PropertyManager
+            "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
         }
 
         if withAuthentication:
