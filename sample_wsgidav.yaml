@@ -39,6 +39,7 @@ port: 8080
 #: Add custom response headers (list of header-name / header-value tuples):
 # response_headers:
 #    - ["Access-Control-Allow-Origin", "http://example.org"]
+#    - ["Access-Control-Allow-Headers", "Depth"]
 
 # Transfer block size in bytes
 block_size: 8192
