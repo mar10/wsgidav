@@ -906,9 +906,21 @@ def get_possible_methods(provider):
 def append_custom_headers(environ, headers):
     """Add custom headers (if any configured) to a list of headers."""
     custom_headers = environ["wsgidav.config"].get("response_headers")
+
+    header_key_to_idx = {}
+    for i, header_tuple in enumerate(headers):
+        header_key_to_idx[header_tuple[0].lower()] = i
+
     if custom_headers:
         for header, value in custom_headers:
-            headers.append((header, value))
+            if header.lower() in header_key_to_idx:
+                # duplicated header found
+                # overwrite the previously set header
+                i = header_key_to_idx[header.lower()]
+                headers[i] = (header, value)
+            else:
+                # trivially append the new header tuple
+                headers.append((header, value))
     return headers
 
 
