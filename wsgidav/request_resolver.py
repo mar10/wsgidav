@@ -196,6 +196,12 @@ class RequestResolver(BaseMiddleware):
             if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
                 headers.append(("MS-Author-Via", "DAV"))
 
+            possbile_methods = util.get_possible_methods(provider)
+            if possbile_methods:
+                headers.append(
+                    ("Access-Control-Allow-Methods", ",".join(possbile_methods))
+                )
+
             start_response("200 OK", headers)
             yield b""
             return

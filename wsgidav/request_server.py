@@ -53,17 +53,7 @@ class RequestServer:
         self.block_size = DEFAULT_BLOCK_SIZE
         # _logger.debug("RequestServer: __init__")
 
-        self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
-        # if self._davProvider.prop_manager is not None:
-        #     self._possible_methods.extend( [ "PROPFIND" ] )
-        if not self._davProvider.is_readonly():
-            self._possible_methods.extend(
-                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"]
-            )
-            # if self._davProvider.prop_manager is not None:
-            #     self._possible_methods.extend( [ "PROPPATCH" ] )
-            if self._davProvider.lock_manager is not None:
-                self._possible_methods.extend(["LOCK", "UNLOCK"])
+        self._possible_methods = util.get_possible_methods(self._davProvider)
 
     # def __del__(self):
     #     # _logger.debug("RequestServer: __del__")

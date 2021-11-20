@@ -870,6 +870,28 @@ def parse_xml_body(environ, *, allow_empty=False):
 #                            ])
 #    return [ body ]
 
+def get_possible_methods(provider):
+    methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
+    if provider is None:
+        # all methods are allowed because we don't find any restrictions.
+        methods.extend([
+            "PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST",
+            "LOCK", "UNLOCK"
+        ])
+    else:
+        # if provider.prop_manager is not None:
+        #     methods.extend( [ "PROPFIND" ] )
+        if not provider.is_readonly():
+            methods.extend(
+                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"]
+            )
+            # if provider.prop_manager is not None:
+            #     methods.extend( [ "PROPPATCH" ] )
+            if provider.lock_manager is not None:
+                methods.extend(["LOCK", "UNLOCK"])
+
+    return methods
+
 def append_custom_headers(environ, headers):
     """Add custom headers (if any configured) to a list of headers."""
     custom_headers = environ["wsgidav.config"].get("response_headers")
@@ -877,7 +899,6 @@ def append_custom_headers(environ, headers):
         for header, value in custom_headers:
             headers.append((header, value))
     return headers
-
 
 def send_status_response(
     environ, start_response, e, *, add_headers=None, is_head=False
