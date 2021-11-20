@@ -262,9 +262,11 @@ class HTTPAuthenticator(BaseMiddleware):
                 )
             )
 
+            headers = [("Content-Length", "0"), ("Date", util.get_rfc1123_time())]
+            util.append_custom_headers(environ, headers)
             start_response(
                 "400 Bad Request",
-                [("Content-Length", "0"), ("Date", util.get_rfc1123_time())],
+                headers,
             )
             return [""]
 
@@ -278,14 +280,16 @@ class HTTPAuthenticator(BaseMiddleware):
         wwwauthheaders = 'Basic realm="{}"'.format(realm)
 
         body = util.to_bytes(self.error_message_401)
+        headers = [
+            ("WWW-Authenticate", wwwauthheaders),
+            ("Content-Type", "text/html"),
+            ("Content-Length", str(len(body))),
+            ("Date", util.get_rfc1123_time()),
+        ]
+        util.append_custom_headers(environ, headers)
         start_response(
             "401 Not Authorized",
-            [
-                ("WWW-Authenticate", wwwauthheaders),
-                ("Content-Type", "text/html"),
-                ("Content-Length", str(len(body))),
-                ("Date", util.get_rfc1123_time()),
-            ],
+            headers,
         )
         return [body]
 
@@ -337,14 +341,16 @@ class HTTPAuthenticator(BaseMiddleware):
         )
 
         body = util.to_bytes(self.error_message_401)
+        headers = [
+            ("WWW-Authenticate", wwwauthheaders),
+            ("Content-Type", "text/html"),
+            ("Content-Length", str(len(body))),
+            ("Date", util.get_rfc1123_time()),
+        ]
+        util.append_custom_headers(environ, headers)
         start_response(
             "401 Not Authorized",
-            [
-                ("WWW-Authenticate", wwwauthheaders),
-                ("Content-Type", "text/html"),
-                ("Content-Length", str(len(body))),
-                ("Date", util.get_rfc1123_time()),
-            ],
+            headers,
         )
         return [body]
 
