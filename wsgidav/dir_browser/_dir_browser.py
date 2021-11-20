@@ -108,14 +108,16 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
                 # TODO: support <dm:open>%s</dm:open>
 
+                headers = [
+                    ("Content-Type", "application/davmount+xml"),
+                    ("Content-Length", str(len(res))),
+                    ("Cache-Control", "private"),
+                    ("Date", util.get_rfc1123_time()),
+                ]
+                util.append_custom_headers(environ, headers)
                 start_response(
                     "200 OK",
-                    [
-                        ("Content-Type", "application/davmount+xml"),
-                        ("Content-Length", str(len(res))),
-                        ("Cache-Control", "private"),
-                        ("Date", util.get_rfc1123_time()),
-                    ],
+                    headers,
                 )
                 return [res]
 
@@ -123,14 +125,16 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
             res = self.template.render(**context)
             res = util.to_bytes(res)
+            headers = [
+                ("Content-Type", "text/html"),
+                ("Content-Length", str(len(res))),
+                ("Cache-Control", "private"),
+                ("Date", util.get_rfc1123_time()),
+            ]
+            util.append_custom_headers(environ, headers)
             start_response(
                 "200 OK",
-                [
-                    ("Content-Type", "text/html"),
-                    ("Content-Length", str(len(res))),
-                    ("Cache-Control", "private"),
-                    ("Date", util.get_rfc1123_time()),
-                ],
+                headers,
             )
             return [res]
 
