@@ -10,6 +10,7 @@ build/
 docs/source/_autosummary/
 docs/build/
 docs/sphinx/_generated/
+docs/sphinx/_autosummary/
 docs/sphinx-build/
 htmlcov/
 *.pyc
