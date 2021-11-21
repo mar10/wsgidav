@@ -96,9 +96,9 @@ class ErrorPrinter(BaseMiddleware):
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):
                 # _logger.warning("Forcing empty error response for {}".format(e.value))
                 # See paste.lint: these code don't have content
-                start_response(
-                    status, [("Content-Length", "0"), ("Date", util.get_rfc1123_time())]
-                )
+                headers = [("Content-Length", "0"), ("Date", util.get_rfc1123_time())]
+                util.append_custom_headers(environ, headers)
+                start_response(status, headers)
                 yield b""
                 return
 
@@ -107,13 +107,15 @@ class ErrorPrinter(BaseMiddleware):
             content_type, body = e.get_response_page()
 
             # TODO: provide exc_info=sys.exc_info()?
+            headers = [
+                ("Content-Type", content_type),
+                ("Content-Length", str(len(body))),
+                ("Date", util.get_rfc1123_time()),
+            ]
+            util.append_custom_headers(environ, headers)
             start_response(
                 status,
-                [
-                    ("Content-Type", content_type),
-                    ("Content-Length", str(len(body))),
-                    ("Date", util.get_rfc1123_time()),
-                ],
+                headers,
             )
             yield body
             return
