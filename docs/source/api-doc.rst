@@ -31,8 +31,6 @@ Package ``wsgidav``
    wsgidav.error_printer
    wsgidav.fs_dav_provider
    wsgidav.http_authenticator
-   wsgidav.lock_manager
-   wsgidav.lock_storage
    wsgidav.middleware
    wsgidav.request_resolver
    wsgidav.request_server
@@ -59,6 +57,15 @@ Package ``wsgidav.prop_man``
    wsgidav.prop_man.property_manager
    wsgidav.prop_man.couch_property_manager
    wsgidav.prop_man.mongo_property_manager
+
+
+Package ``wsgidav.lock_man``
+--------------------------
+.. autosummary::
+   :toctree: _autosummary
+
+   wsgidav.lock_man.lock_manager
+   wsgidav.lock_man.lock_storage
 
 
 Package ``wsgidav.samples``

@@ -110,22 +110,23 @@ mount_path: null
 #: to read-only.
 #: Note that a DomainController may still restrict access completely or prevent
 #: editing depending on authentication.
-#: The following syntax variants are supported:
+#:
+#: The following syntax variants are supported to use FilesystemProvider:
 #:     <mount_path>: <folder_path>
 #: or
 #:     <mount_path>: { "root": <folder_path>, "readonly": <bool> }
-#: or
-#:     <mount_path>: { "provider": <class_path>, "args": [<pos-args>, ...] }
+#: or instantiate an arbitrary custom class:
+#:     <mount_path>: { "class": <class_path>, [<arg>: <val>, ...] }
 
 provider_mapping:
     "/": "/path/to/share1"
     "/pub":
-        root: "/path/to/share2"
+        root: '/path/to/share2'
         readonly: true
     "/share3":
-        provider: path.to.CustomDAVProviderClass
-        args: ["/path/to/share3", "second_arg"]
-        kwargs: {"another_arg": 42}
+        class: path.to.CustomDAVProviderClass
+        path: '/path/to/share3'
+        another_arg: 42
 
 
 # ==============================================================================
@@ -183,12 +184,13 @@ pam_dc:
 # null: (default) no support for dead properties
 # true: Use wsgidav.prop_man.property_manager.PropertyManager
 #       which is an in-memory property manager (NOT persistent)
-property_manager: true
+#
+# Example: Use persistent shelve based property manager
+#     property_manager:
+#         class: wsgidav.prop_man.property_manager.ShelvePropertyManager
+#         storage_path: 'wsgidav-props.shelve'
 
-# Example:
-# Use PERSISTENT shelve based property manager
-# from wsgidav.prop_man.property_manager import ShelvePropertyManager
-# property_manager: ShelvePropertyManager("wsgidav-props.shelve")
+property_manager: null
 
 #: Optional additional live property modification
 #: Note: by default live properties like file size and last-modified time are
@@ -209,16 +211,20 @@ mutable_live_props:
 # ----------------------------------------------------------------------------
 # Lock Manager Storage
 #
-# Default:        true, i.e. use wsgidav.lock_storage.LockStorageDict
-# Also available: wsgidav.lock_storage.LockStorageShelve
+# null: No lock support
+# true: (default) shortcut for
+#     lock_storage: wsgidav.lock_man.lock_storage.LockStorageDict
+#
+# Note that the default LockStorageDict works in-memory, so it is
+# NOT persistent.
+#
+# Example: Use persistent shelve based lock storage:
+#     lock_storage:
+#         class: wsgidav.lock_man.lock_storage.LockStorageShelve
+#         storage_path: /path/to/wsgidav_locks.shelve
 #
 # Check the documentation on how to develop custom lock storage.
-# Note that the default LockStorageDict works in-memory, so it is NOT
-# persistent.
-# Example:
-#   Use PERSISTENT shelve based lock storage
-#   from wsgidav.lock_storage import LockStorageShelve
-#   lock_storage = LockStorageShelve("wsgidav-locks.shelve")
+
 lock_storage: true
 
 

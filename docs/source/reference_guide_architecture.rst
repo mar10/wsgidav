@@ -113,11 +113,11 @@ interface is implemented.
 Lock Managers
 -------------
 
-.. inheritance-diagram:: wsgidav.lock_manager wsgidav.lock_storage
+.. inheritance-diagram:: wsgidav.lock_man.lock_manager wsgidav.lock_man.lock_storage
    :parts: 2
    :private-bases:
 
-DAV providers have a :class:`~wsgidav.lock_manager.LockManager` to support
+DAV providers have a :class:`~wsgidav.lock_man.lock_manager.LockManager` to support
 exclusive and shared write locking.
 The lock manager uses a lock storage implementation for persistence.
 
@@ -127,8 +127,8 @@ dictionary, and a persistent one based on shelve::
     lock_storage.LockStorage
     lock_storage.ShelveLockStorage
 
-:class:`~wsgidav.lock_storage.LockStorage` is used by default, but
-:class:`~wsgidav.lock_storage.ShelveLockStorage` can be enabled by uncommenting
+:class:`~wsgidav.lock_man.lock_storage.LockStorage` is used by default, but
+:class:`~wsgidav.lock_man.lock_storage.ShelveLockStorage` can be enabled by uncommenting
 two lines in the configuration file.
 
 In addition, this may be replaced by a custom version, as long as the required

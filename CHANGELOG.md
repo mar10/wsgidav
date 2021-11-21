@@ -5,9 +5,14 @@
 - Drop Python 2 support
 - Drop support for Python syntax in config files (wsgidav.conf)
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
-- DAVCollection, DAVNonCollection, DAVProvider are ABCs now
+- DAVCollection, DAVNonCollection, DAVProvider are now ABCs.
 - API enforces some named keyword args (`..., *, ...`)
-- Rename option `lock_manager` to `lock_storage`.
+- Rename option `lock_manager` to `lock_storage`
+- Moved `lock_manager` and `lock_storage` modules to  `lock_man` package.
+- `lock_storage`, `property_manager`, `provider_mapping`
+   can now be configured in the YAML file to use custom implementations using
+   this syntax:
+   `{ "class": <class_path>, "<arg_name>": <val>, "<arg_name>": <val>, , ... }`
 - hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
 - Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
 - Move logging options to 'logging' section

@@ -9,16 +9,16 @@ Implements two storage providers for `LockManager`.
 Two alternative lock storage classes are defined here: one in-memory
 (dict-based), and one persistent low performance variant using shelve.
 
-See :class:`~wsgidav.lock_manager.LockManager`
-See :class:`~wsgidav.lock_storage.LockStorageDict`
-See :class:`~wsgidav.lock_storage.LockStorageShelve`
+See :class:`~wsgidav.lock_man.lock_manager.LockManager`
+See :class:`~wsgidav.lock_man.lock_storage.LockStorageDict`
+See :class:`~wsgidav.lock_man.lock_storage.LockStorageShelve`
 """
 import os
 import shelve
 import time
 
 from wsgidav import util
-from wsgidav.lock_manager import (
+from wsgidav.lock_man.lock_manager import (
     generate_lock_token,
     lock_string,
     normalize_lock_root,

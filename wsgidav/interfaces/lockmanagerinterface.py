@@ -5,14 +5,14 @@ class LockManagerInterface:
     """
     +----------------------------------------------------------------------+
     | TODO: document this interface                                        |
-    | For now, see wsgidav.lock_manager instead                            |
+    | For now, see wsgidav.lock_man.lock_manager instead                            |
     +----------------------------------------------------------------------+
 
     This class is an interface for a LockManager.
     Implementations for the lock manager in WsgiDAV include::
 
-        wsgidav.lock_manager.LockManager
-        wsgidav.lock_manager.ShelveLockManager
+        wsgidav.lock_man.lock_manager.LockManager
+        wsgidav.lock_man.lock_manager.ShelveLockManager
 
     All methods must be implemented.
 

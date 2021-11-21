@@ -1514,15 +1514,17 @@ class DAVProvider(ABC):
         self.share_path = share_path
 
     def set_lock_manager(self, lock_manager):
-        assert not lock_manager or hasattr(
-            lock_manager, "check_write_permission"
-        ), "Must be compatible with wsgidav.lock_manager.LockManager"
+        if lock_manager and not hasattr(lock_manager, "check_write_permission"):
+            raise ValueError(
+                "Must be compatible with wsgidav.lock_man.lock_manager.LockManager"
+            )
         self.lock_manager = lock_manager
 
     def set_prop_manager(self, prop_manager):
-        assert not prop_manager or hasattr(
-            prop_manager, "copy_properties"
-        ), "Must be compatible with wsgidav.prop_man.property_manager.PropertyManager"
+        if prop_manager and not hasattr(prop_manager, "copy_properties"):
+            raise ValueError(
+                "Must be compatible with wsgidav.prop_man.property_manager.PropertyManager"
+            )
         self.prop_manager = prop_manager
 
     def ref_url_to_path(self, ref_url):

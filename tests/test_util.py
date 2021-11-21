@@ -12,6 +12,7 @@ from io import StringIO
 from wsgidav.util import (
     BASE_LOGGER_NAME,
     checked_etag,
+    deep_update,
     get_module_logger,
     init_logging,
     is_child_uri,
@@ -93,6 +94,36 @@ class BasicTest(unittest.TestCase):
         assert parse_if_match_header(" abc , def") == ["abc", "def"]
         assert parse_if_match_header(' "abc" , def ') == ["abc", "def"]
         assert parse_if_match_header(' W/"abc" , def ') == ["abc", "def"]
+
+        d_org = {"b": True, "d": {"i": 1, "t": (1, 2)}}
+        d_new = {}
+        assert deep_update(d_org.copy(), d_new) == d_org
+        assert deep_update(d_org.copy(), {"b": False}) == {
+            "b": False,
+            "d": {"i": 1, "t": (1, 2)},
+        }
+        assert deep_update(d_org.copy(), {"b": {"class": "c"}}) == {
+            "b": {"class": "c"},
+            "d": {"i": 1, "t": (1, 2)},
+        }
+
+        d_new = {
+            "user_mapping": {
+                "*": {
+                    "tester": {
+                        "password": "secret",
+                        "description": "",
+                        "roles": [],
+                    },
+                    "tester2": {
+                        "password": "secret2",
+                        "description": "",
+                        "roles": [],
+                    },
+                }
+            }
+        }
+        assert deep_update({"user_mapping": {}}, d_new) == d_new
 
 
 class LoggerTest(unittest.TestCase):

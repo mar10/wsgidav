@@ -5,7 +5,7 @@ class PropertyManagerInterface:
     """
      +----------------------------------------------------------------------+
      | TODO: document this interface                                        |
-     | For now, see wsgidav.lock_manager instead                            |
+     | For now, see wsgidav.lock_man.lock_manager instead                            |
      +----------------------------------------------------------------------+
 
      This class is an interface for a PropertyManager.
@@ -60,7 +60,7 @@ class PropertyManagerInterface:
        {DAV:}supportedlock and {DAV:}lockdiscovery
 
        These properties are implemented by the locking library in
-       ``wsgidav.lock_manager`` and dead properties library in
+       ``wsgidav.lock_man.lock_manager`` and dead properties library in
        ``wsgidav.property_manager``
 
     Dead properties

@@ -187,7 +187,7 @@ def init_logging(config):
 
     Module loggers
     ~~~~~~~~~~~~~~
-    Module loggers (e.g 'wsgidav.lock_manager') are named loggers, that can be
+    Module loggers (e.g 'wsgidav.lock_man.lock_manager') are named loggers, that can be
     independently switched to DEBUG mode.
 
     Except for verbosity, they will inherit settings from the base logger.
@@ -315,9 +315,18 @@ def get_module_logger(moduleName, *, default_to_verbose=False):
 
 
 def deep_update(d, u):
+    # print(f"deep_update({d}, {u})")
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
-            d[k] = deep_update(d.get(k, {}), v)
+            # print(f"deep_update({d}, {u}): k={k}, v={v}")
+            prev_val = d.get(k)
+            # if type(prev_val) in (bool, float, int, str):
+            if prev_val is None or type(prev_val) in (bool, float, int, str):
+                # Prev. values is a scalar: replace it with a copy of the new dict
+                d[k] = v.copy()
+            else:
+                # Merge new values into prev. dict
+                d[k] = deep_update(d.get(k, {}), v)
         else:
             d[k] = v
     return d
@@ -332,6 +341,8 @@ def dynamic_import_class(name):
     """Import a class from a module string, e.g. ``my.module.ClassName``."""
     import importlib
 
+    if "." not in name:
+        raise ValueError(f"Expected `path.to.ClassName` string: {name!r}")
     module_name, class_name = name.rsplit(".", 1)
     try:
         module = importlib.import_module(module_name)
@@ -342,16 +353,25 @@ def dynamic_import_class(name):
     return the_class
 
 
-def dynamic_instantiate_middleware(name, options, *, expand=None):
+def dynamic_instantiate_class(class_name, options, *, expand=None):
     """Import a class and instantiate with custom args.
 
+    Equivalent of
+    ```py
+    from my.module import Foo
+    return Foo(bar=42, baz="qux")
+    ```
+    would be
+    ```py
+    options = {
+        "bar": 42,
+        "baz": "qux"
+    }
+    =>
+    ```
     Examples:
+        # Equivalent of
         name = "my.module.Foo"
-        options = {
-            "bar": 42,
-            "baz": "qux"
-            }
-        =>
         from my.module import Foo
         return Foo(bar=42, baz="qux")
     """
@@ -363,8 +383,8 @@ def dynamic_instantiate_middleware(name, options, *, expand=None):
         return v
 
     try:
-        the_class = dynamic_import_class(name)
         inst = None
+        the_class = dynamic_import_class(class_name)
         pos_args = []
         kwargs = {}
         if type(options) in (tuple, list):
@@ -380,12 +400,39 @@ def dynamic_instantiate_middleware(name, options, *, expand=None):
             f"{k}={v!r}" for k, v in kwargs.items()
         ]
         _logger.debug(
-            "Instantiate {}({}) => {}".format(name, ", ".join(disp_args), inst)
+            "Instantiate {}({}) => {}".format(class_name, ", ".join(disp_args), inst)
         )
     except Exception:
-        _logger.exception("ERROR: Instantiate {}({}) => {}".format(name, options, inst))
+        _logger.exception(f"ERROR: Instantiate {class_name}({options}) failed")
 
     return inst
+
+
+def dynamic_instantiate_class_from_opts(options, *, expand=None):
+    """Import a class and instantiate with custom args.
+
+
+    Construct from class path, without constructor args:
+    ```py
+    dynamic_instantiate_class_from_opts("wsgidav.lock_man.lock_storage.LockStorageDict")
+    ```
+    Construct with constructor args:
+    ```py
+    opts = {
+        "class": "wsgidav.lock_man.lock_storage.LockStorageShelve",
+        "storage_path": "~/wsgidav_locks.shelve",
+    }
+    dynamic_instantiate_class_from_opts(opts, expand=)
+    ```
+    """
+    if type(options) is str:
+        options = {"class": options}
+    else:
+        options = options.copy()
+    if "class" not in options:
+        raise ValueError(f"Missing mandatory option 'class': {options}")
+    class_name = options.pop("class")
+    return dynamic_instantiate_class(class_name, options, expand=expand)
 
 
 # ========================================================================
