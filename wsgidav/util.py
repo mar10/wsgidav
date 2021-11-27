@@ -190,9 +190,32 @@ def unicode_to_wsgi(u):
 
 
 def wsgi_to_bytes(s):
-    """Convert a native string to a WSGI / HTTP compatible byte string."""
-    # Taken from PEP3333
+    """Convert a native string to a WSGI / HTTP compatible byte string.
+
+    WSGI always assumes iso-8859-1 (PEP 3333).
+    https://bugs.python.org/issue16679#msg177450
+    """
     return s.encode("iso-8859-1")
+
+
+def re_encode_wsgi(s: str, *, encoding="utf-8", fallback=False) -> str:
+    """Convert a WSGI string to `str`, assuming the client used UTF-8.
+
+    WSGI always assumes iso-8859-1. Modern clients send UTF-8, so we have to
+    re-encode
+
+    https://www.python.org/dev/peps/pep-3333/#unicode-issues
+    https://bugs.python.org/issue16679#msg177450
+    """
+    try:
+        if type(s) is bytes:
+            # haven't seen this case, but may be possible according to PEP 3333?
+            return s.decode(encoding)
+        return s.encode("iso-8859-1").decode(encoding)
+    except UnicodeDecodeError:
+        if fallback:
+            return s
+        raise
 
 
 # ========================================================================
@@ -441,13 +464,13 @@ def dynamic_import_class(name):
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
-        _logger.exception("Dynamic import of {!r} failed: {}".format(name, e))
+        _logger.error("Dynamic import of {!r} failed: {}".format(name, e))
         raise
     the_class = getattr(module, class_name)
     return the_class
 
 
-def dynamic_instantiate_class(class_name, options, *, expand=None):
+def dynamic_instantiate_class(class_name, options, *, expand=None, raise_error=True):
     """Import a class and instantiate with custom args.
 
     Equivalent of
@@ -481,11 +504,11 @@ def dynamic_instantiate_class(class_name, options, *, expand=None):
         {"args", "kwargs"},
         msg=f"Invalid class instantiation options for {class_name}",
     )
-    pos_args = options.get("args", [])
+    pos_args = options.get("args") or []
     if pos_args is not None and not isinstance(pos_args, (tuple, list)):
         raise ValueError(f"Expected list format for `args` option: {options}")
 
-    kwargs = options.get("kwargs", {})
+    kwargs = options.get("kwargs") or {}
     if kwargs is not None and not isinstance(kwargs, dict):
         raise ValueError(f"Expected dict format for `kwargs` option: {options}")
 
@@ -512,7 +535,11 @@ def dynamic_instantiate_class(class_name, options, *, expand=None):
             "Instantiate {}({}) => {}".format(class_name, ", ".join(disp_args), inst)
         )
     except Exception:
-        _logger.exception(f"ERROR: Instantiate {class_name}({options}) failed")
+        msg = f"Instantiate {class_name}({options}) failed"
+        if raise_error:
+            _logger.error(msg)
+            raise
+        _logger.exception(msg)
 
     return inst
 
@@ -1565,6 +1592,9 @@ _MIME_TYPES = {
     ".ogg": "audio/ogg",
     ".ogv": "video/ogg",
     ".webm": "video/webm",
+    # https://mailarchive.ietf.org/arch/msg/media-types/DA8UuKX2dyaVxWh-oevy-t3Vg9Q/
+    ".yml": "application/yaml",
+    ".yaml": "application/yaml",
 }
 
 
