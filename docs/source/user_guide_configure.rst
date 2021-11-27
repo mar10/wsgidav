@@ -180,9 +180,11 @@ should be explicitly listed::
 
     ...
     middleware_stack:
-        - dozer.Dozer:
+        - class: dozer.Dozer
+          args:
             - "${application}"
-        - dozer.Profiler:
+        - class: dozer.Profiler
+          args:
             - "${application}"
             - null  # global_conf
             - /tmp  # profile_path
@@ -197,7 +199,8 @@ It is also possible to pass options as named args (i.e. 'kwargs')::
     ...
     middleware_stack:
         ...
-        - dozer.Profiler:
+        - class: dozer.Profiler
+          kwargs:
             app: "${application}"
             profile_path: /tmp
         ...
@@ -232,7 +235,7 @@ Three syntax variants are supported:
    use ``FilesystemProvider(folder_path)``
 2. ``<mount_path>: { "root": <folder_path>, "readonly": <bool> }``:
    use ``FilesystemProvider(folder_path, readonly)``
-3. ``<mount_path>: { "class": <class_path>, "arg1": val1, "arg2": val2, ... }``
+3. ``<mount_path>: { "class": <class_path>, args: [arg, ...], kwargs: {"arg1": val1, "arg2": val2, ... }}``
    Instantiate a custom class (derrived from ``DAVProvider``) using named
    kwargs.
 ..
@@ -248,11 +251,12 @@ For example::
             readonly: true
         "/share3":
             class: path.to.CustomDAVProviderClass
-            path: '/path/to/share3'
-            another_arg: 42
-..
-            args: ["/path/to/share3", "second_arg"]
-            kwargs: {"another_arg": 42}
+            args:
+                - pos_arg1
+                - pos_arg2
+            kwargs:
+                path: '/path/to/share3'
+                another_arg: 42
 
 
 Property Manager
@@ -292,7 +296,8 @@ Example: Use a persistent shelve based lock storage::
 
     lock_storage:
         class: wsgidav.lock_man.lock_storage.LockStorageShelve
-        storage_path: /path/to/wsgidav_locks.shelve
+        kwargs:
+            storage_path: /path/to/wsgidav_locks.shelve
 
 
 Domain Controller
@@ -425,6 +430,9 @@ The constructor must accept two arguments::
 
     def __init__(self, wsgidav_app, config)
 
+Note that this allows the custom controller to read the configuration dict
+and look for a custom section there.
+
 
 Sample ``wsgidav.yaml``
 -----------------------
@@ -444,5 +452,5 @@ Sample ``wsgidav.json``
 We can also use a `JSON <http://www.json.org>`_ file for configuration.
 The structure is identical to the YAML format.
 
-See the :doc:`sample_wsgidav.json` example.
+See the :doc:`../sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)

@@ -65,7 +65,6 @@ from wsgidav.middleware import BaseMiddleware
 from wsgidav.prop_man.property_manager import PropertyManager
 from wsgidav.util import (
     dynamic_import_class,
-    dynamic_instantiate_class,
     dynamic_instantiate_class_from_opts,
     safe_re_encode,
 )
@@ -225,14 +224,8 @@ class WsgiDAVApp:
                 app_class = dynamic_import_class(mw)
                 app = app_class(self, self.application, config)
             elif type(mw) is dict:
-                # If a dict with one entry is passed, use the key as module/class name
-                # and the value as constructor arguments (positional or kwargs).
-                if len(mw) != 1:
-                    raise ValueError(f"Invalid middleware opts: {mw}")
-                name, args = list(mw.items())[0]
-                if type(args) not in (dict, list, tuple):
-                    raise ValueError(f"Invalid middleware opts for {name}: {args}")
-                app = dynamic_instantiate_class(name, args, expand=expand)
+                # If a dict with one entry is passed, expect {class: ..., kwargs: ...}
+                app = dynamic_instantiate_class_from_opts(mw, expand=expand)
             elif inspect.isclass(mw):
                 # If a class is passed, assume BaseMiddleware (or compatible)
                 # TODO: remove this assert with 3.0

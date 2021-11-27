@@ -12,7 +12,7 @@
 - `lock_storage`, `property_manager`, `provider_mapping`
    can now be configured in the YAML file to use custom implementations using
    this syntax:
-   `{ "class": <class_path>, "<arg_name>": <val>, "<arg_name>": <val>, , ... }`
+   `{ "class": <class_path>, "args": [<arg>, ...], "kwargs": {"<arg_name>": <val>, ... } }`
 - hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
 - Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
 - Move logging options to 'logging' section

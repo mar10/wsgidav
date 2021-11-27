@@ -85,6 +85,74 @@ def to_str(s, encoding="utf8"):
     return s
 
 
+def to_set(val, allow_none=False) -> set:
+    res = None
+    if type(val) is set:
+        res = val
+    elif type(val) is str:
+        res = set(map(str.strip, val.split(",")))
+    elif isinstance(val, (dict, list, tuple)):
+        res = set(map(str, val))
+    elif val is None and allow_none:
+        res = None
+    else:
+        raise TypeError(f"{val}, {type(val)}")
+    return res
+
+
+def check_tags(tags, known, *, msg=None, raise_error=True, required=False):
+    """Check if `tags` only contains known tags.
+
+    If check fails and raise_error is true, a ValueError is raised.
+    If check passes, None is returned.
+    """
+    assert known, "must not be empty"
+    known = to_set(known)
+    optional = known
+
+    if required is True:
+        required = known
+        optional = set()
+    elif required:
+        required = to_set(required)
+        known = known.union(required)
+        optional = known.difference(required)
+
+    tags = to_set(tags)
+
+    res = []
+    unknown = tags.difference(known)
+    if unknown:
+        res.append("Unknown: '{}'".format("', '".join(unknown)))
+
+    if required:
+        missing = required.difference(tags)
+        if missing:
+            res.append("Missing: '{}'".format("', '".join(missing)))
+
+    if res:
+        if msg:
+            res.insert(0, msg)
+
+        if required and optional:
+            res.append(
+                "Required: ('{}'). Optional: ('{}')".format(
+                    "', '".join(required), "', '".join(optional)
+                )
+            )
+        elif required:
+            res.append("Required: ('{}')".format("', '".join(required)))
+        elif optional:
+            res.append("Optional: ('{}')".format("', '".join(optional)))
+
+        res = "\n".join(res)
+        if raise_error:
+            raise ValueError(res)
+        return res
+
+    return None
+
+
 # --- WSGI support ---
 
 
@@ -382,17 +450,32 @@ def dynamic_instantiate_class(class_name, options, *, expand=None):
             return expand[v]
         return v
 
+    check_tags(
+        options,
+        {"args", "kwargs"},
+        msg=f"Invalid class instantiation options for {class_name}",
+    )
+    pos_args = options.get("args", [])
+    if pos_args is not None and not isinstance(pos_args, (tuple, list)):
+        raise ValueError(f"Expected list format for `args` option: {options}")
+
+    kwargs = options.get("kwargs", {})
+    if kwargs is not None and not isinstance(kwargs, dict):
+        raise ValueError(f"Expected dict format for `kwargs` option: {options}")
+
     try:
         inst = None
         the_class = dynamic_import_class(class_name)
-        pos_args = []
-        kwargs = {}
-        if type(options) in (tuple, list):
-            pos_args = tuple(map(_expand, options))
-        elif type(options) is dict:
-            kwargs = {k: _expand(v) for k, v in options.items()}
-        else:
-            raise ValueError(f"Unexpected options format: {options}")
+        pos_args = tuple(map(_expand, pos_args))
+        kwargs = {k: _expand(v) for k, v in kwargs.items()}
+        # pos_args = []
+        # kwargs = {}
+        # if type(options) in (tuple, list):
+        #     pos_args = tuple(map(_expand, options))
+        # elif type(options) is dict:
+        #     kwargs = {k: _expand(v) for k, v in options.items()}
+        # else:
+        #     raise ValueError(f"Unexpected options format: {options}")
 
         inst = the_class(*pos_args, **kwargs)
 
@@ -420,17 +503,24 @@ def dynamic_instantiate_class_from_opts(options, *, expand=None):
     ```py
     opts = {
         "class": "wsgidav.lock_man.lock_storage.LockStorageShelve",
-        "storage_path": "~/wsgidav_locks.shelve",
+        "kwargs": {
+            "storage_path": "~/wsgidav_locks.shelve",
+        }
     }
-    dynamic_instantiate_class_from_opts(opts, expand=)
+    dynamic_instantiate_class_from_opts(opts, expand=...)
     ```
     """
     if type(options) is str:
         options = {"class": options}
     else:
         options = options.copy()
-    if "class" not in options:
-        raise ValueError(f"Missing mandatory option 'class': {options}")
+
+    check_tags(
+        options,
+        {"class", "args", "kwargs"},
+        required="class",
+        msg="Invalid class instantiation options",
+    )
     class_name = options.pop("class")
     return dynamic_instantiate_class(class_name, options, expand=expand)
 

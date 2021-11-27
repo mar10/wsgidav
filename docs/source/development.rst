@@ -215,11 +215,11 @@ allows testing against multiple different Python environments:
 * To run selective tests, ww can call ``py.test`` directly, e.g.::
 
       $ py.test -ra wsgidav tests/test_util.py
-..
-  * Arguments to ``pytest`` can be passed via ``tox``, e.g. in order to run a
-    particular test::
 
-      $ tox -e py36 tests/test_module.py::test_new_feature
+* Arguments to ``pytest`` can be passed via ``tox``, e.g. in order to run a
+  particular test::
+
+      $ tox -e py39 -- -x tests/test_util.py::BasicTest::testBasics
 
 * To list all possible targets (available commands)::
 

@@ -116,7 +116,7 @@ mount_path: null
 #: or
 #:     <mount_path>: { "root": <folder_path>, "readonly": <bool> }
 #: or instantiate an arbitrary custom class:
-#:     <mount_path>: { "class": <class_path>, [<arg>: <val>, ...] }
+#:     <mount_path>: { "class": <class_path>, args: [<arg>, ...], kwargs: {<arg>: <val>, ...} }
 
 provider_mapping:
     "/": "/path/to/share1"
@@ -125,8 +125,9 @@ provider_mapping:
         readonly: true
     "/share3":
         class: path.to.CustomDAVProviderClass
-        path: '/path/to/share3'
-        another_arg: 42
+        kwargs:
+            path: '/path/to/share3'
+            another_arg: 42
 
 
 # ==============================================================================
@@ -187,8 +188,9 @@ pam_dc:
 #
 # Example: Use persistent shelve based property manager
 #     property_manager:
-#         class: wsgidav.prop_man.property_manager.ShelvePropertyManager
-#         storage_path: 'wsgidav-props.shelve'
+#        class: wsgidav.prop_man.property_manager.ShelvePropertyManager
+#        kwargs:
+#            storage_path: 'wsgidav-props.shelve'
 
 property_manager: null
 
@@ -221,7 +223,8 @@ mutable_live_props:
 # Example: Use persistent shelve based lock storage:
 #     lock_storage:
 #         class: wsgidav.lock_man.lock_storage.LockStorageShelve
-#         storage_path: /path/to/wsgidav_locks.shelve
+#         kwargs:
+#             storage_path: /path/to/wsgidav_locks.shelve
 #
 # Check the documentation on how to develop custom lock storage.
 
