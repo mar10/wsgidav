@@ -149,6 +149,8 @@ class WsgiDAVApp:
         hotfixes = config.get("hotfixes", {})
 
         self.re_encode_path_info = hotfixes.get("re_encode_path_info", True)
+        if type(self.re_encode_path_info) is not bool:
+            raise ValueError("re_encode_path_info must be bool (or omitted)")
         self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
         lock_storage = config.get("lock_storage")
