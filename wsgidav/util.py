@@ -17,10 +17,11 @@ import socket
 import stat
 import sys
 import time
+from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Optional
+from typing import Iterable, Optional
 from urllib.parse import quote
 
 from wsgidav.dav_error import (
@@ -98,6 +99,31 @@ def to_set(val, allow_none=False) -> set:
     else:
         raise TypeError(f"{val}, {type(val)}")
     return res
+
+
+# password_patterns = []
+
+
+def purge_passwords(d, *, in_place=False):
+    def _purge(v):
+        if isinstance(v, dict):
+            if "password" in v:
+                v["password"] = "<REMOVED>"
+            for ele in v.values():
+                _purge(ele)
+        elif isinstance(v, Iterable) and not isinstance(v, str):
+            for ele in v:
+                _purge(ele)
+
+    if not in_place:
+        d = deepcopy(d)
+
+    for v in d.values():
+        _purge(v)
+
+    if in_place:
+        return None  # good convention to return None for mutating functions
+    return d
 
 
 def check_tags(tags, known, *, msg=None, raise_error=True, required=False):

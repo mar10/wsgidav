@@ -367,8 +367,12 @@ def _init_config():
 
     if config["verbose"] >= 5:
         # TODO: remove passwords from user_mapping
-        # config_cleaned = copy.deepcopy(config)
-        print("Configuration({}):\n{}".format(cli_opts["config_file"], pformat(config)))
+        config_cleaned = util.purge_passwords(config)
+        print(
+            "Configuration({}):\n{}".format(
+                cli_opts["config_file"], pformat(config_cleaned)
+            )
+        )
 
     if not config["provider_mapping"]:
         parser.error("No DAV provider defined.")
