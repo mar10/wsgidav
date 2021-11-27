@@ -46,7 +46,7 @@ DEFAULT_CONFIG = {
     "mutable_live_props": [],
     "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
     "middleware_stack": [
-        WsgiDavDebugFilter,
+        # WsgiDavDebugFilter,
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)
