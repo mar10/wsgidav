@@ -76,7 +76,7 @@ See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)
 
 Contributors:
 
-  * WsgiDAV is a [refactored version](https://github.com/mar10/wsgidav/blob/master/docs/changelog04.md)
+  * WsgiDAV is a [refactored version](https://github.com/mar10/wsgidav/blob/master/docs/source/changelog04.md)
     of [PyFileServer 0.2](https://github.com/cwho/pyfileserver),
     Copyright (c) 2005 Ho Chun Wei.<br>
     Chun gave his approval to change the license from LGPL to MIT-License for
