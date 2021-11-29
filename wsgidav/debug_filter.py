@@ -140,13 +140,13 @@ class WsgiDavDebugFilter(BaseMiddleware):
         if dumpRequest:
             _logger.info("{} Request ---".format(method))
             # _logger.info("<{}> --- {} Request ---".format(
-            #         threading.currentThread().ident, method))
+            #         threading.current_thread().ident, method))
             for k, v in environ.items():
                 try:
                     v = safe_re_encode(v, "utf8")
                 except Exception:
                     pass
-                _logger.info("{:<20}: '{!r}'".format(k, v))
+                _logger.info("{:<20}: {!r}".format(k, v))
             _logger.info("\n")
 
         # Intercept start_response
@@ -171,7 +171,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
             if first_yield and dumpResponse:
                 _logger.info(
                     "<{}> ---{}  Response({}): ---".format(
-                        threading.currentThread().ident,
+                        threading.current_thread().ident,
                         method,
                         sub_app_start_response.status,
                     )
@@ -217,7 +217,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         if dumpResponse:
             _logger.info(
                 "<{}> --- End of {} Response ({:d} bytes) ---".format(
-                    threading.currentThread().ident, method, nbytes
+                    threading.current_thread().ident, method, nbytes
                 )
             )
         return

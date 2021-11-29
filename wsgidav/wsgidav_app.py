@@ -65,7 +65,6 @@ from wsgidav.middleware import BaseMiddleware
 from wsgidav.prop_man.property_manager import PropertyManager
 from wsgidav.util import (
     dynamic_import_class,
-    dynamic_instantiate_class,
     dynamic_instantiate_class_from_opts,
     safe_re_encode,
 )
@@ -150,6 +149,8 @@ class WsgiDAVApp:
         hotfixes = config.get("hotfixes", {})
 
         self.re_encode_path_info = hotfixes.get("re_encode_path_info", True)
+        if type(self.re_encode_path_info) is not bool:
+            raise ValueError("re_encode_path_info must be bool (or omitted)")
         self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
         lock_storage = config.get("lock_storage")
@@ -225,14 +226,9 @@ class WsgiDAVApp:
                 app_class = dynamic_import_class(mw)
                 app = app_class(self, self.application, config)
             elif type(mw) is dict:
-                # If a dict with one entry is passed, use the key as module/class name
-                # and the value as constructor arguments (positional or kwargs).
-                if len(mw) != 1:
-                    raise ValueError(f"Invalid middleware opts: {mw}")
-                name, args = list(mw.items())[0]
-                if type(args) not in (dict, list, tuple):
-                    raise ValueError(f"Invalid middleware opts for {name}: {args}")
-                app = dynamic_instantiate_class(name, args, expand=expand)
+                # If a dict with one entry is passed, expect {class: ..., kwargs: ...}
+                expand = {"${application}": self.application}
+                app = dynamic_instantiate_class_from_opts(mw, expand=expand)
             elif inspect.isclass(mw):
                 # If a class is passed, assume BaseMiddleware (or compatible)
                 # TODO: remove this assert with 3.0
@@ -404,16 +400,15 @@ class WsgiDAVApp:
 
         path = environ["PATH_INFO"]
 
-        # (#73) Failed on processing non-iso-8859-1 characters on Python 3
-        #
-        # Note: we encode using UTF-8 here (falling back to ISO-8859-1)!
-        # This seems to be wrong, since per PEP 3333 PATH_INFO is always ISO-8859-1 encoded
-        # (see https://www.python.org/dev/peps/pep-3333/#unicode-issues).
-        # But also seems to resolve errors when accessing resources with Chinese characters, for
-        # example.
-        # This is done by default for Python 3, but can be turned off in settings.
+        # WSGI always assumes iso-8859-1. Modern clients send UTF-8, so we may
+        # have to re-encode.
+        # See also:
+        # - Issue #73
+        # - https://www.python.org/dev/peps/pep-3333/#unicode-issues
+        # - https://bugs.python.org/issue16679#msg177450
+        # (The hotfixes.re_encode_path_info option is true by default.)
         if self.re_encode_path_info:
-            path = environ["PATH_INFO"] = util.wsgi_to_bytes(path).decode()
+            path = environ["PATH_INFO"] = util.re_encode_wsgi(path)
 
         # We optionally unquote PATH_INFO here, although this should already be
         # done by the server (#8, #228).
@@ -570,8 +565,8 @@ class WsgiDAVApp:
                     extra.append("elap={:.3f}sec".format(time.time() - start_time))
                 extra = ", ".join(extra)
 
-                #               This is the CherryPy format:
-                #                127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
+                # This is the CherryPy format:
+                #   127.0.0.1 - - [08/Jul/2009:17:25:23] "GET /loginPrompt?redirect=/renderActionList%3Frelation%3Dpersonal%26key%3D%26filter%3DprivateSchedule&reason=0 HTTP/1.1" 200 1944 "http://127.0.0.1:8002/command?id=CMD_Schedule" "Mozilla/5.0 (Windows; U; Windows NT 6.0; de; rv:1.9.1) Gecko/20090624 Firefox/3.5"  # noqa
                 _logger.info(
                     '{addr} - {user} - [{time}] "{method} {path}" {extra} -> {status}'.format(
                         addr=environ.get("REMOTE_ADDR", ""),

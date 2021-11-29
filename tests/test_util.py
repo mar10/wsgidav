@@ -11,6 +11,7 @@ from io import StringIO
 
 from wsgidav.util import (
     BASE_LOGGER_NAME,
+    check_tags,
     checked_etag,
     deep_update,
     get_module_logger,
@@ -81,6 +82,27 @@ class BasicTest(unittest.TestCase):
         self.assertEqual(shift_path("/a/b", "/c"), ("c", "/a/b/c", ""))
         self.assertEqual(shift_path("/a/b/c", "/"), ("", "/a/b/c", ""))
         self.assertEqual(shift_path("/a/b/c", ""), ("", "/a/b/c", ""))
+
+        assert check_tags("b", ["a", "b", "c"]) is None
+        assert check_tags("b", ("a", "b", "c")) is None
+        assert check_tags("b", {"a", "b", "c"}) is None
+        assert check_tags("b", "a, b, c") is None
+        assert check_tags("b", {"a": 1, "b": 2, "c": 3}) is None
+        self.assertRaises(ValueError, check_tags, "x", ["a", "b", "c"])
+        known = {"a", "b", "c"}
+        assert check_tags(("a", "c"), known) is None
+        assert check_tags(["a", "c"], known) is None
+        assert check_tags({"a", "c"}, known) is None
+        assert check_tags("a, c", known) is None
+        assert check_tags({"a": 1, "c": 3}, known) is None
+        self.assertRaises(ValueError, check_tags, {"a", "x"}, known)
+        self.assertRaises(ValueError, check_tags, {"a", "c"}, known, required=True)
+        # assert (
+        #     check_tags({"a", "x"}, known, check_missing=True, raise_error=False)
+        #     == "Unknown: 'x'\n"
+        #     "Missing: 'c', 'b'\n"
+        #     "Known: 'c', 'a', 'b'"
+        # )
 
         assert checked_etag(None, allow_none=True) is None
         assert checked_etag("abc") == "abc"

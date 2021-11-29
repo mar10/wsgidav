@@ -304,7 +304,7 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         _logger.error("-" * 40, file=sys.stderr)
         _logger.error(
             "<{}> Exception happened during processing of request from {}".format(
-                threading.currentThread().ident, client_address
+                threading.current_thread().ident, client_address
             )
         )
         _logger.error(client_address, file=sys.stderr)

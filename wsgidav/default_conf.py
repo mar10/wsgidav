@@ -38,7 +38,7 @@ DEFAULT_CONFIG = {
     "hotfixes": {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
         "re_encode_path_info": True,  # (See issue #73)
-        "unquote_path_info": False,  # See issue #8, #228
+        "unquote_path_info": False,  # (See issue #8, #228)
         # "win_accept_anonymous_options": False,
         # "winxp_accept_root_share_login": False,
     },
@@ -46,7 +46,7 @@ DEFAULT_CONFIG = {
     "mutable_live_props": [],
     "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
     "middleware_stack": [
-        WsgiDavDebugFilter,
+        # WsgiDavDebugFilter,
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)

@@ -17,10 +17,11 @@ import socket
 import stat
 import sys
 import time
+from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Optional
+from typing import Iterable, Optional
 from urllib.parse import quote
 
 from wsgidav.dav_error import (
@@ -85,6 +86,99 @@ def to_str(s, encoding="utf8"):
     return s
 
 
+def to_set(val, allow_none=False) -> set:
+    res = None
+    if type(val) is set:
+        res = val
+    elif type(val) is str:
+        res = set(map(str.strip, val.split(",")))
+    elif isinstance(val, (dict, list, tuple)):
+        res = set(map(str, val))
+    elif val is None and allow_none:
+        res = None
+    else:
+        raise TypeError(f"{val}, {type(val)}")
+    return res
+
+
+# password_patterns = []
+
+
+def purge_passwords(d, *, in_place=False):
+    def _purge(v):
+        if isinstance(v, dict):
+            if "password" in v:
+                v["password"] = "<REMOVED>"
+            for ele in v.values():
+                _purge(ele)
+        elif isinstance(v, Iterable) and not isinstance(v, str):
+            for ele in v:
+                _purge(ele)
+
+    if not in_place:
+        d = deepcopy(d)
+
+    for v in d.values():
+        _purge(v)
+
+    if in_place:
+        return None  # good convention to return None for mutating functions
+    return d
+
+
+def check_tags(tags, known, *, msg=None, raise_error=True, required=False):
+    """Check if `tags` only contains known tags.
+
+    If check fails and raise_error is true, a ValueError is raised.
+    If check passes, None is returned.
+    """
+    assert known, "must not be empty"
+    known = to_set(known)
+    optional = known
+
+    if required is True:
+        required = known
+        optional = set()
+    elif required:
+        required = to_set(required)
+        known = known.union(required)
+        optional = known.difference(required)
+
+    tags = to_set(tags)
+
+    res = []
+    unknown = tags.difference(known)
+    if unknown:
+        res.append("Unknown: '{}'".format("', '".join(unknown)))
+
+    if required:
+        missing = required.difference(tags)
+        if missing:
+            res.append("Missing: '{}'".format("', '".join(missing)))
+
+    if res:
+        if msg:
+            res.insert(0, msg)
+
+        if required and optional:
+            res.append(
+                "Required: ('{}'). Optional: ('{}')".format(
+                    "', '".join(required), "', '".join(optional)
+                )
+            )
+        elif required:
+            res.append("Required: ('{}')".format("', '".join(required)))
+        elif optional:
+            res.append("Optional: ('{}')".format("', '".join(optional)))
+
+        res = "\n".join(res)
+        if raise_error:
+            raise ValueError(res)
+        return res
+
+    return None
+
+
 # --- WSGI support ---
 
 
@@ -96,9 +190,32 @@ def unicode_to_wsgi(u):
 
 
 def wsgi_to_bytes(s):
-    """Convert a native string to a WSGI / HTTP compatible byte string."""
-    # Taken from PEP3333
+    """Convert a native string to a WSGI / HTTP compatible byte string.
+
+    WSGI always assumes iso-8859-1 (PEP 3333).
+    https://bugs.python.org/issue16679#msg177450
+    """
     return s.encode("iso-8859-1")
+
+
+def re_encode_wsgi(s: str, *, encoding="utf-8", fallback=False) -> str:
+    """Convert a WSGI string to `str`, assuming the client used UTF-8.
+
+    WSGI always assumes iso-8859-1. Modern clients send UTF-8, so we have to
+    re-encode
+
+    https://www.python.org/dev/peps/pep-3333/#unicode-issues
+    https://bugs.python.org/issue16679#msg177450
+    """
+    try:
+        if type(s) is bytes:
+            # haven't seen this case, but may be possible according to PEP 3333?
+            return s.decode(encoding)
+        return s.encode("iso-8859-1").decode(encoding)
+    except UnicodeDecodeError:
+        if fallback:
+            return s
+        raise
 
 
 # ========================================================================
@@ -347,13 +464,13 @@ def dynamic_import_class(name):
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
-        _logger.exception("Dynamic import of {!r} failed: {}".format(name, e))
+        _logger.error("Dynamic import of {!r} failed: {}".format(name, e))
         raise
     the_class = getattr(module, class_name)
     return the_class
 
 
-def dynamic_instantiate_class(class_name, options, *, expand=None):
+def dynamic_instantiate_class(class_name, options, *, expand=None, raise_error=True):
     """Import a class and instantiate with custom args.
 
     Equivalent of
@@ -382,17 +499,32 @@ def dynamic_instantiate_class(class_name, options, *, expand=None):
             return expand[v]
         return v
 
+    check_tags(
+        options,
+        {"args", "kwargs"},
+        msg=f"Invalid class instantiation options for {class_name}",
+    )
+    pos_args = options.get("args") or []
+    if pos_args is not None and not isinstance(pos_args, (tuple, list)):
+        raise ValueError(f"Expected list format for `args` option: {options}")
+
+    kwargs = options.get("kwargs") or {}
+    if kwargs is not None and not isinstance(kwargs, dict):
+        raise ValueError(f"Expected dict format for `kwargs` option: {options}")
+
     try:
         inst = None
         the_class = dynamic_import_class(class_name)
-        pos_args = []
-        kwargs = {}
-        if type(options) in (tuple, list):
-            pos_args = tuple(map(_expand, options))
-        elif type(options) is dict:
-            kwargs = {k: _expand(v) for k, v in options.items()}
-        else:
-            raise ValueError(f"Unexpected options format: {options}")
+        pos_args = tuple(map(_expand, pos_args))
+        kwargs = {k: _expand(v) for k, v in kwargs.items()}
+        # pos_args = []
+        # kwargs = {}
+        # if type(options) in (tuple, list):
+        #     pos_args = tuple(map(_expand, options))
+        # elif type(options) is dict:
+        #     kwargs = {k: _expand(v) for k, v in options.items()}
+        # else:
+        #     raise ValueError(f"Unexpected options format: {options}")
 
         inst = the_class(*pos_args, **kwargs)
 
@@ -403,7 +535,11 @@ def dynamic_instantiate_class(class_name, options, *, expand=None):
             "Instantiate {}({}) => {}".format(class_name, ", ".join(disp_args), inst)
         )
     except Exception:
-        _logger.exception(f"ERROR: Instantiate {class_name}({options}) failed")
+        msg = f"Instantiate {class_name}({options}) failed"
+        if raise_error:
+            _logger.error(msg)
+            raise
+        _logger.exception(msg)
 
     return inst
 
@@ -420,17 +556,24 @@ def dynamic_instantiate_class_from_opts(options, *, expand=None):
     ```py
     opts = {
         "class": "wsgidav.lock_man.lock_storage.LockStorageShelve",
-        "storage_path": "~/wsgidav_locks.shelve",
+        "kwargs": {
+            "storage_path": "~/wsgidav_locks.shelve",
+        }
     }
-    dynamic_instantiate_class_from_opts(opts, expand=)
+    dynamic_instantiate_class_from_opts(opts, expand=...)
     ```
     """
     if type(options) is str:
         options = {"class": options}
     else:
         options = options.copy()
-    if "class" not in options:
-        raise ValueError(f"Missing mandatory option 'class': {options}")
+
+    check_tags(
+        options,
+        {"class", "args", "kwargs"},
+        required="class",
+        msg="Invalid class instantiation options",
+    )
     class_name = options.pop("class")
     return dynamic_instantiate_class(class_name, options, expand=expand)
 
@@ -1449,6 +1592,9 @@ _MIME_TYPES = {
     ".ogg": "audio/ogg",
     ".ogv": "video/ogg",
     ".webm": "video/webm",
+    # https://mailarchive.ietf.org/arch/msg/media-types/DA8UuKX2dyaVxWh-oevy-t3Vg9Q/
+    ".yml": "application/yaml",
+    ".yaml": "application/yaml",
 }
 
 
