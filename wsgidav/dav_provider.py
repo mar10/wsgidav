@@ -67,7 +67,7 @@ propertyManager
 
 lockManager
    An object that implements locking on webDAV resources.
-   It contains an instance of ``LockStorage``
+   It contains an instance of ``LockStorageDict``
 
 lockStorage
    An object that provides storage for locks made on webDAV resources.

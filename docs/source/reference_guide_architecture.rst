@@ -124,11 +124,11 @@ The lock manager uses a lock storage implementation for persistence.
 WsgiDAV comes with two default implementations, one based on a in-memory
 dictionary, and a persistent one based on shelve::
 
-    lock_storage.LockStorage
-    lock_storage.ShelveLockStorage
+    lock_storage.LockStorageDict
+    lock_storage.LockStorageShelve
 
-:class:`~wsgidav.lock_man.lock_storage.LockStorage` is used by default, but
-:class:`~wsgidav.lock_man.lock_storage.ShelveLockStorage` can be enabled by uncommenting
+:class:`~wsgidav.lock_man.lock_storage.LockStorageDict` is used by default, but
+:class:`~wsgidav.lock_man.lock_storage.LockStorageShelve` can be enabled by uncommenting
 two lines in the configuration file.
 
 In addition, this may be replaced by a custom version, as long as the required
@@ -138,7 +138,7 @@ interface is implemented.
 Domain Controllers
 ------------------
 
-.. inheritance-diagram:: wsgidav.http_authenticator wsgidav.domain_controller wsgidav.dc.nt_dc
+.. inheritance-diagram:: wsgidav.http_authenticator wsgidav.dc.simple_dc wsgidav.dc.pam_dc wsgidav.dc.nt_dc
    :parts: 2
    :private-bases:
 
@@ -151,11 +151,12 @@ the config file.
 However, this may be replaced by a custom version, as long as the required
 interface is implemented.
 
-:ref:`~wsgidav.dc.nt_dc` is an example for such an extension.
+:mod:`wsgidav.dc.nt_dc` is an example for such an extension.
 
 
 :class:`~wsgidav.dc.simple_dc.SimpleDomainController`
-    Default implementation of a domain controller as used by ``HTTPAuthenticator``.
+    Default implementation of a domain controller as used by
+    :class:`~wsgidav.http_authenticator.HTTPAuthenticator`.
 
 
 Applications
@@ -180,7 +181,7 @@ WsgiDavDebugFilter
 
 ErrorPrinter
 ------------
-Middleware ``error_printer.ErrorPrinter``
+Middleware :class:`wsgidav.error_printer.ErrorPrinter`.
 Handle DAV exceptions and internal errors.
 
 On init:
@@ -194,7 +195,7 @@ For every request:
 
 HTTPAuthenticator
 -----------------
-Middleware ``http_authenticator.HTTPAuthenticator``
+Middleware :class:`wsgidav.http_authenticator.HTTPAuthenticator`.
 Uses a domain controller to establish HTTP authentication.
 
 On init:
@@ -212,7 +213,7 @@ For every request:
 
 WsgiDavDirBrowser
 -----------------
-Middleware ``dir_browser.WsgiDavDirBrowser``
+Middleware :class:`wsgidav.dir_browser._dir_browser.WsgiDavDirBrowser`.
 Handles GET requests on collections to display a HTML directory listing.
 
 On init:
@@ -227,10 +228,10 @@ For every request:
 
 RequestResolver
 ---------------
-Middleware ``request_resolver.RequestResolver``.
+Middleware :class:`wsgidav.request_resolver.RequestResolver`.
 Must be configured as last in `middleware_stack` config option.
-Find the mapped DAV-Provider, create a new RequestServer instance, and dispatch
-the request.
+Find the mapped DAV-Provider, create a new :class:`~wsgidav.request_server.RequestServer`
+instance, and dispatch the request.
 
 On init:
 
@@ -242,14 +243,15 @@ For every request:
     ``environ["PATH_INFO"]`` to resource path.
 
     Then find the registered DAV-Provider for this realm, create a new
-    ``RequestServer`` instance, and pass the request to it.
+    :class:`~wsgidav.request_server.RequestServer` instance, and pass the
+    request to it.
 
     Note: The OPTIONS method for '*' is handled directly.
 
 
 RequestServer
 -------------
-Application ``request_server.RequestServer``
+Application :class:`wsgidav.request_server.RequestServer`.
 Handles one single WebDAV request.
 
 On init:

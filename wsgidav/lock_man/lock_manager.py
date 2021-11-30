@@ -6,7 +6,7 @@
 """
 Implements the `LockManager` object that provides the locking functionality.
 
-The LockManager requires a LockStorage object to implement persistence.
+The LockManager requires a LockStorageDict object to implement persistence.
 Two alternative lock storage classes are defined in the lock_storage module:
 
 - wsgidav.lock_man.lock_storage.LockStorageDict

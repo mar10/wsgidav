@@ -15,7 +15,7 @@ a Python ``dict`` with distinct options, that define
   * Server options (hostname, port, SSL cert, ...)
   * List of share-name / WebDAV provider mappings
   * Optional list of users for authentication
-  * Optional custom DAV providers (i.e. other than `FilesystemProvider`)
+  * Optional custom DAV providers (i.e. other than :class:`~wsgidav.fs_dav_provider.FilesystemProvider`)
   * Optional custom lock manager, property manager and domain controller
   * Advanced debugging options
   * (and more)
@@ -216,16 +216,17 @@ DAVProvider
 A DAVProvider handles read and write requests for all URLs that start with
 a given share path.
 
-WsgiDAV comes bundled with ``FilesystemProvider``, a DAVProvider that serves
-DAV requests by reading and writing to the server's file system. |br|
+WsgiDAV comes bundled with :class:`~wsgidav.fs_dav_provider.FilesystemProvider`,
+a DAVProvider that serves DAV requests by reading and writing to the server's
+file system. |br|
 However, custom DAVProviders may be implemented and used, that publish a
 database backend, cloud drive, or any virtual data structure.
 
 The ``provider_mapping`` configuration routes share paths to specific
 DAVProvider instances.
 
-By default a writable `FilesystemProvider` is assumed, but can be forced
-to read-only.
+By default a writable :class:`~wsgidav.fs_dav_provider.FilesystemProvider` is
+assumed, but can be forced to read-only.
 Note that a DomainController may still restrict access completely or prevent
 editing depending on authentication.
 
@@ -262,7 +263,7 @@ For example::
 Property Manager
 ----------------
 
-The built-in ``PropertyManager``.
+The built-in :class:`~wsgidav.prop_man.property_manager.PropertyManager``.
 
 Possible options are:
 
@@ -282,7 +283,8 @@ Example: Use a persistent shelve based property storage::
 Lock Manager and Storage
 ------------------------
 
-The built-in ``LockManager`` requires a ``LockStorage`` instance.
+The built-in :class:`~wsgidav.lock_man.lock_manager.LockManager` requires a
+:class:`~wsgidav.lock_man.lock_storage.LockStorageDict` instance.
 
 Possible options are:
 
@@ -292,7 +294,8 @@ Possible options are:
   (This is an alias for ``lock_storage: wsgidav.lock_man.lock_storage.LockStorageDict``)
 - Enable an installed lock storage
 
-Example: Use a persistent shelve based lock storage::
+A persistent, shelve based :class:`~wsgidav.lock_man.lock_storage.LockStorageShelve`
+is also available::
 
     lock_storage:
         class: wsgidav.lock_man.lock_storage.LockStorageShelve
@@ -309,7 +312,8 @@ Currently three variants are supported.
 SimpleDomainController
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Allows to authenticate against a plain mapping of shares and user names.
+The :class:`wsgidav.dc.simple_dc.SimpleDomainController` allows to authenticate
+against a plain mapping of shares and user names.
 
 The pseudo-share ``"*"`` maps all URLs that are not explicitly listed.
 
@@ -362,7 +366,7 @@ NTDomainController
 ~~~~~~~~~~~~~~~~~~
 Allows users to authenticate against a Windows NT domain or a local computer.
 
-The :class:`~wsgidav.dc.nt_dc.NTDomainController` requires basic authentication
+The :class:`wsgidav.dc.nt_dc.NTDomainController` requires basic authentication
 and therefore should use SSL.
 
 Example YAML configuration::
@@ -393,7 +397,7 @@ Allows users to authenticate against a PAM (Pluggable Authentication Modules),
 that are at the core of user authentication in any modern linux distribution
 and macOS.
 
-The :class:`~wsgidav.dc.pam_dc.PAMDomainController` requires basic
+The :class:`wsgidav.dc.pam_dc.PAMDomainController` requires basic
 authentication and therefore should use SSL.
 
 Example YAML configuration that authenticates users against the server's

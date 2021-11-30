@@ -41,16 +41,17 @@ Package ``wsgidav``
 
 
 Package ``wsgidav.dc``
---------------------------
+----------------------
 .. autosummary::
    :toctree: _autosummary
 
    wsgidav.dc.simple_dc
    wsgidav.dc.nt_dc
+   wsgidav.dc.pam_dc
 
 
 Package ``wsgidav.prop_man``
---------------------------
+----------------------------
 .. autosummary::
    :toctree: _autosummary
 
@@ -60,7 +61,7 @@ Package ``wsgidav.prop_man``
 
 
 Package ``wsgidav.lock_man``
---------------------------
+----------------------------
 .. autosummary::
    :toctree: _autosummary
 

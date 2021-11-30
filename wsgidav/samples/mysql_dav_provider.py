@@ -11,7 +11,7 @@ classes ``MySQLBrowserProvider``.
 
 Usage::
 
-    (see docs/sample_wsgidav.conf)
+    (see docs/sample_wsgidav.yaml)
     MySQLBrowserProvider(host, user, passwd, db)
 
     host - host of database server

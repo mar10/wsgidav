@@ -78,7 +78,7 @@ Windows
 -------
 
 Install the preconditions if neccessary.
-Basically the same as for `Unix / Linux`_
+Basically the same as for `Linux / macOS`_
 
 .. note::
 
