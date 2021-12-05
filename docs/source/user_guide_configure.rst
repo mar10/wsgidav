@@ -106,7 +106,7 @@ functionality.
 
 This stack is defined as a list of WSGI compliant application instances, e.g.::
 
-    from wsgidav.debug_filter import WsgiDavDebugFilter
+    from wsgidav.mw.debug_filter import WsgiDavDebugFilter
 
     debug_filter = WsgiDavDebugFilter(wsgidav_app, next_app, config)
 
@@ -121,11 +121,11 @@ This stack is defined as a list of WSGI compliant application instances, e.g.::
 
 If the middleware class constructor has a common signature, it is sufficient to
 pass the class instead of the instantiated object.
-The built-in middleware derives from :class:`~wsgidav.middleware.BaseMiddleware`,
+The built-in middleware derives from :class:`~wsgidav.mw.base_mw.BaseMiddleware`,
 so we can simplify as::
 
     from wsgidav.dir_browser import WsgiDavDirBrowser
-    from wsgidav.debug_filter import WsgiDavDebugFilter
+    from wsgidav.mw.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
     from wsgidav.request_resolver import RequestResolver
@@ -148,7 +148,7 @@ removes the directory browser, and adds a third-party debugging tool::
     import dozer
 
     # from wsgidav.dir_browser import WsgiDavDirBrowser
-    from wsgidav.debug_filter import WsgiDavDebugFilter
+    from wsgidav.mw.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
     from wsgidav.request_resolver import RequestResolver
@@ -188,7 +188,7 @@ should be explicitly listed::
             - "${application}"
             - null  # global_conf
             - /tmp  # profile_path
-        - wsgidav.debug_filter.WsgiDavDebugFilter
+        - wsgidav.mw.debug_filter.WsgiDavDebugFilter
         - wsgidav.error_printer.ErrorPrinter
         - wsgidav.http_authenticator.HTTPAuthenticator
         - wsgidav.dir_browser.WsgiDavDirBrowser

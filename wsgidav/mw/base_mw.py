@@ -17,7 +17,7 @@ class BaseMiddleware(ABC):
     Derived classes in WsgiDAV include::
 
         wsgidav.dir_browser.WsgiDavDirBrowser
-        wsgidav.debug_filter.WsgiDavDebugFilter
+        wsgidav.mw.debug_filter.WsgiDavDebugFilter
         wsgidav.error_printer.ErrorPrinter
         wsgidav.http_authenticator.HTTPAuthenticator
         wsgidav.request_resolver.RequestResolver

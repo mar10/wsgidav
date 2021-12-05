@@ -14,7 +14,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
-from wsgidav.middleware import BaseMiddleware
+from wsgidav.mw.base_mw import BaseMiddleware
 from wsgidav.util import safe_re_encode
 
 __docformat__ = "reStructuredText"

@@ -61,7 +61,7 @@ from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.lock_man.lock_manager import LockManager
 from wsgidav.lock_man.lock_storage import LockStorageDict
-from wsgidav.middleware import BaseMiddleware
+from wsgidav.mw.base_mw import BaseMiddleware
 from wsgidav.prop_man.property_manager import PropertyManager
 from wsgidav.util import (
     dynamic_import_class,

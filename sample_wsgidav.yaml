@@ -92,7 +92,7 @@ hotfixes:
 #: See here for an example how to add custom middlewares:
 #:   https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html#middleware-stack
 middleware_stack:
-    - wsgidav.debug_filter.WsgiDavDebugFilter
+    - wsgidav.mw.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
     - wsgidav.dir_browser.WsgiDavDirBrowser

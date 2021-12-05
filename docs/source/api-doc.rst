@@ -26,12 +26,12 @@ Package ``wsgidav``
 
    wsgidav.dav_error
    wsgidav.dav_provider
-   wsgidav.debug_filter
+   wsgidav.mw.debug_filter
    wsgidav.dir_browser
    wsgidav.error_printer
    wsgidav.fs_dav_provider
    wsgidav.http_authenticator
-   wsgidav.middleware
+   wsgidav.mw.base_mw
    wsgidav.request_resolver
    wsgidav.request_server
    wsgidav.rw_lock

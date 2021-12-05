@@ -55,7 +55,7 @@ import sys
 import threading
 
 from wsgidav import util
-from wsgidav.middleware import BaseMiddleware
+from wsgidav.mw.base_mw import BaseMiddleware
 from wsgidav.util import safe_re_encode
 
 __docformat__ = "reStructuredText"
