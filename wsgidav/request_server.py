@@ -1458,6 +1458,9 @@ class RequestServer:
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
+        config = environ["wsgidav.config"]
+        hotfixes = config.get("hotfixes", {})
+
         res = provider.get_resource_inst(path, environ)
 
         dav_compliance_level = "1,2"
@@ -1471,10 +1474,16 @@ class RequestServer:
             ("Date", util.get_rfc1123_time()),
         ]
 
+        is_asterisk_options = path == "*"
         if path == "/":
-            path = "*"  # Hotfix for WinXP
+            # Hotfix for WinXP / Vista: accept '/' for a '*'
+            treat_as_asterisk = hotfixes.get("treat_root_options_as_asterisk")
+            if treat_as_asterisk:
+                is_asterisk_options = True  # Hotfix for WinXP
+            else:
+                _logger.info("Got OPTIONS '/' request")
 
-        if path == "*":
+        if is_asterisk_options:
             # Answer HTTP 'OPTIONS' method on server-level.
             # From RFC 2616
             # If the Request-URI is an asterisk ("*"), the OPTIONS request is

@@ -101,6 +101,8 @@ from wsgidav.request_server import RequestServer
 
 __docformat__ = "reStructuredText"
 
+_logger = util.get_module_logger(__name__)
+
 # NOTE (Martin Wendt, 2009-05):
 # The following remarks were made by Ian Bicking when reviewing PyFileServer in 2005.
 # I leave them here after my refactoring for reference.
@@ -164,9 +166,19 @@ class RequestResolver(BaseMiddleware):
         # the top-level realm (e.g. required to map drive letters).
 
         provider = environ["wsgidav.provider"]
+        config = environ["wsgidav.config"]
+        hotfixes = config.get("hotfixes", {})
 
-        # Hotfix for WinXP / Vista: accept '/' for a '*'
-        if environ["REQUEST_METHOD"] == "OPTIONS" and path in ("/", "*"):
+        is_asterisk_options = environ["REQUEST_METHOD"] == "OPTIONS" and path == "*"
+        if path == "/":
+            # Hotfix for WinXP / Vista: accept '/' for a '*'
+            treat_as_asterisk = hotfixes.get("treat_root_options_as_asterisk")
+            if treat_as_asterisk:
+                is_asterisk_options = True
+            else:
+                _logger.info("Got OPTIONS '/' request")
+
+        if is_asterisk_options:
             # Answer HTTP 'OPTIONS' method on server-level.
             # From RFC 2616:
             # If the Request-URI is an asterisk ("*"), the OPTIONS request is
@@ -202,7 +214,7 @@ class RequestResolver(BaseMiddleware):
 
         if provider is None:
             raise DAVError(
-                HTTP_NOT_FOUND, "Could not find resource provider for '{}'".format(path)
+                HTTP_NOT_FOUND, f"Could not find resource provider for '{path}'"
             )
 
         # Let the appropriate resource provider for the realm handle the

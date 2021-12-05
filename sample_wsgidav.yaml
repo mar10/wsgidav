@@ -69,6 +69,9 @@ hotfixes:
     #: Framework, so this setting should only be used to fix unexpected problems
     #: there (false fixes issue #8, true fixes issue #228).
     unquote_path_info: false
+    #: Hotfix for WinXP / Vista: accept 'OPTIONS /' for a 'OPTIONS *'
+    #: (default: false)
+    treat_root_options_as_asterisk: false
 
 
 # ----------------------------------------------------------------------------
