@@ -184,7 +184,7 @@ Hack, Hack, Hack
       `Black library <https://black.readthedocs.io/en/stable/>`_.
 
       Failing tests or not follwing PEP 8 will break builds on
-      `travis <https://travis-ci.org/mar10/wsgidav>`_ and therefore be
+      `travis <https://travis-ci.com/mar10/wsgidav>`_ and therefore be
       automatically rejected:
 
         - Run ``$ tox -e format`` to re-format the code, or

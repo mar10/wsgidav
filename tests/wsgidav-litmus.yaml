@@ -12,7 +12,7 @@ ssl_private_key: "../wsgidav/server/sample_bogo_server.key"
 
 # Modify to customize the WSGI application stack:
 middleware_stack:
-    - wsgidav.debug_filter.WsgiDavDebugFilter
+    - wsgidav.mw.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
     - wsgidav.dir_browser.WsgiDavDirBrowser

@@ -96,9 +96,9 @@ WsgiDAV comes with a web interface and was tested with different clients
 
 .. |logo| image:: logo.png
 
-.. |travis_badge| image:: https://travis-ci.org/mar10/wsgidav.svg?branch=master
+.. |travis_badge| image:: https://travis-ci.com/mar10/wsgidav.svg?branch=master
    :alt: Build Status
-   :target: https://travis-ci.org/mar10/wsgidav
+   :target: https://travis-ci.com/mar10/wsgidav
 
 .. |pypi_badge| image:: https://img.shields.io/pypi/v/wsgidav.svg
    :alt: PyPI Version

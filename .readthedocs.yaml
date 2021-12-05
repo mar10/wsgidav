@@ -11,6 +11,8 @@ build:
   tools:
     python: "3.8"
    #  python: "3.9"  # 2021-11-13: problem with recommark?
+  apt_packages:
+    - "graphviz"
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -28,3 +30,6 @@ python:
        path: .
       #  extra_requirements:
       #    - docs
+
+submodules:
+  include: all
