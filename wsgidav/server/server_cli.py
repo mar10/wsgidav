@@ -65,31 +65,12 @@ DEFAULT_CONFIG_FILES = ("wsgidav.yaml", "wsgidav.json")
 _logger = logging.getLogger("wsgidav")
 
 
-def _get_checked_path(path, config, must_exist=True, allow_none=True):
-    """Convert path to absolute if not None."""
-    if path in (None, ""):
-        if allow_none:
-            return None
-        raise ValueError("Invalid path {!r}".format(path))
-    # Evaluate path relative to the folder of the config file (if any)
-    config_file = config.get("_config_file")
-    if config_file and not os.path.isabs(path):
-        path = os.path.normpath(os.path.join(os.path.dirname(config_file), path))
-    else:
-        path = os.path.abspath(path)
-    if must_exist and not os.path.exists(path):
-        raise ValueError("Invalid path {!r}".format(path))
-    return path
-
-
 def _get_common_info(config):
     """Calculate some common info."""
     # Support SSL
-    ssl_certificate = _get_checked_path(config.get("ssl_certificate"), config)
-    ssl_private_key = _get_checked_path(config.get("ssl_private_key"), config)
-    ssl_certificate_chain = _get_checked_path(
-        config.get("ssl_certificate_chain"), config
-    )
+    ssl_certificate = util.fix_path(config.get("ssl_certificate"), config)
+    ssl_private_key = util.fix_path(config.get("ssl_private_key"), config)
+    ssl_certificate_chain = util.fix_path(config.get("ssl_certificate_chain"), config)
     ssl_adapter = config.get("ssl_adapter", "builtin")
     use_ssl = False
     if ssl_certificate and ssl_private_key:
@@ -301,7 +282,7 @@ def _read_config_file(config_file, _verbose):
     config_file = os.path.abspath(config_file)
 
     if not os.path.exists(config_file):
-        raise RuntimeError("Couldn't open configuration file '{}'.".format(config_file))
+        raise RuntimeError(f"Couldn't open configuration file '{config_file}'.")
 
     if config_file.endswith(".json"):
         with open(config_file, mode="rt", encoding="utf-8-sig") as fp:
@@ -317,6 +298,7 @@ def _read_config_file(config_file, _verbose):
         )
 
     conf["_config_file"] = config_file
+    conf["_config_root"] = os.path.dirname(config_file)
     return conf
 
 
@@ -327,6 +309,8 @@ def _init_config():
 
     # Set config defaults
     config = copy.deepcopy(DEFAULT_CONFIG)
+    config["_config_file"] = None
+    config["_config_root"] = os.getcwd()
 
     # Configuration file overrides defaults
     config_file = cli_opts.get("config_file")
@@ -429,16 +413,16 @@ def _init_config():
         config["pam_dc"] = {"service": "login"}
     # print(config)
 
-    if cli_opts.get("reload"):
-        print("Installing paste.reloader.", file=sys.stderr)
-        from paste import reloader  # @UnresolvedImport
+    # if cli_opts.get("reload"):
+    #     print("Installing paste.reloader.", file=sys.stderr)
+    #     from paste import reloader  # @UnresolvedImport
 
-        reloader.install()
-        if config_file:
-            # Add config file changes
-            reloader.watch_file(config_file)
-        # import pydevd
-        # pydevd.settrace()
+    #     reloader.install()
+    #     if config_file:
+    #         # Add config file changes
+    #         reloader.watch_file(config_file)
+    #     # import pydevd
+    #     # pydevd.settrace()
 
     return cli_opts, config
 

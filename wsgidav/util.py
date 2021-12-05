@@ -727,6 +727,41 @@ def byte_number_string(
     return "{}{}{}".format(snum, magsuffix, bytesuffix)
 
 
+def fix_path(path, root, *, expand_vars=True, must_exist=True, allow_none=True):
+    """Convert path to absolute, expand and check.
+
+    Convert path to absolute if required, expand leading '~' as user home dir,
+    expand %VAR%, $Var, ...
+    """
+    org_path = path
+    if path in (None, ""):
+        if allow_none:
+            return None
+        raise ValueError(f"Invalid path {path!r}")
+
+    if not os.path.isabs(path):
+        if not root:
+            root = os.getcwd()
+        elif type(root) is dict:
+            # Evaluate path relative to the folder of the config file (if any)
+            config_file = root.get("_config_file")
+            if config_file:
+                root = os.path.dirname(config_file)
+            else:
+                root = os.getcwd()
+        path = os.path.abspath(os.path.join(root, path))
+
+    if expand_vars:
+        path = os.path.expandvars(os.path.expanduser(path))
+
+    if must_exist and not os.path.exists(path):
+        raise ValueError(f"Invalid path: {path!r}")
+
+    if org_path != path:
+        print(f"fix_path({org_path}) => {path}")
+    return path
+
+
 # ========================================================================
 # WSGI
 # ========================================================================

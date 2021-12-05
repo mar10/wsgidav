@@ -318,25 +318,21 @@ class WsgiDAVApp:
             #   <mount_path>: <folder_path>
             # We allow a simple string as 'provider'. In this case we interpret
             # it as a file system root folder that is published.
+            provider = util.fix_path(provider, self.config)
             provider = FilesystemProvider(provider, readonly=readonly)
+
         elif type(provider) in (dict,):
-            # if "provider" in provider:
             if "class" in provider:
                 # Syntax:
-                #   <mount_path>: {"class": <class_path>, <arg_name>: <val>, ...>}
+                #   <mount_path>: {"class": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
                 expand = {"${application}": self}
                 provider = dynamic_instantiate_class_from_opts(provider, expand=expand)
-            #     # Syntax:
-            #     #   <mount_path>: {"provider": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
-            #     prov_class = dynamic_import_class(provider["provider"])
-            #     provider = prov_class(
-            #         *provider.get("args", []), **provider.get("kwargs", {})
-            #     )
             elif "root" in provider:
                 # Syntax:
                 #   <mount_path>: {"root": <path>, "redaonly": <bool>}
                 provider = FilesystemProvider(
-                    provider["root"], readonly=bool(provider.get("readonly", False))
+                    util.fix_path(provider["root"]),
+                    readonly=bool(provider.get("readonly", False)),
                 )
             else:
                 raise ValueError(
