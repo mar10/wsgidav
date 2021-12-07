@@ -108,6 +108,7 @@ def _check_config(config):
         "mutableLiveProps": "mutable_live_props",
         "propsmanager": "property_manager",
         "re_encode_path_info": "hotfixes.re_encode_path_info",
+        "response_headers": "(see Cors middleware)",
         "trusted_auth_header": "http_authenticator.trusted_auth_header",
         "unquote_path_info": "hotfixes.unquote_path_info",
         "user_mapping": "simple_dc.user_mapping",

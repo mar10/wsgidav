@@ -21,7 +21,7 @@ from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav.dav_error import (
@@ -48,6 +48,10 @@ PYTHON_VERSION = "{}.{}.{}".format(
 )
 
 filesystemencoding = sys.getfilesystemencoding()
+
+
+class NO_DEFAULT:
+    """"""
 
 
 # ========================================================================
@@ -86,19 +90,66 @@ def to_str(s, encoding="utf8"):
     return s
 
 
-def to_set(val, allow_none=False) -> set:
-    res = None
+def to_set(val, *, or_none=False, raise_error=False) -> set:
+    res = set()
     if type(val) is set:
         res = val
     elif type(val) is str:
         res = set(map(str.strip, val.split(",")))
     elif isinstance(val, (dict, list, tuple)):
         res = set(map(str, val))
-    elif val is None and allow_none:
+    elif val is None and or_none:
         res = None
-    else:
+    elif raise_error:
         raise TypeError(f"{val}, {type(val)}")
     return res
+
+
+def get_dict_value(d, key_path, default=NO_DEFAULT):
+    """Return the value of a nested dict using dot-notation path.
+
+    Args:
+        d (dict):
+        key_path (str):
+    Raises:
+        KeyError:
+        ValueError:
+        IndexError:
+
+    Examples::
+
+        ...
+
+    Todo:
+        * k[1] instead of k.[1]
+    """
+    if default is not NO_DEFAULT:
+        try:
+            return get_dict_value(d, key_path)
+        except (AttributeError, KeyError, ValueError, IndexError):
+            return default
+
+    seg_list = key_path.split(".")
+    seg = seg_list.pop(0)
+    value = d[seg]
+
+    while seg_list:
+        seg = seg_list.pop(0)
+        if isinstance(value, dict):
+            value = value[seg]
+        elif isinstance(value, (list, tuple)):
+            if not seg.startswith("[") or not seg.endswith("]"):
+                raise ValueError("Use `[INT]` syntax to address list items")
+            seg = seg[1:-1]
+            value = value[int(seg)]
+        else:
+            # raise ValueError("Segment '{}' cannot be nested".format(seg))
+            try:
+                value = getattr(value, seg)
+            except AttributeError:
+                raise  # ValueError("Segment '{}' cannot be nested".format(seg))
+
+    return value
 
 
 # password_patterns = []
@@ -993,6 +1044,22 @@ def make_complete_url(environ, local_uri=None):
     else:
         url += local_uri  # TODO: quote?
     return url
+
+
+def update_headers_in_place(
+    target: list[Tuple[str, str]],
+    new_items: list[Tuple[str, str]],
+) -> None:
+    """Modify or append new headers to existing header list (in-place)."""
+    new_dict = {k.lower(): (k, v) for k, v in new_items}
+    for idx, (name, _value) in enumerate(target):
+        new_val = new_dict.pop(name.lower(), None)
+        if new_val is not None:
+            target[idx] = new_val
+    for value in new_dict.values():
+        target.append(value)
+
+    return  # in-place does not return a value
 
 
 # ========================================================================

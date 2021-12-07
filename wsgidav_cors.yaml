@@ -1,0 +1,123 @@
+# WsgiDAV configuration file
+#
+# 1. Rename this file to `wsgidav.yaml`
+# 2. Adjust settings as appropriate
+# 3. Run `wsgidav` from the same directory or pass file name with `--config` option.
+#
+# See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+
+host: 0.0.0.0
+port: 8080
+
+# Set verbosity level
+verbose: 3
+
+ssl_certificate: "wsgidav/server/sample_bogo_server.crt"
+ssl_private_key: "wsgidav/server/sample_bogo_server.key"
+ssl_certificate_chain: null
+
+# server_args:
+#     numthreads: 17
+
+#: Cheroot server supports 'builtin' and 'pyopenssl' (default: 'builtin')
+# ssl_adapter: "pyopenssl"
+
+logging:
+    # logger_format: "%(asctime)s.%(msecs)03d - %(levelname)-8s: %(message)s"
+    # logger_format: "%(asctime)s.%(msecs)03d - <%(thread)05d> %(name)-27s %(levelname)-8s: %(message)s")
+    # logger_date_format: "%H:%M:%S"
+
+# Modify to customize the WSGI application stack.
+# Any middleware wraps and replaces its successor, so it get's called first:
+middleware_stack:
+    # Enable online profiling and GC inspection. See https://github.com/mgedmin/dozer
+    # (Requires `pip install Dozer`):
+    # - dozer.Dozer:
+    #     - "${application}"
+    # - dozer.Profiler:
+    #     - "${application}"
+    #     - null  # global_conf
+    #     - /tmp  # profile_path
+    - wsgidav.mw.cors.Cors
+    - wsgidav.mw.debug_filter.WsgiDavDebugFilter
+    - wsgidav.error_printer.ErrorPrinter
+    - wsgidav.http_authenticator.HTTPAuthenticator
+    - wsgidav.dir_browser.WsgiDavDirBrowser
+    - wsgidav.request_resolver.RequestResolver
+
+# File system providers
+provider_mapping:
+    "/": "./tests/fixtures/share"
+    # "/prj":
+    #     class: wsgidav.fs_dav_provider.FilesystemProvider
+    #     args: ["/Users/martin/prj"]
+    #     kwargs: {"readonly": true}
+
+
+http_authenticator:
+    #: Allow basic authentication
+    accept_basic: true
+    #: Allow digest authentication
+    accept_digest: false
+    #: true (default digest) or false (default basic)
+    default_to_digest: false
+    #: Header field that will be accepted as authorized user.
+    #: Including quotes, for example: trusted_auth_header = "REMOTE_USER"
+    trusted_auth_header: null
+    #: Domain controller that is used to resolve realms and authorization.
+    #: Default null: wsgidav.dc.simple_dc.SimpleDomainController,
+    #: which uses the `simple_dc.user_mapping` option below.
+    #: (See http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
+    #: for an example of NT domain controller, etc.)
+    # domain_controller: null
+    # domain_controller: "wsgidav.dc.pam_dc.PAMDomainController"
+    domain_controller: "wsgidav.dc.simple_dc.SimpleDomainController"
+
+    # Access control per share, used by the domaincontroller.
+# These routes must match the provider mapping.
+# Provider routes without a matching entry here, are open for anonymous access!
+
+# Additional options for NTDomainController only:
+nt_dc:
+    preset_domain: null
+    preset_server: null
+
+# Additional options for PamDomainController only:
+pam_dc:
+    service: "login"
+
+simple_dc:
+    user_mapping:
+        "*": true
+        "/prj":
+            "user1":
+                password: "abc123"
+
+cors:
+    # allow_origin:
+    #   - 'https://localhost:8080'
+    #   - 'https://localhost:8082'
+    # allow_origin: '*'
+    allow_origin: false
+    allow_methods:
+        POST,HEAD
+    allow_headers:
+        - h1
+        - X-PINGOTHER
+    add_always:
+        baz: qux
+
+# Remove this block to prevent directory browsing
+dir_browser:
+    # enable: false
+    icon: true
+    show_user: true
+    show_logout: true
+    response_trailer: true
+    davmount: true
+    davmount_links: false
+    ms_sharepoint_support: true
+    ignore:
+        - .DS_Store  # macOS
+        - ._*  # macOS
+

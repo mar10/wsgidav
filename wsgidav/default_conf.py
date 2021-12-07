@@ -18,6 +18,7 @@ Default confguration.
 from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
+from wsgidav.mw.cors import Cors
 from wsgidav.request_resolver import RequestResolver
 
 __docformat__ = "reStructuredText"
@@ -48,6 +49,7 @@ DEFAULT_CONFIG = {
     "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
     "middleware_stack": [
         # WsgiDavDebugFilter,
+        Cors,
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)

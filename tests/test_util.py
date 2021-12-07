@@ -14,6 +14,8 @@ from wsgidav.util import (
     check_tags,
     checked_etag,
     deep_update,
+    fix_path,
+    get_dict_value,
     get_module_logger,
     init_logging,
     is_child_uri,
@@ -23,6 +25,7 @@ from wsgidav.util import (
     pop_path,
     removeprefix,
     shift_path,
+    update_headers_in_place,
 )
 
 
@@ -117,6 +120,14 @@ class BasicTest(unittest.TestCase):
         assert parse_if_match_header(' "abc" , def ') == ["abc", "def"]
         assert parse_if_match_header(' W/"abc" , def ') == ["abc", "def"]
 
+        self.assertRaises(ValueError, fix_path, "a/b", "/root/x")
+        assert fix_path("a/b", "/root/x", must_exist=False) == "/root/x/a/b"
+        assert fix_path("/a/b", "/root/x", must_exist=False) == "/a/b"
+
+        headers = [("foo", "bar"), ("baz", "qux")]
+        update_headers_in_place(headers, [("Foo", "bar2"), ("New", "new_val")])
+        assert headers == [("Foo", "bar2"), ("baz", "qux"), ("New", "new_val")]
+
         d_org = {"b": True, "d": {"i": 1, "t": (1, 2)}}
         d_new = {}
         assert deep_update(d_org.copy(), d_new) == d_org
@@ -146,6 +157,17 @@ class BasicTest(unittest.TestCase):
             }
         }
         assert deep_update({"user_mapping": {}}, d_new) == d_new
+
+        d = {"b": True, "d": {"i": 1, "t": (1, 2)}}
+        assert get_dict_value(d, "b") is True
+        assert get_dict_value(d, "d.i") == 1
+        assert get_dict_value(d, "d.i", default="def") == 1
+        assert get_dict_value(d, "d.q", default="def") == "def"
+        assert get_dict_value(d, "d.q.v", default="def") == "def"
+        assert get_dict_value(d, "q.q.q", default="def") == "def"
+        assert get_dict_value(d, "d.t.[1]") == 2
+        self.assertRaises(IndexError, get_dict_value, d, "d.t.[2]")
+        self.assertRaises(KeyError, get_dict_value, d, "d.q")
 
 
 class LoggerTest(unittest.TestCase):

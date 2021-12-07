@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>WsgiDAV CORS Test</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script defer src='main.js'></script>
+    <!-- <script defer src='///localhost:5000/main.js'></script> -->
+</head>
+
+<body>
+    <p>
+    <ul>
+        <li>Load ./main.js</li>
+        <li>Load ./main.js from :5000</li>
+        <li>Local image: <img src="logo.png"></li>
+        <li>image on :5000: <img src="///localhost:5000/logo.png"></li>
+        <li>Edit docx locally:
+            <a href="Lotosblütenstengel (蓮花莖).docx">Lotosblütenstengel (蓮花莖).docx</a>
+        </li>
+        <li>Edit docx on :5000:
+            <a href="///localhost:5000/Lotosblütenstengel (蓮花莖).docx">Lotosblütenstengel (蓮花莖).docx :5000</a>
+        </li>
+    </ul>
+    </p>
+</body>
+
+</html>

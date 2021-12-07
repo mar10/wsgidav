@@ -5,6 +5,7 @@
 - Drop Python 2 support
 - Drop support for Python syntax in config files (wsgidav.conf)
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
+- CORS support
 - Provider root paths are relative to configuration file
 - DAVCollection, DAVNonCollection, DAVProvider are now ABCs.
 - API enforces some named keyword args (`..., *, ...`)
