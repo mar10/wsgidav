@@ -359,7 +359,7 @@ class VirtualResource(DAVCollection):
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super(VirtualResource, self).get_property_names(
+        propNameList = super().get_property_names(
             is_allprop=is_allprop
         )
         # Add custom live properties (report on 'allprop' and 'propnames')
@@ -386,7 +386,7 @@ class VirtualResource(DAVCollection):
         elif name == "{virtres:}description":
             return self.data["description"]
         # Let base class implementation report live and dead properties
-        return super(VirtualResource, self).get_property_value(name)
+        return super().get_property_value(name)
 
     def set_property_value(self, name, value, dry_run=False):
         """Set or remove property value.
@@ -601,7 +601,7 @@ class VirtualResourceProvider(DAVProvider):
     """
 
     def __init__(self):
-        super(VirtualResourceProvider, self).__init__()
+        super().__init__()
         self.resourceData = _resourceData
 
     def get_resource_inst(self, path, environ):
@@ -625,7 +625,7 @@ class VirtualResourceProvider(DAVProvider):
 #    DAV provider that serves a VirtualResource derived structure.
 #    """
 #    def __init__(self):
-#        super(VirtualResourceProvider, self).__init__()
+#        super().__init__()
 #        self.resourceData = _resourceData
 #        self.rootCollection = VirtualCollection(self, "/", environ)
 #

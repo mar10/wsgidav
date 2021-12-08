@@ -281,7 +281,7 @@ class ShelvePropertyManager(PropertyManager):
 
     def __init__(self, storage_path):
         self._storage_path = os.path.abspath(storage_path)
-        super(ShelvePropertyManager, self).__init__()
+        super().__init__()
 
     def __repr__(self):
         return "ShelvePropertyManager({})".format(self._storage_path)

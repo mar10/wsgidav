@@ -472,7 +472,7 @@ def _run_cheroot(app, config, _server):
             if startup_event and not startup_event.is_set():
                 Timer(self.STARTUP_NOTIFICATION_DELAY, startup_event.set).start()
                 _logger.error("wsgi.Server is ready")
-            return super(PatchedServer, self).serve(*args, **kwargs)
+            return super().serve(*args, **kwargs)
 
     # If the caller passed a startup event, monkey patch the server to set it
     # when the request handler loop is entered

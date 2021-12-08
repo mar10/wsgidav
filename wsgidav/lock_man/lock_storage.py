@@ -349,7 +349,7 @@ class LockStorageShelve(LockStorageDict):
     """
 
     def __init__(self, storage_path):
-        super(LockStorageShelve, self).__init__()
+        super().__init__()
         self._storage_path = os.path.abspath(storage_path)
 
     def __repr__(self):

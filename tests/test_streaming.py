@@ -33,7 +33,7 @@ class MockProxyResource(DAVNonCollection):
     """
 
     def __init__(self, path, environ, target_path):
-        super(MockProxyResource, self).__init__(path, environ)
+        super().__init__(path, environ)
         self.target_path = target_path
         self.worker = None
 
@@ -85,7 +85,7 @@ class MockProxyProvider(DAVProvider):
     """
 
     def __init__(self, target_path):
-        super(MockProxyProvider, self).__init__()
+        super().__init__()
         self.target_path = target_path
 
     def get_resource_inst(self, path, environ):

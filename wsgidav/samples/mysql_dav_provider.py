@@ -84,7 +84,7 @@ class MySQLBrowserResource(_DAVResource):
     """
 
     def __init__(self, provider, path, is_collection, environ):
-        super(MySQLBrowserResource, self).__init__(path, is_collection, environ)
+        super().__init__(path, is_collection, environ)
         self._cache = None
 
     def _init(self):
@@ -252,7 +252,7 @@ class MySQLBrowserResource(_DAVResource):
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super(MySQLBrowserResource, self).get_property_names(
+        propNames = super().get_property_names(
             is_allprop=is_allprop
         )
         # Add fieldnames as properties
@@ -292,7 +292,7 @@ class MySQLBrowserResource(_DAVResource):
                     return val
                 conn.close()
         # else, let default implementation return supported live and dead properties
-        return super(MySQLBrowserResource, self).get_property_value(name)
+        return super().get_property_value(name)
 
     def set_property_value(self, name, value, dry_run=False):
         """Set or remove property value.
@@ -311,7 +311,7 @@ class MySQLBrowserResource(_DAVResource):
 
 class MySQLBrowserProvider(DAVProvider):
     def __init__(self, host, user, passwd, db):
-        super(MySQLBrowserProvider, self).__init__()
+        super().__init__()
         self._host = host
         self._user = user
         self._passwd = passwd

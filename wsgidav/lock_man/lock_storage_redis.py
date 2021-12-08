@@ -25,7 +25,7 @@ class LockStorageRedis:
     """
 
     def __init__(self, *, host="127.0.0.1", port=6379, db=0, password=None):
-        super(LockStorageRedis, self).__init__()
+        super().__init__()
         self._redis_host = host
         self._redis_port = port
         self._redis_db = db

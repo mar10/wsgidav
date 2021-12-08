@@ -109,7 +109,7 @@ class HgResource(_DAVResource):
     """Abstract base class for all resources."""
 
     def __init__(self, path, is_collection, environ, rev, localHgPath):
-        super(HgResource, self).__init__(path, is_collection, environ)
+        super().__init__(path, is_collection, environ)
         self.rev = rev
         self.localHgPath = localHgPath
         self.absFilePath = self._getFilePath()
@@ -224,7 +224,7 @@ class HgResource(_DAVResource):
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super(HgResource, self).get_property_names(is_allprop=is_allprop)
+        propNameList = super().get_property_names(is_allprop=is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
         if self.fctx:
             propNameList.extend(
@@ -260,7 +260,7 @@ class HgResource(_DAVResource):
             return util.to_str(self.fctx.user())
 
         # Let base class implementation report live and dead properties
-        return super(HgResource, self).get_property_value(name)
+        return super().get_property_value(name)
 
     def set_property_value(self, name, value, dry_run=False):
         """Set or remove property value.
@@ -413,7 +413,7 @@ class HgResourceProvider(DAVProvider):
     """
 
     def __init__(self, repoRoot):
-        super(HgResourceProvider, self).__init__()
+        super().__init__()
         self.repoRoot = repoRoot
         print("Mercurial version %s" % hgversion)
         self.ui = mercurial.ui.ui()

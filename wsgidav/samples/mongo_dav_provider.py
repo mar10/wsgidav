@@ -135,7 +135,7 @@ class MongoResourceProvider(DAVProvider):
     """DAV provider that serves a MongoDB structure."""
 
     def __init__(self, options):
-        super(MongoResourceProvider, self).__init__()
+        super().__init__()
         self.options = options
         self.conn = pymongo.Connection(options.get("host"), options.get("port"))
         if options.get("user"):

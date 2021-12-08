@@ -27,7 +27,7 @@ class VirtualCollection(DAVCollection):
     """
 
     def __init__(self, path, environ, display_info, member_name_list):
-        super(VirtualCollection, self).__init__(path, environ)
+        super().__init__(path, environ)
         if util.is_basestring(display_info):
             display_info = {"type": display_info}
         assert type(display_info) is dict
@@ -59,7 +59,7 @@ class _VirtualNonCollection(DAVNonCollection):
     """Abstract base class for all non-collection resources."""
 
     def __init__(self, path, environ):
-        super(_VirtualNonCollection, self).__init__(path, environ)
+        super().__init__(path, environ)
 
     def get_content_length(self):
         return None
@@ -101,7 +101,7 @@ class VirtualTextResource(_VirtualNonCollection):
     """A virtual file, containing a string."""
 
     def __init__(self, path, environ, content, display_name=None, display_type=None):
-        super(VirtualTextResource, self).__init__(path, environ)
+        super().__init__(path, environ)
         self.content = content
         self.display_name = display_name
         self.display_type = display_type
@@ -142,7 +142,7 @@ class FileResource(_VirtualNonCollection):
     def __init__(self, path, environ, file_path):
         if not os.path.exists(file_path):
             _logger.error("FileResource({!r}) does not exist.".format(file_path))
-        super(FileResource, self).__init__(path, environ)
+        super().__init__(path, environ)
         self.file_path = file_path
 
     def get_content_length(self):

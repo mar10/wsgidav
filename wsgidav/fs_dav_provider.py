@@ -41,7 +41,7 @@ class FileResource(DAVNonCollection):
     """
 
     def __init__(self, path, environ, file_path):
-        super(FileResource, self).__init__(path, environ)
+        super().__init__(path, environ)
         self._file_path = file_path
         self.file_stat = os.stat(self._file_path)
         # Setting the name from the file path should fix the case on Windows
@@ -175,7 +175,7 @@ class FolderResource(DAVCollection):
     """
 
     def __init__(self, path, environ, file_path):
-        super(FolderResource, self).__init__(path, environ)
+        super().__init__(path, environ)
         self._file_path = file_path
         self.file_stat = os.stat(self._file_path)
         # Setting the name from the file path should fix the case on Windows
@@ -362,7 +362,7 @@ class FilesystemProvider(DAVProvider):
         if not root_folder or not os.path.exists(root_folder):
             raise ValueError("Invalid root path: {}".format(root_folder))
 
-        super(FilesystemProvider, self).__init__()
+        super().__init__()
 
         self.root_folder_path = root_folder
         self.readonly = readonly

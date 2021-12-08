@@ -20,7 +20,7 @@ _logger = util.get_module_logger(__name__)
 
 class PAMDomainController(BaseDomainController):
     def __init__(self, wsgidav_app, config):
-        super(PAMDomainController, self).__init__(wsgidav_app, config)
+        super().__init__(wsgidav_app, config)
 
         self.pam = pam.pam()
 

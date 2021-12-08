@@ -30,7 +30,7 @@ _logger = util.get_module_logger(__name__)
 # ========================================================================
 class ErrorPrinter(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
-        super(ErrorPrinter, self).__init__(wsgidav_app, next_app, config)
+        super().__init__(wsgidav_app, next_app, config)
         self.err_config = config.get("error_printer", {})
 
     def is_disabled(self):

@@ -157,7 +157,7 @@ _logger = util.get_module_logger(__name__)
 
 class RequestResolver(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
-        super(RequestResolver, self).__init__(wsgidav_app, next_app, config)
+        super().__init__(wsgidav_app, next_app, config)
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]

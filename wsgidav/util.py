@@ -938,7 +938,7 @@ class SubAppStartResponse:
         self.__response_headers = []
         self.__exc_info = None
 
-        super(SubAppStartResponse, self).__init__()
+        super().__init__()
 
     @property
     def status(self):
@@ -1046,10 +1046,7 @@ def make_complete_url(environ, local_uri=None):
     return url
 
 
-def update_headers_in_place(
-    target: list[Tuple[str, str]],
-    new_items: list[Tuple[str, str]],
-) -> None:
+def update_headers_in_place(target, new_items) -> None:
     """Modify or append new headers to existing header list (in-place)."""
     new_dict = {k.lower(): (k, v) for k, v in new_items}
     for idx, (name, _value) in enumerate(target):
