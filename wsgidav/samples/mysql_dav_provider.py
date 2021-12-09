@@ -252,9 +252,7 @@ class MySQLBrowserResource(_DAVResource):
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super().get_property_names(
-            is_allprop=is_allprop
-        )
+        propNames = super().get_property_names(is_allprop=is_allprop)
         # Add fieldnames as properties
         tableName, primKey = self.provider._split_path(self.path)
         if primKey is not None:

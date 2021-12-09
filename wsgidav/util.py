@@ -21,7 +21,7 @@ from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional
 from urllib.parse import quote
 
 from wsgidav.dav_error import (

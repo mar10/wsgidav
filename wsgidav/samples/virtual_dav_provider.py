@@ -359,9 +359,7 @@ class VirtualResource(DAVCollection):
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super().get_property_names(
-            is_allprop=is_allprop
-        )
+        propNameList = super().get_property_names(is_allprop=is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
         propNameList.extend(VirtualResource._supportedProps)
         return propNameList
