@@ -52,16 +52,6 @@ WsgiDAV implements this WSGI application stack::
 See the following sections for details.
 
 
-..
-  Class Inheritance Diagram
-  -------------------------
-
-  .. inheritance-diagram:: wsgidav.dav_provider wsgidav.fs_dav_provider wsgidav.request_server
-     :parts: 2
-     :private-bases:
-     :caption: WsgiDAV Classes
-
-
 Building Blocks
 ===============
 
@@ -140,7 +130,6 @@ Domain Controllers
 
 .. inheritance-diagram:: wsgidav.http_authenticator wsgidav.dc.simple_dc wsgidav.dc.pam_dc wsgidav.dc.nt_dc
    :parts: 2
-   :private-bases:
 
 A domain controller provides user/password checking for a realm to the
 HTTPAuthenticator.
@@ -162,7 +151,7 @@ interface is implemented.
 Applications
 ============
 
-.. inheritance-diagram:: wsgidav.mw.base_mw wsgidav.dir_browser wsgidav.mw.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
+.. inheritance-diagram:: wsgidav.mw.base_mw wsgidav.dir_browser wsgidav.mw.cors wsgidav.mw.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
    :parts: 2
    :private-bases:
 
@@ -173,11 +162,19 @@ WsgiDavApp
   .. automodule:: wsgidav.wsgidav_app
 
 
-WsgiDavDebugFilter
-------------------
-..
-  .. automodule:: wsgidav.mw.debug_filter
+Cors
+----
+Middleware :class:`wsgidav.mw.cors.Cors`.
+Respond to CORS preflight OPTIONS request and inject CORS headers.
 
+On init:
+    Store CORS preferences and prepare header lists.
+
+For every request:
+    Add CORS headers to responses.
+
+..
+  .. autoclass:: wsgidav.mw.cors.Cors
 
 ErrorPrinter
 ------------
@@ -247,6 +244,12 @@ For every request:
     request to it.
 
     Note: The OPTIONS method for '*' is handled directly.
+
+
+WsgiDavDebugFilter
+------------------
+..
+  .. automodule:: wsgidav.mw.debug_filter
 
 
 RequestServer
