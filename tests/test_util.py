@@ -6,6 +6,7 @@
 
 import logging
 import logging.handlers
+import sys
 import unittest
 from io import StringIO
 
@@ -121,7 +122,10 @@ class BasicTest(unittest.TestCase):
         assert parse_if_match_header(' W/"abc" , def ') == ["abc", "def"]
 
         self.assertRaises(ValueError, fix_path, "a/b", "/root/x")
-        assert fix_path("a/b", "/root/x", must_exist=False) == "/root/x/a/b"
+        if sys.platform == "win32":
+            assert fix_path("a/b", "/root/x", must_exist=False) == r"C:\root\x\a\b"
+        else:
+            assert fix_path("a/b", "/root/x", must_exist=False) == "/root/x/a/b"
         assert fix_path("/a/b", "/root/x", must_exist=False) == "/a/b"
 
         headers = [("foo", "bar"), ("baz", "qux")]
