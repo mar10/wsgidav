@@ -5,7 +5,7 @@ WebDAV Clients
 *This section describes, how a WsgiDAV server can be accessed with different
 clients.*
 
-.. image:: ../teaser.png
+.. image:: ./teaser.png
   :name: WsgiDAV clients
 
 WsgiDAV was tested with these clients

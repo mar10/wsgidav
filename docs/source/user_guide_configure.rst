@@ -62,8 +62,8 @@ To *prevent* the use of a local default configuration file, use this option::
 
 The options described below can be defined for the CLI either
 
-  * in `YAML <https://yaml.org/spec/>`_ syntax inside a wsgidav.yaml file
-  * or `JSON <https://www.json.org/>`_ syntax inside a wsgidav.json file
+  * in `YAML <https://yaml.org/spec>`_ syntax inside a wsgidav.yaml file
+  * or `JSON <https://www.json.org>`_ syntax inside a wsgidav.json file
 
 .. note::
    The two supported file formats are just different ways for the CLI to
@@ -76,7 +76,7 @@ For a start, copy
 :download:`YAML Sample Configuration<../../sample_wsgidav.yaml>`
 and edit it to your needs.
 (Alternatively use
-:download:`JSON Sample Configuration<../../sample_wsgidav.json>`.)
+:download:`JSON Sample Configuration<./sample_wsgidav.json>`.)
 
 
 Verbosity Level
@@ -239,6 +239,7 @@ Three syntax variants are supported:
 3. ``<mount_path>: { "class": <class_path>, args: [arg, ...], kwargs: {"arg1": val1, "arg2": val2, ... }}``
    Instantiate a custom class (derrived from ``DAVProvider``) using named
    kwargs.
+
 ..
    1. ``<mount_path>: { "provider": <class_path>, "args:" ..., "kwargs": ... }``
 
@@ -441,10 +442,10 @@ and look for a custom section there.
 Sample ``wsgidav.yaml``
 -----------------------
 
-The `YAML <http://yaml.org/spec/1.2/spec.html>`_ syntax is probably the most
-concise format to define configuration:
+The `YAML <https://yaml.org/spec>`_ syntax is the recommended
+format to define configuration:
 
-:download:`Download Sample Configuration<../sample_wsgidav.yaml>`.
+:download:`Download Sample Configuration<../../sample_wsgidav.yaml>`.
 
 .. literalinclude:: ../../sample_wsgidav.yaml
     :linenos:
@@ -453,8 +454,8 @@ concise format to define configuration:
 Sample ``wsgidav.json``
 -----------------------
 
-We can also use a `JSON <http://www.json.org>`_ file for configuration.
+We can also use a `JSON <https://www.json.org>`_ file for configuration.
 The structure is identical to the YAML format.
 
-See the :doc:`../sample_wsgidav.json` example.
+See the :doc:`./sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)

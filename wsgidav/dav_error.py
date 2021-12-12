@@ -129,11 +129,7 @@ PRECONDITION_CODE_PropfindFiniteDepth = "{DAV:}propfind-finite-depth"
 
 
 class DAVErrorCondition:
-    """May be embedded in :class:`DAVError` instances to store additional data.
-
-    Args:
-        condition_code (str): Should be PRECONDITION_CODE_...
-    """
+    """May be embedded in :class:`DAVError` instances to store additional data."""
 
     def __init__(self, condition_code):
         self.condition_code = condition_code
@@ -175,7 +171,10 @@ class DAVErrorCondition:
 
 
 class DAVError(Exception):
-    """General error class that is used to signal HTTP and WEBDAV errors."""
+    """General error class that is used to signal HTTP and WEBDAV errors.
+
+    May contain a :class:`DAVErrorCondition`.
+    """
 
     # TODO: Ian Bicking proposed to add an additional 'comment' arg, but
     #       couldn't we use the existing 'context_info'?
