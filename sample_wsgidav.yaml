@@ -127,6 +127,16 @@ provider_mapping:
         kwargs:
             path: '/path/to/share3'
             another_arg: 42
+    # Example: 
+    #     make sure that a `/favicon.ico` URL is resolved, even if a `*.html`
+    #     or `*.txt` resource file was opened using the DirBrowser
+    # '/':
+    #     class: 'wsgidav.fs_dav_provider.FilesystemProvider'
+    #     kwargs:
+    #         root_folder: 'tests/fixtures/share'
+    #         # readonly: true
+    #         shadow:
+    #             '/favicon.ico': 'file_path/to/favicon.ico'
 
 
 # ==============================================================================
@@ -178,6 +188,7 @@ pam_dc:
     service: 'login'
     encoding: 'utf-8'
     resetcreds: true
+
 
 # ----------------------------------------------------------------------------
 # CORS
@@ -242,6 +253,7 @@ mutable_live_props:
     # preserve-timestamp flags in a mounted DAV share (may be RFC4918 incompliant)
     - '{DAV:}getlastmodified'
 
+
 # ----------------------------------------------------------------------------
 # Lock Manager Storage
 #
@@ -261,7 +273,6 @@ mutable_live_props:
 # Check the documentation on how to develop custom lock storage.
 
 lock_storage: true
-
 
 
 # ==============================================================================

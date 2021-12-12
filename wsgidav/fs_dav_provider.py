@@ -355,7 +355,7 @@ class FolderResource(DAVCollection):
 # FilesystemProvider
 # ========================================================================
 class FilesystemProvider(DAVProvider):
-    def __init__(self, root_folder, *, readonly=False):
+    def __init__(self, root_folder, *, readonly=False, shadow=None):
         # and resolve relative to config file
         # root_folder = os.path.expandvars(os.xpath.expanduser(root_folder))
         root_folder = os.path.abspath(root_folder)
@@ -366,6 +366,10 @@ class FilesystemProvider(DAVProvider):
 
         self.root_folder_path = root_folder
         self.readonly = readonly
+        if shadow:
+            self.shadow = {k.lower(): v for k, v in shadow.items()}
+        else:
+            self.shadow = {}
 
     def __repr__(self):
         rw = "Read-Write"
@@ -374,6 +378,28 @@ class FilesystemProvider(DAVProvider):
         return "{} for path '{}' ({})".format(
             self.__class__.__name__, self.root_folder_path, rw
         )
+
+    def _resolve_shadow_path(self, path, environ, file_path):
+        """File not found: See if there is a shadow configured."""
+        shadow = self.shadow.get(path.lower())
+        # _logger.info(f"Shadow {path} -> {shadow} {self.shadow}")
+        if not shadow:
+            return False, file_path
+
+        err = None
+        method = environ["REQUEST_METHOD"].upper()
+        if method not in ("GET", "HEAD", "OPTIONS"):
+            err = f"Shadow {path} -> {shadow}: ignored for method {method!r}."
+        elif os.path.exists(file_path):
+            err = f"Shadow {path} -> {shadow}: ignored for existing resource {file_path!r}."
+        elif not os.path.exists(shadow):
+            err = f"Shadow {path} -> {shadow}: does not exist."
+
+        if err:
+            _logger.warning(err)
+            return False, file_path
+        _logger.info(f"Shadow {path} -> {shadow}")
+        return True, shadow
 
     def _loc_to_file_path(self, path, environ=None):
         """Convert resource path to a unicode absolute file path.
@@ -387,7 +413,8 @@ class FilesystemProvider(DAVProvider):
 
         path_parts = path.strip("/").split("/")
         file_path = os.path.abspath(os.path.join(root_path, *path_parts))
-        if not file_path.startswith(root_path):
+        is_shadow, file_path = self._resolve_shadow_path(path, environ, file_path)
+        if not file_path.startswith(root_path) and not is_shadow:
             raise RuntimeError(
                 "Security exception: tried to access file outside root: {}".format(
                     file_path

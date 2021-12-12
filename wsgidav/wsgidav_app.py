@@ -332,7 +332,7 @@ class WsgiDAVApp:
                 # Syntax:
                 #   <mount_path>: {"root": <path>, "redaonly": <bool>}
                 provider = FilesystemProvider(
-                    util.fix_path(provider["root"]),
+                    util.fix_path(provider["root"], self.config),
                     readonly=bool(provider.get("readonly", False)),
                 )
             else:
@@ -341,12 +341,12 @@ class WsgiDAVApp:
                 )
         elif type(provider) in (list, tuple):
             raise ValueError(
-                "Provider {}: tuple/list syntax is no longer supported".format(provider)
+                f"Provider {provider}: tuple/list syntax is no longer supported"
             )
             # provider = FilesystemProvider(provider[0], provider[1])
 
         if not isinstance(provider, DAVProvider):
-            raise ValueError("Invalid provider {}".format(provider))
+            raise ValueError(f"Invalid provider {provider}")
 
         provider.set_share_path(share)
         if self.mount_path:
@@ -414,7 +414,7 @@ class WsgiDAVApp:
 
         # GC issue 22: Pylons sends root as u'/'
         if not util.is_str(path):
-            _logger.warning("Got non-native PATH_INFO: {!r}".format(path))
+            _logger.warning(f"Got non-native PATH_INFO: {path!r}")
             # path = path.encode("utf8")
             path = util.to_str(path)
 
@@ -476,7 +476,7 @@ class WsgiDAVApp:
             headerDict = {}
             for header, value in response_headers:
                 if header.lower() in headerDict:
-                    _logger.error("Duplicate header in response: {}".format(header))
+                    _logger.error(f"Duplicate header in response: {header}")
                 headerDict[header.lower()] = value
 
             # Check if we should close the connection after this request.
