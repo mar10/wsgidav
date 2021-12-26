@@ -65,22 +65,22 @@ except IOError:
 
 # These dependencies are for plain WsgiDAV:
 install_requires = [
-    "defusedxml",
-    "jinja2",  # NOTE: we must use lower-case name, otherwise import will fail
-    "json5",
-    "yaml",  # NOTE: must import 'yaml' (but dependency is names 'PyYAML')
+    # "defusedxml",
+    # "jinja2",  # NOTE: we must use lower-case name, otherwise import will fail
+    # "json5",
+    # "yaml",  # NOTE: must import 'yaml' (but dependency is named 'PyYAML')
     # Used by wsgidav.dc.nt_dc:
-    "win32net",
-    "win32netcon",
-    "win32security",
+    # "win32net",
+    # "win32netcon",
+    # "win32security",
 ]
 # ... The Windows MSI Setup should include lxml and CherryPy
 install_requires.extend(
     [
         "cheroot",
-        "cheroot.ssl.builtin",
+        # "cheroot.ssl.builtin",
         "lxml",
-        "wsgidav.dc.nt_dc",
+        # "wsgidav.dc.nt_dc",
     ]
 )
 setup_requires = install_requires
@@ -91,9 +91,9 @@ executables = [
         script="wsgidav/server/server_cli.py",
         base=None,
         # base="Win32GUI",
-        targetName="wsgidav.exe",
-        icon="docs/logo.ico",
-        shortcutName="WsgiDAV",
+        target_name="wsgidav.exe",
+        icon="docs/source/logo.ico",
+        shortcut_name="WsgiDAV",
         copyright="(c) 2009-2021 Martin Wendt",
         # trademarks="...",
     )
@@ -106,9 +106,11 @@ build_exe_options = {
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "wsgidav.dir_browser",
-        # "wsgidav.dc.nt_dc",
+        "wsgidav.dc.nt_dc",
     ],
-    "excludes": ["tkinter"],
+    "excludes": [
+        "tkinter",
+    ],
     "constants": "BUILD_COPYRIGHT='(c) 2009-2021 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
@@ -119,7 +121,8 @@ bdist_msi_options = {
     "upgrade_code": "{92F74137-38D1-48F6-9730-D5128C8B611E}",
     "add_to_path": True,
     # "all_users": True,
-    "install_icon": "docs/logo.ico",
+    "install_icon": "docs/source/logo.ico",
+    # "summary_data": {"author": "Martin Wendt"},
 }
 
 setup(
@@ -150,7 +153,10 @@ setup(
     extras_require={},
     # cmdclass={"test": ToxCommand, "sphinx": SphinxCommand},
     entry_points={"console_scripts": ["wsgidav = wsgidav.server.server_cli:run"]},
-    options={"build_exe": build_exe_options, "bdist_msi": bdist_msi_options},
+    options={
+        "build_exe": build_exe_options,
+        "bdist_msi": bdist_msi_options,
+    },
     # Used by cx_Freeze:
     executables=executables,
 )
