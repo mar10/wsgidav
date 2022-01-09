@@ -1,8 +1,11 @@
 # Changelog
 
-## 4.0.0 / Unreleased
+## 4.0.1 / Unreleased
+
+## 4.0.0 / 2022-01-09
 
 **Breaking Changes**
+
 - Drop Python 2 support
 - Drop support for Python syntax in config files (wsgidav.conf)
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
@@ -13,6 +16,7 @@
 - Drop flup and CherryPy support from CLI (use cheroot instead of CherryPy)
 
 **New Features**
+
 - Add CORS support
 - hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
 - Add uvicorn server support to CLI
@@ -22,6 +26,7 @@
    `{ "class": <class_path>, "args": [<arg>, ...], "kwargs": {"<arg_name>": <val>, ... } }`
 
 **Other changes**
+
 - Provider root paths are evaluated relative to the location of the configuration 
   file 
 - DAVCollection, DAVNonCollection, DAVProvider are now ABCs.

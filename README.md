@@ -1,5 +1,5 @@
 # ![logo](https://raw.githubusercontent.com/mar10/wsgidav/master/docs/source/logo.png) WsgiDAV
-[![Build Status](https://travis-ci.com/mar10/wsgidav.svg?branch=master)](https://travis-ci.com/mar10/wsgidav)
+[![Build Status](https://travis-ci.com/mar10/wsgidav.svg?branch=master)](https://app.travis-ci.com/github/mar10/wsgidav)
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 [![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
