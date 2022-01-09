@@ -9,6 +9,36 @@ We use it to test stressor against a locally running WsgiDAV server:
 3. Open a second terminal and run
   $ stressor run tests/stressor/test_rw.yaml -q
 ```
+
+## 2022-01-04
+WsgiDAV 4.0.0-a2
+Runtime 30 secs, 10 parallel sessions
+The script GETs a static file, PUTs a new file, GETs that file, and loops again.
+
+### Windows 10, Ryzen 5 @ 3.9 GHz
+
+- Cheroot 8.3.1 Executed  2,760 activities (~ 9 requests per user per second)
+- Cheroot 8.5.2 Executed 23,584 activities (~ 78 requests per user per second)
+- Cheroot 8.6.0 Executed  8,640 activities (~ 28 requests per user per second)
+
+Same scenario, different no. of parallel users. Best of 3
+
+|               |          | #1     | #2     | #3     | Best   |
+| ------------- | -------- | ------ | ------ | ------ | ------ |
+| Cheroot 8.5.2 |  5 users |  9,160 |  9,672 |  9,180 |  9,672 |
+|               | 10 users | 22,532 | 21,708 | 23,312 | 23,312 |
+|               | 20 users | 23,528 | 23,516 | 23,544 | 23,544 |
+| Cheroot 8.6.0 |  5 users |  2,540 |  2,540 |  2,540 |  2,540 |
+|               | 10 users |  5,008 | 10,080 |  6,604 | 10,080 |
+|               | 20 users | 23,720 | 23,404 | 23,596 | 23,596 |
+
+### macOS 12, i5 @ 2.9 GHz
+
+- Cheroot 8.3.1 Executed   5,468 activities (~ 18 requests per user per second)
+- Cheroot 8.5.2 Executed  12,596 activities (~ 42 requests per user per second)
+- Cheroot 8.6.0 Executed  12,660 activities (~ 42 requests per user per second)
+
+
 ## 2021-11-09
 > Seems that stressor is the limiting factor
 (MacBook, i5 2,9GHz, macOs 12.0.1, Py3.9)

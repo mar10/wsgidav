@@ -2,23 +2,30 @@
 
 ## 4.0.0 / Unreleased
 
+**Breaking Changes**
 - Drop Python 2 support
 - Drop support for Python syntax in config files (wsgidav.conf)
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
-- CORS support
-- Provider root paths are relative to configuration file
-- DAVCollection, DAVNonCollection, DAVProvider are now ABCs.
-- API enforces some named keyword args (`..., *, ...`)
+- API now sometimes enforces some _named_ keyword args (`fn(<args>, *, ...)`)
 - Rename option `lock_manager` to `lock_storage`
 - Moved `lock_manager` and `lock_storage` modules to  `lock_man` package.
+- Move logging options to 'logging' section
+- Drop flup and CherryPy support from CLI (use cheroot instead of CherryPy)
+
+**New Features**
+- Add CORS support
+- hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
+- Add uvicorn server support to CLI
 - `lock_storage`, `property_manager`, `provider_mapping`
    can now be configured in the YAML file to use custom implementations using
    this syntax:
    `{ "class": <class_path>, "args": [<arg>, ...], "kwargs": {"<arg_name>": <val>, ... } }`
-- hotfixes.re_encode_path_info is true by default (null evaluates to false now!)
+
+**Other changes**
+- Provider root paths are evaluated relative to the location of the configuration 
+  file 
+- DAVCollection, DAVNonCollection, DAVProvider are now ABCs.
 - Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
-- Move logging options to 'logging' section
-- Add uvicorn server support to CLI, drop flup and CherryPy
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
   The new option `dir_browser.davmount_links` controls link display (default: false).
 - #185 Fix FileLikeQueue for Python 3
