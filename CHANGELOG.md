@@ -1,7 +1,9 @@
 # Changelog
 
-## 4.0.1 / Unreleased
+## 4.0.2 / Unreleased
 
+## 4.0.1 / 2022-01-11
+- #241:  Add SSL libs to MSI installer
 ## 4.0.0 / 2022-01-09
 
 **Breaking Changes**

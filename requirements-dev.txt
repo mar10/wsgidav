@@ -2,7 +2,7 @@
 
 -r requirements.txt
 
-cheroot~=8.5
+cheroot~=8 # 8.5
 Paste~=2.0
 # Black is beta and therefore requires --pre flag for installation unless we give the exact number
 black~=21.10b0
