@@ -22,13 +22,12 @@ server: cheroot
 
 #: Server specific arguments, passed to the server. For example cheroot:
 #:   https://cheroot.cherrypy.dev/en/latest/pkg/cheroot.wsgi.html#cheroot.wsgi.Server
-server_args:
-    # max: -1
-    # numthreads: 10
-    # request_queue_size: 5
-    # shutdown_timeout: 5
-    # timeout: 10
-    verbose: 0
+# server_args:
+#     max: -1
+#     numthreads: 10
+#     request_queue_size: 5
+#     shutdown_timeout: 5
+#     timeout: 10
 
 # Server hostname (default: localhost, use --host on command line)
 host: 0.0.0.0
