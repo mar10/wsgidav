@@ -65,22 +65,12 @@ except IOError:
 
 # These dependencies are for plain WsgiDAV:
 install_requires = [
-    # "defusedxml",
-    # "jinja2",  # NOTE: we must use lower-case name, otherwise import will fail
-    # "json5",
-    # "yaml",  # NOTE: must import 'yaml' (but dependency is named 'PyYAML')
-    # Used by wsgidav.dc.nt_dc:
-    # "win32net",
-    # "win32netcon",
-    # "win32security",
 ]
 # ... The Windows MSI Setup should include lxml and CherryPy
 install_requires.extend(
     [
         "cheroot",
-        # "cheroot.ssl.builtin",
         "lxml",
-        # "wsgidav.dc.nt_dc",
     ]
 )
 setup_requires = install_requires

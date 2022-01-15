@@ -123,7 +123,9 @@ class BasicTest(unittest.TestCase):
 
         self.assertRaises(ValueError, fix_path, "a/b", "/root/x")
         if sys.platform == "win32":
-            assert fix_path("a/b", "/root/x", must_exist=False) == r"C:\root\x\a\b"
+            assert (
+                fix_path("a/b", "/root/x", must_exist=False).lower() == r"c:\root\x\a\b"
+            )
         else:
             assert fix_path("a/b", "/root/x", must_exist=False) == "/root/x/a/b"
         assert fix_path("/a/b", "/root/x", must_exist=False) == "/a/b"
