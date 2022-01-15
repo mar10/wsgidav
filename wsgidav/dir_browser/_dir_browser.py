@@ -47,7 +47,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
     def __init__(self, wsgidav_app, next_app, config):
         super().__init__(wsgidav_app, next_app, config)
-        self.dir_config = config.get("dir_browser", {})
+
+        self.dir_config = util.get_dict_value(config, "dir_browser", as_dict=True)
 
         htdocs_path = self.dir_config.get("htdocs_path")
         if htdocs_path:

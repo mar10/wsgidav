@@ -175,6 +175,13 @@ class BasicTest(unittest.TestCase):
         self.assertRaises(IndexError, get_dict_value, d, "d.t.[2]")
         self.assertRaises(KeyError, get_dict_value, d, "d.q")
 
+        d = {"a": None, "b": {}, "c": False}
+        assert get_dict_value(d, "a", as_dict=True) == {}
+        assert get_dict_value(d, "b", as_dict=True) == {}
+        assert get_dict_value(d, "c", as_dict=True) is False
+        assert get_dict_value(d, "x", as_dict=True) == {}
+        self.assertRaises(KeyError, get_dict_value, d, "x", as_dict=False)
+
 
 class LoggerTest(unittest.TestCase):
     """Test configurable logging."""
