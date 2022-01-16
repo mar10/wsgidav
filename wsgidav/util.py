@@ -1219,7 +1219,7 @@ def send_multi_status_response(environ, start_response, multistatus_elem):
     assert is_bytes(xml_data), xml_data
 
     headers = [
-        ("Content-Type", "application/xml"),
+        ("Content-Type", "application/xml; charset=utf-8"),
         ("Date", get_rfc1123_time()),
         ("Content-Length", str(len(xml_data))),
     ]

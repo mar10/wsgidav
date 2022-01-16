@@ -199,7 +199,7 @@ class RequestResolver(BaseMiddleware):
                 dav_compliance_level = "1"
 
             headers = [
-                ("Content-Type", "text/html"),
+                ("Content-Type", "text/html; charset=utf-8"),
                 ("Content-Length", "0"),
                 ("DAV", dav_compliance_level),
                 ("Date", util.get_rfc1123_time()),

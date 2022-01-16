@@ -126,7 +126,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             start_response(
                 "200 OK",
                 [
-                    ("Content-Type", "text/html"),
+                    ("Content-Type", "text/html; charset=utf-8"),
                     ("Content-Length", str(len(res))),
                     ("Cache-Control", "private"),
                     ("Date", util.get_rfc1123_time()),

@@ -261,7 +261,7 @@ class DAVClient:
         # Add proper headers
         if headers is None:
             headers = {}
-        headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = "application/xml; charset=utf-8"
 
         self.copy(
             source,
@@ -311,7 +311,7 @@ class DAVClient:
         # Add proper headers
         if headers is None:
             headers = {}
-        headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = "application/xml; charset=utf-8"
 
         self.move(
             source, destination, body, depth=depth, overwrite=overwrite, headers=headers
@@ -337,7 +337,7 @@ class DAVClient:
             headers = {}
         if depth is not None:
             headers["Depth"] = depth
-        headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = "application/xml; charset=utf-8"
 
         # Body encoding must be utf-8, 207 is proper response
         self._request("PROPFIND", path, body=body, headers=headers)
@@ -393,7 +393,7 @@ class DAVClient:
         # Add proper headers
         if headers is None:
             headers = {}
-        headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = "application/xml; charset=utf-8"
 
         self._request("PROPPATCH", path, body=body, headers=headers)
 
@@ -420,7 +420,7 @@ class DAVClient:
             headers = {}
         if depth is not None:
             headers["Depth"] = depth
-        headers["Content-Type"] = 'text/xml; charset="utf-8"'
+        headers["Content-Type"] = "application/xml; charset=utf-8"
         headers["Timeout"] = "Infinite, Second-4100000000"
 
         body = self._tree_to_binary_body(tree)

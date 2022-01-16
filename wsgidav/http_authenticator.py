@@ -282,7 +282,7 @@ class HTTPAuthenticator(BaseMiddleware):
             "401 Not Authorized",
             [
                 ("WWW-Authenticate", wwwauthheaders),
-                ("Content-Type", "text/html"),
+                ("Content-Type", "text/html; charset=utf-8"),
                 ("Content-Length", str(len(body))),
                 ("Date", util.get_rfc1123_time()),
             ],
@@ -341,7 +341,7 @@ class HTTPAuthenticator(BaseMiddleware):
             "401 Not Authorized",
             [
                 ("WWW-Authenticate", wwwauthheaders),
-                ("Content-Type", "text/html"),
+                ("Content-Type", "text/html; charset=utf-8"),
                 ("Content-Length", str(len(body))),
                 ("Date", util.get_rfc1123_time()),
             ],

@@ -98,10 +98,10 @@ class RequestServer:
         # Dispatch HTTP request methods to 'do_METHOD()' handlers
         method = None
         if requestmethod in self._possible_methods:
-            method_name = "do_{}".format(requestmethod)
+            method_name = f"do_{requestmethod}"
             method = getattr(self, method_name, None)
         if not method:
-            _logger.error("Invalid HTTP method {!r}".format(requestmethod))
+            _logger.error("Invalid HTTP method {requestmethod!r}")
             self._fail(HTTP_METHOD_NOT_ALLOWED)
 
         if environ.get("wsgidav.debug_break"):
@@ -606,16 +606,16 @@ class RequestServer:
 
         # Get a list of all resources (parents after children, so we can remove
         # them in that order)
-        reverseChildList = res.get_descendants(
+        reverse_child_ist = res.get_descendants(
             depth_first=True, depth=environ["HTTP_DEPTH"], add_self=True
         )
 
         if res.is_collection and res.support_recursive_delete():
             has_conflicts = False
-            for childRes in reverseChildList:
+            for child_res in reverse_child_ist:
                 try:
-                    self._evaluate_if_headers(childRes, environ)
-                    self._check_write_permission(childRes, "0", environ)
+                    self._evaluate_if_headers(child_res, environ)
+                    self._check_write_permission(child_res, "0", environ)
                 except Exception:
                     has_conflicts = True
                     break
@@ -633,28 +633,28 @@ class RequestServer:
 
         # Hidden paths (ancestors of failed deletes) {<path>: True, ...}
         ignore_dict = {}
-        for childRes in reverseChildList:
-            if childRes.path in ignore_dict:
+        for child_res in reverse_child_ist:
+            if child_res.path in ignore_dict:
                 _logger.debug(
-                    "Skipping {} (contains error child)".format(childRes.path)
+                    "Skipping {} (contains error child)".format(child_res.path)
                 )
-                ignore_dict[util.get_uri_parent(childRes.path)] = ""
+                ignore_dict[util.get_uri_parent(child_res.path)] = ""
                 continue
 
             try:
                 # 9.6.1.: Any headers included with delete must be applied in
                 #         processing every resource to be deleted
-                self._evaluate_if_headers(childRes, environ)
-                self._check_write_permission(childRes, "0", environ)
-                childRes.delete()
+                self._evaluate_if_headers(child_res, environ)
+                self._check_write_permission(child_res, "0", environ)
+                child_res.delete()
                 # Double-check, if deletion succeeded
-                if provider.exists(childRes.path, environ):
+                if provider.exists(child_res.path, environ):
                     raise DAVError(
                         HTTP_INTERNAL_ERROR, "Resource could not be deleted."
                     )
             except DAVError as e:
-                error_list.append((childRes.get_href(), as_DAVError(e)))
-                ignore_dict[util.get_uri_parent(childRes.path)] = True
+                error_list.append((child_res.get_href(), as_DAVError(e)))
+                ignore_dict[util.get_uri_parent(child_res.path)] = True
 
         # --- Send response ---------------------------------------------------
 
@@ -1276,7 +1276,7 @@ class RequestServer:
             start_response(
                 "200 OK",
                 [
-                    ("Content-Type", "application/xml"),
+                    ("Content-Type", "application/xml; charset=utf-8"),
                     ("Content-Length", str(len(xml))),
                     ("Date", util.get_rfc1123_time()),
                 ],
@@ -1362,7 +1362,7 @@ class RequestServer:
         start_response(
             respcode,
             [
-                ("Content-Type", "application/xml"),
+                ("Content-Type", "application; charset=utf-8"),
                 ("Content-Length", str(len(xml))),
                 ("Lock-Token", lock["token"]),
                 ("Date", util.get_rfc1123_time()),
@@ -1468,7 +1468,7 @@ class RequestServer:
             dav_compliance_level = "1"
 
         headers = [
-            ("Content-Type", "text/html"),
+            ("Content-Type", "text/html; charset=utf-8"),
             ("Content-Length", "0"),
             ("DAV", dav_compliance_level),
             ("Date", util.get_rfc1123_time()),
