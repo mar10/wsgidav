@@ -105,12 +105,19 @@ def to_set(val, *, or_none=False, raise_error=False) -> set:
     return res
 
 
-def get_dict_value(d, key_path, default=NO_DEFAULT):
+def get_dict_value(d, key_path, default=NO_DEFAULT, *, as_dict=False):
     """Return the value of a nested dict using dot-notation path.
 
     Args:
         d (dict):
         key_path (str):
+        default  (any):
+        as_dict (bool):
+            Assume default is `{}` and also return `{}` if the key exists with
+            a value of `None`. This covers the case where suboptions are
+            supposed to be dicts, but are defined in a YAML file as entry
+            without a value.
+
     Raises:
         KeyError:
         ValueError:
@@ -123,6 +130,13 @@ def get_dict_value(d, key_path, default=NO_DEFAULT):
     Todo:
         * k[1] instead of k.[1]
     """
+    if as_dict:
+        try:
+            res = get_dict_value(d, key_path, default={})
+            return res if res is not None else {}
+        except (AttributeError, KeyError, ValueError, IndexError):
+            return {}
+
     if default is not NO_DEFAULT:
         try:
             return get_dict_value(d, key_path)

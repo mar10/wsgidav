@@ -363,7 +363,7 @@ def _init_config():
 
     # Quick-configuration of DomainController
     auth = cli_opts.get("auth")
-    auth_conf = config.get("http_authenticator", {})
+    auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
     if auth and auth_conf.get("domain_controller"):
         parser.error(
             "--auth option can only be used when no domain_controller is configured"
@@ -462,7 +462,8 @@ def _run_cheroot(app, config, _server):
         "numthreads": 50,  # TODO: still required?
     }
     # Override or add custom args
-    server_args.update(config.get("server_args", {}))
+    custom_args = util.get_dict_value(config, "server_args", as_dict=True)
+    server_args.update(custom_args)
 
     class PatchedServer(wsgi.Server):
         STARTUP_NOTIFICATION_DELAY = 0.5
@@ -566,7 +567,8 @@ def _run_gevent(app, config, server):
         "wsgi_app": app,
         "bind_addr": (config["host"], config["port"]),
     }
-    server_args.update(config.get("server_args", {}))
+    custom_args = util.get_dict_value(config, "server_args", as_dict=True)
+    server_args.update(custom_args)
 
     if info["use_ssl"]:
         dav_server = WSGIServer(
@@ -649,7 +651,8 @@ def _run_gunicorn(app, config, server):
             }
         )
     # Override or add custom args
-    server_args.update(config.get("server_args", {}))
+    custom_args = util.get_dict_value(config, "server_args", as_dict=True)
+    server_args.update(custom_args)
 
     version = f"gunicorn/{gunicorn.__version__}"
     version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"
@@ -745,7 +748,8 @@ def _run_uvicorn(app, config, server):
             }
         )
     # Override or add custom args
-    server_args.update(config.get("server_args", {}))
+    custom_args = util.get_dict_value(config, "server_args", as_dict=True)
+    server_args.update(custom_args)
 
     version = f"uvicorn/{uvicorn.__version__}"
     version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"

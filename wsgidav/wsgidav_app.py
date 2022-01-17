@@ -147,7 +147,7 @@ class WsgiDAVApp:
 
         self.verbose = config.get("verbose", 3)
 
-        hotfixes = config.get("hotfixes", {})
+        hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
 
         self.re_encode_path_info = hotfixes.get("re_encode_path_info", True)
         if type(self.re_encode_path_info) is not bool:
@@ -185,7 +185,7 @@ class WsgiDAVApp:
             self.prop_manager = prop_manager
 
         self.mount_path = config.get("mount_path")
-        auth_conf = config.get("http_authenticator", {})
+        auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
 
         # Instantiate DAV resource provider objects for every share.
         # provider_mapping may contain the args that are passed to a

@@ -11,7 +11,11 @@ from time import sleep
 
 from wsgidav.dav_error import DAVError
 from wsgidav.lock_man import lock_manager, lock_storage
-from wsgidav.lock_man.lock_storage_redis import LockStorageRedis
+
+try:
+    from wsgidav.lock_man.lock_storage_redis import LockStorageRedis
+except ImportError:
+    LockStorageRedis = None
 
 # ========================================================================
 # BasicTest
@@ -397,6 +401,8 @@ class RedisTest(BasicTest):
     _redis_connect_failed = None
 
     def setUp(self):
+        if LockStorageRedis is None:
+            raise unittest.SkipTest("Test redis installed")
         if RedisTest._redis_connect_failed:
             raise unittest.SkipTest("Test requires a running redis instance (again)")
 

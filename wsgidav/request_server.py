@@ -1459,7 +1459,7 @@ class RequestServer:
         path = environ["PATH_INFO"]
         provider = self._davProvider
         config = environ["wsgidav.config"]
-        hotfixes = config.get("hotfixes", {})
+        hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
 
         res = provider.get_resource_inst(path, environ)
 

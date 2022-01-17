@@ -97,7 +97,8 @@ _logger = util.get_module_logger(__name__)
 
 
 def make_domain_controller(wsgidav_app, config):
-    dc = config.get("http_authenticator", {}).get("domain_controller")
+    auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
+    dc = auth_conf.get("domain_controller")
     org_dc = dc
     if dc is True or not dc:
         # True or null:
@@ -142,7 +143,7 @@ class HTTPAuthenticator(BaseMiddleware):
         dc = make_domain_controller(wsgidav_app, config)
         self.domain_controller = dc
 
-        hotfixes = config.get("hotfixes", {})
+        hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
         # HOT FIX for Windows XP (Microsoft-WebDAV-MiniRedir/5.1.2600):
         # When accessing a share '/dav/', XP sometimes sends digests for '/'.
         # With this fix turned on, we allow '/' digests, when a matching '/dav' account
@@ -158,7 +159,7 @@ class HTTPAuthenticator(BaseMiddleware):
             "win_accept_anonymous_options", False
         )
 
-        auth_conf = config.get("http_authenticator", {})
+        auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
 
         self.accept_basic = auth_conf.get("accept_basic", True)
         self.accept_digest = auth_conf.get("accept_digest", True)

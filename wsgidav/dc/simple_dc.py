@@ -73,7 +73,8 @@ _logger = util.get_module_logger(__name__)
 class SimpleDomainController(BaseDomainController):
     def __init__(self, wsgidav_app, config):
         super().__init__(wsgidav_app, config)
-        dc_conf = config.get("simple_dc", {})
+
+        dc_conf = util.get_dict_value(config, "simple_dc", as_dict=True)
 
         self.user_map = dc_conf.get("user_mapping")
         if self.user_map is None:

@@ -167,7 +167,7 @@ class RequestResolver(BaseMiddleware):
 
         provider = environ["wsgidav.provider"]
         config = environ["wsgidav.config"]
-        hotfixes = config.get("hotfixes", {})
+        hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
 
         is_asterisk_options = environ["REQUEST_METHOD"] == "OPTIONS" and path == "*"
         if path == "/":
