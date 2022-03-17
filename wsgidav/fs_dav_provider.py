@@ -104,8 +104,8 @@ class FileResource(DAVNonCollection):
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
         os.unlink(self._file_path)
-        self.remove_all_properties(recursive=True)
-        self.remove_all_locks(recursive=True)
+        self.remove_all_properties(recursive=False)
+        self.remove_all_locks(recursive=False)
 
     def copy_move_single(self, dest_path, *, is_move):
         """See DAVResource.copy_move_single()"""
