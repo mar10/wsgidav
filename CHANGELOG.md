@@ -33,8 +33,7 @@
 
 **Other changes**
 
-- Provider root paths are evaluated relative to the location of the configuration
-  file
+- Provider root paths are evaluated relative to the location of the configuration file
 - DAVCollection, DAVNonCollection, DAVProvider are now ABCs.
 - Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).
