@@ -278,7 +278,7 @@ class LockManager:
         """Return True, if <token> exists, is valid, and bound to <principal>."""
         return self.get_lock(token, key="principal") == principal
 
-    def get_url_lock_list(self, url, recursive=False):
+    def get_url_lock_list(self, url, *, recursive=False):
         """Return list of lock_dict, if <url> is protected by at least one direct, valid lock.
 
         Side effect: expired locks for this url are purged.
@@ -324,7 +324,7 @@ class LockManager:
         lockUrl = self.get_lock(lock_token, key="root")
         return lockUrl and util.is_equal_or_child_uri(lockUrl, url)
 
-    def remove_all_locks_from_url(self, url, recursive=False):
+    def remove_all_locks_from_url(self, url, *, recursive=False):
         self._lock.acquire_write()
         try:
             lockList = self.get_url_lock_list(url, recursive=recursive)
