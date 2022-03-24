@@ -236,7 +236,7 @@ See https://github.com/mar10/wsgidav for additional information.
             version_info = "WsgiDAV/{} Python/{}({} bit) {}".format(
                 __version__,
                 util.PYTHON_VERSION,
-                "64" if sys.maxsize > 2 ** 32 else "32",
+                "64" if sys.maxsize > 2**32 else "32",
                 platform.platform(aliased=True),
             )
             version_info += "\nPython from: {}".format(sys.executable)
