@@ -852,7 +852,9 @@ class _DAVResource(ABC):
 
     def remove_all_locks(self, *, recursive):
         if self.provider.lock_manager:
-            self.provider.lock_manager.remove_all_locks_from_url(self.get_ref_url())
+            self.provider.lock_manager.remove_all_locks_from_url(
+                self.get_ref_url(), recursive=recursive
+            )
 
     # --- Read / write -------------------------------------------------------
 
