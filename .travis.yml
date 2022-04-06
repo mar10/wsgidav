@@ -26,8 +26,8 @@ matrix:
     allow_failures:
         - python: "3.11-dev"
           env: TOXENV=py311
-        - python: "3.10"  # Not supported by travis as of 2021-11-11
-          env: TOXENV=py310
+        # - python: "3.10"  # Not supported by travis as of 2021-11-11
+        #   env: TOXENV=py310
 
 before_install:
     # See issue #80: litmus fails to build on travis
