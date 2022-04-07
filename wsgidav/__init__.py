@@ -15,7 +15,7 @@ NOTE:
     When pywin32 is installed, number must be a.b.c for MSI builds?
     "3.0.0a4" seems not to work in this case!
 """
-__version__ = "4.0.1"
+__version__ = "4.0.2-0"
 
 # make version accessible as 'wsgidav.__version__'
 # from wsgidav._version import __version__  # noqa: F401
