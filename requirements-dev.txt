@@ -2,22 +2,23 @@
 
 -r requirements.txt
 
-cheroot~=8 # 8.5
-Paste~=2.0
+Jinja2
+docutils<0.18
+sphinx<=4.5.0
+sphinx_rtd_theme<=1.0.0
+cheroot
+Paste
 # Black is beta and therefore requires --pre flag for installation unless we give the exact number
 black~=22.1
-flake8~=3.8
-flake8-bugbear~=20.1
-flake8-quotes~=1.0
-pytest~=2.7
-pytest-cov~=1.8
+pytest-cov
 recommonmark
 requests
-setuptools~=40.2
-sphinx~=4.3
-sphinx_rtd_theme~=1.0.0
+setuptools
 stressor
-tox~=3.13
-twine~=1.11
-WebTest~=2.0
+tox
+twine
+WebTest
 wheel
+flake8
+flake8-bugbear
+flake8-quotes
