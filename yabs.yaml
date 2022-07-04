@@ -88,8 +88,9 @@ tasks:
     name: 'v{version}'
     message: |
       Released {version}
-      [Commit details](https://github.com/{repo}/compare/{org_tag_name}...{tag_name}),
-      [Changelog](https://github.com/{repo}/blob/master/CHANGELOG.md).
+
+      [Changelog](https://github.com/{repo}/blob/master/CHANGELOG.md),
+      [Commit details](https://github.com/{repo}/compare/{org_tag_name}...{tag_name}).
     # draft: true
     prerelease: null  # null: guess from version number format
     # upload:
