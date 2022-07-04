@@ -68,7 +68,7 @@ See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)
 ## More info
 
   * [Read The Docs](http://wsgidav.rtfd.org) for details.
-  * [Discussion Group](https://groups.google.com/forum/#!forum/wsgidav)
+  * [Discussion Group](https://github.com/mar10/wsgidav/discussions)
   * [Stackoverflow](http://stackoverflow.com/questions/tagged/wsgidav)
 
 

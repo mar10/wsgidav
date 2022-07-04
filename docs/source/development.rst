@@ -26,9 +26,9 @@ This small guideline may help taking the first steps.
 Happy hacking :)
 
 .. _`issue tracker`: https://github.com/mar10/wsgidav/issues
-.. _forum: https://groups.google.com/forum/#!forum/wsgidav
+.. _forum: https://github.com/mar10/wsgidav/discussions
 .. _`the repository`: https://github.com/mar10/wsgidav
-.. _`Stackoverflow`: http://stackoverflow.com/questions/tagged/wsgidav
+.. _`Stackoverflow`: https://stackoverflow.com/questions/tagged/wsgidav
 .. _CHANGES: https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md
 
 
