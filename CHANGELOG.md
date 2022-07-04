@@ -2,6 +2,7 @@
 
 ## 4.0.2 / Unreleased
 
+- #246 Add dir_browser/htdocs folder to sdist (.tar.gz)
 - #251 Fix removing locks in recursive mode
 
 ## 4.0.1 / 2022-01-11

@@ -64,8 +64,11 @@ except IOError:
     readme = "(readme not found. Running from tox/setup.py test?)"
 
 # These dependencies are for plain WsgiDAV:
-install_requires = [
-]
+# NOTE: Only need to list requirements that are not discoverable by scanning
+#       the main package. For example due to dynamic or optional imports.
+# Also, cx_Freeze may have difficulties with packages listed here, e.g. PpyYAML:
+#    https://github.com/marcelotduarte/cx_Freeze/issues/1541
+install_requires = []
 # ... The Windows MSI Setup should include lxml and CherryPy
 install_requires.extend(
     [
