@@ -3,6 +3,8 @@
 ## 4.0.2 / Unreleased
 
 - #251 Fix removing locks in recursive mode
+- #255 Fix ERROR: Invalid requirement: 'cheroot~=8'
+- #260 Fix Case-Sensitivity issue on MOVE/COPY actions through Windows DAV
 
 ## 4.0.1 / 2022-01-11
 

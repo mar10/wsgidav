@@ -956,6 +956,9 @@ class RequestServer:
         url_scheme = environ["wsgi.url_scheme"].lower()
         fwd_scheme = environ.get("HTTP_X_FORWARDED_PROTO", "").lower()
 
+        # hostnames are case-insensitive (#260)
+        dest_netloc = dest_netloc.lower() if dest_netloc else ""
+
         url_host = environ["HTTP_HOST"].lower()
         fwd_host = environ.get("HTTP_X_FORWARDED_HOST", "").lower()
 
@@ -964,7 +967,7 @@ class RequestServer:
                 HTTP_BAD_GATEWAY,
                 "Source and destination must have the same scheme.\n"
                 "If you are running behind a reverse proxy, you may have to "
-                "rewrite the 'Destination' haeader.\n"
+                "rewrite the 'Destination' header.\n"
                 "(See https://github.com/mar10/wsgidav/issues/183)",
             )
         elif dest_netloc and dest_netloc not in (url_host, fwd_host):
