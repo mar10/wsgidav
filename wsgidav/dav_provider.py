@@ -786,7 +786,9 @@ class _DAVResource(ABC):
             # commands.
             if name in ("{DAV:}getlastmodified", "{DAV:}last_modified"):
                 try:
-                    return self.set_last_modified(self.path, value.text, dry_run)
+                    return self.set_last_modified(
+                        self.path, value.text, dry_run=dry_run
+                    )
                 except Exception:
                     _logger.warning(
                         "Provider does not support set_last_modified on {}.".format(
@@ -806,7 +808,9 @@ class _DAVResource(ABC):
             win32_emu = hotfixes.get("emulate_win32_lastmod", False)
             if win32_emu and "MiniRedir/6.1" not in agent:
                 if "Win32LastModifiedTime" in name:
-                    return self.set_last_modified(self.path, value.text, dry_run)
+                    return self.set_last_modified(
+                        self.path, value.text, dry_run=dry_run
+                    )
                 elif "Win32FileAttributes" in name:
                     return True
                 elif "Win32CreationTime" in name:
