@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# NOTE: isort must not chage this import order:
+# isort: skip_file
+
 import os
 import re
 import sys

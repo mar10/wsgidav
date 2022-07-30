@@ -3,10 +3,10 @@
 ## 4.0.2 / Unreleased
 
 - #246 Add dir_browser/htdocs folder to sdist (.tar.gz)
+- #248 Provider does not support set_last_modified" error
 - #251 Fix removing locks in recursive mode
 - #255 Fix ERROR: Invalid requirement: 'cheroot~=8'
 - #260 Fix Case-Sensitivity issue on MOVE/COPY actions through Windows DAV
-- #261 Use the required dry_run keyword argument when calling set_last_modified
 
 ## 4.0.1 / 2022-01-11
 
