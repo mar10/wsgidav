@@ -3,6 +3,6 @@
 from setuptools import setup
 
 setup(
-    name="yabs",  # GitHub dependants needs it here?
+    name="WsgiDAV",  # GitHub dependants needs it here?
     # See setup.cfg
 )
