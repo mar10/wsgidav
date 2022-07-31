@@ -3,10 +3,10 @@ language: python
 
 matrix:
     include:
-        - python: "3.9"
-          env: TOXENV=check
+        # - python: "3.9"
+        #   env: TOXENV=check
         - python: "3.10"  # EOL 2026-10-04
-          env: TOXENV=py310
+          env: TOXENV=check,py310
           dist: bionic
         - python: "3.9"  # EOL 2025-10-05
           env: TOXENV=py39
