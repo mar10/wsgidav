@@ -102,6 +102,7 @@ build_exe_options = {
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "cheroot",
+        "dbm",
         "wsgidav.dir_browser",
         "wsgidav.dc.nt_dc",
     ],

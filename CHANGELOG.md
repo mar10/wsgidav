@@ -7,6 +7,7 @@
 - #251 Fix removing locks in recursive mode
 - #255 Fix ERROR: Invalid requirement: 'cheroot~=8'
 - #260 Fix Case-Sensitivity issue on MOVE/COPY actions through Windows DAV
+- Add shelve support to MSI installer (persistent lock- and property storage)
 
 ## 4.0.1 / 2022-01-11
 
