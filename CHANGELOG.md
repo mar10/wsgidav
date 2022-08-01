@@ -1,6 +1,8 @@
 # Changelog
 
-## 4.0.2 / Unreleased
+## 4.0.3 / Unreleased
+
+## 4.0.2 / 2022-08-01
 
 - #246 Add dir_browser/htdocs folder to sdist (.tar.gz)
 - #248 Provider does not support set_last_modified" error
@@ -8,6 +10,7 @@
 - #255 Fix ERROR: Invalid requirement: 'cheroot~=8'
 - #260 Fix Case-Sensitivity issue on MOVE/COPY actions through Windows DAV
 - Add shelve support to MSI installer (persistent lock- and property storage)
+- Deprecate Python 3.6 (i.e. stop testing)
 
 ## 4.0.1 / 2022-01-11
 

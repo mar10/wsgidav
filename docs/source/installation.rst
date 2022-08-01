@@ -81,9 +81,11 @@ Install the preconditions if neccessary.
 Basically the same as for `Linux / macOS`_
 
 .. note::
-
    MS Windows users that only need the command line interface may prefer the
-   `MSI installer <https://github.com/mar10/wsgidav/releases>`_.
+   `MSI installer <https://github.com/mar10/wsgidav/releases>`_ or install
+   using the Windows Package Manager::
+
+     > winget install wsgidav
 
 
 Docker
