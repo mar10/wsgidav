@@ -25,6 +25,7 @@ class PAMDomainController(BaseDomainController):
         super().__init__(wsgidav_app, config)
 
         self.lock = threading.RLock()
+        self.pam = pam.pam()
 
         dc_conf = util.get_dict_value(config, "pam_dc", as_dict=True)
 
@@ -44,23 +45,23 @@ class PAMDomainController(BaseDomainController):
     def basic_auth_user(self, realm, user_name, password, environ):
         # Seems that python_pam is not threadsafe (#265)
         with self.lock:
-            is_ok = pam.authenticate(
+            is_ok = self.pam.authenticate(
                 user_name,
                 password,
                 service=self.pam_service,
                 resetcreds=self.pam_resetcreds,
                 encoding=self.pam_encoding,
             )
-        if is_ok:
-            _logger.debug(f"User '{user_name}' logged on.")
-            return True
+            if not is_ok:
+                _logger.warning(
+                    "pam.authenticate('{}', '<redacted>', '{}') failed with code {}: {}".format(
+                        user_name, self.pam_service, self.pam.code, self.pam.reason
+                    )
+                )
+                return False
 
-        _logger.warning(
-            "pam.authenticate('{}', '<redacted>', '{}') failed with code {}: {}".format(
-                user_name, self.pam_service, pam.code, pam.reason
-            )
-        )
-        return False
+        _logger.debug(f"User '{user_name}' logged on.")
+        return True
 
     def supports_http_digest_auth(self):
         # We don't have access to a plaintext password (or stored hash)
