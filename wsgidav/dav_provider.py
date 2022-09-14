@@ -190,6 +190,7 @@ class _DAVResource(ABC):
     #        """
     #        raise NotImplementedError
 
+    @abstractmethod
     def get_content_length(self) -> Optional[int]:
         """Contains the Content-Length header returned by a GET without accept
         headers.
