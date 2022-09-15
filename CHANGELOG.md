@@ -2,6 +2,8 @@
 
 ## 4.0.3 / Unreleased
 
+- #246 Add dir_browser/htdocs folder setup.cfg (for install with `pip install  .`)
+
 ## 4.0.2 / 2022-08-01
 
 - #246 Add dir_browser/htdocs folder to sdist (.tar.gz)
