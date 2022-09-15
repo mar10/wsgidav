@@ -9,6 +9,8 @@ Used by HTTPAuthenticator. Only available on linux and macOS.
 
 See https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 """
+import threading
+
 import pam
 
 from wsgidav import util
@@ -22,6 +24,7 @@ class PAMDomainController(BaseDomainController):
     def __init__(self, wsgidav_app, config):
         super().__init__(wsgidav_app, config)
 
+        self.lock = threading.RLock()
         self.pam = pam.pam()
 
         dc_conf = util.get_dict_value(config, "pam_dc", as_dict=True)
@@ -31,34 +34,34 @@ class PAMDomainController(BaseDomainController):
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
 
     def __str__(self):
-        return "{}('{}')".format(self.__class__.__name__, self.pam_service)
+        return f"{self.__class__.__name__}('{self.pam_service}')"
 
     def get_domain_realm(self, path_info, environ):
-        return "PAM({})".format(self.pam_service)
+        return f"PAM({self.pam_service})"
 
     def require_authentication(self, realm, environ):
         return True
 
     def basic_auth_user(self, realm, user_name, password, environ):
-        pam = self.pam
-
-        is_ok = pam.authenticate(
-            user_name,
-            password,
-            service=self.pam_service,
-            resetcreds=self.pam_resetcreds,
-            encoding=self.pam_encoding,
-        )
-        if is_ok:
-            _logger.debug("User '{}' logged on.".format(user_name))
-            return True
-
-        _logger.warning(
-            "pam.authenticate('{}', '***', '{}') failed with code {}: {}".format(
-                user_name, self.pam_service, pam.code, pam.reason
+        # Seems that python_pam is not threadsafe (#265)
+        with self.lock:
+            is_ok = self.pam.authenticate(
+                user_name,
+                password,
+                service=self.pam_service,
+                resetcreds=self.pam_resetcreds,
+                encoding=self.pam_encoding,
             )
-        )
-        return False
+            if not is_ok:
+                _logger.warning(
+                    "pam.authenticate('{}', '<redacted>', '{}') failed with code {}: {}".format(
+                        user_name, self.pam_service, self.pam.code, self.pam.reason
+                    )
+                )
+                return False
+
+        _logger.debug(f"User '{user_name}' logged on.")
+        return True
 
     def supports_http_digest_auth(self):
         # We don't have access to a plaintext password (or stored hash)

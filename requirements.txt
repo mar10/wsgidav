@@ -1,5 +1,5 @@
 defusedxml~=0.5
 Jinja2~=2.10
 json5~=0.8.5
-python-pam~=1.8
+python-pam~=2.0
 PyYAML~=6.0
