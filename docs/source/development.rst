@@ -26,9 +26,9 @@ This small guideline may help taking the first steps.
 Happy hacking :)
 
 .. _`issue tracker`: https://github.com/mar10/wsgidav/issues
-.. _forum: https://groups.google.com/forum/#!forum/wsgidav
+.. _forum: https://github.com/mar10/wsgidav/discussions
 .. _`the repository`: https://github.com/mar10/wsgidav
-.. _`Stackoverflow`: http://stackoverflow.com/questions/tagged/wsgidav
+.. _`Stackoverflow`: https://stackoverflow.com/questions/tagged/wsgidav
 .. _CHANGES: https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md
 
 
@@ -125,8 +125,8 @@ We need `Python 2.7 <https://www.python.org/downloads/>`_,
 `Python 3.4+ <https://www.python.org/downloads/>`_,
 and `pip <https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip>`_ on our system.
 
-If you want to run tests on *all supported* platforms, install Python 2.7, 3.4,
-3.5, and 3.6.
+If you want to run tests on *all supported* platforms, install Python 3.7, 3.8,
+3.9, and 3.10.
 
 On Linux/OS X, we recommend to use `pipenv <https://github.com/kennethreitz/pipenv>`_
 to activate a virtual environment::

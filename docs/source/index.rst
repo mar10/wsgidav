@@ -57,7 +57,10 @@ Install WsgiDAV (and a server) like::
 
 .. note::
    MS Windows users that only need the command line interface may prefer the
-   `MSI installer <https://github.com/mar10/wsgidav/releases>`_.
+   `MSI installer <https://github.com/mar10/wsgidav/releases>`_ or install
+   using the Windows Package Manager::
+
+     > winget install wsgidav
 
 To serve the ``/tmp`` folder as WebDAV ``/`` share with anonyoums read-write
 access, simply run::

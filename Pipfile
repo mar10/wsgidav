@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-black = "~=22.1"
+black = "~=22.6"
 Cheroot = "*"  # "~=8.5"
 cx_Freeze = {version = "*", os_name = "== 'nt'"}
 flake8 = "*"  # "~=3.8"

@@ -349,17 +349,17 @@ class DAVClient:
                 property_stat = response.find("{DAV:}propstat")
 
                 def parse_props(props):
-                    property_dict = {}
+                    _property_dict = {}
                     for prop in props:
                         if prop.tag.find("{DAV:}") != -1:
                             name = prop.tag.split("}")[-1]
                         else:
                             name = prop.tag
                         if len(list(prop)):
-                            property_dict[name] = parse_props(prop)
+                            _property_dict[name] = parse_props(prop)
                         else:
-                            property_dict[name] = prop.text
-                    return property_dict
+                            _property_dict[name] = prop.text
+                    return _property_dict
 
                 if property_href is not None and property_stat is not None:
                     property_dict = parse_props(property_stat.find("{DAV:}prop"))

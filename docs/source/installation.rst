@@ -90,10 +90,9 @@ Install the preconditions if neccessary.
 Basically the same as for `Linux / macOS`_
 
 .. note::
-
-   MS Windows users that only need the command line interface may prefer to
-   download the `MSI installer <https://github.com/mar10/wsgidav/releases>`_. |br|
-   On modern Windows platforms it is even simpler::
+   MS Windows users that only need the command line interface may prefer the
+   `MSI installer <https://github.com/mar10/wsgidav/releases>`_ or install
+   using the Windows Package Manager::
 
      > winget install wsgidav
 

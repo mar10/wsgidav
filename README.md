@@ -7,7 +7,10 @@
 [![Released with: Yabs](https://img.shields.io/badge/released%20with-yabs-yellowgreen)](https://github.com/mar10/yabs)
 [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
 
-Experimental: [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/mar10/wsgidav)
+
+[![Open in Visual Studio Code](https://img.shields.io/badge/--007ACC?logo=visual%20studio%20code&logoColor=ffffff) Open in Visual Studio Code (experimental)](https://open.vscode.dev/mar10/wsgidav)
+
+<!-- [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/mar10/wsgidav) -->
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-3333/).
@@ -68,7 +71,7 @@ See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)
 ## More info
 
   * [Read The Docs](http://wsgidav.rtfd.org) for details.
-  * [Discussion Group](https://groups.google.com/forum/#!forum/wsgidav)
+  * [Discussion Group](https://github.com/mar10/wsgidav/discussions)
   * [Stackoverflow](http://stackoverflow.com/questions/tagged/wsgidav)
 
 

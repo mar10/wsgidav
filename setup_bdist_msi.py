@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# NOTE: isort must not chage this import order:
+# isort: skip_file
+
 import os
 import re
 import sys
@@ -19,13 +22,14 @@ if "bdist_msi" not in sys.argv:  # or len(sys.argv) != 2:
 org_version = __version__
 
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
-if "HOME" not in os.environ and "HOMEPATH" in os.environ:
-    os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
-    print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
+# if "HOME" not in os.environ and "HOMEPATH" in os.environ:
+#     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
+#     print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
 
 # Since we included pywin32 extensions, cx_Freeze tries to create a
 # version resource. This only supports the 'a.b.c[.d]' format.
 # Our version has either the for '1.2.3' or '1.2.3-a1'
+unsafe_version = False
 major, minor, patch = org_version.split(".", 3)
 major = int(major)
 minor = int(minor)
@@ -46,7 +50,7 @@ if "-" in patch:
     # Remove leading letters
     alpha = re.sub("^[a-zA-Z]+", "", alpha)
     alpha = int(alpha)
-    if patch >= 1:
+    if unsafe_version and patch >= 1:
         patch -= 1  # 1.2.3-a1 => 1.2.2.1
     else:
         # may be 1.2.0-a1 or 2.0.0-a1: we don't know what the previous release was
@@ -64,8 +68,11 @@ except IOError:
     readme = "(readme not found. Running from tox/setup.py test?)"
 
 # These dependencies are for plain WsgiDAV:
-install_requires = [
-]
+# NOTE: Only need to list requirements that are not discoverable by scanning
+#       the main package. For example due to dynamic or optional imports.
+# Also, cx_Freeze may have difficulties with packages listed here, e.g. PpyYAML:
+#    https://github.com/marcelotduarte/cx_Freeze/issues/1541
+install_requires = []
 # ... The Windows MSI Setup should include lxml and CherryPy
 install_requires.extend(
     [
@@ -96,6 +103,7 @@ build_exe_options = {
     "packages": [
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "cheroot",
+        "dbm",
         "wsgidav.dir_browser",
         "wsgidav.dc.nt_dc",
     ],
