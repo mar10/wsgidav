@@ -8,7 +8,7 @@
 [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
 
 
-[![Open in Visual Studio Code](https://img.shields.io/badge/--007ACC?logo=visual%20studio%20code&logoColor=ffffff) Open in Visual Studio Code (experimental)](https://open.vscode.dev/mar10/wsgidav)
+[![Edit online in vscode.dev](https://img.shields.io/badge/--007ACC?logo=visual%20studio%20code&logoColor=ffffff) Open in Visual Studio Code (experimental)](https://open.vscode.dev/mar10/wsgidav)
 
 <!-- [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/mar10/wsgidav) -->
 
