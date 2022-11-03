@@ -3,9 +3,11 @@
 ## 4.0.3 / Unreleased
 - #246 Add dir_browser/htdocs folder setup.cfg (for install with `pip install  .`)
 - #265 Fix PAM not threadsafe
+- #268 Use relative paths to support reverse proxies
 
 ## 4.0.2 / 2022-08-01
 
+- #245: Add charset utf-8 to Content-Type header
 - #246 Add dir_browser/htdocs folder to sdist (.tar.gz)
 - #248 Provider does not support set_last_modified" error
 - #251 Fix removing locks in recursive mode
@@ -43,7 +45,8 @@
 
 **Other changes**
 
-- Provider root paths are evaluated relative to the location of the configuration file
+- Provider root paths are evaluated relative to the location of the configuration
+  file
 - DAVCollection, DAVNonCollection, DAVProvider are now ABCs.
 - Deprecate hotfixes.winxp_accept_root_share_login and hotfixes.win_accept_anonymous_options
 - DirBrowser supports `?davmount` URLs by default (option `dir_browser.davmount`).

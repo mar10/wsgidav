@@ -43,9 +43,17 @@ Linux / macOS
 -------------
 
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_ and can
-be installed using `pip <http://www.pip-installer.org/>`_::
+be installed using `pip <http://www.pip-installer.org/>`_.
+Using a virtual environment is recommend::
 
-  $ pip install --upgrade wsgidav
+  $ mkdir wsgidav_test
+  $ cd wsgidav_test
+  $ wsgidav_test % python -m venv .venv
+  $ wsgidav_test % source .venv/bin/activate
+  $ (.venv) wsgidav_test % python -m pip install -U pip
+  $ (.venv) wsgidav_test % python -m pip install wsgidav cheroot lxml
+  $ (.venv) wsgidav_test % wsgidav --root . --auth anonymous --browse
+
 
 Or install the latest (potentially unstable) development version directly
 from GitHub::
@@ -65,7 +73,8 @@ Install lxml (optional)::
 If everything is cool, this should work now::
 
     $ wsgidav --version -v
-    WsgiDAV/2.4.0 Python/3.6.1 Darwin-17.5.0-x86_64-i386-64bit
+    WsgiDAV/4.0.1 Python/3.9.1(64 bit) macOS-12.1-x86_64-i386-64bit
+    Python from: /Users/joe/prj/git/test_pip/.venv/bin/python
     $ wsgidav --help
 
 

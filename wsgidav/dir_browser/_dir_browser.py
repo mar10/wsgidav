@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.mw.base_mw import BaseMiddleware
-from wsgidav.util import safe_re_encode
+from wsgidav.util import get_uri_name, safe_re_encode
 
 __docformat__ = "reStructuredText"
 
@@ -182,9 +182,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if trailer:
             trailer = trailer.replace(
                 "${version}",
-                "<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{}</a>".format(
-                    __version__
-                ),
+                f"<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{__version__}</a>",
             )
             trailer = trailer.replace("${time}", util.get_rfc1123_time())
 
@@ -202,6 +200,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
             for res in childList:
                 di = res.get_display_info()
                 href = res.get_href()
+                # #268 Use relative paths to support reverse proxies:
+                rel_href = get_uri_name(href)
                 ofe_prefix = None
                 tr_classes = []
                 a_classes = []
@@ -214,11 +214,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     ms_office_type = MS_OFFICE_EXT_TO_TYPE_MAP.get(ext)
                     if ms_office_type:
                         if ms_sharepoint_support:
-                            ofe_prefix = "ms-{}:ofe|u|".format(ms_office_type)
+                            ofe_prefix = f"ms-{ms_office_type}:ofe|u|"
                             a_classes.append("msoffice")
                             if libre_office_support:
                                 add_link_html.append(
-                                    f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{href}'>Edit</a>"
+                                    f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{rel_href}'>Edit</a>"
                                 )
                                 # ofe_prefix_2 = "vnd.libreoffice.command:ofv|u|"
                                 # a_classes.append("msoffice")
@@ -232,7 +232,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
                             a_classes.append("msoffice")
 
                 entry = {
-                    "href": href,
+                    "href": rel_href,
                     "ofe_prefix": ofe_prefix,
                     "a_class": " ".join(a_classes),
                     "add_link_html": "".join(add_link_html),
