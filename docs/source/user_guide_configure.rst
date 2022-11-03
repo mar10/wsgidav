@@ -439,6 +439,56 @@ Note that this allows the custom controller to read the configuration dict
 and look for a custom section there.
 
 
+Cors Middleware
+---------------
+
+The :class:`wsgidav.mw.cors.Cors` Respond to CORS preflight OPTIONS request and 
+inject CORS headers. 
+This middleware is available by default, but needs configuration to be enabled.
+A minimal (yet )::
+
+    cors:
+        #: List of allowed Origins or '*'
+        #: Default: false, i.e. prevent CORS
+        # allow_origin: null
+        allow_origin: '*'
+
+This may be too unspecific though. 
+See `Cross-Origin Resource Sharing (CORS) <https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS>`_ .
+
+Annotated YAML configuration::
+
+    cors:
+        #: List of allowed Origins or '*'
+        #: Default: false, i.e. prevent CORS
+        allow_origin: null
+        # allow_origin: '*'
+        # allow_origin:
+        #   - 'https://example.com'
+        #   - 'https://localhost:8081'
+
+        #: List or comma-separated string of allowed methods (returned as
+        #: response to preflight request)
+        allow_methods:
+        # allow_methods: POST,HEAD
+        #: List or comma-separated string of allowed header names (returned as
+        #: response to preflight request)
+        allow_headers:
+        #   - X-PINGOTHER
+        #: List or comma-separated string of allowed headers that JavaScript in
+        #: browsers is allowed to access.
+        expose_headers:
+        #: Set to true to allow responses on requests with credentials flag set
+        allow_credentials: false
+        #: Time in seconds for how long the response to the preflight request can
+        #: be cached (default: 5)
+        max_age: 600
+        #: Add custom response headers (dict of header-name -> header-value items)
+        #: (This is not related to CORS or required to implement CORS functionality)
+        add_always:
+        #    'X-Foo-Header: 'qux'
+
+
 Sample ``wsgidav.yaml``
 -----------------------
 
