@@ -98,6 +98,10 @@ class ServerTest(unittest.TestCase):
         # Access unmapped resource (expect '404 Not Found')
         res = app.get("/not-existing-124/", status=404)
 
+        res = app.get("/subfolder/", status=200)
+        # res = app.get("/subfolder", status=301)
+        res = app.get("/subfolder")  # seems to follow redirects?
+
     def testGetPut(self):
         """Read and write file contents."""
         app = self.app
