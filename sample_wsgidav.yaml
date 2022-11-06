@@ -99,8 +99,11 @@ middleware_stack:
 # ==============================================================================
 # SHARES
 
-#: Application root, applied before provider mapping shares,
-#: e.g. <mount_path>/<share_name>/<res_path>
+#: Application root, applied before provider mapping shares, e.g. 
+#:   <mount_path>/<share_name>/<res_path>
+#: Set this to the mount point (aka location) when WsgiDAV is running behind a 
+#: reverse proxy.
+#: If set, the mount path must have a leading (but not trailing) slash.
 mount_path: null
 
 #: Route share paths to DAVProvider instances
@@ -110,11 +113,11 @@ mount_path: null
 #: editing depending on authentication.
 #:
 #: The following syntax variants are supported to use FilesystemProvider:
-#:     <mount_path>: <folder_path>
+#:     <share_path>: <folder_path>
 #: or
-#:     <mount_path>: { 'root': <folder_path>, 'readonly': <bool> }
+#:     <share_path>: { 'root': <folder_path>, 'readonly': <bool> }
 #: or instantiate an arbitrary custom class:
-#:     <mount_path>: { 'class': <class_path>, args: [<arg>, ...], kwargs: {<arg>: <val>, ...} }
+#:     <share_path>: { 'class': <class_path>, args: [<arg>, ...], kwargs: {<arg>: <val>, ...} }
 
 provider_mapping:
     '/': '/path/to/share1'
@@ -312,6 +315,8 @@ dir_browser:
         - '.DS_Store'  # macOS folder meta data
         - 'Thumbs.db'  # Windows image previews
         - '._*'  # macOS hidden data files
+    #: Add a trailing slash to directory URLs (by generating a 301 redirect)
+    directory_slash: true
     #: Display WsgiDAV icon in header
     icon: true
     #: Raw HTML code, appended as footer (true: use a default trailer)

@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.mw.base_mw import BaseMiddleware
-from wsgidav.util import get_uri_name, safe_re_encode
+from wsgidav.util import get_uri_name, safe_re_encode, send_redirect_response
 
 __docformat__ = "reStructuredText"
 
@@ -49,6 +49,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
         super().__init__(wsgidav_app, next_app, config)
 
         self.dir_config = util.get_dict_value(config, "dir_browser", as_dict=True)
+
+        # mount path must be "" or start (but not end) with '/'
+        self.mount_path = config.get("mount_path") or ""
 
         htdocs_path = self.dir_config.get("htdocs_path")
         if htdocs_path:
@@ -120,6 +123,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 )
                 return [res]
 
+            directory_slash = self.dir_config.get("directory_slash")
+            requrest_uri = environ.get("REQUEST_URI")
+            if directory_slash and not requrest_uri.endswith("/"):
+                _logger.info(f"Redirect {requrest_uri} to {requrest_uri}/")
+                return send_redirect_response(
+                    environ, start_response, location=requrest_uri + "/"
+                )
+
             context = self._get_context(environ, dav_res)
 
             res = self.template.render(**context)
@@ -157,18 +168,20 @@ class WsgiDavDirBrowser(BaseMiddleware):
         is_readonly = environ["wsgidav.provider"].is_readonly()
         ms_sharepoint_support = self.dir_config.get("ms_sharepoint_support")
         libre_office_support = self.dir_config.get("libre_office_support")
+        is_top_dir = dav_res.path in ("", "/")
 
         # TODO: WebDAV URLs only on Windows?
         # TODO: WebDAV URLs only on HTTPS?
         # is_windows = "Windows NT " in environ.get("HTTP_USER_AGENT", "")
 
         context = {
-            "htdocs": (self.config.get("mount_path") or "") + ASSET_SHARE,
+            "htdocs": self.mount_path + ASSET_SHARE,
             "rows": [],
             "version": __version__,
             "display_path": unquote(dav_res.get_href()),
             "url": dav_res.get_href(),  # util.make_complete_url(environ),
-            "parent_url": util.get_uri_parent(dav_res.get_href()),
+            # "parent_url": util.get_uri_parent(dav_res.get_href()),
+            "is_top_dir": is_top_dir,
             "config": self.dir_config,
             "is_readonly": is_readonly,
             "access": "read-only" if is_readonly else "read-write",
@@ -200,13 +213,16 @@ class WsgiDavDirBrowser(BaseMiddleware):
             for res in childList:
                 di = res.get_display_info()
                 href = res.get_href()
-                # #268 Use relative paths to support reverse proxies:
-                rel_href = get_uri_name(href)
                 ofe_prefix = None
                 tr_classes = []
                 a_classes = []
+
+                # #268 Use relative paths to support reverse proxies:
+                rel_href = get_uri_name(href)
                 if res.is_collection:
                     tr_classes.append("directory")
+                    rel_href = f"./{rel_href}/"  # 274
+
                 add_link_html = []
 
                 if not is_readonly and not res.is_collection:

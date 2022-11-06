@@ -47,8 +47,8 @@ You will find this terms / naming conventions in the source:
 
   This is the virtual directory, where the web server mounted the WsgiDAV
   application.
-  So it is the environ[SCRIPT_NAME] that the server had set, before calling
-  WsgiDAVApp.
+  So it is the environ[SCRIPT_NAME] that the WSGI server had set, before calling
+  WsgiDAVApp (or the 'location' when running as reverse proxy).
 
   Example
       ""
@@ -64,11 +64,11 @@ You will find this terms / naming conventions in the source:
   URL (after the mount path was popped).
   The share path is the common URL prefix of this URL.
 
-  TODO: do we need to ditinguish between server mount points ('mount path') and
+  TODO: do we need to distinguish between server mount points ('mount path') and
   WsgiDAV mount points ('share path')?
 
   Constructed like
-      mount_path = environ[SCRIPT_NAME]
+      share_path = environ[SCRIPT_NAME]
   Example
       "/dav"
 
@@ -159,12 +159,12 @@ You will find this terms / naming conventions in the source:
   with '/'.  (See http://www.webdav.org/specs/rfc4918.html#rfc.section.8.3)
 
   Constructed like:
-      href = quote(mount_path + preferredPath)
+      href = quote(mount_path + preferred_path)
   Example:
       "/dav/public/my%20nice%20doc.txt"
 
 
-*filePath*:
+*file_path*:
   Unicode
 
   Used by fs_dav_provider when serving files from the file system.

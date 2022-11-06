@@ -4,6 +4,12 @@
 - #246 Add dir_browser/htdocs folder setup.cfg (for install with `pip install  .`)
 - #265 Fix PAM not threadsafe
 - #268 Use relative paths to support reverse proxies
+- Clarify how to use WsgiDAV behind a reverse proxy
+- ``mount_path`` option is now validated (must be empty or start with a '/')
+- Add `dir_browser.directory_slash` option to force trailing slashes (default: true).
+  Also use relative paths in directory listings in order to improve behavior
+  when running behind a reverse proxy.
+- #183 Fix MOVE for reverse proxies (experimental)
 
 ## 4.0.2 / 2022-08-01
 

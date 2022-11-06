@@ -896,7 +896,7 @@ class RequestServer:
             self._fail(HTTP_NOT_FOUND, src_path)
         if "HTTP_DESTINATION" not in environ:
             self._fail(HTTP_BAD_REQUEST, "Missing required Destination header.")
-        if not environ.setdefault("HTTP_OVERWRITE", "T") in ("T", "F"):
+        if environ.setdefault("HTTP_OVERWRITE", "T") not in ("T", "F"):
             # Overwrite defaults to 'T'
             self._fail(HTTP_BAD_REQUEST, "Invalid Overwrite header.")
         if util.get_content_length(environ) != 0:
@@ -914,7 +914,7 @@ class RequestServer:
             # A client may submit a Depth header on a COPY on a collection with
             # a value of "0" or "infinity".
             environ.setdefault("HTTP_DEPTH", "infinity")
-            if not environ["HTTP_DEPTH"] in ("0", "infinity"):
+            if environ["HTTP_DEPTH"] not in ("0", "infinity"):
                 self._fail(HTTP_BAD_REQUEST, "Invalid Depth header.")
             if is_move and environ["HTTP_DEPTH"] != "infinity":
                 self._fail(
@@ -926,7 +926,7 @@ class RequestServer:
             # Note: litmus 'copymove: 3 (copy_simple)' sends 'infinity' for a
             # non-collection resource, so we accept that too
             environ.setdefault("HTTP_DEPTH", "0")
-            if not environ["HTTP_DEPTH"] in ("0", "infinity"):
+            if environ["HTTP_DEPTH"] not in ("0", "infinity"):
                 self._fail(HTTP_BAD_REQUEST, "Invalid Depth header.")
             environ["HTTP_DEPTH"] = "0"
 
@@ -975,12 +975,24 @@ class RequestServer:
             self._fail(
                 HTTP_BAD_GATEWAY, "Source and destination must have the same host name."
             )
-        elif not dest_path.startswith(provider.mount_path + provider.share_path):
+
+        if dest_path.startswith(provider.mount_path + provider.share_path + "/"):
+            dest_path = dest_path[len(provider.mount_path + provider.share_path) :]
+        else:
             # Inter-realm copying not supported, since its not possible to
             # authentication-wise
-            self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
 
-        dest_path = dest_path[len(provider.mount_path + provider.share_path) :]
+            # We might be running behind a reverse proxy.
+            # If a mountpoint is defined, try to strip it, assuming the proxy
+            # redirects  HOST/MOUNT/PATH -> SHARE/PATH
+            if provider.mount_path and dest_path.startswith(provider.mount_path + "/"):
+                _prev = dest_path
+                dest_path = dest_path[len(provider.mount_path) :]
+                # dest_path = provider.share_path + dest_path
+                _logger.info(f"Rewrite DESTINATION path {_prev} -> {dest_path}")
+            else:
+                self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
+
         assert dest_path.startswith("/")
 
         # dest_path is now relative to current mount/share starting with '/'

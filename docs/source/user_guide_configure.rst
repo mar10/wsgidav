@@ -232,16 +232,16 @@ editing depending on authentication.
 
 Three syntax variants are supported:
 
-1. ``<mount_path>: <folder_path>``:
+1. ``<share_path>: <folder_path>``:
    use ``FilesystemProvider(folder_path)``
-2. ``<mount_path>: { "root": <folder_path>, "readonly": <bool> }``:
+2. ``<share_path>: { "root": <folder_path>, "readonly": <bool> }``:
    use ``FilesystemProvider(folder_path, readonly)``
-3. ``<mount_path>: { "class": <class_path>, args: [arg, ...], kwargs: {"arg1": val1, "arg2": val2, ... }}``
+3. ``<share_path>: { "class": <class_path>, args: [arg, ...], kwargs: {"arg1": val1, "arg2": val2, ... }}``
    Instantiate a custom class (derrived from ``DAVProvider``) using named
    kwargs.
 
 ..
-   1. ``<mount_path>: { "provider": <class_path>, "args:" ..., "kwargs": ... }``
+   1. ``<share_path>: { "provider": <class_path>, "args:" ..., "kwargs": ... }``
 
 For example::
 
@@ -509,3 +509,46 @@ The structure is identical to the YAML format.
 
 See the :doc:`./sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)
+
+
+Configuration Tips
+------------------
+
+Running Behind a Reverse Proxy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If WsgiDAV is running behind a reverse proxy, ... 
+
+For example, when `nginx <https://docs.nginx.com/>`_ is used to expose the
+local WsgiDAV share ``http://127.0.0.1:8080/public_drive`` as
+``http://example.com/drive``, the configuration files may look like this:
+
+``wsgidav.yaml`` ::
+
+    host: 127.0.0.1
+    port: 8080
+    mount_path: "/drive"
+    provider_mapping:
+        "/public_drive":  # Exposed as http://HOST/drive by nginx reverse proxy
+            root: "fixtures/share"
+
+``nginx.conf``::
+
+    http {
+        ...
+        server {
+            listen       80;
+            server_name  example.com;
+            ...
+            location /drive/ {
+                proxy_pass http://127.0.0.1:8080/public_drive/;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $host;
+            }
+            # If dir browser is enabled for WsgiDAV:
+            location /drive/:dir_browser/ {
+                proxy_pass http://127.0.0.1:8080/:dir_browser/;
+            }
+
+See the `nginx docs <https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/>`_
+for details.

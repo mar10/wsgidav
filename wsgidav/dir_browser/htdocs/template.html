@@ -58,7 +58,7 @@
     </thead>
 
     <tbody>
-      {%- if parent_url %}
+      {%- if not is_top_dir %}
       <tr class="directory">
           <td>
             <a href="..">..</a>

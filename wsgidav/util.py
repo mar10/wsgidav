@@ -1174,6 +1174,20 @@ def parse_xml_body(environ, *, allow_empty=False):
 #    return [ body ]
 
 
+def send_redirect_response(environ, start_response, *, location):
+    """Start a WSGI response for a DAVError or status code."""
+
+    start_response(
+        "301 Moved Permanently",  # this is was nginx uses
+        [
+            ("Content-Length", "0"),
+            ("Date", get_rfc1123_time()),
+            ("Location", location),
+        ],
+    )
+    return [b""]
+
+
 def send_status_response(
     environ, start_response, e, *, add_headers=None, is_head=False
 ):

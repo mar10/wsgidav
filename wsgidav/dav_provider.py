@@ -1492,7 +1492,7 @@ class DAVProvider(ABC):
         self._count_get_resource_inst = 0
         self._count_get_resource_inst_init = 0
 
-    #        self.caseSensitiveUrls = True
+        # self.caseSensitiveUrls = True
 
     def __repr__(self):
         return self.__class__.__name__
@@ -1505,7 +1505,9 @@ class DAVProvider(ABC):
 
         This is the value of SCRIPT_NAME, when WsgiDAVApp is called.
         """
-        assert mount_path in ("", "/") or not mount_path.endswith("/")
+        assert mount_path in ("", "/") or (
+            mount_path.startswith("/") and not mount_path.endswith("/")
+        )
         self.mount_path = mount_path
 
     def set_share_path(self, share_path):

@@ -80,7 +80,7 @@ def _check_config(config):
     mandatory_fields = ("provider_mapping",)
     for field in mandatory_fields:
         if field not in config:
-            errors.append("Missing required option '{}'.".format(field))
+            errors.append(f"Missing required option '{field}'.")
 
     deprecated_fields = {
         "acceptbasic": "http_authenticator.accept_basic",
@@ -122,7 +122,7 @@ def _check_config(config):
             d, v = config, old
 
         if d and v in d:
-            errors.append("Deprecated option '{}': use '{}' instead.".format(old, new))
+            errors.append(f"Deprecated option '{old}': use '{new}' instead.")
 
     if errors:
         raise ValueError("Invalid configuration:\n  - " + "\n  - ".join(errors))
@@ -184,17 +184,27 @@ class WsgiDAVApp:
         else:
             self.prop_manager = prop_manager
 
-        self.mount_path = config.get("mount_path")
+        # If mount path is configured, it must start with "/" (but no trailing slash)
+        mount_path = config.get("mount_path")
+        if mount_path:
+            if not mount_path.startswith("/") or mount_path.endswith("/"):
+                raise ValueError(
+                    f"If a mount_path is set, it must start (but not end) with '/': '{mount_path}'."
+                )
+        else:
+            mount_path = ""
+        self.mount_path = mount_path
+
         auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
 
         # Instantiate DAV resource provider objects for every share.
         # provider_mapping may contain the args that are passed to a
         # `FilesystemProvider` instance:
-        #     <mount_path>: <folder_path>
+        #     <share_path>: <folder_path>
         # or
-        #     <mount_path>: { "root": <folder_path>, "readonly": True }
+        #     <share_path>: { "root": <folder_path>, "readonly": True }
         # or contain a complete new instance:
-        #     <mount_path>: <DAVProvider Instance>
+        #     <share_path>: <DAVProvider Instance>
 
         provider_mapping = self.config["provider_mapping"]
 
@@ -269,16 +279,16 @@ class WsgiDAVApp:
             )
 
         if self.verbose >= 3:
-            _logger.info("Lock manager:      {}".format(self.lock_manager))
-            _logger.info("Property manager:  {}".format(self.prop_manager))
-            _logger.info("Domain controller: {}".format(domain_controller))
+            _logger.info(f"Lock manager:      {self.lock_manager}")
+            _logger.info(f"Property manager:  {self.prop_manager}")
+            _logger.info(f"Domain controller: {domain_controller}")
 
         if self.verbose >= 4:
             # We traversed the stack in reverse order. Now revert again, so
             # we see the order that was configured:
             _logger.info("Middleware stack:")
             for mw in reversed(mw_list):
-                _logger.info("  - {}".format(mw))
+                _logger.info(f"  - {mw}")
 
         if self.verbose >= 3:
             _logger.info("Registered DAV providers by route:")
@@ -291,7 +301,7 @@ class WsgiDAVApp:
                         hint = ""
                 else:
                     hint = " (custom auth)"
-                _logger.info("  - '{}': {}{}".format(share, provider, hint))
+                _logger.info(f"  - '{share}': {provider}{hint}")
 
         if auth_conf.get("accept_basic") and not config.get("ssl_certificate"):
             _logger.warning(
@@ -306,6 +316,10 @@ class WsgiDAVApp:
                             share, "read" if provider.is_readonly() else "write"
                         )
                     )
+
+        if self.mount_path:
+            _logger.info(f"Configured mount path: '{self.mount_path}'.")
+
         return
 
     def add_provider(self, share, provider, *, readonly=False):
@@ -316,7 +330,7 @@ class WsgiDAVApp:
 
         if type(provider) is str:
             # Syntax:
-            #   <mount_path>: <folder_path>
+            #   <>: <folder_path>
             # We allow a simple string as 'provider'. In this case we interpret
             # it as a file system root folder that is published.
             provider = util.fix_path(provider, self.config)
@@ -325,12 +339,12 @@ class WsgiDAVApp:
         elif type(provider) in (dict,):
             if "class" in provider:
                 # Syntax:
-                #   <mount_path>: {"class": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
+                #   <>: {"class": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
                 expand = {"${application}": self}
                 provider = dynamic_instantiate_class_from_opts(provider, expand=expand)
             elif "root" in provider:
                 # Syntax:
-                #   <mount_path>: {"root": <path>, "redaonly": <bool>}
+                #   <share_path>: {"root": <path>, "redaonly": <bool>}
                 provider = FilesystemProvider(
                     util.fix_path(provider["root"], self.config),
                     readonly=bool(provider.get("readonly", False)),

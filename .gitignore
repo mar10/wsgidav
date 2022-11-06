@@ -33,3 +33,5 @@ npm-debug.log
 pip-wheel-metadata/
 wsgidav.yaml
 wsgidav*.yaml
+wsgidav-props.shelve.dat
+wsgidav-props.shelve.dir

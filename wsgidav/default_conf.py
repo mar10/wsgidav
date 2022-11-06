@@ -86,6 +86,8 @@ DEFAULT_CONFIG = {
     #: Options for `WsgiDavDirBrowser`
     "dir_browser": {
         "enable": True,  # Render HTML listing for GET requests on collections
+        # Add a trailing slash to directory URLs (by generating a 301 redirect):
+        "directory_slash": True,
         # List of fnmatch patterns:
         "ignore": [
             ".DS_Store",  # macOS folder meta data
