@@ -923,9 +923,9 @@ class _DAVResource(ABC):
     def end_write(self, *, with_errors):
         """Called when PUT has finished writing.
 
-        This is only a notification. that MAY be handled.
+        This is only a notification that MAY be handled.
         """
-        pass
+        return None
 
     def handle_delete(self):
         """Handle a DELETE request natively.
@@ -1183,7 +1183,7 @@ class _DAVResource(ABC):
         This gets called before the response is started.
         It enables adding additional headers or modifying the default ones.
         """
-        pass
+        return None
 
 
 # ========================================================================
