@@ -12,6 +12,8 @@
   Also use relative paths in directory listings in order to improve behavior
   when running behind a reverse proxy.
 - #183 Fix MOVE for reverse proxies (experimental)
+- Resolve security advisory [CVE-2022-41905](https://github.com/mar10/wsgidav/security/advisories/GHSA-xx6g-jj35-pxjv)
+  Thanks @brunnjf (Jon Brunn)
 
 ## 4.0.2 / 2022-08-01
 
