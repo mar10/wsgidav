@@ -1,6 +1,8 @@
 # Changelog
 
-## 4.0.3 / Unreleased
+## 4.1.1 / Unreleased
+
+## 4.1.0 / 2022-11-11
 - #246 Add dir_browser/htdocs folder setup.cfg (for install with `pip install  .`)
 - #265 Fix PAM not threadsafe
 - #268 Use relative paths to support reverse proxies
