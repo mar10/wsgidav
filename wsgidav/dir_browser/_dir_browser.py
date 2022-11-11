@@ -10,7 +10,7 @@ import sys
 from fnmatch import fnmatch
 from urllib.parse import unquote
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
@@ -73,7 +73,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         # Prepare a Jinja2 template
         templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
-        templateEnv = Environment(loader=templateLoader)
+        templateEnv = Environment(loader=templateLoader, autoescape=select_autoescape())
         self.template = templateEnv.get_template("template.html")
 
     def is_disabled(self):

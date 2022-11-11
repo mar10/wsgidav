@@ -81,7 +81,7 @@
             </a>
           {% endif -%}
           {%- if row.add_link_html %}
-              {{row.add_link_html}}
+              {{row.add_link_html | safe}}
           {% endif -%}
         </td>
         <td>{{ row.display_type }}</td>
@@ -95,7 +95,7 @@
   <hr>
 
   {% if trailer %}
-  <p class="trailer">{{ trailer }}</p>
+  <p class="trailer">{{ trailer | safe }}</p>
   {% endif %}
 
   <object id="winFirefoxPlugin" type="application/x-sharepoint"
