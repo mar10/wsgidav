@@ -30,8 +30,8 @@ twine = "*"
 WebTest = "*"  # "~=2.0"
 wheel = "*"
 # wsgidav = {editable = true, path = "."}
-yabs = "*"
 safety = "*"
+yabs = "*"
 
 [packages]
 defusedxml = "*"  # "~=0.5"

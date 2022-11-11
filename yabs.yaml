@@ -17,7 +17,6 @@ config:
 tasks:
   # 'check': Assert preconditons and fail otherwise
   - task: check
-    branches: master        # Current branch must be in this list
     python: ">=3.9"         # SemVer specifier
     winget: null            # `wingetcreate` is available
 
