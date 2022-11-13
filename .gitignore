@@ -35,3 +35,4 @@ wsgidav.yaml
 wsgidav*.yaml
 wsgidav-props.shelve.dat
 wsgidav-props.shelve.dir
+manifests/
