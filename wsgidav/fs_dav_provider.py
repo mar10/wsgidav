@@ -196,10 +196,10 @@ class FolderResource(DAVCollection):
         return None
 
     def get_used_bytes(self):
-        return shutil.disk_usage(self.path).used
+        return shutil.disk_usage(self._file_path).used
 
     def get_available_bytes(self):
-        return shutil.disk_usage(self.path).free
+        return shutil.disk_usage(self._file_path).free
 
     def get_last_modified(self):
         return self.file_stat[stat.ST_MTIME]
