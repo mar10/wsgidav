@@ -822,8 +822,8 @@ def fix_path(path, root, *, expand_vars=True, must_exist=True, allow_none=True):
     if must_exist and not os.path.exists(path):
         raise ValueError(f"Invalid path: {path!r}")
 
-    if org_path != path:
-        print(f"fix_path({org_path}) => {path}")
+    # if org_path != path:
+    #     print(f"fix_path({org_path}) => {path}") 
     return path
 
 
