@@ -1,6 +1,7 @@
 # Changelog
 
-## 4.1.1 / Unreleased
+## 4.2.0 / Unreleased
+- #277 Add quota-used-bytes and quota-available-bytes (RFC4331) (@NewbieOrange)
 
 ## 4.1.0 / 2022-11-11
 - #246 Add dir_browser/htdocs folder setup.cfg (for install with `pip install  .`)
