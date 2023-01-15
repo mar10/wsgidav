@@ -156,6 +156,8 @@ class _DAVResource(ABC):
         get_creation_date()
         get_display_name()
         get_etag()
+        get_used_bytes()
+        get_available_bytes()
         get_last_modified()
         support_ranges()
 
@@ -275,6 +277,22 @@ class _DAVResource(ABC):
         See http://www.webdav.org/specs/rfc4918.html#PROPERTY_getetag
 
         This method SHOULD be implemented, especially by non-collections.
+        """
+        return None
+
+    def get_used_bytes(self) -> Optional[int]:
+        """Return used bytes of the DAV collection.
+        See http://www.webdav.org/specs/rfc4331.html#quota-used-bytes
+
+        This method COULD be implemented for collection resources.
+        """
+        return None
+
+    def get_available_bytes(self) -> Optional[int]:
+        """Return available bytes of the DAV collection.
+        See http://www.webdav.org/specs/rfc4331.html#quota-available-bytes
+
+        This method COULD be implemented for collection resources.
         """
         return None
 
@@ -531,6 +549,10 @@ class _DAVResource(ABC):
             propNameList.append("{DAV:}getcontentlength")
         if self.get_content_type() is not None:
             propNameList.append("{DAV:}getcontenttype")
+        if self.get_used_bytes() is not None:
+            propNameList.append("{DAV:}quota-used-bytes")
+        if self.get_available_bytes() is not None:
+            propNameList.append("{DAV:}quota-available-bytes")
         if self.get_last_modified() is not None:
             propNameList.append("{DAV:}getlastmodified")
         if self.get_display_name() is not None:
@@ -706,6 +728,10 @@ class _DAVResource(ABC):
                     etree.SubElement(resourcetypeEL, "{DAV:}collection")
                     return resourcetypeEL
                 return ""
+            elif name == "{DAV:}quota-used-bytes":
+                return self.get_used_bytes()
+            elif name == "{DAV:}quota-available-bytes":
+                return self.get_available_bytes()
             elif (
                 name == "{DAV:}getlastmodified" and self.get_last_modified() is not None
             ):

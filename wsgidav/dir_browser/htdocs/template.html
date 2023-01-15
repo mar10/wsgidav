@@ -29,7 +29,7 @@
   <p class="auth-user">
     Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}.
     {%- if is_authenticated and config.show_logout %}
-      <a title="Logout current user" href="{{ url }}?logout" target="_blank">Logout</a>
+      <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
     {% endif -%}
     {%- if user_roles %}
       , roles: {{ user_roles }}
