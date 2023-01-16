@@ -126,7 +126,7 @@ We need `Python 2.7 <https://www.python.org/downloads/>`_,
 and `pip <https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip>`_ on our system.
 
 If you want to run tests on *all supported* platforms, install Python 3.7, 3.8,
-3.9, and 3.10.
+3.9, 3.10, and 3.11.
 
 On Linux/OS X, we recommend to use `pipenv <https://github.com/kennethreitz/pipenv>`_
 to activate a virtual environment::
