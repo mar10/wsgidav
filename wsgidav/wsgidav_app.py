@@ -80,7 +80,7 @@ def _check_config(config):
     mandatory_fields = ("provider_mapping",)
     for field in mandatory_fields:
         if field not in config:
-            errors.append(f"Missing required option '{field}'.")
+            errors.append(f"Missing required option {field!r}.")
 
     deprecated_fields = {
         "acceptbasic": "http_authenticator.accept_basic",
@@ -122,7 +122,7 @@ def _check_config(config):
             d, v = config, old
 
         if d and v in d:
-            errors.append(f"Deprecated option '{old}': use '{new}' instead.")
+            errors.append(f"Deprecated option {old!r}: use {new!r} instead.")
 
     if errors:
         raise ValueError("Invalid configuration:\n  - " + "\n  - ".join(errors))
@@ -189,7 +189,7 @@ class WsgiDAVApp:
         if mount_path:
             if not mount_path.startswith("/") or mount_path.endswith("/"):
                 raise ValueError(
-                    f"If a mount_path is set, it must start (but not end) with '/': '{mount_path}'."
+                    f"If a mount_path is set, it must start (but not end) with '/': {mount_path!r}."
                 )
         else:
             mount_path = ""
@@ -301,7 +301,7 @@ class WsgiDAVApp:
                         hint = ""
                 else:
                     hint = " (custom auth)"
-                _logger.info(f"  - '{share}': {provider}{hint}")
+                _logger.info(f"  - {share!r}: {provider}{hint}")
 
         if auth_conf.get("accept_basic") and not config.get("ssl_certificate"):
             _logger.warning(
@@ -312,13 +312,13 @@ class WsgiDAVApp:
             for share, provider in self.provider_map.items():
                 if domain_controller.is_share_anonymous(share):
                     _logger.warning(
-                        "Share '{}' will allow anonymous {} access.".format(
+                        "Share {!r} will allow anonymous {} access.".format(
                             share, "read" if provider.is_readonly() else "write"
                         )
                     )
 
         if self.mount_path:
-            _logger.info(f"Configured mount path: '{self.mount_path}'.")
+            _logger.info(f"Configured mount path: {self.mount_path!r}.")
 
         return
 
@@ -406,7 +406,7 @@ class WsgiDAVApp:
 
     def __call__(self, environ, start_response):
 
-        # util.log("SCRIPT_NAME='{}', PATH_INFO='{}'".format(
+        # util.log("SCRIPT_NAME={!r}, PATH_INFO={!r}".format(
         #    environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 
         path = environ["PATH_INFO"]

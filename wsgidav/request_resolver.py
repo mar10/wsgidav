@@ -214,7 +214,7 @@ class RequestResolver(BaseMiddleware):
 
         if provider is None:
             raise DAVError(
-                HTTP_NOT_FOUND, f"Could not find resource provider for '{path}'"
+                HTTP_NOT_FOUND, f"Could not find resource provider for {path!r}"
             )
 
         # Let the appropriate resource provider for the realm handle the

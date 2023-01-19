@@ -75,7 +75,7 @@ class BaseDomainController(ABC):
 
         if not dav_provider:
             logger.warn(
-                "_calc_realm_from_path_provider('{}'): '{}'".format(
+                "_calc_realm_from_path_provider({!r}): {!r}".format(
                     util.safe_re_encode(path_info, sys.stdout.encoding), None
                 )
             )

@@ -381,7 +381,7 @@ class FilesystemProvider(DAVProvider):
         rw = "Read-Write"
         if self.readonly:
             rw = "Read-Only"
-        return "{} for path '{}' ({})".format(
+        return "{} for path {!r} ({})".format(
             self.__class__.__name__, self.root_folder_path, rw
         )
 

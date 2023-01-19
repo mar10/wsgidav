@@ -112,7 +112,7 @@ class PropertyManager:
                 _logger.info("    {}".format(k))
                 for k2, v2 in v.items():
                     try:
-                        _logger.info("        {}: '{}'".format(k2, v2))
+                        _logger.info("        {}: {!r}".format(k2, v2))
                     except Exception as e:
                         _logger.info("        {}: ERROR {}".format(k2, e))
             # _logger.flush()

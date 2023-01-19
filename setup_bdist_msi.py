@@ -24,7 +24,7 @@ org_version = __version__
 # 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
 # if "HOME" not in os.environ and "HOMEPATH" in os.environ:
 #     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
-#     print("Initializing HOME environment variable to '{}'".format(os.environ["HOME"]))
+#     print("Initializing HOME environment variable to {!r}".format(os.environ["HOME"]))
 
 # Since we included pywin32 extensions, cx_Freeze tries to create a
 # version resource. This only supports the 'a.b.c[.d]' format.

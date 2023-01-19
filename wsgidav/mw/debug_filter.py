@@ -104,7 +104,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         # Turn on max. debugging for selected litmus tests
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 3:
-            _logger.info("----\nRunning litmus test '{}'...".format(litmusTag))
+            _logger.info("----\nRunning litmus test {!r}...".format(litmusTag))
             for litmusSubstring in self.debug_litmus:
                 if litmusSubstring in litmusTag:
                     verbose = 5

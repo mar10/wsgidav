@@ -34,7 +34,7 @@ class PAMDomainController(BaseDomainController):
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
 
     def __str__(self):
-        return f"{self.__class__.__name__}('{self.pam_service}')"
+        return f"{self.__class__.__name__}({self.pam_service!r})"
 
     def get_domain_realm(self, path_info, environ):
         return f"PAM({self.pam_service})"
@@ -54,13 +54,13 @@ class PAMDomainController(BaseDomainController):
             )
             if not is_ok:
                 _logger.warning(
-                    "pam.authenticate('{}', '<redacted>', '{}') failed with code {}: {}".format(
+                    "pam.authenticate({!r}, '<redacted>', {!r}) failed with code {}: {}".format(
                         user_name, self.pam_service, self.pam.code, self.pam.reason
                     )
                 )
                 return False
 
-        _logger.debug(f"User '{user_name}' logged on.")
+        _logger.debug(f"User {user_name!r} logged on.")
         return True
 
     def supports_http_digest_auth(self):

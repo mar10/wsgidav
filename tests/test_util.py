@@ -227,7 +227,7 @@ class LoggerTest(unittest.TestCase):
 
         rootOutput, baseOutput = self.getLogOutput()
         # Printed for debugging, when test fails:
-        print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
+        print("ROOT OUTPUT:\n{!r}\nBASE OUTPUT:\n{!r}".format(rootOutput, baseOutput))
 
         # No output should be generated in the root logger
         assert rootOutput == ""
@@ -251,7 +251,7 @@ class LoggerTest(unittest.TestCase):
 
         rootOutput, baseOutput = self.getLogOutput()
         # Printed for debugging, when test fails:
-        print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
+        print("ROOT OUTPUT:\n{!r}\nBASE OUTPUT:\n{!r}".format(rootOutput, baseOutput))
 
         # Now output we should see output in the root logger
         assert rootOutput == baseOutput
@@ -293,7 +293,7 @@ class LoggerTest(unittest.TestCase):
 
         rootOutput, baseOutput = self.getLogOutput()
         # Printed for debugging, when test fails:
-        print("ROOT OUTPUT:\n'{}'\nBASE OUTPUT:\n'{}'".format(rootOutput, baseOutput))
+        print("ROOT OUTPUT:\n{!r}\nBASE OUTPUT:\n{!r}".format(rootOutput, baseOutput))
 
         # init_logging() removes all other handlers
         assert rootOutput == ""

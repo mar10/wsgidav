@@ -212,10 +212,10 @@ class DAVError(Exception):
             s += ": {}".format(ERROR_RESPONSES[self.value])
 
         if self.src_exception:
-            s += "\n    Source exception: '{}'".format(self.src_exception)
+            s += "\n    Source exception: {!r}".format(self.src_exception)
 
         if self.err_condition:
-            s += "\n    Error condition: '{}'".format(self.err_condition)
+            s += "\n    Error condition: {!r}".format(self.err_condition)
         return s
 
     def get_response_page(self):

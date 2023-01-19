@@ -282,7 +282,7 @@ def _read_config_file(config_file, _verbose):
     config_file = os.path.abspath(config_file)
 
     if not os.path.exists(config_file):
-        raise RuntimeError(f"Couldn't open configuration file '{config_file}'.")
+        raise RuntimeError(f"Couldn't open configuration file {config_file!r}.")
 
     if config_file.endswith(".json"):
         with open(config_file, mode="rt", encoding="utf-8-sig") as fp:

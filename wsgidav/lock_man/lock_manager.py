@@ -88,7 +88,7 @@ def lock_string(lock_dict):
             util.get_log_time(lock_dict["expire"]), lock_dict["expire"] - time.time()
         )
 
-    return "Lock(<{}..>, '{}', {}, {}, depth-{}, until {}".format(
+    return "Lock(<{}..>, {!r}, {}, {}, depth-{}, until {}".format(
         # first 4 significant token characters
         lock_dict.get("token", "?" * 30)[18:22],
         lock_dict.get("root"),

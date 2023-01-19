@@ -83,7 +83,7 @@ class SimpleDomainController(BaseDomainController):
         for share, data in self.user_map.items():
             if type(data) not in (bool, dict) or not data:
                 raise RuntimeError(
-                    "Invalid option: simple_dc.user_mapping['{}']: must be True or non-empty dict.".format(
+                    "Invalid option: simple_dc.user_mapping[{!r}]: must be True or non-empty dict.".format(
                         share
                     )
                 )

@@ -28,11 +28,11 @@ matrix:
         # - python: "3.4"  # EOL 2019-03-18
         #   env: TOXENV=py34
         - python: "3.12-dev"
-          env: TOXENV=py311
+          env: TOXENV=py312
           dist: bionic
     allow_failures:
         - python: "3.12-dev"
-          env: TOXENV=py311
+          env: TOXENV=py312
           dist: bionic
 
 before_install:

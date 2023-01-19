@@ -201,7 +201,7 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["wsgidav.auth.permissions"] = None
 
         # _logger.debug(
-        #     "HTTPAuthenticator realm({}): '{}'".format(environ["PATH_INFO"], realm)
+        #     "HTTPAuthenticator realm({}): {!r}".format(environ["PATH_INFO"], realm)
         # )
         # _logger.debug("{}".format(environ))
 
@@ -219,7 +219,7 @@ class HTTPAuthenticator(BaseMiddleware):
             realm, environ
         ):
             # No authentication needed
-            # _logger.debug("No authorization required for realm '{}'".format(realm))
+            # _logger.debug("No authorization required for realm {!r}".format(realm))
             # environ["wsgidav.auth.realm"] = realm
             # environ["wsgidav.auth.user_name"] = ""
             return self.next_app(environ, start_response)
@@ -227,7 +227,7 @@ class HTTPAuthenticator(BaseMiddleware):
         if self.trusted_auth_header and environ.get(self.trusted_auth_header):
             # accept a user_name that was injected by a trusted upstream server
             _logger.debug(
-                "Accept trusted user_name {}='{}'for realm '{}'".format(
+                "Accept trusted user_name {}={!r}for realm {!r}".format(
                     self.trusted_auth_header,
                     environ.get(self.trusted_auth_header),
                     realm,
@@ -275,7 +275,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
     def send_basic_auth_response(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
-        _logger.debug("401 Not Authorized for realm '{}' (basic)".format(realm))
+        _logger.debug("401 Not Authorized for realm {!r} (basic)".format(realm))
         wwwauthheaders = 'Basic realm="{}"'.format(realm)
 
         body = util.to_bytes(self.error_message_401)
@@ -309,7 +309,7 @@ class HTTPAuthenticator(BaseMiddleware):
             return self.next_app(environ, start_response)
 
         _logger.warning(
-            "Authentication (basic) failed for user '{}', realm '{}'.".format(
+            "Authentication (basic) failed for user {!r}, realm {!r}.".format(
                 user_name, realm
             )
         )
@@ -332,7 +332,7 @@ class HTTPAuthenticator(BaseMiddleware):
         )
 
         _logger.debug(
-            "401 Not Authorized for realm '{}' (digest): {}".format(
+            "401 Not Authorized for realm {!r} (digest): {}".format(
                 realm, wwwauthheaders
             )
         )
@@ -411,7 +411,7 @@ class HTTPAuthenticator(BaseMiddleware):
                 req_username_org = req_username
                 req_username = req_username.replace("\\\\", "\\")
                 _logger.info(
-                    "Fixing Windows name with double backslash: '{}' --> '{}'".format(
+                    "Fixing Windows name with double backslash: {!r} --> {!r}".format(
                         req_username_org, req_username
                     )
                 )
@@ -422,7 +422,7 @@ class HTTPAuthenticator(BaseMiddleware):
             # if pre_check is False:
             #     is_invalid_req = True
             #     invalid_req_reasons.append(
-            #         "Not a realm-user: '{}'/'{}'".format(realm, req_username)
+            #         "Not a realm-user: {!r}/{!r}".format(realm, req_username)
             #     )
         else:
             is_invalid_req = True
@@ -441,7 +441,7 @@ class HTTPAuthenticator(BaseMiddleware):
                     _logger.info("winxp_accept_root_share_login")
                 else:
                     is_invalid_req = True
-                    invalid_req_reasons.append("Realm mismatch: '{}'".format(realm))
+                    invalid_req_reasons.append("Realm mismatch: {!r}".format(realm))
 
         if "algorithm" in auth_header_dict:
             if auth_header_dict["algorithm"].upper() != "MD5":
@@ -509,13 +509,13 @@ class HTTPAuthenticator(BaseMiddleware):
                 # Rejected by domain controller
                 is_invalid_req = True
                 invalid_req_reasons.append(
-                    "Rejected by DC.digest_auth_user('{}', '{}')".format(
+                    "Rejected by DC.digest_auth_user({!r}, {!r})".format(
                         realm, req_username
                     )
                 )
             elif required_digest != req_response:
                 warning_msg = (
-                    "_compute_digest_response('{}', '{}', ...): {} != {}".format(
+                    "_compute_digest_response({!r}, {!r}, ...): {} != {}".format(
                         realm, req_username, required_digest, req_response
                     )
                 )
@@ -535,7 +535,7 @@ class HTTPAuthenticator(BaseMiddleware):
                     )
                     if root_digest == req_response:
                         _logger.warning(
-                            "handle_digest_auth_request: HOTFIX: accepting '/' login for '{}'.".format(
+                            "handle_digest_auth_request: HOTFIX: accepting '/' login for {!r}.".format(
                                 realm
                             )
                         )
@@ -548,7 +548,7 @@ class HTTPAuthenticator(BaseMiddleware):
                     is_invalid_req = True
                     invalid_req_reasons.append(warning_msg)
             else:
-                # _logger.debug("digest succeeded for realm '{}', user '{}'"
+                # _logger.debug("digest succeeded for realm {!r}, user {!r}"
                 #               .format(realm, req_username))
                 pass
 
@@ -556,13 +556,13 @@ class HTTPAuthenticator(BaseMiddleware):
             invalid_req_reasons.append("Headers:\n    {}".format(auth_header_dict))
             if self._verbose >= 4:
                 _logger.warning(
-                    "Authentication (digest) failed for user '{}', realm '{}':\n  {}".format(
+                    "Authentication (digest) failed for user {!r}, realm {!r}:\n  {}".format(
                         req_username, realm, "\n  ".join(invalid_req_reasons)
                     )
                 )
             else:
                 _logger.warning(
-                    "Authentication (digest) failed for user '{}', realm '{}'.".format(
+                    "Authentication (digest) failed for user {!r}, realm {!r}.".format(
                         req_username, realm
                     )
                 )

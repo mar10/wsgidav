@@ -206,17 +206,17 @@ class NTDomainController(BaseDomainController):
             )
             if not htoken:
                 _logger.warning(
-                    "LogonUser('{}', '{}', '***') failed.".format(user_name, domain)
+                    "LogonUser({!r}, {!r}, '***') failed.".format(user_name, domain)
                 )
                 return False
         except win32security.error as err:
             _logger.warning(
-                "LogonUser('{}', '{}', '***') failed: {}".format(user_name, domain, err)
+                "LogonUser({!r}, {!r}, '***') failed: {}".format(user_name, domain, err)
             )
             return False
         finally:
             if htoken:
                 htoken.Close()
 
-        _logger.debug("User '{}' logged on.".format(user_name))
+        _logger.debug("User {!r} logged on.".format(user_name))
         return True

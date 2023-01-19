@@ -157,11 +157,11 @@ def get_dict_value(d, key_path, default=NO_DEFAULT, *, as_dict=False):
             seg = seg[1:-1]
             value = value[int(seg)]
         else:
-            # raise ValueError("Segment '{}' cannot be nested".format(seg))
+            # raise ValueError("Segment {!r} cannot be nested".format(seg))
             try:
                 value = getattr(value, seg)
             except AttributeError:
-                raise  # ValueError("Segment '{}' cannot be nested".format(seg))
+                raise  # ValueError("Segment {!r} cannot be nested".format(seg))
 
     return value
 
@@ -214,12 +214,12 @@ def check_tags(tags, known, *, msg=None, raise_error=True, required=False):
     res = []
     unknown = tags.difference(known)
     if unknown:
-        res.append("Unknown: '{}'".format("', '".join(unknown)))
+        res.append("Unknown: {!r}".format("', '".join(unknown)))
 
     if required:
         missing = required.difference(tags)
         if missing:
-            res.append("Missing: '{}'".format("', '".join(missing)))
+            res.append("Missing: {!r}".format("', '".join(missing)))
 
     if res:
         if msg:
@@ -227,14 +227,14 @@ def check_tags(tags, known, *, msg=None, raise_error=True, required=False):
 
         if required and optional:
             res.append(
-                "Required: ('{}'). Optional: ('{}')".format(
+                "Required: ({!r}). Optional: ({!r})".format(
                     "', '".join(required), "', '".join(optional)
                 )
             )
         elif required:
-            res.append("Required: ('{}')".format("', '".join(required)))
+            res.append("Required: ({!r})".format("', '".join(required)))
         elif optional:
-            res.append("Optional: ('{}')".format("', '".join(optional)))
+            res.append("Optional: ({!r})".format("', '".join(optional)))
 
         res = "\n".join(res)
         if raise_error:
@@ -384,7 +384,7 @@ def init_logging(config):
 
         _logger = util.get_module_logger(__name__)
         [..]
-        _logger.debug("foo: '{}'".format(s))
+        _logger.debug("foo: {!r}".format(s))
 
     This logger would be enabled by passing its name to init_logging()::
 
@@ -895,7 +895,7 @@ def read_and_discard_input(environ):
                 n = 1
             body = wsgi_input.read(n)
             _logger.debug(
-                "Reading {} bytes from potentially unread httpserver.LimitedLengthFile: '{}'...".format(
+                "Reading {} bytes from potentially unread httpserver.LimitedLengthFile: {!r}...".format(
                     n, body[:50]
                 )
             )
@@ -915,7 +915,7 @@ def read_and_discard_input(environ):
                     n = 1
                 body = wsgi_input.read(n)
                 _logger.debug(
-                    "Reading {} bytes from potentially unread POST body: '{}'...".format(
+                    "Reading {} bytes from potentially unread POST body: {!r}...".format(
                         n, body[:50]
                     )
                 )

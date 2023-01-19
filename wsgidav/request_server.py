@@ -290,7 +290,7 @@ class RequestServer:
         if not environ["HTTP_DEPTH"] in ("0", "1", "infinity"):
             self._fail(
                 HTTP_BAD_REQUEST,
-                "Invalid Depth header: '{}'.".format(environ["HTTP_DEPTH"]),
+                "Invalid Depth header: {!r}.".format(environ["HTTP_DEPTH"]),
             )
 
         if environ["HTTP_DEPTH"] == "infinity" and not self.allow_propfind_infinite:
@@ -906,7 +906,7 @@ class RequestServer:
             # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
             body = environ["wsgi.input"].read(util.get_content_length(environ))
             environ["wsgidav.all_input_read"] = 1
-            _logger.info("Ignored copy/move  body: '{}'...".format(body[:50]))
+            _logger.info("Ignored copy/move  body: {!r}...".format(body[:50]))
 
         if src_res.is_collection:
             # The COPY method on a collection without a Depth header MUST act as
@@ -1075,7 +1075,7 @@ class RequestServer:
                 # header is "T", then prior to performing the move, the server
                 # MUST perform a DELETE with "Depth: infinity" on the
                 # destination resource.
-                _logger.debug("Remove dest before move: '{}'".format(dest_res))
+                _logger.debug("Remove dest before move: {!r}".format(dest_res))
                 dest_res.delete()
                 dest_res = None
             else:
@@ -1118,7 +1118,7 @@ class RequestServer:
             if not has_conflicts:
                 try:
                     _logger.debug(
-                        "Recursive move: {} -> '{}'".format(src_res, dest_path)
+                        "Recursive move: {} -> {!r}".format(src_res, dest_path)
                     )
                     error_list = src_res.move_recursive(dest_path)
                 except Exception as e:
@@ -1151,7 +1151,7 @@ class RequestServer:
                     break
             if parent_error:
                 _logger.debug(
-                    "Copy: skipping '{}', because of parent error".format(sres.path)
+                    "Copy: skipping {!r}, because of parent error".format(sres.path)
                 )
                 continue
 
@@ -1200,7 +1200,7 @@ class RequestServer:
                         break
                 if child_error:
                     _logger.debug(
-                        "Delete after move: skipping '{}', because of child error".format(
+                        "Delete after move: skipping {!r}, because of child error".format(
                             sres.path
                         )
                     )
@@ -1327,7 +1327,7 @@ class RequestServer:
                 lock_owner = xml_tools.xml_to_bytes(linode, pretty=False)
 
             else:
-                self._fail(HTTP_BAD_REQUEST, "Invalid node '{}'.".format(linode.tag))
+                self._fail(HTTP_BAD_REQUEST, "Invalid node {!r}.".format(linode.tag))
 
         if not lock_scope:
             self._fail(HTTP_BAD_REQUEST, "Missing or invalid lockscope.")

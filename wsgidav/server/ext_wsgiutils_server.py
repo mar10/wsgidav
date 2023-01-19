@@ -388,7 +388,7 @@ def serve(conf, app):
                 socket.gethostname()
             )
             _logger.info(
-                "Serving at {}, port {} (host='{}' {})...".format(
+                "Serving at {}, port {} (host={!r} {})...".format(
                     host, port, hostname, ipaddrlist
                 )
             )
