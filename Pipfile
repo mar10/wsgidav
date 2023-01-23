@@ -9,7 +9,7 @@ Cheroot = "*"  # "~=8.5"
 cx_Freeze = {version = "*", os_name = "== 'nt'"}
 flake8 = "~=6.0"
 flake8-bugbear = "~=23.1"
-flake8-quotes = "~=3.3"
+flake8-quotes = "~=3.3.2"
 isort = "*"
 mypy = "*"
 Paste = "*"  # "~=2.0"
@@ -41,7 +41,7 @@ json5 = "*"
 wsgidav = {editable = true, path = "."}
 
 [requires]
-python_version = "3.9"
+python_version = "3.11"
 
 [pipenv]
 # allow_prereleases = true
