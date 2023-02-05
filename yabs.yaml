@@ -93,6 +93,10 @@ tasks:
     #   - sdist
     #   - bdist_wheel
 
+  - task: winget_release
+    upload: bdist_msi
+    package_id: 'mar10.wsgidav'
+
   # Commit after-release version
   - task: bump
     inc: postrelease
@@ -104,7 +108,3 @@ tasks:
       Bump prerelease ({version}) [ci skip]
 
   - task: push
-
-  - task: winget_release
-    upload: bdist_msi
-    package_id: 'mar10.WsgiDAV'
