@@ -5,6 +5,7 @@
 - #277 Add quota-used-bytes and quota-available-bytes (RFC4331) (@NewbieOrange)
 - Build MSI installer with Python 3.11, cheroot 9.0, cx_Freeze 6.3 (may fix #278)
 - Official support for Python 3.11
+- Stop testing Python 3.6 (EOL 2021-12-21)
 - Update to black 22.12
 
 ## 4.1.0 / 2022-11-11
