@@ -1,6 +1,8 @@
 # Changelog
 
-## 4.2.0 / Unreleased
+## 4.2.1 / Unreleased
+
+## 4.2.0 / 2023-02-18
 
 - #277 Add quota-used-bytes and quota-available-bytes (RFC4331) (@NewbieOrange)
 - Build MSI installer with Python 3.11, cheroot 9.0, cx_Freeze 6.3 (may fix #278)
