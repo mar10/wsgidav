@@ -17,21 +17,23 @@ matrix:
           env: TOXENV=py37
           dist: xenial
           before_install:
+            # Fix error: can't find Rust compiler
+            - pip install -U pip
             # Fix "AttributeError: 'str' object has no attribute 'name'" on Py37
-            - pip install -U pip importlib_metadata
+            - pip install -U importlib_metadata
         # - python: "3.6"  # EOL 2021-12-21
         #   env: TOXENV=py36
         # - python: "3.5"  # EOL 2020-09-13
         #   env: TOXENV=py35
         # - python: "3.4"  # EOL 2019-03-18
         #   env: TOXENV=py34
-        # - python: "3.12-dev"
-        #   env: TOXENV=py312
-        #   dist: bionic
+        - python: "3.12-dev"
+          env: TOXENV=py312
+          dist: bionic
     allow_failures:
-        # - python: "3.12-dev"
-        #   env: TOXENV=py312
-        #   dist: bionic
+        - python: "3.12-dev"
+          env: TOXENV=py312
+          dist: bionic
 
 before_install:
     # See issue #80: litmus fails to build on travis
