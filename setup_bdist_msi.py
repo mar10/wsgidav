@@ -21,11 +21,6 @@ if "bdist_msi" not in sys.argv:  # or len(sys.argv) != 2:
 
 org_version = __version__
 
-# 'setup.py upload' fails on Vista, because .pypirc is searched on 'HOME' path
-# if "HOME" not in os.environ and "HOMEPATH" in os.environ:
-#     os.environ.setdefault("HOME", os.environ.get("HOMEPATH", ""))
-#     print("Initializing HOME environment variable to {!r}".format(os.environ["HOME"]))
-
 # Since we included pywin32 extensions, cx_Freeze tries to create a
 # version resource. This only supports the 'a.b.c[.d]' format.
 # Our version has either the for '1.2.3' or '1.2.3-a1'
@@ -91,7 +86,7 @@ executables = [
         target_name="wsgidav.exe",
         icon="docs/source/logo.ico",
         shortcut_name="WsgiDAV",
-        copyright="(c) 2009-2022 Martin Wendt",
+        copyright="(c) 2009-2023 Martin Wendt",
         # trademarks="...",
     )
 ]
@@ -110,7 +105,7 @@ build_exe_options = {
     "excludes": [
         "tkinter",
     ],
-    "constants": "BUILD_COPYRIGHT='(c) 2009-2022 Martin Wendt'",
+    "constants": "BUILD_COPYRIGHT='(c) 2009-2023 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
 }

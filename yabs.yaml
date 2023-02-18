@@ -17,7 +17,7 @@ config:
 tasks:
   # 'check': Assert preconditons and fail otherwise
   - task: check
-    python: ">=3.9"         # SemVer specifier
+    python: ">=3.11"         # SemVer specifier
     winget: null            # `wingetcreate` is available
 
   # 'exec': Run arbitrary shell command

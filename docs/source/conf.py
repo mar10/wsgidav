@@ -24,7 +24,7 @@ print(f"on_rtd: {on_rtd}")
 # -- Project information -----------------------------------------------------
 
 project = "WsgiDAV"
-copyright = "2009-2022 Martin Wendt, 2005 Ho Chun Wei"
+copyright = "2009-2023 Martin Wendt, 2005 Ho Chun Wei"
 author = "Martin Wendt"
 
 # The full version, including alpha/beta/rc tags
