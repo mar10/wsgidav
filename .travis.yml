@@ -20,7 +20,7 @@ matrix:
             # Fix error: can't find Rust compiler
             - pip install -U pip
             # Fix "AttributeError: 'str' object has no attribute 'name'" on Py37
-            - pip install -U pip importlib_metadata
+            - pip install -U importlib_metadata
         # - python: "3.6"  # EOL 2021-12-21
         #   env: TOXENV=py36
         # - python: "3.5"  # EOL 2020-09-13
