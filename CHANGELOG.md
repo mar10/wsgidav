@@ -1,6 +1,7 @@
 # Changelog
 
 ## 4.2.1 / Unreleased
+- #282 Hotfix PUT request without content-length
 
 ## 4.2.0 / 2023-02-18
 

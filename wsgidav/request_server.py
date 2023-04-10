@@ -790,26 +790,28 @@ class RequestServer:
 
         # Start Content Processing
         # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.)
-        #        WORKAROUND_BAD_LENGTH = True
         try:
             content_length = max(-1, int(environ.get("CONTENT_LENGTH", -1)))
         except ValueError:
             content_length = -1
 
-        #        if content_length < 0 and not WORKAROUND_BAD_LENGTH:
         if (content_length < 0) and (
             environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked"
         ):
             # HOTFIX: not fully understood, but MS sends PUT without content-length,
             # when creating new files
-            agent = environ.get("HTTP_USER_AGENT", "")
-            if (
-                "Microsoft-WebDAV-MiniRedir" in agent
-                or "gvfs/" in agent
-                or "Darwin" in agent
-            ):  # issue #10
+
+            config = environ["wsgidav.config"]
+            hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
+            accept_put_without_content_length = hotfixes.get(
+                "accept_put_without_content_length", True
+            )
+
+            # if ( "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent):
+            if accept_put_without_content_length:  # issue #10, #282
+                agent = environ.get("HTTP_USER_AGENT", "")
                 _logger.warning(
-                    "Setting misssing Content-Length to 0 for MS / gvfs client"
+                    f"Set misssing Content-Length to 0 for PUT, agent={agent!r}"
                 )
                 content_length = 0
             else:
