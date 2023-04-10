@@ -11,13 +11,19 @@ See https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 """
 import threading
 
-import pam
-
 from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
 
 __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
+
+try:
+    import pam
+except ImportError:
+    _logger.error(
+        "pam_dc requires the `python-pam` module. Try `pip install wsgidav[pam]`."
+    )
+    raise
 
 
 class PAMDomainController(BaseDomainController):

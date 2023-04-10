@@ -1,6 +1,7 @@
 # Changelog
 
 ## 4.2.1 / Unreleased
+- Install pam_dc dependencies using extra syntax: `pip install wsgidav[pam]`
 
 ## 4.2.0 / 2023-02-18
 
