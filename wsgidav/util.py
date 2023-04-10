@@ -1525,7 +1525,7 @@ def read_timeout_value_header(timeoutvalue):
 # ========================================================================
 
 
-def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
+def evaluate_http_conditionals(dav_res, last_modified, entity_tag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
 
     If-Match
@@ -1563,7 +1563,7 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
         token_list = parse_if_match_header(environ["HTTP_IF_MATCH"])
         match = False
         for token in token_list:
-            if token == entitytag or token == "*":
+            if token == entity_tag or token == "*":
                 match = True
                 break
         if not match:
@@ -1585,7 +1585,7 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
     if "HTTP_IF_NONE_MATCH" in environ and dav_res.support_etag():
         token_list = parse_if_match_header(environ["HTTP_IF_NONE_MATCH"])
         for token in token_list:
-            if token == entitytag or token == "*":
+            if token == entity_tag or token == "*":
                 # ETag matched. If it's a GET request and we don't have an
                 # conflicting If-Modified header, we return NOT_MODIFIED
                 if (
@@ -1672,15 +1672,15 @@ def parse_if_header_dict(environ):
     return
 
 
-def test_if_header_dict(dav_res, dictIf, fullurl, locktokenlist, entitytag):
+def test_if_header_dict(dav_res, if_dict, fullurl, locktoken_list, entity_tag):
     _logger.debug(
-        "test_if_header_dict({}, {}, {})".format(fullurl, locktokenlist, entitytag)
+        "test_if_header_dict({}, {}, {})".format(fullurl, locktoken_list, entity_tag)
     )
 
-    if fullurl in dictIf:
-        listTest = dictIf[fullurl]
-    elif "*" in dictIf:
-        listTest = dictIf["*"]
+    if fullurl in if_dict:
+        listTest = if_dict[fullurl]
+    elif "*" in if_dict:
+        listTest = if_dict["*"]
     else:
         return True
 
@@ -1691,11 +1691,11 @@ def test_if_header_dict(dav_res, dictIf, fullurl, locktokenlist, entitytag):
 
         for (testflag, checkstyle, checkvalue) in listTestConds:
             if checkstyle == "entity" and supportEntityTag:
-                testresult = entitytag == checkvalue
+                testresult = entity_tag == checkvalue
             elif checkstyle == "entity":
                 testresult = testflag
             elif checkstyle == "locktoken":
-                testresult = checkvalue in locktokenlist
+                testresult = checkvalue in locktoken_list
             else:  # unknown
                 testresult = True
             checkresult = testresult == testflag

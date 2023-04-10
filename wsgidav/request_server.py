@@ -233,7 +233,7 @@ class RequestServer:
         if res is None:
             return
 
-        ifDict = environ["wsgidav.conditions.if"]
+        if_dict = environ["wsgidav.conditions.if"]
 
         # Raise HTTP_PRECONDITION_FAILED or HTTP_NOT_MODIFIED, if standard
         # HTTP condition fails
@@ -241,9 +241,9 @@ class RequestServer:
         if res.get_last_modified() is not None:
             last_modified = int(res.get_last_modified())
 
-        entitytag = checked_etag(res.get_etag(), allow_none=True)
-        if entitytag is None:
-            entitytag = "[]"  # Non-valid entity tag
+        etag = checked_etag(res.get_etag(), allow_none=True)
+        if etag is None:
+            etag = "[]"  # Non-valid entity tag
 
         if (
             "HTTP_IF_MODIFIED_SINCE" in environ
@@ -251,7 +251,7 @@ class RequestServer:
             or "HTTP_IF_MATCH" in environ
             or "HTTP_IF_NONE_MATCH" in environ
         ):
-            util.evaluate_http_conditionals(res, last_modified, entitytag, environ)
+            util.evaluate_http_conditionals(res, last_modified, etag, environ)
 
         if "HTTP_IF" not in environ:
             return
@@ -263,15 +263,15 @@ class RequestServer:
 
         ref_url = res.get_ref_url()
         lock_man = self._davProvider.lock_manager
-        locktokenlist = []
+        locktoken_list = []
         if lock_man:
             lockList = lock_man.get_indirect_url_lock_list(
                 ref_url, principal=environ["wsgidav.user_name"]
             )
             for lock in lockList:
-                locktokenlist.append(lock["token"])
+                locktoken_list.append(lock["token"])
 
-        if not util.test_if_header_dict(res, ifDict, ref_url, locktokenlist, entitytag):
+        if not util.test_if_header_dict(res, if_dict, ref_url, locktoken_list, etag):
             self._fail(HTTP_PRECONDITION_FAILED, "'If' header condition failed.")
 
         return
@@ -850,9 +850,9 @@ class RequestServer:
 
         headers = None
         if res.support_etag():
-            entitytag = checked_etag(res.get_etag(), allow_none=True)
-            if entitytag is not None:
-                headers = [("ETag", '"{}"'.format(entitytag))]
+            etag = checked_etag(res.get_etag(), allow_none=True)
+            if etag is not None:
+                headers = [("ETag", '"{}"'.format(etag))]
 
         if isnewfile:
             return util.send_status_response(
@@ -1599,12 +1599,12 @@ class RequestServer:
         if last_modified is None:
             last_modified = -1
 
-        entitytag = checked_etag(res.get_etag(), allow_none=True)
-        if entitytag is None:
-            entitytag = "[]"
+        etag = checked_etag(res.get_etag(), allow_none=True)
+        if etag is None:
+            etag = "[]"
 
         # Ranges
-        doignoreranges = (
+        do_ignore_ranges = (
             not res.support_content_length()
             or not res.support_ranges()
             or filesize == 0
@@ -1612,23 +1612,23 @@ class RequestServer:
         if (
             "HTTP_RANGE" in environ
             and "HTTP_IF_RANGE" in environ
-            and not doignoreranges
+            and not do_ignore_ranges
         ):
-            ifrange = environ["HTTP_IF_RANGE"]
+            if_range = environ["HTTP_IF_RANGE"]
             # Try as http-date first (Return None, if invalid date string)
-            secstime = util.parse_time_string(ifrange)
+            secstime = util.parse_time_string(if_range)
             if secstime:
                 # cast to integer, as last_modified may be a floating point number
                 if int(last_modified) != secstime:
-                    doignoreranges = True
+                    do_ignore_ranges = True
             else:
                 # Use as entity tag
-                ifrange = ifrange.strip('" ')
-                if entitytag is None or ifrange != entitytag:
-                    doignoreranges = True
+                if_range = if_range.strip('" ')
+                if etag is None or if_range != etag:
+                    do_ignore_ranges = True
 
         ispartialranges = False
-        if "HTTP_RANGE" in environ and not doignoreranges:
+        if "HTTP_RANGE" in environ and not do_ignore_ranges:
             ispartialranges = True
             list_ranges, _totallength = util.obtain_content_ranges(
                 environ["HTTP_RANGE"], filesize
@@ -1659,7 +1659,7 @@ class RequestServer:
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
-            response_headers.append(("ETag", '"{}"'.format(entitytag)))
+            response_headers.append(("ETag", '"{}"'.format(etag)))
 
         if res.support_ranges():
             response_headers.append(("Accept-Ranges", "bytes"))
@@ -1691,7 +1691,7 @@ class RequestServer:
 
         fileobj = res.get_content()
 
-        if not doignoreranges:
+        if not do_ignore_ranges:
             fileobj.seek(range_start)
 
         contentlengthremaining = range_length
