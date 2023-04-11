@@ -182,7 +182,13 @@ class DAVError(Exception):
     #     This would be helpful for debugging.
 
     def __init__(
-        self, status_code, context_info=None, *, src_exception=None, err_condition=None
+        self,
+        status_code,
+        context_info=None,
+        *,
+        src_exception=None,
+        err_condition=None,
+        add_headers=None,
     ):
         # allow passing of Pre- and Postconditions, see
         # http://www.webdav.org/specs/rfc4918.html#precondition.postcondition.xml.elements
@@ -190,6 +196,7 @@ class DAVError(Exception):
         self.context_info = context_info
         self.src_exception = src_exception
         self.err_condition = err_condition
+        self.add_headers = add_headers
         if util.is_str(err_condition):
             self.err_condition = DAVErrorCondition(err_condition)
         assert (
@@ -204,18 +211,21 @@ class DAVError(Exception):
         if self.value in ERROR_DESCRIPTIONS:
             s = "{}".format(ERROR_DESCRIPTIONS[self.value])
         else:
-            s = "{}".format(self.value)
+            s = f"{self.value}"
 
         if self.context_info:
-            s += ": {}".format(self.context_info)
+            s += f": {self.context_info}"
         elif self.value in ERROR_RESPONSES:
             s += ": {}".format(ERROR_RESPONSES[self.value])
 
         if self.src_exception:
-            s += "\n    Source exception: {!r}".format(self.src_exception)
+            s += f"\n    Source exception: {self.src_exception!r}"
 
         if self.err_condition:
-            s += "\n    Error condition: {!r}".format(self.err_condition)
+            s += f"\n    Error condition: {self.err_condition!r}"
+
+        # if self.add_headers:
+        #     s += f"\n    Add headers: {self.add_headers}"
         return s
 
     def get_response_page(self):
@@ -257,8 +267,7 @@ def get_http_status_code(v):
     """Return HTTP response code as integer, e.g. 204."""
     if hasattr(v, "value"):
         return int(v.value)  # v is a DAVError
-    else:
-        return int(v)
+    return int(v)
 
 
 def get_http_status_string(v):

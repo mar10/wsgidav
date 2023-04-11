@@ -2,6 +2,7 @@
 
 ## 4.2.1 / Unreleased
 - Install pam_dc dependencies using extra syntax: `pip install wsgidav[pam]`
+- #281 Requesting range off end of file does not return 416 status code
 
 ## 4.2.0 / 2023-02-18
 

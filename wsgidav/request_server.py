@@ -1627,15 +1627,15 @@ class RequestServer:
                 if etag is None or if_range != etag:
                     do_ignore_ranges = True
 
-        ispartialranges = False
+        is_partial_ranges = False
         if "HTTP_RANGE" in environ and not do_ignore_ranges:
-            ispartialranges = True
+            is_partial_ranges = True
             list_ranges, _totallength = util.obtain_content_ranges(
                 environ["HTTP_RANGE"], filesize
             )
             if len(list_ranges) == 0:
                 # No valid ranges present
-                self._fail(HTTP_RANGE_NOT_SATISFIABLE)
+                self._fail(HTTP_RANGE_NOT_SATISFIABLE, "No valid ranges present")
 
             # More than one range present -> take only the first range, since
             # multiple range returns require multipart, which is not supported
@@ -1665,19 +1665,17 @@ class RequestServer:
             response_headers.append(("Accept-Ranges", "bytes"))
 
         if "response_headers" in environ["wsgidav.config"]:
-            customHeaders = environ["wsgidav.config"]["response_headers"]
-            for header, value in customHeaders:
+            custom_headers = environ["wsgidav.config"]["response_headers"]
+            for header, value in custom_headers:
                 response_headers.append((header, value))
 
         res.finalize_headers(environ, response_headers)
 
-        if ispartialranges:
-            # response_headers.append(("Content-Ranges", "bytes " + str(range_start) + "-" +
-            #    str(range_end) + "/" + str(range_length)))
+        if is_partial_ranges:
             response_headers.append(
                 (
                     "Content-Range",
-                    "bytes {}-{}/{}".format(range_start, range_end, filesize),
+                    f"bytes {range_start}-{range_end}/{filesize}",
                 )
             )
             start_response("206 Partial Content", response_headers)

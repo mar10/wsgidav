@@ -105,7 +105,7 @@ class ErrorPrinter(BaseMiddleware):
             # If exception has pre-/post-condition: return as XML response,
             # else return as HTML
             content_type, body = e.get_response_page()
-
+            headers = e.add_headers or []
             # TODO: provide exc_info=sys.exc_info()?
             start_response(
                 status,
@@ -113,7 +113,8 @@ class ErrorPrinter(BaseMiddleware):
                     ("Content-Type", content_type),
                     ("Content-Length", str(len(body))),
                     ("Date", util.get_rfc1123_time()),
-                ],
+                ]
+                + headers,
             )
             yield body
             return
