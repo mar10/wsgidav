@@ -31,6 +31,7 @@ from wsgidav.dav_error import (
     HTTP_NOT_MODIFIED,
     HTTP_OK,
     HTTP_PRECONDITION_FAILED,
+    HTTP_RANGE_NOT_SATISFIABLE,
     DAVError,
     as_DAVError,
     get_http_status_string,
@@ -928,7 +929,14 @@ def read_and_discard_input(environ):
             _logger.error("--> wsgi_input.read(): {}".format(sys.exc_info()))
 
 
-def fail(value, context_info=None, *, src_exception=None, err_condition=None):
+def fail(
+    value,
+    context_info=None,
+    *,
+    src_exception=None,
+    err_condition=None,
+    add_headers=None,
+):
     """Wrapper to raise (and log) DAVError."""
     if isinstance(value, Exception):
         e = as_DAVError(value)
@@ -938,6 +946,7 @@ def fail(value, context_info=None, *, src_exception=None, err_condition=None):
             context_info,
             src_exception=src_exception,
             err_condition=err_condition,
+            add_headers=add_headers,
         )
     _logger.debug("Raising DAVError {}".format(e.get_user_info()))
     raise e
@@ -1196,6 +1205,8 @@ def send_status_response(
     headers = []
     if add_headers:
         headers.extend(add_headers)
+    if isinstance(e, DAVError) and e.add_headers:
+        headers.extend(e.add_headers)
     #    if 'keep-alive' in environ.get('HTTP_CONNECTION', '').lower():
     #        headers += [
     #            ('Connection', 'keep-alive'),
@@ -1428,68 +1439,80 @@ def get_file_etag(file_path):
 # Range Specifiers
 reByteRangeSpecifier = re.compile("(([0-9]+)-([0-9]*))")
 reSuffixByteRangeSpecifier = re.compile("(-([0-9]+))")
-# reByteRangeSpecifier = re.compile("(([0-9]+)\-([0-9]*))")
-# reSuffixByteRangeSpecifier = re.compile("(\-([0-9]+))")
 
 
-def obtain_content_ranges(rangetext, filesize):
+def obtain_content_ranges(range_header, filesize):
     """
-    returns tuple (list, value)
+    See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
 
-    list
+    Return tuple (range_list, total_length)
+
+    range_list
         content ranges as values to their parsed components in the tuple
         (seek_position/abs position of first byte, abs position of last byte, num_of_bytes_to_read)
-    value
+    total_length
         total length for Content-Length
     """
-    listReturn = []
-    seqRanges = rangetext.split(",")
-    for subrange in seqRanges:
-        matched = False
-        if not matched:
-            mObj = reByteRangeSpecifier.search(subrange)
-            if mObj:
-                firstpos = int(mObj.group(2))
-                if mObj.group(3) == "":
-                    lastpos = filesize - 1
-                else:
-                    lastpos = int(mObj.group(3))
-                if firstpos <= lastpos and firstpos < filesize:
-                    if lastpos >= filesize:
-                        lastpos = filesize - 1
-                    listReturn.append((firstpos, lastpos))
-                    matched = True
-        if not matched:
-            mObj = reSuffixByteRangeSpecifier.search(subrange)
-            if mObj:
-                firstpos = filesize - int(mObj.group(2))
-                if firstpos < 0:
-                    firstpos = 0
-                lastpos = filesize - 1
-                listReturn.append((firstpos, lastpos))
+    list_ranges = []
+    request_ranges = range_header.split(",")
+    for subrange in request_ranges:
+        is_matched = False
+        if not is_matched:
+            match = reByteRangeSpecifier.search(subrange)
+            if match:
+                range_start = int(match.group(2))
 
-                matched = True
+                if range_start >= filesize:
+                    # TODO: set "Content-Range: bytes */filesize"
+                    fail(
+                        HTTP_RANGE_NOT_SATISFIABLE,
+                        f"Requested range starts behind file size ({range_start} >= {filesize})",
+                        add_headers=[("Content-Range", f"bytes */{filesize}")],
+                    )
+
+                if match.group(3) == "":
+                    # "START-"
+                    range_end = filesize - 1
+                else:
+                    # "START-END"
+                    range_end = int(match.group(3))
+
+                if range_start <= range_end and range_start < filesize:
+                    if range_end >= filesize:
+                        range_end = filesize - 1
+                    list_ranges.append((range_start, range_end))
+                    is_matched = True
+
+        if not is_matched:
+            match = reSuffixByteRangeSpecifier.search(subrange)
+            if match:
+                range_start = filesize - int(match.group(2))
+                if range_start < 0:
+                    range_start = 0
+                range_end = filesize - 1
+                list_ranges.append((range_start, range_end))
+                is_matched = True
 
     # consolidate ranges
-    listReturn.sort()
-    listReturn2 = []
-    totallength = 0
-    while len(listReturn) > 0:
-        (rfirstpos, rlastpos) = listReturn.pop()
-        counter = len(listReturn)
+    list_ranges.sort()
+    list_ranges_2 = []
+    total_length = 0
+    while len(list_ranges) > 0:
+        (rfirstpos, rlastpos) = list_ranges.pop()
+        counter = len(list_ranges)
         while counter > 0:
-            (nfirstpos, nlastpos) = listReturn[counter - 1]
+            (nfirstpos, nlastpos) = list_ranges[counter - 1]
             if nlastpos < rfirstpos - 1 or nfirstpos > nlastpos + 1:
                 pass
             else:
                 rfirstpos = min(rfirstpos, nfirstpos)
                 rlastpos = max(rlastpos, nlastpos)
-                del listReturn[counter - 1]
+                del list_ranges[counter - 1]
             counter = counter - 1
-        listReturn2.append((rfirstpos, rlastpos, rlastpos - rfirstpos + 1))
-        totallength = totallength + rlastpos - rfirstpos + 1
+        list_ranges_2.append((rfirstpos, rlastpos, rlastpos - rfirstpos + 1))
+        total_length = total_length + rlastpos - rfirstpos + 1
 
-    return (listReturn2, totallength)
+    return (list_ranges_2, total_length)
 
 
 # ========================================================================
@@ -1525,7 +1548,7 @@ def read_timeout_value_header(timeoutvalue):
 # ========================================================================
 
 
-def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
+def evaluate_http_conditionals(dav_res, last_modified, entity_tag, environ):
     """Handle 'If-...:' headers (but not 'If:' header).
 
     If-Match
@@ -1563,7 +1586,7 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
         token_list = parse_if_match_header(environ["HTTP_IF_MATCH"])
         match = False
         for token in token_list:
-            if token == entitytag or token == "*":
+            if token == entity_tag or token == "*":
                 match = True
                 break
         if not match:
@@ -1585,7 +1608,7 @@ def evaluate_http_conditionals(dav_res, last_modified, entitytag, environ):
     if "HTTP_IF_NONE_MATCH" in environ and dav_res.support_etag():
         token_list = parse_if_match_header(environ["HTTP_IF_NONE_MATCH"])
         for token in token_list:
-            if token == entitytag or token == "*":
+            if token == entity_tag or token == "*":
                 # ETag matched. If it's a GET request and we don't have an
                 # conflicting If-Modified header, we return NOT_MODIFIED
                 if (
@@ -1672,15 +1695,15 @@ def parse_if_header_dict(environ):
     return
 
 
-def test_if_header_dict(dav_res, dictIf, fullurl, locktokenlist, entitytag):
+def test_if_header_dict(dav_res, if_dict, fullurl, locktoken_list, entity_tag):
     _logger.debug(
-        "test_if_header_dict({}, {}, {})".format(fullurl, locktokenlist, entitytag)
+        "test_if_header_dict({}, {}, {})".format(fullurl, locktoken_list, entity_tag)
     )
 
-    if fullurl in dictIf:
-        listTest = dictIf[fullurl]
-    elif "*" in dictIf:
-        listTest = dictIf["*"]
+    if fullurl in if_dict:
+        listTest = if_dict[fullurl]
+    elif "*" in if_dict:
+        listTest = if_dict["*"]
     else:
         return True
 
@@ -1691,11 +1714,11 @@ def test_if_header_dict(dav_res, dictIf, fullurl, locktokenlist, entitytag):
 
         for (testflag, checkstyle, checkvalue) in listTestConds:
             if checkstyle == "entity" and supportEntityTag:
-                testresult = entitytag == checkvalue
+                testresult = entity_tag == checkvalue
             elif checkstyle == "entity":
                 testresult = testflag
             elif checkstyle == "locktoken":
-                testresult = checkvalue in locktokenlist
+                testresult = checkvalue in locktoken_list
             else:  # unknown
                 testresult = True
             checkresult = testresult == testflag
