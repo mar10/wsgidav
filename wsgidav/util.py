@@ -366,11 +366,13 @@ def init_logging(config):
     The base logger is filtered by the `verbose` configuration option.
     Log entries will have a time stamp and thread id.
 
+    **Note:** init_logging() is automatically calle if an application adds
+    ``"logging": { "enable": true }`` to the configuration.
 
     Module loggers
     ~~~~~~~~~~~~~~
-    Module loggers (e.g 'wsgidav.lock_man.lock_manager') are named loggers, that can be
-    independently switched to DEBUG mode.
+    Module loggers (e.g 'wsgidav.lock_man.lock_manager') are named loggers, that
+    can be independently switched to DEBUG mode.
 
     Except for verbosity, they will inherit settings from the base logger.
 

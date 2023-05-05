@@ -140,6 +140,9 @@ class WsgiDAVApp:
         util.deep_update(self.config, config)
         config = self.config
 
+        if config["logging"].get("enable") is not False:
+            util.init_logging(config)
+
         expand = {"${application}": self}
 
         # Evaluate configuration and set defaults

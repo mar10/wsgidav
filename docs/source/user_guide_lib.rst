@@ -58,7 +58,12 @@ Here we keep most of the default options and use the
       "wsgi_app": app,
   }
   server = wsgi.Server(**server_args)
-  server.start()
+try:
+    server.start()
+except KeyboardInterrupt:
+    print("Received Ctrl-C: stopping...")
+finally:    
+    server.stop()
 
 Options are passed as Python dict, see the :doc:`user_guide_configure` for
 details.
@@ -114,17 +119,21 @@ propagate to the root logger, so it is *silent*.
 
 This logger can be enabled like so::
 
-    import logging
-
-    # Logging should be initialized some way, e.g.:
-    # logging.basicConfig(level=logging.DEBUG)
-
-    logger = logging.getLogger("wsgidav")
-    logger.propagate = True
-    logger.setLevel(logging.DEBUG)
-
+    config = {
+        ...
+        logging: {
+            "enable": True,
+        }
+    }
+    app = WsgiDAVApp(config)
+    ...
 
 .. note::
 
-    The CLI calls :func:`util.init_logging` on startup, so it logs to stdout as configured
-    by the ``verbose`` and ``logging.enable_loggers`` options.
+    Prior to v4.3.0 an application had to call 
+    ``wsgidav.util.init_logging(config)`` explicitly.
+
+.. note::
+
+    The CLI calls :func:`util.init_logging` on startup, so it logs to stdout as 
+    configured by the ``verbose`` and ``logging.enable_loggers`` options.

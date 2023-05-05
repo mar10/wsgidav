@@ -1,6 +1,10 @@
 # Changelog
 
-## 4.2.1 / Unreleased
+## 4.3.0 / Unreleased
+
+- Add `logging.enable` option to activate the 'wsgidav' logger when this package
+  is used as a library. This replaces an explicit call to `utils.init_logging()`.
+  When running as CLI, this option is on by default.
 
 ## 4.2.0 / 2023-02-18
 

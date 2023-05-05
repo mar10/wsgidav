@@ -44,8 +44,6 @@ class ServerTest(unittest.TestCase):
     def _makeWsgiDAVApp(self, share_path, with_authentication):
         provider = FilesystemProvider(share_path)
 
-        # config = DEFAULT_CONFIG.copy()
-        # config.update({
         config = {
             "provider_mapping": {"/": provider},
             # None: dc.simple_dc.SimpleDomainController(user_mapping)

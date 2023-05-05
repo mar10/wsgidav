@@ -100,8 +100,6 @@ class WsgiDAVServerThread(Thread):
             os.mkdir(self.rootpath)
         provider = FilesystemProvider(self.rootpath)
 
-        # config = DEFAULT_CONFIG.copy()
-        # config.update({
         config = {
             "provider_mapping": {"/": provider},
             "host": SERVER_HOST,

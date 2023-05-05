@@ -78,6 +78,7 @@ DEFAULT_CONFIG = {
     "verbose": DEFAULT_VERBOSE,
     #: Log options
     "logging": {
+        "enable": None,  # True: activate 'wsgidav' logger (in library mode)
         "logger_date_format": DEFAULT_LOGGER_DATE_FORMAT,
         "logger_format": DEFAULT_LOGGER_FORMAT,
         "enable_loggers": [],

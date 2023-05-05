@@ -30,31 +30,30 @@ logger = logging.getLogger("wsgidav")
 # test_logger(_logger, "1w")
 # test_logger(_logger2, "2w")
 
-import sys
 from cheroot import wsgi
 
-from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
+from wsgidav.wsgidav_app import WsgiDAVApp
 from wsgidav.fs_dav_provider import FilesystemProvider
 
 provider = FilesystemProvider("/Users/martin/pub")
-config = DEFAULT_CONFIG.copy()
-config.update({
+config = {
     "host": "0.0.0.0",
     "port": 8080,
     # "mount_path": "/dav",
     "provider_mapping": {"/": provider},
     "verbose": 3,
-    })
+}
 
 app = WsgiDAVApp(config)
 
 server_args = {
     "bind_addr": (config["host"], config["port"]),
     "wsgi_app": app,
-    }
+}
 server = wsgi.Server(**server_args)
 try:
     server.start()
 except KeyboardInterrupt:
-    print("END?")
-    sys.exit(1)
+    print("Received Ctrl-C, stopping...")
+finally:
+    server.stop()

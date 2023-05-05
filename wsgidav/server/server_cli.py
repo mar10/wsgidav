@@ -507,38 +507,6 @@ def _run_ext_wsgiutils(app, config, _server):
     return
 
 
-# def _run_flup(app, config, server):
-#     """Run WsgiDAV using flup.server.fcgi (http://trac.saddi.com/flup/wiki/FlupServers)."""
-#     try:
-#         if server == "flup-fcgi":
-#             from flup.server.fcgi import WSGIServer
-#             from flup.server.fcgi import __version__ as flupver
-#         elif server == "flup-fcgi-fork":
-#             from flup.server.fcgi_fork import WSGIServer
-#             from flup.server.fcgi_fork import __version__ as flupver
-#         else:
-#             raise ValueError
-#     except ImportError:
-#         _logger.exception(f"Could not import {server} (https://gunicorn.org).")
-#         _logger.error("Try `pip install flup`.")
-#         return False
-
-#     version = f"{WSGIServer.__module__}/{flupver}"
-#     version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"
-#     _logger.info(f"Running {version} ...")
-
-#     server = WSGIServer(
-#         app,
-#         bindAddress=(config["host"], config["port"]),
-#         # debug=True,
-#     )
-#     try:
-#         server.run()
-#     except KeyboardInterrupt:
-#         _logger.warning("Caught Ctrl-C, shutting down...")
-#     return
-
-
 def _run_gevent(app, config, server):
     """Run WsgiDAV using gevent if gevent (https://www.gevent.org).
 
@@ -781,10 +749,7 @@ def _run_wsgiref(app, config, _server):
 
 SUPPORTED_SERVERS = {
     "cheroot": _run_cheroot,
-    # "cherrypy": _run__cherrypy,
     "ext-wsgiutils": _run_ext_wsgiutils,
-    # "flup-fcgi_fork": _run_flup,
-    # "flup-fcgi": _run_flup,
     "gevent": _run_gevent,
     "gunicorn": _run_gunicorn,
     "paste": _run_paste,
@@ -796,7 +761,8 @@ SUPPORTED_SERVERS = {
 def run():
     cli_opts, config = _init_config()
 
-    util.init_logging(config)
+    # util.init_logging(config) # now handled in constructor:
+    config["logging"]["enable"] = True
 
     info = _get_common_info(config)
 

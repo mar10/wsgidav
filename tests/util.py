@@ -92,8 +92,6 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     if provider is None:
         provider = FilesystemProvider(share_path)
 
-    # config = DEFAULT_CONFIG.copy()
-    # config.update({
     config = {
         "host": "127.0.0.1",
         "port": 8080,
