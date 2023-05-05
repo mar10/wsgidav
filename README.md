@@ -34,9 +34,11 @@ Main features:
     ```
     Run `wsgidav --help` for a list of available options.<br>
 
-  - python-pam is needed if using pam-login on Linux or OSX:
+  - The [python-pam](https://github.com/FirefighterBlu3/python-pam) library is 
+    needed as extra requirement if pam-login authentication is used on Linux 
+    or OSX:
     ```
-    $ pip install python-pam
+    $ pip install wsgidav[pam]
     $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=pam-login
     ```
 

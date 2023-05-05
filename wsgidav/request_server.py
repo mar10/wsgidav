@@ -233,7 +233,7 @@ class RequestServer:
         if res is None:
             return
 
-        ifDict = environ["wsgidav.conditions.if"]
+        if_dict = environ["wsgidav.conditions.if"]
 
         # Raise HTTP_PRECONDITION_FAILED or HTTP_NOT_MODIFIED, if standard
         # HTTP condition fails
@@ -241,9 +241,9 @@ class RequestServer:
         if res.get_last_modified() is not None:
             last_modified = int(res.get_last_modified())
 
-        entitytag = checked_etag(res.get_etag(), allow_none=True)
-        if entitytag is None:
-            entitytag = "[]"  # Non-valid entity tag
+        etag = checked_etag(res.get_etag(), allow_none=True)
+        if etag is None:
+            etag = "[]"  # Non-valid entity tag
 
         if (
             "HTTP_IF_MODIFIED_SINCE" in environ
@@ -251,7 +251,7 @@ class RequestServer:
             or "HTTP_IF_MATCH" in environ
             or "HTTP_IF_NONE_MATCH" in environ
         ):
-            util.evaluate_http_conditionals(res, last_modified, entitytag, environ)
+            util.evaluate_http_conditionals(res, last_modified, etag, environ)
 
         if "HTTP_IF" not in environ:
             return
@@ -263,15 +263,15 @@ class RequestServer:
 
         ref_url = res.get_ref_url()
         lock_man = self._davProvider.lock_manager
-        locktokenlist = []
+        locktoken_list = []
         if lock_man:
             lockList = lock_man.get_indirect_url_lock_list(
                 ref_url, principal=environ["wsgidav.user_name"]
             )
             for lock in lockList:
-                locktokenlist.append(lock["token"])
+                locktoken_list.append(lock["token"])
 
-        if not util.test_if_header_dict(res, ifDict, ref_url, locktokenlist, entitytag):
+        if not util.test_if_header_dict(res, if_dict, ref_url, locktoken_list, etag):
             self._fail(HTTP_PRECONDITION_FAILED, "'If' header condition failed.")
 
         return
@@ -790,22 +790,28 @@ class RequestServer:
 
         # Start Content Processing
         # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.)
-        #        WORKAROUND_BAD_LENGTH = True
         try:
             content_length = max(-1, int(environ.get("CONTENT_LENGTH", -1)))
         except ValueError:
             content_length = -1
 
-        #        if content_length < 0 and not WORKAROUND_BAD_LENGTH:
         if (content_length < 0) and (
             environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked"
         ):
             # HOTFIX: not fully understood, but MS sends PUT without content-length,
             # when creating new files
-            agent = environ.get("HTTP_USER_AGENT", "")
-            if "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent:  # issue #10
+
+            config = environ["wsgidav.config"]
+            hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
+            accept_put_without_content_length = hotfixes.get(
+                "accept_put_without_content_length", True
+            )
+
+            # if ( "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent):
+            if accept_put_without_content_length:  # issue #10, #282
+                agent = environ.get("HTTP_USER_AGENT", "")
                 _logger.warning(
-                    "Setting misssing Content-Length to 0 for MS / gvfs client"
+                    f"Set misssing Content-Length to 0 for PUT, agent={agent!r}"
                 )
                 content_length = 0
             else:
@@ -850,9 +856,9 @@ class RequestServer:
 
         headers = None
         if res.support_etag():
-            entitytag = checked_etag(res.get_etag(), allow_none=True)
-            if entitytag is not None:
-                headers = [("ETag", '"{}"'.format(entitytag))]
+            etag = checked_etag(res.get_etag(), allow_none=True)
+            if etag is not None:
+                headers = [("ETag", '"{}"'.format(etag))]
 
         if isnewfile:
             return util.send_status_response(
@@ -1599,12 +1605,12 @@ class RequestServer:
         if last_modified is None:
             last_modified = -1
 
-        entitytag = checked_etag(res.get_etag(), allow_none=True)
-        if entitytag is None:
-            entitytag = "[]"
+        etag = checked_etag(res.get_etag(), allow_none=True)
+        if etag is None:
+            etag = "[]"
 
         # Ranges
-        doignoreranges = (
+        do_ignore_ranges = (
             not res.support_content_length()
             or not res.support_ranges()
             or filesize == 0
@@ -1612,30 +1618,30 @@ class RequestServer:
         if (
             "HTTP_RANGE" in environ
             and "HTTP_IF_RANGE" in environ
-            and not doignoreranges
+            and not do_ignore_ranges
         ):
-            ifrange = environ["HTTP_IF_RANGE"]
+            if_range = environ["HTTP_IF_RANGE"]
             # Try as http-date first (Return None, if invalid date string)
-            secstime = util.parse_time_string(ifrange)
+            secstime = util.parse_time_string(if_range)
             if secstime:
                 # cast to integer, as last_modified may be a floating point number
                 if int(last_modified) != secstime:
-                    doignoreranges = True
+                    do_ignore_ranges = True
             else:
                 # Use as entity tag
-                ifrange = ifrange.strip('" ')
-                if entitytag is None or ifrange != entitytag:
-                    doignoreranges = True
+                if_range = if_range.strip('" ')
+                if etag is None or if_range != etag:
+                    do_ignore_ranges = True
 
-        ispartialranges = False
-        if "HTTP_RANGE" in environ and not doignoreranges:
-            ispartialranges = True
+        is_partial_ranges = False
+        if "HTTP_RANGE" in environ and not do_ignore_ranges:
+            is_partial_ranges = True
             list_ranges, _totallength = util.obtain_content_ranges(
                 environ["HTTP_RANGE"], filesize
             )
             if len(list_ranges) == 0:
                 # No valid ranges present
-                self._fail(HTTP_RANGE_NOT_SATISFIABLE)
+                self._fail(HTTP_RANGE_NOT_SATISFIABLE, "No valid ranges present")
 
             # More than one range present -> take only the first range, since
             # multiple range returns require multipart, which is not supported
@@ -1659,25 +1665,23 @@ class RequestServer:
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
-            response_headers.append(("ETag", '"{}"'.format(entitytag)))
+            response_headers.append(("ETag", '"{}"'.format(etag)))
 
         if res.support_ranges():
             response_headers.append(("Accept-Ranges", "bytes"))
 
         if "response_headers" in environ["wsgidav.config"]:
-            customHeaders = environ["wsgidav.config"]["response_headers"]
-            for header, value in customHeaders:
+            custom_headers = environ["wsgidav.config"]["response_headers"]
+            for header, value in custom_headers:
                 response_headers.append((header, value))
 
         res.finalize_headers(environ, response_headers)
 
-        if ispartialranges:
-            # response_headers.append(("Content-Ranges", "bytes " + str(range_start) + "-" +
-            #    str(range_end) + "/" + str(range_length)))
+        if is_partial_ranges:
             response_headers.append(
                 (
                     "Content-Range",
-                    "bytes {}-{}/{}".format(range_start, range_end, filesize),
+                    f"bytes {range_start}-{range_end}/{filesize}",
                 )
             )
             start_response("206 Partial Content", response_headers)
@@ -1691,7 +1695,7 @@ class RequestServer:
 
         fileobj = res.get_content()
 
-        if not doignoreranges:
+        if not do_ignore_ranges:
             fileobj.seek(range_start)
 
         contentlengthremaining = range_length
