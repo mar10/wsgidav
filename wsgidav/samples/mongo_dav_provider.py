@@ -46,7 +46,7 @@ class ConnectionCollection(DAVCollection):
     """Root collection, lists all mongo databases."""
 
     def __init__(self, path, environ):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.conn = self.provider.conn
 
     def get_member_names(self):
@@ -60,7 +60,7 @@ class DbCollection(DAVCollection):
     """Mongo database, contains mongo collections."""
 
     def __init__(self, path, environ):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.conn = self.provider.conn
         self.db = self.conn[self.name]
 
@@ -79,7 +79,7 @@ class CollCollection(DAVCollection):
     """Mongo collections, contains mongo documents."""
 
     def __init__(self, path, environ, coll):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.conn = self.provider.conn
         self.coll = coll
 
@@ -101,7 +101,7 @@ class DocResource(DAVNonCollection):
     """Mongo document, returned as virtual text resource."""
 
     def __init__(self, path, environ, doc):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.doc = doc
 
     def get_content(self):

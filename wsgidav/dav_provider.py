@@ -1226,7 +1226,7 @@ class DAVNonCollection(_DAVResource):
     """
 
     def __init__(self, path: str, environ: dict):
-        super().__init__(self, path, False, environ)
+        super().__init__(path, False, environ)
 
     @abstractmethod
     def get_content_length(self):
@@ -1328,7 +1328,7 @@ class DAVCollection(_DAVResource):
     """
 
     def __init__(self, path, environ):
-        super().__init__(self, path, True, environ)
+        super().__init__(path, True, environ)
 
         # Allow caching of members
 

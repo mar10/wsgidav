@@ -191,7 +191,7 @@ class RootCollection(DAVCollection):
     _validMemberNames = _visibleMemberNames + ("by_key",)
 
     def __init__(self, environ):
-        super().__init__(self, "/", environ)
+        super().__init__("/", environ)
 
     def get_member_names(self):
         return self._visibleMemberNames
@@ -207,7 +207,7 @@ class CategoryTypeCollection(DAVCollection):
     """Resolve '/catType' URLs, for example '/by_tag'."""
 
     def __init__(self, path, environ):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
 
     def get_display_info(self):
         return {"type": "Category type"}
@@ -243,7 +243,7 @@ class CategoryCollection(DAVCollection):
     """Resolve '/catType/cat' URLs, for example '/by_tag/cool'."""
 
     def __init__(self, path, environ, catType):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.catType = catType
 
     def get_display_info(self):
@@ -285,7 +285,7 @@ class VirtualResource(DAVCollection):
     ]
 
     def __init__(self, path, environ, data):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.data = data
 
     def get_display_info(self):
@@ -419,7 +419,7 @@ class _VirtualNonCollection(DAVNonCollection):
     """Abstract base class for all non-collection resources."""
 
     def __init__(self, path, environ):
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
 
     def get_content_length(self):
         return None
@@ -462,7 +462,7 @@ class VirtualArtifact(_VirtualNonCollection):
 
     def __init__(self, path, environ, data):
         #        assert name in _artifactNames
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.data = data
 
     def get_content_length(self):
@@ -550,7 +550,7 @@ class VirtualResFile(_VirtualNonCollection):
     def __init__(self, path, environ, data, file_path):
         if not os.path.exists(file_path):
             _logger.error("VirtualResFile(%r) does not exist." % file_path)
-        super().__init__(self, path, environ)
+        super().__init__(path, environ)
         self.data = data
         self.file_path = file_path
 
