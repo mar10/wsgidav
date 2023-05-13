@@ -227,6 +227,9 @@ class FolderResource(DAVCollection):
             assert util.is_str(name)
             # Skip non files (links and mount points)
             fp = os.path.join(self._file_path, name)
+            if os.path.islink(fp):
+                _logger.debug(f"Skipping symlink {fp!r}")
+                continue
             if not os.path.isdir(fp) and not os.path.isfile(fp):
                 _logger.debug("Skipping non-file {!r}".format(fp))
                 continue
@@ -244,13 +247,15 @@ class FolderResource(DAVCollection):
         fp = os.path.join(self._file_path, util.to_str(name))
         # name = name.encode("utf8")
         path = util.join_uri(self.path, name)
-        if os.path.isdir(fp):
+        res = None
+        if os.path.islink(fp):
+            _logger.debug(f"Skipping symlink {path}")
+        elif os.path.isdir(fp):
             res = FolderResource(path, self.environ, fp)
         elif os.path.isfile(fp):
             res = FileResource(path, self.environ, fp)
         else:
-            _logger.debug("Skipping non-file {}".format(path))
-            res = None
+            _logger.debug(f"Skipping non-file {path}")
         return res
 
     # --- Read / write -------------------------------------------------------
@@ -366,7 +371,7 @@ class FilesystemProvider(DAVProvider):
         # root_folder = os.path.expandvars(os.xpath.expanduser(root_folder))
         root_folder = os.path.abspath(root_folder)
         if not root_folder or not os.path.exists(root_folder):
-            raise ValueError("Invalid root path: {}".format(root_folder))
+            raise ValueError(f"Invalid root path: {root_folder}")
 
         super().__init__()
 
@@ -422,9 +427,7 @@ class FilesystemProvider(DAVProvider):
         is_shadow, file_path = self._resolve_shadow_path(path, environ, file_path)
         if not file_path.startswith(root_path) and not is_shadow:
             raise RuntimeError(
-                "Security exception: tried to access file outside root: {}".format(
-                    file_path
-                )
+                f"Security exception: tried to access file outside root: {file_path}"
             )
 
         # Convert to unicode

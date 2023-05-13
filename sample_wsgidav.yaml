@@ -145,6 +145,9 @@ provider_mapping:
     #             '/favicon.ico': 'file_path/to/favicon.ico'
 
 
+fs_provider:
+    follow_symlinks: true
+
 # ==============================================================================
 # AUTHENTICATION
 http_authenticator:
