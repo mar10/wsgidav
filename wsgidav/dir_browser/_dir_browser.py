@@ -204,11 +204,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
         rows = context["rows"]
 
         # Ask collection for member info list
-        dirInfoList = dav_res.get_directory_info()
+        dir_info_list = dav_res.get_directory_info()
 
-        if dirInfoList is None:
+        if dir_info_list is None:
             # No pre-build info: traverse members
-            dirInfoList = []
+            dir_info_list = []
             childList = dav_res.get_descendants(depth="1", add_self=False)
             for res in childList:
                 di = res.get_display_info()
@@ -261,14 +261,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     "display_type_comment": di.get("typeComment"),
                 }
 
-                dirInfoList.append(entry)
+                dir_info_list.append(entry)
         #
         ignore_patterns = self.dir_config.get("ignore", [])
         if util.is_basestring(ignore_patterns):
             ignore_patterns = ignore_patterns.split(",")
 
         ignored_list = []
-        for entry in dirInfoList:
+        for entry in dir_info_list:
             # Skip ignore patterns
             ignore = False
             for pat in ignore_patterns:

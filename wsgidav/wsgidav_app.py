@@ -333,7 +333,7 @@ class WsgiDAVApp:
 
         if type(provider) is str:
             # Syntax:
-            #   <>: <folder_path>
+            #   <share_path>: <folder_path>
             # We allow a simple string as 'provider'. In this case we interpret
             # it as a file system root folder that is published.
             provider = util.fix_path(provider, self.config)
@@ -342,7 +342,7 @@ class WsgiDAVApp:
         elif type(provider) in (dict,):
             if "class" in provider:
                 # Syntax:
-                #   <>: {"class": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
+                #   <share_path>: {"class": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
                 expand = {"${application}": self}
                 provider = dynamic_instantiate_class_from_opts(provider, expand=expand)
             elif "root" in provider:
