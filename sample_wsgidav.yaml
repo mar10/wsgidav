@@ -120,7 +120,9 @@ mount_path: null
 #:     <share_path>: <folder_path>
 #: or
 #:     <share_path>: { 'root': <folder_path>, 'readonly': <bool> }
+#:
 #: or instantiate an arbitrary custom class:
+#:
 #:     <share_path>: { 'class': <class_path>, args: [<arg>, ...], kwargs: {<arg>: <val>, ...} }
 
 provider_mapping:
@@ -130,22 +132,22 @@ provider_mapping:
         readonly: true
     '/share3':
         class: path.to.CustomDAVProviderClass
+        args:
+            - foo
+            - 42
         kwargs:
             path: '/path/to/share3'
             another_arg: 42
-    # Example: 
-    #     make sure that a `/favicon.ico` URL is resolved, even if a `*.html`
-    #     or `*.txt` resource file was opened using the DirBrowser
-    # '/':
-    #     class: 'wsgidav.fs_dav_provider.FilesystemProvider'
-    #     kwargs:
-    #         root_folder: 'tests/fixtures/share'
-    #         # readonly: true
-    #         shadow:
-    #             '/favicon.ico': 'file_path/to/favicon.ico'
 
-
-fs_provider:
+#: Addional configuration passed to `FilesystemProvider(..., fs_opts)`
+fs_dav_provider:
+    #: Mapping from request URL to physical file location, e.g.
+    #: make sure that a `/favicon.ico` URL is resolved, even if a `*.html`
+    #: or `*.txt` resource file was opened using the DirBrowser
+    # shadow_map:
+    #     '/favicon.ico': 'file_path/to/favicon.ico'
+    
+    #: Serve symbolic link files and folders
     follow_symlinks: true
 
 # ==============================================================================

@@ -35,6 +35,10 @@ DEFAULT_CONFIG = {
     "port": 8080,
     "mount_path": None,  # Application root, e.g. <mount_path>/<share_name>/<res_path>
     "provider_mapping": {},
+    "fs_dav_provider": {
+        "shadow_map": {},
+        "follow_symlinks": False,
+    },
     "add_header_MS_Author_Via": True,
     "hotfixes": {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime

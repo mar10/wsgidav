@@ -69,8 +69,8 @@ All DAV providers must implement a common interface. This is usually done by
 deriving from the abstract base class :class:`~wsgidav.dav_provider.DAVProvider`.
 
 WsgiDAV comes with a DAV provider for file systems, called
-:class:`~wsgidav.fs_dav_provider.FilesystemProvider`. That is why WsgiDAV is a WebDAV file
-server out-of-the-box.
+:class:`~wsgidav.fs_dav_provider.FilesystemProvider`. That is why WsgiDAV is a 
+WebDAV file server out-of-the-box.
 
 There are also a few other modules that may serve as examples on how to plug-in
 your own custom DAV providers (see also :doc:`user_guide_custom_providers`).

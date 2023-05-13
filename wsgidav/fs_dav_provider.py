@@ -228,6 +228,7 @@ class FolderResource(DAVCollection):
             # Skip non files (links and mount points)
             fp = os.path.join(self._file_path, name)
             if os.path.islink(fp):
+                assert os.path.isfile(fp) or os.path.isdir(fp)
                 _logger.debug(f"Skipping symlink {fp!r}")
                 continue
             if not os.path.isdir(fp) and not os.path.isfile(fp):
@@ -366,9 +367,18 @@ class FolderResource(DAVCollection):
 # FilesystemProvider
 # ========================================================================
 class FilesystemProvider(DAVProvider):
-    def __init__(self, root_folder, *, readonly=False, shadow=None):
-        # and resolve relative to config file
-        # root_folder = os.path.expandvars(os.xpath.expanduser(root_folder))
+    """Default implementation of a filessystem DAVProvider.
+
+    Args:
+        root_folder (str)
+        readonly (bool)
+        fs_opts (dict | None): defaults to `config.fs_dav_provider`
+        shadow (dict):  @deprecated (Use option `fs_provider.shadow_map` instead)
+    """
+
+    def __init__(self, root_folder, *, readonly=False, fs_opts=None):
+        # root_folder is typically already resolved relative to config file
+        # and has user ~ expanded
         root_folder = os.path.abspath(root_folder)
         if not root_folder or not os.path.exists(root_folder):
             raise ValueError(f"Invalid root path: {root_folder}")
@@ -377,22 +387,22 @@ class FilesystemProvider(DAVProvider):
 
         self.root_folder_path = root_folder
         self.readonly = readonly
-        if shadow:
-            self.shadow = {k.lower(): v for k, v in shadow.items()}
-        else:
-            self.shadow = {}
+        if fs_opts is None:
+            _logger.warning(f"{self}: no `fs_opts` parameter passed to constructor.")
+            fs_opts = {}
+        self.fs_opts = fs_opts
+        # Get shadow map and convert keys to lower case
+        self.shadow_map = self.fs_opts.get("shadow_map") or {}
+        if self.shadow_map:
+            self.shadow_map = {k.lower(): v for k, v in self.shadow_map.items()}
 
     def __repr__(self):
-        rw = "Read-Write"
-        if self.readonly:
-            rw = "Read-Only"
-        return "{} for path {!r} ({})".format(
-            self.__class__.__name__, self.root_folder_path, rw
-        )
+        rw = "Read-Only" if self.readonly else "Read-Write"
+        return f"{self.__class__.__name__} for path {self.root_folder_path!r} ({rw})"
 
     def _resolve_shadow_path(self, path, environ, file_path):
         """File not found: See if there is a shadow configured."""
-        shadow = self.shadow.get(path.lower())
+        shadow = self.shadow_map.get(path.lower())
         # _logger.info(f"Shadow {path} -> {shadow} {self.shadow}")
         if not shadow:
             return False, file_path
@@ -424,7 +434,10 @@ class FilesystemProvider(DAVProvider):
 
         path_parts = path.strip("/").split("/")
         file_path = os.path.abspath(os.path.join(root_path, *path_parts))
+
+        # Try alternative URL if not found (or even override target):
         is_shadow, file_path = self._resolve_shadow_path(path, environ, file_path)
+
         if not file_path.startswith(root_path) and not is_shadow:
             raise RuntimeError(
                 f"Security exception: tried to access file outside root: {file_path}"
@@ -444,9 +457,12 @@ class FilesystemProvider(DAVProvider):
         """
         self._count_get_resource_inst += 1
         fp = self._loc_to_file_path(path, environ)
+        print(f"resolve {path} => {fp}")
         if not os.path.exists(fp):
             return None
-
+        if not self.fs_opts.get("follow_symlinks") and os.path.islink(fp):
+            _logger.info(f"Skipping symlink {fp!r}")
+            return None
         if os.path.isdir(fp):
             return FolderResource(path, environ, fp)
         return FileResource(path, environ, fp)

@@ -5,9 +5,7 @@
 """
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 """
-from tempfile import gettempdir
-
-from wsgidav import __version__
+from wsgidav import __version__, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 
@@ -15,10 +13,12 @@ __docformat__ = "reStructuredText"
 
 
 def main():
-    root_path = gettempdir()
-    provider = FilesystemProvider(root_path)
+    root_path = "."
+    provider = FilesystemProvider(root_path, readonly=False, fs_opts={})
 
     config = {
+        "host": "127.0.0.1",
+        "port": 8080,
         "provider_mapping": {"/": provider},
         "http_authenticator": {
             "domain_controller": None  # None: dc.simple_dc.SimpleDomainController(user_mapping)
@@ -33,13 +33,19 @@ def main():
     }
     app = WsgiDAVApp(config)
 
-    # For an example, use CherryPy
-    from cherrypy.wsgiserver import CherryPyWSGIServer
+    # For an example, use cheroot:
 
-    server = CherryPyWSGIServer(
+    from cheroot import wsgi
+
+    version = (
+        f"WsgiDAV/{__version__} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
+    )
+
+    server = wsgi.Server(
         bind_addr=(config["host"], config["port"]),
         wsgi_app=app,
-        server_name="WsgiDAV/{} {}".format(__version__, CherryPyWSGIServer.version),
+        server_name=version,
+        # "numthreads": 50,
     )
 
     try:
@@ -48,17 +54,6 @@ def main():
         print("Caught Ctrl-C, shutting down...")
     finally:
         server.stop()
-
-    # For an example, use paste.httpserver
-    # (See http://pythonpaste.org/modules/httpserver.html for more options)
-
-
-#    from paste import httpserver
-#    httpserver.serve(app,
-#                     host="localhost",
-#                     port=8080,
-#                     server_version="WsgiDAV/{}".format(__version__),
-#                     )
 
 
 if __name__ == "__main__":

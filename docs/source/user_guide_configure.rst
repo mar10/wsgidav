@@ -29,7 +29,7 @@ When a Python dict is passed to the :class:`~wsgidav.wsgidav_app.WsgiDAVApp`
 constructor, its values will override the defaults from above::
 
     root_path = gettempdir()
-    provider = FilesystemProvider(root_path)
+    provider = FilesystemProvider(root_path, readonly=False, fs_opts={})
 
     config = {
         "host": "0.0.0.0",

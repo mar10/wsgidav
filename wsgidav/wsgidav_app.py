@@ -331,15 +331,17 @@ class WsgiDAVApp:
         share = "/" + share.strip("/")
         assert share not in self.provider_map
 
+        fs_opts = self.config.get("fs_dav_provider") or {}
+
         if type(provider) is str:
             # Syntax:
             #   <share_path>: <folder_path>
             # We allow a simple string as 'provider'. In this case we interpret
             # it as a file system root folder that is published.
             provider = util.fix_path(provider, self.config)
-            provider = FilesystemProvider(provider, readonly=readonly)
+            provider = FilesystemProvider(provider, readonly=readonly, fs_opts=fs_opts)
 
-        elif type(provider) in (dict,):
+        elif type(provider) is dict:
             if "class" in provider:
                 # Syntax:
                 #   <share_path>: {"class": <class_path>, "args": <pos_args>, "kwargs": <named_args>}
@@ -351,19 +353,22 @@ class WsgiDAVApp:
                 provider = FilesystemProvider(
                     util.fix_path(provider["root"], self.config),
                     readonly=bool(provider.get("readonly", False)),
+                    fs_opts=fs_opts,
                 )
             else:
                 raise ValueError(
                     f"Provider expected {{'class': ...}}` or {{'root': ...}}: {provider}"
                 )
+
         elif type(provider) in (list, tuple):
             raise ValueError(
                 f"Provider {provider}: tuple/list syntax is no longer supported"
             )
-            # provider = FilesystemProvider(provider[0], provider[1])
 
         if not isinstance(provider, DAVProvider):
-            raise ValueError(f"Invalid provider {provider}")
+            raise ValueError(
+                f"Invalid provider {provider} (not instance of DAVProvider)"
+            )
 
         provider.set_share_path(share)
         if self.mount_path:
@@ -442,26 +447,12 @@ class WsgiDAVApp:
 
         # Find DAV provider that matches the share
         share, provider = self.resolve_provider(path)
-        # share = None
-        # lower_path = path.lower()
-        # for r in self.sorted_share_list:
-        #     # @@: Case sensitivity should be an option of some sort here;
-        #     # os.path.normpath might give the preferred case for a filename.
-        #     if r == "/":
-        #         share = r
-        #         break
-        #     elif lower_path == r or lower_path.startswith(r + "/"):
-        #         share = r
-        #         break
 
         # Note: we call the next app, even if provider is None, because OPTIONS
         #       must still be handled.
         #       All other requests will result in '404 Not Found'
-        # if share is not None:
-        #     share_data = self.provider_map.get(share)
-        #     environ["wsgidav.provider"] = share_data["provider"]
-
         environ["wsgidav.provider"] = provider
+
         # TODO: test with multi-level realms: 'aa/bb'
         # TODO: test security: url contains '..'
 
