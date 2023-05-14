@@ -19,6 +19,7 @@ import os
 import shutil
 import stat
 import sys
+from typing import List
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
@@ -211,7 +212,7 @@ class FolderResource(DAVCollection):
     def is_link(self):
         return os.path.islink(self._file_path)
 
-    def get_member_names(self) -> list[str]:
+    def get_member_names(self) -> List[str]:
         """Return list of direct collection member names (utf-8 encoded).
 
         See DAVCollection.get_member_names()

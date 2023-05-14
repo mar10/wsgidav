@@ -1,5 +1,5 @@
-dist: jammy
 language: python
+dist: jammy
 
 matrix:
     include:
