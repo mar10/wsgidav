@@ -142,10 +142,10 @@ class WsgiDAVApp:
 
         if config["logging"].get("enable") is not False:
             util.init_logging(config)
-
-        expand = {"${application}": self}
+        self.logger = util._logger
 
         # Evaluate configuration and set defaults
+        expand = {"${application}": self}
         _check_config(config)
 
         self.verbose = config.get("verbose", 3)
@@ -158,6 +158,7 @@ class WsgiDAVApp:
         self.unquote_path_info = hotfixes.get("unquote_path_info", False)
 
         lock_storage = config.get("lock_storage")
+
         if lock_storage is True:
             lock_storage = LockStorageDict()
         elif isinstance(lock_storage, (str, dict)):

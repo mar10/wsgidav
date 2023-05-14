@@ -5,11 +5,11 @@
 """
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 """
+from cheroot import wsgi
+
 from wsgidav import __version__, util
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
-
-__docformat__ = "reStructuredText"
 
 
 def main():
@@ -24,8 +24,9 @@ def main():
             "domain_controller": None  # None: dc.simple_dc.SimpleDomainController(user_mapping)
         },
         "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
-        "verbose": 1,
+        "verbose": 4,
         "logging": {
+            "enable": True,
             "enable_loggers": [],
         },
         "property_manager": True,  # True: use property_manager.PropertyManager
@@ -34,9 +35,6 @@ def main():
     app = WsgiDAVApp(config)
 
     # For an example, use cheroot:
-
-    from cheroot import wsgi
-
     version = (
         f"WsgiDAV/{__version__} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
     )
@@ -48,10 +46,12 @@ def main():
         # "numthreads": 50,
     )
 
+    app.logger.info(f"Running {version}")
+    app.logger.info(f"Serving on http://{config['host']}:{config['port']}/ ...")
     try:
         server.start()
     except KeyboardInterrupt:
-        print("Caught Ctrl-C, shutting down...")
+        app.logger.info("Received Ctrl-C: stopping...")
     finally:
         server.stop()
 

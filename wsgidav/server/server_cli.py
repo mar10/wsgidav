@@ -436,9 +436,10 @@ def _run_cheroot(app, config, _server):
         _logger.error("Try `pip install cheroot`.")
         return False
 
-    org_version = wsgi.Server.version
-    version = f"WsgiDAV/{__version__} {org_version} Python {util.PYTHON_VERSION}"
-    wsgi.Server.version = version
+    version = (
+        f"WsgiDAV/{__version__} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
+    )
+    # wsgi.Server.version = version
 
     info = _get_common_info(config)
 
