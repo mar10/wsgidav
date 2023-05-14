@@ -40,12 +40,12 @@ class FileResource(DAVNonCollection):
     See also _DAVResource, DAVNonCollection, and FilesystemProvider.
     """
 
-    def __init__(self, path, environ, file_path):
+    def __init__(self, path: str, environ: dict, file_path: str):
         super().__init__(path, environ)
-        self._file_path = file_path
-        self.file_stat = os.stat(self._file_path)
+        self._file_path: str = file_path
+        self.file_stat: os.stat_result = os.stat(self._file_path)
         # Setting the name from the file path should fix the case on Windows
-        self.name = os.path.basename(self._file_path)
+        self.name: str = os.path.basename(self._file_path)
         self.name = util.to_str(self.name)
 
     # Getter methods for standard live properties
@@ -66,6 +66,9 @@ class FileResource(DAVNonCollection):
 
     def get_last_modified(self):
         return self.file_stat[stat.ST_MTIME]
+
+    def is_link(self):
+        return os.path.islink(self._file_path)
 
     def support_etag(self):
         return True
@@ -174,10 +177,11 @@ class FolderResource(DAVCollection):
     See also _DAVResource, DAVCollection, and FilesystemProvider.
     """
 
-    def __init__(self, path, environ, file_path):
+    def __init__(self, path: str, environ: dict, file_path):
         super().__init__(path, environ)
-        self._file_path = file_path
-        self.file_stat = os.stat(self._file_path)
+        self._file_path: str = file_path
+        self.file_stat: os.stat_result = os.stat(self._file_path)
+        self.fs_opts = self.provider
         # Setting the name from the file path should fix the case on Windows
         self.name = os.path.basename(self._file_path)
         self.name = util.to_str(self.name)  # .encode("utf8")
@@ -204,7 +208,10 @@ class FolderResource(DAVCollection):
     def get_last_modified(self):
         return self.file_stat[stat.ST_MTIME]
 
-    def get_member_names(self):
+    def is_link(self):
+        return os.path.islink(self._file_path)
+
+    def get_member_names(self) -> list[str]:
         """Return list of direct collection member names (utf-8 encoded).
 
         See DAVCollection.get_member_names()
@@ -227,19 +234,18 @@ class FolderResource(DAVCollection):
             assert util.is_str(name)
             # Skip non files (links and mount points)
             fp = os.path.join(self._file_path, name)
-            if os.path.islink(fp):
-                assert os.path.isfile(fp) or os.path.isdir(fp)
-                _logger.debug(f"Skipping symlink {fp!r}")
-                continue
+            # if not self.provider.fs_opts.get("follow_symlinks") and os.path.islink(fp):
+            #     _logger.info(f"Skipping symlink {fp!r}")
+            #     continue
             if not os.path.isdir(fp) and not os.path.isfile(fp):
-                _logger.debug("Skipping non-file {!r}".format(fp))
+                _logger.info(f"Skipping non-file {fp!r}")
                 continue
             # name = name.encode("utf8")
             name = util.to_str(name)
             nameList.append(name)
         return nameList
 
-    def get_member(self, name):
+    def get_member(self, name: str) -> FileResource:
         """Return direct collection member (DAVResource or derived).
 
         See DAVCollection.get_member()
@@ -249,9 +255,10 @@ class FolderResource(DAVCollection):
         # name = name.encode("utf8")
         path = util.join_uri(self.path, name)
         res = None
-        if os.path.islink(fp):
-            _logger.debug(f"Skipping symlink {path}")
-        elif os.path.isdir(fp):
+        # if not self.provider.fs_opts.get("follow_symlinks") and os.path.islink(fp):
+        #     _logger.info(f"Skipping symlink {path}")
+        # elif
+        if os.path.isdir(fp):
             res = FolderResource(path, self.environ, fp)
         elif os.path.isfile(fp):
             res = FileResource(path, self.environ, fp)
@@ -400,7 +407,7 @@ class FilesystemProvider(DAVProvider):
         rw = "Read-Only" if self.readonly else "Read-Write"
         return f"{self.__class__.__name__} for path {self.root_folder_path!r} ({rw})"
 
-    def _resolve_shadow_path(self, path, environ, file_path):
+    def _resolve_shadow_path(self, path: str, environ: dict, file_path):
         """File not found: See if there is a shadow configured."""
         shadow = self.shadow_map.get(path.lower())
         # _logger.info(f"Shadow {path} -> {shadow} {self.shadow}")
@@ -422,7 +429,7 @@ class FilesystemProvider(DAVProvider):
         _logger.info(f"Shadow {path} -> {shadow}")
         return True, shadow
 
-    def _loc_to_file_path(self, path, environ=None):
+    def _loc_to_file_path(self, path: str, environ: dict = None):
         """Convert resource path to a unicode absolute file path.
         Optional environ argument may be useful e.g. in relation to per-user
         sub-folder chrooting inside root_folder_path.
@@ -447,10 +454,7 @@ class FilesystemProvider(DAVProvider):
         file_path = util.to_unicode_safe(file_path)
         return file_path
 
-    def is_readonly(self):
-        return self.readonly
-
-    def get_resource_inst(self, path, environ):
+    def get_resource_inst(self, path: str, environ: dict) -> FileResource:
         """Return info dictionary for path.
 
         See DAVProvider.get_resource_inst()
@@ -461,8 +465,7 @@ class FilesystemProvider(DAVProvider):
         if not os.path.exists(fp):
             return None
         if not self.fs_opts.get("follow_symlinks") and os.path.islink(fp):
-            _logger.info(f"Skipping symlink {fp!r}")
-            return None
+            raise DAVError(HTTP_FORBIDDEN, f"Symlink support is disabled: {fp!r}")
         if os.path.isdir(fp):
             return FolderResource(path, environ, fp)
         return FileResource(path, environ, fp)

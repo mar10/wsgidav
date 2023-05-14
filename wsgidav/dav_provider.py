@@ -174,11 +174,11 @@ class _DAVResource(ABC):
     def __init__(self, path: str, is_collection: bool, environ: dict):
         assert util.is_str(path)
         assert path == "" or path.startswith("/")
-        self.provider = environ["wsgidav.provider"]
-        self.path = path
-        self.is_collection = is_collection
-        self.environ = environ
-        self.name = util.get_uri_name(self.path)
+        self.provider: DAVProvider = environ["wsgidav.provider"]
+        self.path: str = path
+        self.is_collection: bool = is_collection
+        self.environ: dict = environ
+        self.name: str = util.get_uri_name(self.path)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.path!r})"
@@ -1327,7 +1327,7 @@ class DAVCollection(_DAVResource):
     See also _DAVResource
     """
 
-    def __init__(self, path, environ):
+    def __init__(self, path: str, environ: dict) -> None:
         super().__init__(path, True, environ)
 
         # Allow caching of members
@@ -1366,13 +1366,13 @@ class DAVCollection(_DAVResource):
     #    def getContentLanguage(self):
     #        return None
 
-    def get_content_length(self):
+    def get_content_length(self) -> Optional[int]:
         return None
 
-    def get_content_type(self):
+    def get_content_type(self) -> Optional[str]:
         return None
 
-    def create_empty_resource(self, name):
+    def create_empty_resource(self, name: str) -> _DAVResource:
         """Create and return an empty (length-0) resource as member of self.
 
         Called for LOCK requests on unmapped URLs.
@@ -1571,7 +1571,7 @@ class DAVProvider(ABC):
         return "/" + unquote(util.removeprefix(ref_url, self.share_path)).lstrip("/")
 
     @abstractmethod
-    def get_resource_inst(self, path, environ):
+    def get_resource_inst(self, path: str, environ: dict):
         """Return a _DAVResource object for path.
 
         Should be called only once per request and resource::
@@ -1589,7 +1589,7 @@ class DAVProvider(ABC):
         """
         raise NotImplementedError
 
-    def exists(self, path, environ):
+    def exists(self, path: str, environ: dict):
         """Return True, if path maps to an existing resource.
 
         This method should only be used, if no other information is queried
@@ -1599,7 +1599,7 @@ class DAVProvider(ABC):
         """
         return self.get_resource_inst(path, environ) is not None
 
-    def is_collection(self, path, environ):
+    def is_collection(self, path: str, environ: dict):
         """Return True, if path maps to an existing collection resource.
 
         This method should only be used, if no other information is queried

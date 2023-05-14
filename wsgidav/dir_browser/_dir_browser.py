@@ -247,6 +247,9 @@ class WsgiDavDirBrowser(BaseMiddleware):
                             ofe_prefix = "vnd.libreoffice.command:ofv|u|"
                             a_classes.append("msoffice")
 
+                if res.is_link():
+                    a_classes.append("symlink")
+
                 entry = {
                     "href": rel_href,
                     "ofe_prefix": ofe_prefix,

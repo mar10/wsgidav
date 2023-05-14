@@ -32,6 +32,10 @@ table.dir-listing tr.directory td a
 {
   font-weight: bold;
 }
+table.dir-listing tr td a.symlink {
+  font-style: italic;
+  color: darkmagenta;
+}
 table.dir-listing th,
 table.dir-listing td
 {
@@ -45,9 +49,6 @@ table.dir-listing th:nth-child(3),
 table.dir-listing td:nth-child(3)
 {
   text-align: right;
-}
-a.symlink {
-  font-style: italic;
 }
 p.auth-user {
   font-size: smaller;

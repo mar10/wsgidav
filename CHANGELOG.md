@@ -3,10 +3,7 @@
 ## 4.3.0 / Unreleased
 
 - BREAKING:
-  - The new option `fs_dav_provider.follow_symlinks` is false by default, 
-    since [symlinks may be a security risk](https://serverfault.com/questions/244592/followsymlinks-on-apache-why-is-it-a-security-risk).
-  - The new option `fs_dav_provider.shadow_map` replaces the (undocumented)
-    argument `FilesystemProvider(..., shadow={...})`
+  - See option `fs_dav_provider.follow_symlinks` below.
 - Install pam_dc dependencies using extra syntax: `pip install wsgidav[pam]`
 - #281 Requesting range off end of file does not return 416 status code
 - #282 Hotfix PUT request without content-length (fix for Finder on MacOS Ventura)
@@ -14,8 +11,15 @@
   is used as a library. This replaces an explicit call to `utils.init_logging()`.
   When running as CLI, this option is on by default.
 - Add `fs_dav_provider` section to options.
-- Add `fs_dav_provider.follow_symlinks` option to follow symlinks 
-- Add `fs_dav_provider.shadow_map`
+- Add `fs_dav_provider.follow_symlinks` option to enable symlinks (default: false)<br>
+  *follow_symlinks* is false by default, since 
+  [symlinks may be a security risk](https://serverfault.com/questions/244592/followsymlinks-on-apache-why-is-it-a-security-risk).<br>
+  File resources that are symlinks are still enumerated and listed by the 
+  directory browser. However trying to GET content will raise '403 Forbidden'
+  Pass *follow_symlinks=True* to the FilesystemProvider constructor or yaml configration
+  to restore the old behavior.
+- Add `fs_dav_provider.shadow_map`, which can be used to blend in a favicon
+  when context is opened inline (#230)
 - Remove (unused) interface definitions
 
 ## 4.2.0 / 2023-02-18

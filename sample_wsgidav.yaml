@@ -147,8 +147,8 @@ fs_dav_provider:
     # shadow_map:
     #     '/favicon.ico': 'file_path/to/favicon.ico'
     
-    #: Serve symbolic link files and folders
-    follow_symlinks: true
+    #: Serve symbolic link files and folders (default: false)
+    follow_symlinks: false
 
 # ==============================================================================
 # AUTHENTICATION
