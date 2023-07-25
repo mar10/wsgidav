@@ -666,8 +666,10 @@ class RequestServer:
         """Get the data from a chunked transfer."""
         # Chunked Transfer Coding
         # http://www.servlets.com/rfcs/rfc2616-sec3.html#sec3.6.1
-
-        while (buf := environ["wsgi.input"].read(block_size)) is not b"":
+        while True:
+            buf = environ["wsgi.input"].read(block_size)
+            if buf == b"":
+                break
             environ["wsgidav.some_input_read"] = 1
             yield buf
         environ["wsgidav.all_input_read"] = 1
