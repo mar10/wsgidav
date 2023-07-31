@@ -662,10 +662,8 @@ class RequestServer:
             environ, start_response, res, HTTP_NO_CONTENT, error_list
         )
 
-    def _stream_data_chunked(self, environ, block_size):
-        """Get the data from a chunked transfer."""
-        # Chunked Transfer Coding
-        # http://www.servlets.com/rfcs/rfc2616-sec3.html#sec3.6.1
+    def _stream_data(self, environ, block_size):
+        """Get the data."""
         while True:
             buf = environ["wsgi.input"].read(block_size)
             if buf == b"":
@@ -673,50 +671,6 @@ class RequestServer:
             environ["wsgidav.some_input_read"] = 1
             yield buf
         environ["wsgidav.all_input_read"] = 1
-
-    def _stream_data(self, environ, content_length, block_size):
-        """Get the data from a non-chunked transfer."""
-        if content_length == 0:
-            # TODO: review this
-            # Windows MiniRedir submit PUT with Content-Length 0,
-            # before LOCK and the real PUT. So we have to accept this.
-            _logger.debug("PUT: Content-Length == 0. Creating empty file...")
-
-        #        elif content_length < 0:
-        #            # TODO: review this
-        #            # If CONTENT_LENGTH is invalid, we may try to workaround this
-        #            # by reading until the end of the stream. This may block however!
-        #            # The iterator produced small chunks of varying size, but not
-        #            # sure, if we always get everything before it times out.
-        #            _logger.warning("PUT with invalid Content-Length (%s). "
-        #                            "Trying to read all (this may timeout)..."
-        #                            .format(environ.get("CONTENT_LENGTH")))
-        #            nb = 0
-        #            try:
-        #                for s in environ["wsgi.input"]:
-        #                    environ["wsgidav.some_input_read"] = 1
-        #                    _logger.debug("PUT: read from wsgi.input.__iter__, len=%s" % len(s))
-        #                    yield s
-        #                    nb += len (s)
-        #            except socket.timeout:
-        #                _logger.warning("PUT: input timed out after writing %s bytes" % nb)
-        #                hasErrors = True
-        else:
-            assert content_length > 0
-            contentremain = content_length
-            while contentremain > 0:
-                n = min(contentremain, block_size)
-                readbuffer = environ["wsgi.input"].read(n)
-                # This happens with litmus expect-100 test:
-                if not len(readbuffer) > 0:
-                    _logger.error("input.read({}) returned 0 bytes".format(n))
-                    break
-                environ["wsgidav.some_input_read"] = 1
-                yield readbuffer
-                contentremain -= len(readbuffer)
-
-            if contentremain == 0:
-                environ["wsgidav.all_input_read"] = 1
 
     def do_PUT(self, environ, start_response):
         """
@@ -757,48 +711,9 @@ class RequestServer:
         else:
             self._check_write_permission(res, "0", environ)
 
-        # Start Content Processing
-        # Content-Length may be 0 or greater. (Set to -1 if missing or invalid.)
-        try:
-            content_length = max(-1, int(environ.get("CONTENT_LENGTH", -1)))
-        except ValueError:
-            content_length = -1
-
-        if (content_length < 0) and (
-            environ.get("HTTP_TRANSFER_ENCODING", "").lower() != "chunked"
-        ):
-            # HOTFIX: not fully understood, but MS sends PUT without content-length,
-            # when creating new files
-
-            config = environ["wsgidav.config"]
-            hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
-            accept_put_without_content_length = hotfixes.get(
-                "accept_put_without_content_length", True
-            )
-
-            # if ( "Microsoft-WebDAV-MiniRedir" in agent or "gvfs/" in agent):
-            if accept_put_without_content_length:  # issue #10, #282
-                agent = environ.get("HTTP_USER_AGENT", "")
-                _logger.warning(
-                    f"Set misssing Content-Length to 0 for PUT, agent={agent!r}"
-                )
-                content_length = 0
-            else:
-                util.fail(
-                    HTTP_LENGTH_REQUIRED,
-                    "PUT request with invalid Content-Length: ({})".format(
-                        environ.get("CONTENT_LENGTH")
-                    ),
-                )
-
         hasErrors = False
         try:
-            if environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
-                data_stream = self._stream_data_chunked(environ, self.block_size)
-            else:
-                data_stream = self._stream_data(
-                    environ, content_length, self.block_size
-                )
+            data_stream = self._stream_data(environ, self.block_size)
 
             fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
 
