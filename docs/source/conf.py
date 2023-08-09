@@ -134,23 +134,9 @@ html_theme = "furo"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
-# html_theme_options = {
-#     # "logo": "favicon-32x32.png",
-#     # "logo_text_align": "left",
-#     "show_powered_by": False,
-#     "github_user": "mar10",
-#     "github_repo": "WsgiDAV",
-#     "github_banner": True,
-#     "github_button": True,
-#     "github_type": "star",
-#     # "github_size": "small",
-#     "github_count": "true",
-#     # "travis_button": True,
-#     # "codecov_button": True,
-#     "show_related": False,
-#     "note_bg": "#FFF59C",
-# }
+html_theme_options = {
+    # See https://pradyunsg.me/furo/customisation/
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
