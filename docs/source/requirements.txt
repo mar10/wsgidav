@@ -5,8 +5,8 @@ json5~=0.8.5
 python-pam~=2.0.2
 PyYAML~=6.0
 # RTD:
-sphinx~=7.1
-sphinx_rtd_theme~=1.2
+#sphinx~=7.1
+#sphinx_rtd_theme~=1.2
 furo
 #readthedocs-sphinx-search==0.3.1
 recommonmark~=0.7.1
