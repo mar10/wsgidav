@@ -64,6 +64,7 @@ from wsgidav.lock_man.lock_storage import LockStorageDict
 from wsgidav.mw.base_mw import BaseMiddleware
 from wsgidav.prop_man.property_manager import PropertyManager
 from wsgidav.util import (
+    check_python_version,
     dynamic_import_class,
     dynamic_instantiate_class_from_opts,
     safe_re_encode,
@@ -130,12 +131,17 @@ def _check_config(config):
     return True
 
 
+#: Minimal Python version that is supported by WsgiDAV
+MIN_PYTHON_VERSION_INFO = (3, 8)
+
+check_python_version(MIN_PYTHON_VERSION_INFO)
+
+
 # ========================================================================
 # WsgiDAVApp
 # ========================================================================
 class WsgiDAVApp:
     def __init__(self, config):
-
         self.config = copy.deepcopy(DEFAULT_CONFIG)
         util.deep_update(self.config, config)
         config = self.config
@@ -275,6 +281,7 @@ class WsgiDAVApp:
                 __version__, util.PYTHON_VERSION, platform.platform(aliased=True)
             )
         )
+
         if self.verbose >= 4:
             _logger.info(
                 "Default encoding: {!r} (file system: {!r})".format(
@@ -414,7 +421,6 @@ class WsgiDAVApp:
         return share, self.provider_map.get(share)
 
     def __call__(self, environ, start_response):
-
         # util.log("SCRIPT_NAME={!r}, PATH_INFO={!r}".format(
         #    environ.get("SCRIPT_NAME"), environ.get("PATH_INFO")))
 

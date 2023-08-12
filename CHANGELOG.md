@@ -4,7 +4,7 @@
 
 - BREAKING:
   - See option `fs_dav_provider.follow_symlinks` below.
-  - Stop testing Python 3.7 (EOL: 2023-06-27)
+- Deprecate Python 3.7 (EOL: 2023-06-27)
 - Install pam_dc dependencies using extra syntax: `pip install wsgidav[pam]`
 - #281 Requesting range off end of file does not return 416 status code
 - #282 Hotfix PUT request without content-length (fix for Finder on MacOS Ventura)
