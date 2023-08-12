@@ -22,7 +22,7 @@ from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav.dav_error import (
@@ -56,7 +56,7 @@ class NO_DEFAULT:
     """"""
 
 
-def check_python_version(min_version: tuple[str]) -> bool:
+def check_python_version(min_version: Tuple[str]) -> bool:
     """Check for deprecated Python version."""
     if sys.version_info < min_version:
         min_ver = ".".join([str(s) for s in min_version[:3]])
