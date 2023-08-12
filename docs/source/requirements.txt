@@ -1,13 +1,14 @@
 # Requirements used by Sphinx / RTD
 defusedxml~=0.5
-Jinja2~=2.10
+Jinja2~=3.0
 json5~=0.8.5
 python-pam~=2.0.2
 PyYAML~=6.0
 # RTD:
-sphinx~=4.3
-sphinx_rtd_theme~=1.0.0
-readthedocs-sphinx-search==0.1.1
+#sphinx~=7.1
+#sphinx_rtd_theme~=1.2
+furo
+#readthedocs-sphinx-search==0.3.1
 recommonmark~=0.7.1
 # MyST
 myst-parser[linkify]

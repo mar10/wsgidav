@@ -58,12 +58,13 @@ Here we keep most of the default options and use the
       "wsgi_app": app,
   }
   server = wsgi.Server(**server_args)
-try:
-    server.start()
-except KeyboardInterrupt:
-    print("Received Ctrl-C: stopping...")
-finally:    
-    server.stop()
+
+  try:
+      server.start()
+  except KeyboardInterrupt:
+      print("Received Ctrl-C: stopping...")
+  finally:    
+      server.stop()
 
 Options are passed as Python dict, see the :doc:`user_guide_configure` for
 details.

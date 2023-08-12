@@ -11,13 +11,8 @@ matrix:
           env: TOXENV=py39
         - python: "3.8"  # EOL 2024-10-14
           env: TOXENV=py38
-        - python: "3.7"  # EOL 2023-06-27
-          env: TOXENV=py37
-          # before_install:
-          #   # Fix error: can't find Rust compiler
-          #   - pip install -U pip
-          #   # Fix "AttributeError: 'str' object has no attribute 'name'" on Py37
-          #   - pip install -U importlib_metadata
+        # - python: "3.7"  # EOL 2023-06-27
+        #   env: TOXENV=py37
         # - python: "3.6"  # EOL 2021-12-21
         #   env: TOXENV=py36
         # - python: "3.5"  # EOL 2020-09-13
@@ -40,7 +35,7 @@ services:
     - redis-server
 
 install:
-    - travis_retry pip install -U pip setuptools
+    - travis_retry pip install -U pip setuptools  # for Py37
     - travis_retry pip install -U tox coveralls coverage
 
 script:
