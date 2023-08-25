@@ -44,7 +44,7 @@ DEFAULT_CONFIG = {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
         "re_encode_path_info": True,  # (See issue #73)
         "unquote_path_info": False,  # (See issue #8, #228)
-        "accept_put_without_content_length": True,  # (See issue #10, #282)
+        # "accept_put_without_content_length": True,  # (See issue #10, #282)
         # "treat_root_options_as_asterisk": False, # Hotfix for WinXP / Vista: accept 'OPTIONS /' for a 'OPTIONS *'
         # "win_accept_anonymous_options": False,
         # "winxp_accept_root_share_login": False,

@@ -43,10 +43,6 @@ block_size: 8192
 add_header_MS_Author_Via: true
 
 hotfixes:
-    #: Some clients send PUT requests without a body and omit the 
-    #: `Content-Length` header ("Microsoft-WebDAV-MiniRedir", "gvfs/", "Darwin").
-    #: See issues #10, #282. This option assumes "0" for missing headers:
-    accept_put_without_content_length: true
     #: Handle Microsoft's Win32LastModifiedTime property.
     #: This is useful only in the case when you copy files from a Windows
     #: client into a WebDAV share. Windows sends the "last modified" time of
