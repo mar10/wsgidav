@@ -13,8 +13,8 @@ pytest-cov~=1.8
 recommonmark
 requests
 setuptools~=40.2
-sphinx~=4.3
-sphinx_rtd_theme~=1.0.0
+#Sphinx
+#sphinx_rtd_theme
 stressor
 tox~=3.13
 twine~=1.11

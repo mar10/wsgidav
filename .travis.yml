@@ -2,50 +2,45 @@ language: python
 dist: jammy
 
 matrix:
-    include:
-        - python: "3.11"  # EOL 2027-10-24
-          env: TOXENV=check,py311
-        - python: "3.10"  # EOL 2026-10-04
-          env: TOXENV=py310
-        - python: "3.9"  # EOL 2025-10-05
-          env: TOXENV=py39
-        - python: "3.8"  # EOL 2024-10-14
-          env: TOXENV=py38
-        - python: "3.7"  # EOL 2023-06-27
-          env: TOXENV=py37
-          # before_install:
-          #   # Fix error: can't find Rust compiler
-          #   - pip install -U pip
-          #   # Fix "AttributeError: 'str' object has no attribute 'name'" on Py37
-          #   - pip install -U importlib_metadata
-        # - python: "3.6"  # EOL 2021-12-21
-        #   env: TOXENV=py36
-        # - python: "3.5"  # EOL 2020-09-13
-        #   env: TOXENV=py35
-        # - python: "3.4"  # EOL 2019-03-18
-        #   env: TOXENV=py34
-        - python: "3.12-dev"
-          env: TOXENV=py312
-    allow_failures:
-        - python: "3.12-dev"
-          env: TOXENV=py312
+  include:
+    - python: "3.11" # EOL 2027-10-24
+      env: TOXENV=check,py311
+    - python: "3.10" # EOL 2026-10-04
+      env: TOXENV=py310
+    - python: "3.9" # EOL 2025-10-05
+      env: TOXENV=py39
+    - python: "3.8" # EOL 2024-10-14
+      env: TOXENV=py38
+    - python: "3.7" # EOL 2023-06-27
+      env: TOXENV=py37
+    # - python: "3.6"  # EOL 2021-12-21
+    #   env: TOXENV=py36
+    # - python: "3.5"  # EOL 2020-09-13
+    #   env: TOXENV=py35
+    # - python: "3.4"  # EOL 2019-03-18
+    #   env: TOXENV=py34
+    - python: "3.12-dev"
+      env: TOXENV=py312
+  allow_failures:
+    - python: "3.12-dev"
+      env: TOXENV=py312
 
 before_install:
-    # See issue #80: litmus fails to build on travis
-    # The branch 'travis-litmus' still has this enabled to investigate...
+  # See issue #80: litmus fails to build on travis
+  # The branch 'travis-litmus' still has this enabled to investigate...
 #    - sudo apt-get install libneon27-dev
 #    - ./install_litmus.sh
 
 services:
-    - redis-server
+  - redis-server
 
 install:
-    - travis_retry pip install -U pip setuptools
-    - travis_retry pip install -U tox coveralls coverage
+  - travis_retry pip install -U pip setuptools # for Py37
+  - travis_retry pip install -U tox coveralls coverage
 
 script:
-    - travis_retry tox
+  - travis_retry tox
 
 after_success:
-    - coverage combine
-    - coveralls
+  - coverage combine
+  - coveralls

@@ -102,6 +102,7 @@ exclude_patterns = []
 
 autodoc_mock_imports = [
     "bson",
+    "cheroot",
     "couchdb",
     "jinja2",
     "mercurial",
@@ -120,24 +121,48 @@ autodoc_mock_imports = [
 # a list of builtin themes.
 #
 # html_theme = "alabaster"
+html_theme = "furo"
 
-if not on_rtd:
-    # only import and set the theme if we're building docs locally
-    # otherwise, readthedocs.org uses their theme by default, so no need to specify it
-    import sphinx_rtd_theme
+# if not on_rtd:
+#     # only import and set the theme if we're building docs locally
+#     # otherwise, readthedocs.org uses their theme by default, so no need to specify it
+#     import sphinx_rtd_theme
 
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#     html_theme = "sphinx_rtd_theme"
+#     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    # See https://pradyunsg.me/furo/customisation/
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 # html_theme = 'bootstrap'
 # html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+
+# MyST Markdown Support
+myst_enable_extensions = [
+    "dollarmath",
+    "amsmath",
+    "deflist",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "colon_fence",
+    "smartquotes",
+    "replacements",
+    "linkify",
+    "strikethrough",
+    "substitution",
+    "tasklist",
+]
+myst_number_code_blocks = ["typescript"]
+myst_heading_anchors = 2
+myst_footnote_transition = True
+myst_dmath_double_inline = True
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

@@ -4,6 +4,7 @@
 
 - BREAKING:
   - See option `fs_dav_provider.follow_symlinks` below.
+- Deprecate Python 3.7 (EOL: 2023-06-27)
 - Install pam_dc dependencies using extra syntax: `pip install wsgidav[pam]`
 - #281 Requesting range off end of file does not return 416 status code
 - #282 Hotfix PUT request without content-length (fix for Finder on MacOS Ventura)
@@ -12,15 +13,16 @@
   When running as CLI, this option is on by default.
 - Add `fs_dav_provider` section to options.
 - Add `fs_dav_provider.follow_symlinks` option to enable symlinks (default: false)<br>
-  *follow_symlinks* is false by default, since 
+  _follow_symlinks_ is false by default, since
   [symlinks may be a security risk](https://serverfault.com/questions/244592/followsymlinks-on-apache-why-is-it-a-security-risk).<br>
-  File resources that are symlinks are still enumerated and listed by the 
-  directory browser. However trying to GET content will raise '403 Forbidden'
-  Pass *follow_symlinks=True* to the FilesystemProvider constructor or yaml configration
-  to restore the old behavior.
+  File resources that are symlinks are still enumerated and listed by the
+  directory browser. However trying to access content will raise '403 Forbidden'
+  Pass _follow_symlinks=True_ to the FilesystemProvider constructor or yaml configration
+  to restore the previous behavior.
 - Add `fs_dav_provider.shadow_map`, which can be used to blend in a favicon
   when context is opened inline (#230)
 - Remove (unused) interface definitions
+- Use the [Furo](https://github.com/pradyunsg/furo) documentation theme
 
 ## 4.2.0 / 2023-02-18
 
@@ -36,7 +38,7 @@
 - #265 Fix PAM not threadsafe
 - #268 Use relative paths to support reverse proxies
 - Clarify how to use WsgiDAV behind a reverse proxy
-- ``mount_path`` option is now validated (must be empty or start with a '/')
+- `mount_path` option is now validated (must be empty or start with a '/')
 - Add `dir_browser.directory_slash` option to force trailing slashes (default: true).
   Also use relative paths in directory listings in order to improve behavior
   when running behind a reverse proxy.
@@ -57,7 +59,7 @@
 
 ## 4.0.1 / 2022-01-11
 
-- #241:  Add SSL libs to MSI installer
+- #241: Add SSL libs to MSI installer
 
 ## 4.0.0 / 2022-01-09
 
@@ -68,7 +70,7 @@
 - Drop support for Microsoft Web Folders (option `dir_browser.ms_mount`).
 - API now sometimes enforces some _named_ keyword args (`fn(<args>, *, ...)`)
 - Rename option `lock_manager` to `lock_storage`
-- Moved `lock_manager` and `lock_storage` modules to  `lock_man` package.
+- Moved `lock_manager` and `lock_storage` modules to `lock_man` package.
 - Move logging options to 'logging' section
 - Drop flup and CherryPy support from CLI (use cheroot instead of CherryPy)
 
@@ -119,7 +121,6 @@
   this requires six 1.13+; dependencies have been updated)
 - #177 Fix allow_anonymous_access()
 
-
 ## 3.0.2 / 2019-12-26
 
 - Fixes for Python 3.8
@@ -127,7 +128,6 @@
   i.e. stopped testing.
 - #167 Docker image reduction from 244MB to 66.4MB
 - #169 Replace jsmin with json5 dependency
-
 
 ## 3.0.1 / 2019-10-12
 
@@ -141,13 +141,12 @@
 - #159: Display requested path with 404 errors
 - Fix #164: Wrong separator on Allow values
 
-
 ## 3.0.0 / 2019-03-04
 
 This release contains **BREAKING CHANGES!**
 
 - Improve configuration:<br>
-   [(See details)](http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html)
+  [(See details)](http://wsgidav.readthedocs.io/en/latest/user_guide_configure.html)
   - **Rename some options**, e.g. `acceptDigest` => `http_authenticator.accept_digest`
   - WsgiDAVApp constructor now assumes default settings. The passed options
     override those.
@@ -159,8 +158,8 @@ This release contains **BREAKING CHANGES!**
     - RequestResolver and WsgiDavDirBrowser are now simple members of `middleware_stack`
       and not specially treated
     - `middleware_stack` entries can also be strings or dicts that are
-    evaluated to import and instantiate middleware classes. This allows to
-    define and configure external middleware in YAML and JSON config files.
+      evaluated to import and instantiate middleware classes. This allows to
+      define and configure external middleware in YAML and JSON config files.
   - provider_mapping option now supports configuration of custom providers
   - Windows XP (Microsoft-WebDAV-MiniRedir/5.1.2600) had a bug
     when accessing a share '/dav/': XP sometimes sends digests for '/'.
@@ -175,7 +174,7 @@ This release contains **BREAKING CHANGES!**
     => `provider.set_last_modified(self, dest_path, time_stamp, dry_run)`
   - Enforce [Black code style](https://github.com/ambv/black)
   - Move some modules to separate packages
-  - Use utf-8 directive in source files (-*- coding: utf-8 -*-)
+  - Use utf-8 directive in source files (-_- coding: utf-8 -_-)
 - Refactor domain_controller and authentication:
   - Renamed environ["http_authenticator.realm"], environ["http_authenticator.user_name"]
     => environ["wsgidav.auth.realm"], environ["wsgidav.auth.user_name"]
@@ -205,12 +204,10 @@ This release contains **BREAKING CHANGES!**
 - Fix #123: HEAD request on DirBrowser folder
 - Fix #141: issue when 'sys.stdout' is none
 
-
 ## 2.4.1 / 2018-06-16
 
 - Fix some logging exceptions
 - Fix exception in CLI config reader (Py2)
-
 
 ## 2.4.0 / 2018-05-30
 
@@ -233,7 +230,6 @@ This release contains **BREAKING CHANGES!**
 - Rework documentation on Read The Docs
 - MSI setup uses Cheroot version 6.2+
 
-
 ## 2.3.0 / 2018-04-06
 
 - #80: Drop support for Python 3.3 (end-of-life September 2017)
@@ -242,14 +238,12 @@ This release contains **BREAKING CHANGES!**
 - #90: Custom response headers
 - #93: Add support for streaming large files on Mac
 
-
 ## 2.2.4 / 2017-08-11
 
 - Fix #75: Return 401 when auth method is not supported
 - Fix #77: removeProperty call to not lose dryRun, otherwise removeProperty is
   called twice for real
 - Fix #79: Prevent error when missing environment variable
-
 
 ## 2.2.2 / 2017-06-23
 
@@ -258,7 +252,6 @@ This release contains **BREAKING CHANGES!**
 - Fix #71: Attempts to unlock a nonexistent resource cause an internal server error
 - Fix #73: Failed on processing non-iso-8859-1 characters on Python 3
 - MSI setup uses Python 3.5
-
 
 ## 2.2.1 / 2017-02-25
 
@@ -275,7 +268,6 @@ This release contains **BREAKING CHANGES!**
 - #65: Add lxml to MSI installer
 - Release as Wheel
 
-
 ## 2.1.0 / 2016-11-13
 
 - #42: Remove some print usage in favor of logging (Sergi Almacellas Abellana)
@@ -285,11 +277,9 @@ This release contains **BREAKING CHANGES!**
 - New helpers `addons.stream_tools.FileLikeQueue` and `StreamingFile` allow to
   pipe / proxy PUT requests to external consumers.
 
-
 ## 2.0.1 / 2016-10-07
 
 - #46 Wrap xml libraries with the equivalent defusedxml packages (Tom Viner)
-
 
 ## 2.0.0 / 2016-10-02
 
@@ -310,7 +300,6 @@ This release contains **BREAKING CHANGES!**
   - Removed command line option `-d` use `-vv` instead
 - Use py.test & tox
 
-
 ## 1.3.0 / 2016-08-24
 
 - #19: Add option `mutable_live_props` to support setting last modified file/directory timestamps
@@ -321,7 +310,6 @@ This release contains **BREAKING CHANGES!**
 - #30: API change to allow much easier per-user chrooting (Jonas Bardino)
 - #32: Fix digest authentication rejected due to invalid header (Adrian Crețu)
 
-
 ## 1.2.0 / 2015-05-14
 
 - #8: Unquote PATH_INFO is now optional 'unquote_path_info'; defaults to false.
@@ -331,13 +319,11 @@ This release contains **BREAKING CHANGES!**
 - #12: Configurable middleware stack (Pavel Shiryaev)
 - #15: Fix Finder access (Jonas Bardino)
 
-
 ## 1.1.0 / 2014-01-01
 
 - New dir_browser option 'ms_sharepoint_plugin' to start MS Office documents in edit-mode
 - Moved project from Google Code to GitHub
 - Moved documentation to ReadTheDocs
-
 
 ## 1.0.0 / 2013-12-27
 
@@ -356,7 +342,6 @@ This release contains **BREAKING CHANGES!**
 - Made mimetype guessing more robust
 - Updated CherryPy standalone WSGI server to 3.2.4
 - Support 'setup.py test' which uses nosetests and includes litmus
-
 
 ## 0.5.0 / 2011-01-16
 
@@ -378,17 +363,14 @@ This release contains **BREAKING CHANGES!**
 - renamed displayType() -> getDirectoryInfo()
 - Fixed RANGE response
 
-
 ## 0.4.0.b3
 
 - Refactored LockManager. using separate LockStorage
 - Bugfixes
 
-
 ## 0.4.0.b2 / 2010-02-15
 
 - Bugfixes
-
 
 ## 0.4.0.b1
 
@@ -397,7 +379,6 @@ This release contains **BREAKING CHANGES!**
 - Added Sphinx docs
 - Added Mercurial provider
 - Changed configuration: no property manager used by default
-
 
 ## Until 0.4.0 alpha
 

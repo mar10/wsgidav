@@ -17,11 +17,12 @@ import socket
 import stat
 import sys
 import time
+import warnings
 from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav.dav_error import (
@@ -53,6 +54,20 @@ filesystemencoding = sys.getfilesystemencoding()
 
 class NO_DEFAULT:
     """"""
+
+
+def check_python_version(min_version: Tuple[str]) -> bool:
+    """Check for deprecated Python version."""
+    if sys.version_info < min_version:
+        min_ver = ".".join([str(s) for s in min_version[:3]])
+        warnings.warn(
+            f"Support for Python version less than `{min_ver}` is deprecated "
+            f"(using {PYTHON_VERSION})",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return False
+    return True
 
 
 # ========================================================================
@@ -1663,9 +1678,7 @@ def parse_if_header_dict(environ):
     ifLockList = []
 
     resource1 = "*"
-    for (tmpURLVar, URLVar, _tmpContentVar, contentVar) in reIfSeparator.findall(
-        iftext
-    ):
+    for tmpURLVar, URLVar, _tmpContentVar, contentVar in reIfSeparator.findall(iftext):
         if tmpURLVar != "":
             resource1 = URLVar
         else:
@@ -1714,7 +1727,7 @@ def test_if_header_dict(dav_res, if_dict, fullurl, locktoken_list, entity_tag):
     for listTestConds in listTest:
         matchfailed = False
 
-        for (testflag, checkstyle, checkvalue) in listTestConds:
+        for testflag, checkstyle, checkvalue in listTestConds:
             if checkstyle == "entity" and supportEntityTag:
                 testresult = entity_tag == checkvalue
             elif checkstyle == "entity":
