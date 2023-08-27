@@ -462,7 +462,7 @@ class FilesystemProvider(DAVProvider):
         """
         self._count_get_resource_inst += 1
         fp = self._loc_to_file_path(path, environ)
-        print(f"resolve {path} => {fp}")
+
         if not os.path.exists(fp):
             return None
         if not self.fs_opts.get("follow_symlinks") and os.path.islink(fp):

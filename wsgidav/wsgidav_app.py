@@ -86,6 +86,7 @@ def _check_config(config):
     deprecated_fields = {
         "acceptbasic": "http_authenticator.accept_basic",
         "acceptdigest": "http_authenticator.accept_digest",
+        "accept_put_without_content_length": "(removed)",
         "catchall": "error_printer.catch_all",
         "debug_litmus": "logging.debug_litmus",
         "debug_methods": "logging.debug_methods",

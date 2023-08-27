@@ -7,7 +7,7 @@
 - Deprecate Python 3.7 (EOL: 2023-06-27)
 - Install pam_dc dependencies using extra syntax: `pip install wsgidav[pam]`
 - #281 Requesting range off end of file does not return 416 status code
-- #282 Hotfix PUT request without content-length (fix for Finder on MacOS Ventura)
+- #290 Unable to upload chunked big file using requests python library.
 - Add `logging.enable` option to activate the 'wsgidav' logger when this package
   is used as a library. This replaces an explicit call to `utils.init_logging()`.
   When running as CLI, this option is on by default.
