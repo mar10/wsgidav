@@ -62,7 +62,7 @@ Install WsgiDAV (and a server) like::
 
      > winget install wsgidav
 
-To serve the ``/tmp`` folder as WebDAV ``/`` share with anonyoums read-write
+To serve the ``/tmp`` folder as WebDAV ``/`` share with anonymous read-write
 access, simply run::
 
   $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
