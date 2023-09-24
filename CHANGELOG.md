@@ -1,6 +1,8 @@
 # Changelog
 
-## 4.3.0 / Unreleased
+## 4.3.1 / Unreleased
+
+## 4.3.0 / 2023-09-24
 
 - BREAKING:
   - See option `fs_dav_provider.follow_symlinks` below.
