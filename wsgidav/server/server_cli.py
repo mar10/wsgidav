@@ -158,7 +158,7 @@ See https://github.com/mar10/wsgidav for additional information.
         "--root",
         dest="root_path",
         action=FullExpandedPath,
-        help="path to a file system folder to publish as share '/'.",
+        help="path to a file system folder to publish for RW as share '/'.",
     )
     parser.add_argument(
         "--auth",
@@ -347,7 +347,10 @@ def _init_config():
 
     if cli_opts.get("root_path"):
         root_path = os.path.abspath(cli_opts.get("root_path"))
-        config["provider_mapping"]["/"] = FilesystemProvider(root_path)
+        config["provider_mapping"]["/"] = FilesystemProvider(
+            root_path,
+            fs_opts=config.get("fs_dav_provider"),
+        )
 
     if config["verbose"] >= 5:
         # TODO: remove passwords from user_mapping
