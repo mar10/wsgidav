@@ -313,6 +313,9 @@ class _DAVResource(ABC):
         """
         return None
 
+    def is_link(self):
+        return False
+
     def set_last_modified(self, dest_path, time_stamp, *, dry_run):
         """Set last modified time for destPath to timeStamp on epoch-format"""
         raise NotImplementedError
