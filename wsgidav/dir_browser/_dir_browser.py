@@ -91,7 +91,6 @@ class WsgiDavDirBrowser(BaseMiddleware):
             and dav_res
             and dav_res.is_collection
         ):
-
             if util.get_content_length(environ) != 0:
                 self._fail(
                     HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -195,7 +194,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if trailer:
             trailer = trailer.replace(
                 "${version}",
-                f"<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/{__version__}</a>",
+                f"<a href='https://github.com/mar10/wsgidav/'>{util.public_wsgidav_info}</a>",
             )
             trailer = trailer.replace("${time}", util.get_rfc1123_time())
 

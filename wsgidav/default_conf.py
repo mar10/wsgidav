@@ -81,6 +81,8 @@ DEFAULT_CONFIG = {
     #: 5 - show full request/response header info (HTTP Logging)
     #:     request body and GET response bodies not shown
     "verbose": DEFAULT_VERBOSE,
+    #: Suppress version info in HTTP response headers and error responses
+    "suppress_version_info": False,
     #: Log options
     "logging": {
         "enable": None,  # True: activate 'wsgidav' logger (in library mode)

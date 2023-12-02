@@ -288,6 +288,9 @@ lock_storage: true
 #: Set verbosity level (can be overridden by -v or -q arguments)
 verbose: 3
 
+#: Suppress version info in HTTP response headers and error responses
+suppress_version_info: false
+
 logging:
     #: Enable logging when using wsgidav in library mode (always on, when running as CLI)
     enable: null

@@ -2,6 +2,11 @@
 
 ## 4.3.1 / Unreleased
 
+- New option `suppress_version_info` to suppress WsgiDAV's version info in
+  responses (default: false).
+- #298: `--root` argument honors `fs_dav_provider` configuration.
+- #301: `_DAVResource` should have `is_link()` method to avoid dir_browser issues.
+
 ## 4.3.0 / 2023-09-24
 
 - BREAKING:

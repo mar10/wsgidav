@@ -427,6 +427,9 @@ def _init_config():
     #     # import pydevd
     #     # pydevd.settrace()
 
+    if config["suppress_version_info"]:
+        util.public_wsgidav_info = "WsgiDAV"
+
     return cli_opts, config
 
 
@@ -440,7 +443,7 @@ def _run_cheroot(app, config, _server):
         return False
 
     version = (
-        f"WsgiDAV/{__version__} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
+        f"{util.public_wsgidav_info} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
     )
     # wsgi.Server.version = version
 
@@ -532,7 +535,7 @@ def _run_gevent(app, config, server):
 
     info = _get_common_info(config)
     version = f"gevent/{gevent.__version__}"
-    version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
 
     # Override or add custom args
     server_args = {
@@ -627,7 +630,7 @@ def _run_gunicorn(app, config, server):
     server_args.update(custom_args)
 
     version = f"gunicorn/{gunicorn.__version__}"
-    version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
     _logger.info(f"Running {version} ...")
 
     GunicornApplication(app, server_args).run()
@@ -650,7 +653,7 @@ def _run_paste(app, config, server):
     info = _get_common_info(config)
 
     version = httpserver.WSGIHandler.server_version
-    version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
 
     # See http://pythonpaste.org/modules/httpserver.html for more options
     server = httpserver.serve(
@@ -724,7 +727,7 @@ def _run_uvicorn(app, config, server):
     server_args.update(custom_args)
 
     version = f"uvicorn/{uvicorn.__version__}"
-    version = f"WsgiDAV/{__version__} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
     _logger.info(f"Running {version} ...")
 
     uvicorn.run(app, **server_args)
@@ -735,7 +738,7 @@ def _run_wsgiref(app, config, _server):
     from wsgiref.simple_server import WSGIRequestHandler, make_server
 
     version = WSGIRequestHandler.server_version
-    version = f"WsgiDAV/{__version__} {version}"  # Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version}"  # Python {util.PYTHON_VERSION}"
     _logger.info(f"Running {version} ...")
 
     _logger.warning(
