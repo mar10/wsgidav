@@ -228,7 +228,7 @@ See https://github.com/mar10/wsgidav for additional information.
     del args.quiet
 
     if args.root_path and not os.path.isdir(args.root_path):
-        msg = "{} is not a directory".format(args.root_path)
+        msg = f"{args.root_path} is not a directory"
         parser.error(msg)
 
     if args.version:
@@ -239,9 +239,9 @@ See https://github.com/mar10/wsgidav for additional information.
                 "64" if sys.maxsize > 2**32 else "32",
                 platform.platform(aliased=True),
             )
-            version_info += "\nPython from: {}".format(sys.executable)
+            version_info += f"\nPython from: {sys.executable}"
         else:
-            version_info = "{}".format(__version__)
+            version_info = f"{__version__}"
         print(version_info)
         sys.exit()
 
@@ -254,7 +254,7 @@ See https://github.com/mar10/wsgidav for additional information.
             defPath = os.path.abspath(filename)
             if os.path.exists(defPath):
                 if args.verbose >= 3:
-                    print("Using default configuration file: {}".format(defPath))
+                    print(f"Using default configuration file: {defPath}")
                 args.config_file = defPath
                 break
     else:
@@ -429,6 +429,7 @@ def _init_config():
 
     if config["suppress_version_info"]:
         util.public_wsgidav_info = "WsgiDAV"
+        util.public_python_info = f"Python/{sys.version_info[0]}"
 
     return cli_opts, config
 
@@ -443,7 +444,7 @@ def _run_cheroot(app, config, _server):
         return False
 
     version = (
-        f"{util.public_wsgidav_info} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
+        f"{util.public_wsgidav_info} {wsgi.Server.version} {util.public_python_info}"
     )
     # wsgi.Server.version = version
 
@@ -535,7 +536,7 @@ def _run_gevent(app, config, server):
 
     info = _get_common_info(config)
     version = f"gevent/{gevent.__version__}"
-    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} {util.public_python_info}"
 
     # Override or add custom args
     server_args = {
@@ -630,7 +631,7 @@ def _run_gunicorn(app, config, server):
     server_args.update(custom_args)
 
     version = f"gunicorn/{gunicorn.__version__}"
-    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} {util.public_python_info}"
     _logger.info(f"Running {version} ...")
 
     GunicornApplication(app, server_args).run()
@@ -653,7 +654,7 @@ def _run_paste(app, config, server):
     info = _get_common_info(config)
 
     version = httpserver.WSGIHandler.server_version
-    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} {util.public_python_info}"
 
     # See http://pythonpaste.org/modules/httpserver.html for more options
     server = httpserver.serve(
@@ -727,7 +728,7 @@ def _run_uvicorn(app, config, server):
     server_args.update(custom_args)
 
     version = f"uvicorn/{uvicorn.__version__}"
-    version = f"{util.public_wsgidav_info} {version} Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version} {util.public_python_info}"
     _logger.info(f"Running {version} ...")
 
     uvicorn.run(app, **server_args)
@@ -738,7 +739,7 @@ def _run_wsgiref(app, config, _server):
     from wsgiref.simple_server import WSGIRequestHandler, make_server
 
     version = WSGIRequestHandler.server_version
-    version = f"{util.public_wsgidav_info} {version}"  # Python {util.PYTHON_VERSION}"
+    version = f"{util.public_wsgidav_info} {version}"  # {util.public_python_info}"
     _logger.info(f"Running {version} ...")
 
     _logger.warning(

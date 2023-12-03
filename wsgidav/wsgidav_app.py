@@ -54,7 +54,7 @@ import sys
 import time
 from urllib.parse import unquote
 
-from wsgidav import util
+from wsgidav import __version__, util
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.default_conf import DEFAULT_CONFIG
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -278,8 +278,8 @@ class WsgiDAVApp:
                 _logger.error("Could not add middleware {}.".format(mw))
 
         _logger.info(
-            "{} Python/{} {}".format(
-                util.public_wsgidav_info,
+            "WsgiDAV/{} Python/{} {}".format(
+                __version__,
                 util.PYTHON_VERSION,
                 platform.platform(aliased=True),
             )

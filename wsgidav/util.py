@@ -55,6 +55,9 @@ filesystemencoding = sys.getfilesystemencoding()
 #: This is reset to ``"WsgiDAV"`` if ``suppress_version_info`` is set in the
 #: configuration.
 public_wsgidav_info = f"WsgiDAV/{__version__}"
+#: This is reset to ``"Python/3"`` if ``suppress_version_info`` is set in the
+#: configuration.
+public_python_info = f"Python/{PYTHON_VERSION}"
 
 
 class NO_DEFAULT:

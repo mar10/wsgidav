@@ -36,7 +36,7 @@ def main():
 
     # For an example, use cheroot:
     version = (
-        f"{util.public_wsgidav_info} {wsgi.Server.version} Python/{util.PYTHON_VERSION}"
+        f"{util.public_wsgidav_info} {wsgi.Server.version} {util.public_python_info}"
     )
 
     server = wsgi.Server(
