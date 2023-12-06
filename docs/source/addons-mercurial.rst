@@ -17,7 +17,7 @@ Usage
 -----
 .. note:: This is **not** production code.
 
-To publish a Mercurial repository by the share name 'hg', simply add thes lines
+To publish a Mercurial repository by the share name 'hg', simply add these lines
 to the configuration file::
 
     # Publish a Mercurial repository

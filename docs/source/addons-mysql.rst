@@ -20,7 +20,7 @@ The table's columns are mad accessible as live properties:
 
 Usage
 -----
-To publish an MySQL database, simply add thes lines to the configuration file::
+To publish an MySQL database, simply add these lines to the configuration file::
 
     ### Publish an MySQL 'world' database as share '/world-db'
     from wsgidav.samples.mysql_dav_provider import MySQLBrowserProvider
