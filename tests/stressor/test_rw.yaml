@@ -57,7 +57,7 @@ sequences:
 
     # - activity: $debug()
 
-  # Other sections can have arbitrary names and are excuted in order of appearance
+  # Other sections can have arbitrary names and are executed in order of appearance
   main:
     # Test dirbrowser for root URL
     - activity: GetRequest

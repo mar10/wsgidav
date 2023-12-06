@@ -36,7 +36,7 @@ _logger = util.get_module_logger(__name__)
 HIDDEN_KEYS = ("_id", "_url", "_title")
 
 # MongiDB doesn't accept '.' in key names, so we have to escape it.
-# Use a key that is unlikely to occur in proprty names
+# Use a key that is unlikely to occur in property names
 DOT_ESCAPE = "^"
 
 

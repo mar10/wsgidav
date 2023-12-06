@@ -53,7 +53,7 @@ class MockProxyResource(DAVNonCollection):
         # print("begin_write: {}".format(self.target_path))
         queue = FileLikeQueue(max_size=1)
 
-        # Simulate an asynchrounous consumer. We use a file, so we can check
+        # Simulate an asynchronous consumer. We use a file, so we can check
         # the result from the parent unittest process. In real live this could be
         # requests.post(..., data=queue), ...
         def _consumer():

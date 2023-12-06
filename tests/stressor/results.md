@@ -312,7 +312,7 @@ $
 ### Cheroot v8.1.0
 
 **2.9k activities per 30 sec**
-**Major Preformance Drop Introduced with v8.1.0**
+**Major Performance Drop Introduced with v8.1.0**
 ```
 $ stressor run tests/stressor/test_rw.yaml -q
 23:00:22.793 <4745440704> NOTE    All 10 sessions running, waiting for them to terminate...

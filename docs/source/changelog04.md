@@ -83,7 +83,7 @@ Also, the config file is optional, i.e. the server runs also with command line o
 
 <li>
 Property manager<br>
-Removed propertylibrary helper fuctions (only !PropManager class left).<br>
+Removed propertylibrary helper functions (only !PropManager class left).<br>
 Add property functions to davProvider
 getProperties() returns (name, value) tuples, where value is etree.Element
 or HTTPRequestException().<br>

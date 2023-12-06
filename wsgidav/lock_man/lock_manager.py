@@ -476,7 +476,7 @@ class LockManager:
                 for lock in lock_list:
                     _logger.debug("     lock={}".format(lock_string(lock)))
                     if u != url and lock["depth"] != "infinity":
-                        # We only consider parents with Depth: inifinity
+                        # We only consider parents with Depth: infinity
                         continue
                     elif principal == lock["principal"] and lock["token"] in token_list:
                         # User owns this lock

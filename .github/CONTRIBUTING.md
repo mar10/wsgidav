@@ -43,7 +43,7 @@ or using Python's builtin `venv` instead of `virtualenvwrapper`:
 ```
 
 The new environment exists and is activated.
-Now install the development dependencies into that environemt:
+Now install the development dependencies into that environment:
 ```
 (wsgidav_py34) $ pip install -r requirements-dev.txt
 ```

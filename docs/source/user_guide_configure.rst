@@ -237,7 +237,7 @@ Three syntax variants are supported:
 2. ``<share_path>: { "root": <folder_path>, "readonly": <bool> }``:
    use ``FilesystemProvider(folder_path, readonly)``
 3. ``<share_path>: { "class": <class_path>, args: [arg, ...], kwargs: {"arg1": val1, "arg2": val2, ... }}``
-   Instantiate a custom class (derrived from ``DAVProvider``) using named
+   Instantiate a custom class (derived from ``DAVProvider``) using named
    kwargs.
 
 ..
