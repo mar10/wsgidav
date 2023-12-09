@@ -86,7 +86,7 @@ If everything is cool, this should work now::
 Windows
 -------
 
-Install the preconditions if neccessary.
+Install the preconditions if necessary.
 Basically the same as for `Linux / macOS`_
 
 .. note::

@@ -390,7 +390,7 @@ def init_logging(config):
     The base logger is filtered by the `verbose` configuration option.
     Log entries will have a time stamp and thread id.
 
-    **Note:** init_logging() is automatically calle if an application adds
+    **Note:** init_logging() is automatically called if an application adds
     ``"logging": { "enable": true }`` to the configuration.
 
     Module loggers

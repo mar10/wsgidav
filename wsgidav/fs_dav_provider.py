@@ -375,7 +375,7 @@ class FolderResource(DAVCollection):
 # FilesystemProvider
 # ========================================================================
 class FilesystemProvider(DAVProvider):
-    """Default implementation of a filessystem DAVProvider.
+    """Default implementation of a filesystem DAVProvider.
 
     Args:
         root_folder (str)

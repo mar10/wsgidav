@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# NOTE: isort must not chage this import order:
+# NOTE: isort must not change this import order:
 # isort: skip_file
 
 import os

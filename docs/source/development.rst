@@ -93,7 +93,7 @@ committing the changes.  The pull request will then need to be approved before i
 .. note::
 
   Don't mix different topics in a single commit or issue. Instead submit a new pull request (and
-  even create separate branches as apropriate).
+  even create separate branches as appropriate).
 
 
 Setup for Development
@@ -120,7 +120,7 @@ Create and Activate a Virtual Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Virtual environments allow us to develop and test in a sandbox, without affecting our
-system othwerwise. |br|
+system otherwise. |br|
 We need `Python 2.7 <https://www.python.org/downloads/>`_,
 `Python 3.4+ <https://www.python.org/downloads/>`_,
 and `pip <https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip>`_ on our system.
@@ -183,7 +183,7 @@ Hack, Hack, Hack
       Since version 3.x source formatting rules are delegated to the
       `Black library <https://black.readthedocs.io/en/stable/>`_.
 
-      Failing tests or not follwing PEP 8 will break builds on
+      Failing tests or not following PEP 8 will break builds on
       `travis <https://app.travis-ci.com/github/mar10/wsgidav>`_ and therefore be
       automatically rejected:
 

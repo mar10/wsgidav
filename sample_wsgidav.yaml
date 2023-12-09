@@ -135,7 +135,7 @@ provider_mapping:
             path: '/path/to/share3'
             another_arg: 42
 
-#: Addional configuration passed to `FilesystemProvider(..., fs_opts)`
+#: Additional configuration passed to `FilesystemProvider(..., fs_opts)`
 fs_dav_provider:
     #: Mapping from request URL to physical file location, e.g.
     #: make sure that a `/favicon.ico` URL is resolved, even if a `*.html`
@@ -246,7 +246,7 @@ property_manager: null
 
 #: Optional additional live property modification
 #: Note: by default live properties like file size and last-modified time are
-#: read-only, but that can be overriden here if the underlying DAV provider
+#: read-only, but that can be overridden here if the underlying DAV provider
 #: supports it. For now only the FileSystemProvider supports it and only namely
 #: changes to the last-modified timestamp. Enable it with the mutable_live_props
 #: list as below to allow clients to use the utime system call or e.g. the

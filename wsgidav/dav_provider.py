@@ -391,7 +391,7 @@ class _DAVResource(ABC):
         return quote(self.provider.share_path + self.get_preferred_path())
 
     #    def getRefKey(self):
-    #        """Return an unambigous identifier string for a resource.
+    #        """Return an unambiguous identifier string for a resource.
     #
     #        Since it is always unique for one resource, <refKey> is used as key for
     #        the lock- and property storage dictionaries.
@@ -830,7 +830,7 @@ class _DAVResource(ABC):
             raise DAVError(HTTP_FORBIDDEN)
 
         # Handle MS Windows Win32LastModifiedTime, if enabled.
-        # Note that the WebDAV client in Win7 and earler has issues and can't be used
+        # Note that the WebDAV client in Win7 and earlier has issues and can't be used
         # with this so we ignore older clients. Others pre-Win10 should be tested.
         if name.startswith("{urn:schemas-microsoft-com:}"):
             agent = self.environ.get("HTTP_USER_AGENT", "None")
@@ -1100,7 +1100,7 @@ class _DAVResource(ABC):
           - Live properties should be moved too (e.g. creationdate)
           - Non-collections must be moved, not copied
           - For collections, this function behaves like in copy-mode:
-            detination collection must be created and properties are copied.
+            destination collection must be created and properties are copied.
             Members are NOT created.
             The source collection MUST NOT be removed.
 

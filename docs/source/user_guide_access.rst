@@ -38,7 +38,7 @@ Redirector
 The easiest way to access a WebDAV share from a Windows client is probably
 to map it as a network drive, and then use the File Explorer.
 
-If the share allows anonymous access, type this at the command promt::
+If the share allows anonymous access, type this at the command prompt::
 
     > net use W: http://192.168.0.2/
     > dir W:
@@ -67,7 +67,7 @@ To stop a connection::
 
 **Known issues on all Windows versions**
 
-* See als greenbytes `WebDAV Mini-Redirector (MRXDAV.SYS) Versions and Issues
+* See also greenbytes `WebDAV Mini-Redirector (MRXDAV.SYS) Versions and Issues
   List <http://greenbytes.de/tech/webdav/webdav-redirector-list.html>`_.
 
 * The WebDAV server must respond to PROPFIND and OPTIONS requests at the root
@@ -145,7 +145,7 @@ Microsoft's "WebFolder" client predates Windows XP's WebDAV Redirector.
 .. note::
    Some known quirks of Microsoft's "WebFolder" client are listed below.
 
-   See als greenbytes `Web Folder Client (MSDAIPP.DLL) Versions and Issues List
+   See also greenbytes `Web Folder Client (MSDAIPP.DLL) Versions and Issues List
    <http://greenbytes.de/tech/webdav/webfolder-client-list.html>`_.
 
 

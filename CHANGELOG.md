@@ -24,7 +24,7 @@
   [symlinks may be a security risk](https://serverfault.com/questions/244592/followsymlinks-on-apache-why-is-it-a-security-risk).<br>
   File resources that are symlinks are still enumerated and listed by the
   directory browser. However trying to access content will raise '403 Forbidden'
-  Pass _follow_symlinks=True_ to the FilesystemProvider constructor or yaml configration
+  Pass _follow_symlinks=True_ to the FilesystemProvider constructor or yaml configuration
   to restore the previous behavior.
 - Add `fs_dav_provider.shadow_map`, which can be used to blend in a favicon
   when context is opened inline (#230)

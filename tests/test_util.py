@@ -232,7 +232,7 @@ class LoggerTest(unittest.TestCase):
         # No output should be generated in the root logger
         assert rootOutput == ""
         # The library logger should default to INFO level
-        # (this output will not be visble, because the base logger only has a NullHandler)
+        # (this output will not be visible, because the base logger only has a NullHandler)
         assert ".debug" not in baseOutput
         assert ".info" in baseOutput
         assert ".warning" in baseOutput
@@ -256,7 +256,7 @@ class LoggerTest(unittest.TestCase):
         # Now output we should see output in the root logger
         assert rootOutput == baseOutput
         # The library logger should default to INFO level
-        # (this output will not be visble, because the base logger only has a NullHandler)
+        # (this output will not be visible, because the base logger only has a NullHandler)
         assert ".debug" not in baseOutput
         assert ".info" in baseOutput
         assert ".warning" in baseOutput

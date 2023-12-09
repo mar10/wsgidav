@@ -67,7 +67,7 @@ class FileLikeQueue:
         # Get next chunk, cumulating requested size as needed
         while res == b"" or size < 0 or (size > 0 and len(res) < size):
             try:
-                # Read pending data, blocking if neccessary
+                # Read pending data, blocking if necessary
                 # (but handle the case that close() is called while waiting)
                 res += self.queue.get(True, 0.1)
             except queue.Empty:
@@ -128,7 +128,7 @@ class StreamingFile:
     """A file object wrapped around an iterator / data stream."""
 
     def __init__(self, data_stream):
-        """Intialise the object with the data stream."""
+        """Initialise the object with the data stream."""
         self.data_stream = data_stream
         self.buffer = ""
 

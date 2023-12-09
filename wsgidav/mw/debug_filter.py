@@ -38,7 +38,7 @@ These configuration settings are evaluated:
 
     Configured like::
 
-        debug_methods = ["PROPPATCH", "PROPFIND", "GET", "HEAD", "DELET E",
+        debug_methods = ["PROPPATCH", "PROPFIND", "GET", "HEAD", "DELETE",
                          "PUT", "COPY", "MOVE", "LOCK", "UNLOCK",
                          ]
 

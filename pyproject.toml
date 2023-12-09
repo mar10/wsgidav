@@ -27,3 +27,9 @@ src_paths = ["wsgidav", "tests"]
 # [tool.flake8]
 # Flake8 currently does not support pyproject.toml.
 # See [flake8] section in setup.cfg instead.
+
+[tool.codespell]
+skip = '.git,*.pdf,*.svg,*.lock,*.css,logs'
+check-hidden = true
+# ignore-regex = ''
+# ignore-words-list = ''

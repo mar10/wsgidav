@@ -84,7 +84,7 @@ def object_to_etree(parent, obj, namespace=""):
 
     elif type(obj) is dict:
         # If the object is a dictionary we"ll need to parse it and send it back
-        # recusively
+        # recursively
         for key, value in obj.items():
             if key.startswith("{") is False:
                 key_etree = ElementTree.SubElement(parent, "{%s}%s" % (namespace, key))

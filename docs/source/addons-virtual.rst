@@ -28,7 +28,7 @@ contains some virtual files with additional information:
 
 Usage
 -----
-To publish the sample virtual resources, simply add thes lines  to the
+To publish the sample virtual resources, simply add these lines  to the
 configuration file::
 
     # Publish a virtual structure

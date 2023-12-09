@@ -3,7 +3,7 @@
 ..
   Custom formatting of module doc layout
   https://stackoverflow.com/questions/48074094/use-sphinx-autosummary-recursively-to-generate-api-documentation
-  TODO: how can we add the documented module attribuets (constants, ...)?
+  TODO: how can we add the documented module attributes (constants, ...)?
 
 .. rubric:: Description
 

@@ -260,13 +260,13 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wsgiSentHeaders = 1
         # Send the data
-        assert type(data) is bytes  # If not, Content-Length is propably wrong!
+        assert type(data) is bytes  # If not, Content-Length is probably wrong!
         _logger.debug(
             "wsgiWriteData: write {} bytes: '{!r}'...".format(
                 len(data), util.to_str(data[:50])
             )
         )
-        if util.is_str(data):  # If not, Content-Length is propably wrong!
+        if util.is_str(data):  # If not, Content-Length is probably wrong!
             _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
             # data = util.wsgi_to_bytes(data)
             data = util.to_bytes(data)
