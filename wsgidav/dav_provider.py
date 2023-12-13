@@ -220,7 +220,7 @@ class _DAVResource(ABC):
             return None
         raise NotImplementedError
 
-    def get_creation_date(self) -> Optional[datetime]:
+    def get_creation_date(self) -> Optional[float]:
         """Records the time and date the resource was created.
 
         The creationdate property should be defined on all DAV compliant
