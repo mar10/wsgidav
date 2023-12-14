@@ -3,14 +3,14 @@
 *****
 
 **What do I need to run WsgiDAV?**
-    See :doc:`run-install` for details.
+    See :doc:`installation` for details.
 
 **Which web servers are supported?**
     WsgiDAV comes with a standalone server, to run out of the box.
     There is also built-in support for cheroot, ext-wsgiutils, gevent, gunicorn,
     paste, uvicorn, and wsgiref.
 
-    See :doc:`run-configure` for details.
+    See :doc:`user_guide_configure` for details.
 
 **Which configuration do you recommend?**
     Currently Cherroot seems to be very robust. Also installing lxml is
@@ -22,7 +22,7 @@
     Basically all WebDAV clients on all platforms, though some of them show odd
     behaviors.
 
-    See :doc:`run-access` for details.
+    See :doc:`user_guide_access` for details.
 
 **I found a bug, what should I do?**
     First, check the `issue list <https://github.com/mar10/wsgidav/issues>`_,
