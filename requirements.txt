@@ -1,4 +1,4 @@
-defusedxml~=0.5
+defusedxml~=0.7.1
 Jinja2~=3.0
 json5~=0.8.5
 python-pam~=2.0

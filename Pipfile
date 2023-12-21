@@ -35,7 +35,7 @@ safety = "*"
 yabs = "*"
 
 [packages]
-defusedxml = "*"  # "~=0.5"
+defusedxml = "*"  # "~=0.7"
 Jinja2 = "*"  # "~=2.10"
 PyYAML = "*"  # "~=5.1"
 json5 = "*"
