@@ -28,7 +28,7 @@
 
   {%- if user_name and config.show_user %}
   <p class="auth-user">
-    | User: "{{user_name}}" | On: "{{realm}}" |
+    | User: <span class="user-text">{{user_name}}</span> | On: <span class="user-text">{{realm}}</span> |
     {%- if is_authenticated and config.show_logout %}
       <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
     {% endif -%}

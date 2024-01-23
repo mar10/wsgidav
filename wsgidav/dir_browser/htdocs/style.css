@@ -70,7 +70,6 @@ p.trailer {
 }
 a {
   color: #04BF8A;
-
 }
 hr {
   color: #fff;
@@ -81,4 +80,7 @@ td {
 }
 span {
   color: #fff;
+}
+.user-text {
+  color: #04BF8A;
 }
