@@ -78,13 +78,13 @@
       <tr class="{{ row.tr_class }}">
         <td>
           <a class="{{ row.a_class }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
-            <span>
+            <span class="item-text">
               {{row.display_name}}
             </span>
           </a>
           {%- if row.href_2 %}
             <a class="{{ row.a_class_2 }}" href="{{row.href_2}}" {% if row.ofe_prefix_2%} data-ofe="{{row.ofe_prefix_2}}" {% endif %} >
-              <span>
+              <span class="item-text">
                 {{row.display_name_2}}
               </span>
             </a>
