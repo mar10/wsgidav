@@ -249,15 +249,12 @@ class DAVError(Exception):
             "  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>"
         )
         html.append("  <title>{}</title>".format(status))
-        html.append("</head><body>")
-        html.append("  <h1>{}</h1>".format(status))
-        html.append("  <p>{}</p>".format(html_escape(self.get_user_info())))
-        html.append("<hr/>")
+        html.append("</head><body style="background:#12141b; font-family:sans-serif; color:white;">")
+        html.append("  <h1 style="color:white;">{}</h1>".format(status))
+        html.append("  <p style="color:white;">{}</p>".format(html_escape(self.get_user_info())))
+        html.append("<hr style="color:white;"/>")
         html.append(
-            "<a href='https://github.com/mar10/wsgidav/'>{}</a> - {}".format(
-                util.public_wsgidav_info,
-                html_escape(str(datetime.datetime.now()), "utf-8"),
-            )
+            "<h3>Powered by<a href='https://torbox.app' style="color:#04BF8A;">{}</a>.</h3>".format(" TorBox.app")
         )
         html.append("</body></html>")
         html = "\n".join(html)
