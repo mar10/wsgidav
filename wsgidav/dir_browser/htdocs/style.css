@@ -13,6 +13,8 @@ img {
   border: 0;
   padding: 0 2px;
   vertical-align: text-bottom;
+  width: 64px;
+  height: 64px;
 }
 table.dir-listing {
   border: 0;
@@ -68,6 +70,7 @@ p.trailer {
 }
 a {
   color: #04BF8A;
+
 }
 hr {
   color: #fff;
