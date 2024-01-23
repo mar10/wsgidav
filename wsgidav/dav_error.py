@@ -254,7 +254,7 @@ class DAVError(Exception):
         html.append('  <p style="color:white;">{}</p>'.format(html_escape(self.get_user_info())))
         html.append('<hr style="color:white;"/>')
         html.append(
-            "<h3>Powered by<a href='https://torbox.app' style="color:#04BF8A;">{}</a>.</h3>".format(" TorBox.app")
+            "<h3>Powered by<a href='https://torbox.app' style='color:#04BF8A;'>{}</a>.</h3>".format(" TorBox.app")
         )
         html.append("</body></html>")
         html = "\n".join(html)
