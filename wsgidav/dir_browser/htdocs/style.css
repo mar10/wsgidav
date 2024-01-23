@@ -1,7 +1,10 @@
 body {
   margin: 0;
   padding: 8px;
-  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Inter", sans-serif;
+  color-scheme: dark;
+  background: #12141b;
+  color: #fff;
 }
 h1 {
   margin: 4px 0 4px 0;
@@ -50,10 +53,23 @@ table.dir-listing td:nth-child(3)
 {
   text-align: right;
 }
+p {
+  color: #fff;
+}
+h3 {
+  color: #fff;
+}
 p.auth-user {
   font-size: smaller;
   text-align: right;
 }
 p.trailer {
   font-size: smaller;
+}
+a {
+  color: #04BF8A;
+}
+hr {
+  color: #fff;
+  background-color: #fff;
 }
