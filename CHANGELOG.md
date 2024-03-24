@@ -6,6 +6,7 @@
   responses (default: false).
 - #298: `--root` argument honors `fs_dav_provider` configuration.
 - #301: `_DAVResource` should have `is_link()` method to avoid dir_browser issues.
+- [#308](https://github.com/mar10/wsgidav/issues/308) remove defusedxml dependency
 
 ## 4.3.0 / 2023-09-24
 

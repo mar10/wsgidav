@@ -17,16 +17,11 @@ _logger = logging.getLogger("wsgidav")
 # Import XML support
 use_lxml = False
 try:
-    # This import helps setup.py to include lxml completely:
-    # lxml with safe defaults
-    from defusedxml.lxml import _etree as etree
-    from lxml import _elementpath as _dummy_elementpath  # noqa
+    from lxml import etree
 
     use_lxml = True
     _ElementType = etree._Element
 except ImportError:
-    # warnings.warn("Could not import lxml")  # , ImportWarning)
-    # Try xml module (Python 2.5 or later) with safe defaults
     # defusedxml doesn't define these non-parsing related objects
     from xml.etree.ElementTree import Element, SubElement, tostring
 
@@ -49,7 +44,7 @@ def is_etree_element(obj):
 def string_to_xml(text):
     """Convert XML string into etree.Element."""
     try:
-        return etree.XML(text)
+        return etree.XML(text, forbid_entities=True)
     except Exception:
         # TODO:
         # ExpatError: reference to invalid character number: line 1, column 62
