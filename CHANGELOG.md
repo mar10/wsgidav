@@ -1,12 +1,14 @@
 # Changelog
 
-## 4.3.1 / Unreleased
+## 4.3.2 / Unreleased
+
+## 4.3.1 / 2024-03-24
 
 - New option `suppress_version_info` to suppress WsgiDAV's version info in
   responses (default: false).
 - #298: `--root` argument honors `fs_dav_provider` configuration.
 - #301: `_DAVResource` should have `is_link()` method to avoid dir_browser issues.
-- [#308](https://github.com/mar10/wsgidav/issues/308) remove defusedxml dependency
+- #308: remove defusedxml dependency.
 
 ## 4.3.0 / 2023-09-24
 
