@@ -18,7 +18,7 @@ pytest = "*"  # "~=7.3"
 pytest-cov = "*"  # "~=4.0"
 pytest-html = "*"
 python-pam = "*"  # "~=1.8"
-pywin32 = {version = "*", os_name = "== 'nt'"}
+pywin32 = {version = "*", markers="sys_platform == 'win32'"}
 recommonmark = "*"
 requests = "*"
 rope = "*"
@@ -39,10 +39,9 @@ defusedxml = "*"  # "~=0.7"
 Jinja2 = "*"  # "~=2.10"
 PyYAML = "*"  # "~=5.1"
 json5 = "*"
-wsgidav = {editable = true, path = "."}
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
 
 [pipenv]
 # allow_prereleases = true

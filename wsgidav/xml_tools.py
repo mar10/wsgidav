@@ -44,7 +44,7 @@ def is_etree_element(obj):
 def string_to_xml(text):
     """Convert XML string into etree.Element."""
     try:
-        return etree.XML(text, forbid_entities=True)
+        return etree.XML(text)
     except Exception:
         # TODO:
         # ExpatError: reference to invalid character number: line 1, column 62
