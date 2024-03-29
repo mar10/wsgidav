@@ -39,7 +39,7 @@ jobs:
         run: |
           python -V
           python -m pip install --upgrade pip
-          python -m pip install cheroot defusedxml Jinja2 json5 PyYAML pytest pytest-cov pytest-html redis requests webtest
+          python -m pip install cheroot defusedxml Jinja2 json5 PyYAML pytest pytest-cov pytest-html redis requests ruff webtest
           # python -m pip install pytest pytest-cov pytest-html requests ruff
           # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
