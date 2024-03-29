@@ -112,7 +112,7 @@ class MongoPropertyManager:
         return propNames
 
     def get_property(self, norm_url, name, environ=None):
-        _logger.debug("get_property(%s, %s)" % (norm_url, name))
+        _logger.debug(f"get_property({norm_url}, {name})")
         doc = self.collection.find_one({"_url": norm_url})
         if not doc:
             return None
@@ -142,7 +142,7 @@ class MongoPropertyManager:
 
     def remove_property(self, norm_url, name, dry_run=False, environ=None):
         """ """
-        _logger.debug("remove_property(%s, %s, dry_run=%s)" % (norm_url, name, dry_run))
+        _logger.debug(f"remove_property({norm_url}, {name}, dry_run={dry_run})")
         if dry_run:
             # TODO: can we check anything here?
             return
@@ -164,15 +164,15 @@ class MongoPropertyManager:
         doc = self.collection.find_one({"_url": srcUrl})
         if not doc:
             _logger.debug(
-                "copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl)
+                f"copy_properties({srcUrl}, {destUrl}): src has no properties"
             )
             return
-        _logger.debug("copy_properties(%s, %s)" % (srcUrl, destUrl))
+        _logger.debug(f"copy_properties({srcUrl}, {destUrl})")
         doc2 = doc.copy()
         self.collection.insert(doc2)
 
     def move_properties(self, srcUrl, destUrl, with_children, environ=None):
-        _logger.debug("move_properties(%s, %s, %s)" % (srcUrl, destUrl, with_children))
+        _logger.debug(f"move_properties({srcUrl}, {destUrl}, {with_children})")
         if with_children:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
             matchBegin = "^" + srcUrl.rstrip("/") + "/"
@@ -180,7 +180,7 @@ class MongoPropertyManager:
             docList = self.collection.find(query)
             for doc in docList:
                 newDest = doc["_url"].replace(srcUrl, destUrl)
-                _logger.debug("move property %s -> %s" % (doc["_url"], newDest))
+                _logger.debug("move property {} -> {}".format(doc["_url"], newDest))
                 doc["_url"] = newDest
                 self.collection.save(doc)
         else:
@@ -188,7 +188,7 @@ class MongoPropertyManager:
             # TODO: use findAndModify()?
             doc = self.collection.find_one({"_url": srcUrl})
             if doc:
-                _logger.debug("move property %s -> %s" % (doc["_url"], destUrl))
+                _logger.debug("move property {} -> {}".format(doc["_url"], destUrl))
                 doc["_url"] = destUrl
                 self.collection.save(doc)
         return

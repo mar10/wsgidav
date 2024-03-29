@@ -479,12 +479,12 @@ class VirtualArtifact(_VirtualNonCollection):
         return True
 
     def get_ref_url(self):
-        refPath = "/by_key/%s/%s" % (self.data["key"], self.name)
+        refPath = "/by_key/{}/{}".format(self.data["key"], self.name)
         return quote(self.provider.share_path + refPath)
 
     def get_content(self):
         fileLinks = [
-            "<a href='%s'>%s</a>\n" % (os.path.basename(f), f)
+            f"<a href='{os.path.basename(f)}'>{f}</a>\n"
             for f in self.data["resPathList"]
         ]
         dict = self.data.copy()
@@ -578,7 +578,9 @@ class VirtualResFile(_VirtualNonCollection):
         return statresults[stat.ST_MTIME]
 
     def get_ref_url(self):
-        refPath = "/by_key/%s/%s" % (self.data["key"], os.path.basename(self.file_path))
+        refPath = "/by_key/{}/{}".format(
+            self.data["key"], os.path.basename(self.file_path)
+        )
         return quote(self.provider.share_path + refPath)
 
     def get_content(self):

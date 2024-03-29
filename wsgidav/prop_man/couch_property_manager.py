@@ -115,7 +115,7 @@ class CouchPropertyManager:
         """Return properties document for path."""
         # Query the permanent view to find a url
         vr = self.db.view("properties/by_url", key=url, include_docs=True)
-        _logger.debug("find(%r) returned %s" % (url, len(vr)))
+        _logger.debug(f"find({url!r}) returned {len(vr)}")
         assert len(vr) <= 1, "Found multiple matches for %r" % url
         for row in vr:
             assert row.doc
@@ -148,7 +148,7 @@ class CouchPropertyManager:
         return propNames
 
     def get_property(self, norm_url, name, environ=None):
-        _logger.debug("get_property(%s, %s)" % (norm_url, name))
+        _logger.debug(f"get_property({norm_url}, {name})")
         doc = self._find(norm_url)
         if not doc:
             return None
@@ -183,7 +183,7 @@ class CouchPropertyManager:
         self.db.save(doc)
 
     def remove_property(self, norm_url, name, dry_run=False, environ=None):
-        _logger.debug("remove_property(%s, %s, dry_run=%s)" % (norm_url, name, dry_run))
+        _logger.debug(f"remove_property({norm_url}, {name}, dry_run={dry_run})")
         if dry_run:
             # TODO: can we check anything here?
             return
@@ -205,10 +205,10 @@ class CouchPropertyManager:
         doc = self._find(srcUrl)
         if not doc:
             _logger.debug(
-                "copy_properties(%s, %s): src has no properties" % (srcUrl, destUrl)
+                f"copy_properties({srcUrl}, {destUrl}): src has no properties"
             )
             return
-        _logger.debug("copy_properties(%s, %s)" % (srcUrl, destUrl))
+        _logger.debug(f"copy_properties({srcUrl}, {destUrl})")
         assert not self._find(destUrl)
         doc2 = {
             "_id": uuid4().hex,
@@ -220,13 +220,13 @@ class CouchPropertyManager:
         self.db.save(doc2)
 
     def move_properties(self, srcUrl, destUrl, with_children, environ=None):
-        _logger.debug("move_properties(%s, %s, %s)" % (srcUrl, destUrl, with_children))
+        _logger.debug(f"move_properties({srcUrl}, {destUrl}, {with_children})")
         if with_children:
             # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
             docList = self._find_descendents(srcUrl)
             for doc in docList:
                 newDest = doc["url"].replace(srcUrl, destUrl)
-                _logger.debug("move property %s -> %s" % (doc["url"], newDest))
+                _logger.debug("move property {} -> {}".format(doc["url"], newDest))
                 doc["url"] = newDest
                 self.db.save(doc)
         else:
@@ -234,7 +234,7 @@ class CouchPropertyManager:
             # TODO: use findAndModify()?
             doc = self._find(srcUrl)
             if doc:
-                _logger.debug("move property %s -> %s" % (doc["url"], destUrl))
+                _logger.debug("move property {} -> {}".format(doc["url"], destUrl))
                 doc["url"] = destUrl
                 self.db.save(doc)
         return

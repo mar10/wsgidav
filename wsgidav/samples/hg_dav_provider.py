@@ -175,7 +175,7 @@ class HgResource(_DAVResource):
     def get_display_name(self):
         if self.is_collection or self.fctx.filerev() is None:
             return self.name
-        return "%s@%s" % (self.name, self.fctx.filerev())
+        return f"{self.name}@{self.fctx.filerev()}"
 
     def get_etag(self):
         return (
@@ -368,14 +368,14 @@ class HgResource(_DAVResource):
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
-        _logger.info("handle_copy %s -> %s" % (self.localHgPath, destHgPath))
+        _logger.info(f"handle_copy {self.localHgPath} -> {destHgPath}")
         if self.rev is None and destType == "edit":
             # COPY /edit/a/b to /edit/c/d: turn into 'hg copy -f a/b c/d'
             commands.copy(ui, repo, self.localHgPath, destHgPath, force=True)
         elif self.rev is None and destType == "released":
             # COPY /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
-            self._commit("WsgiDAV commit (COPY %s -> %s)" % (self.path, dest_path))
+            self._commit(f"WsgiDAV commit (COPY {self.path} -> {dest_path})")
         else:
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
@@ -387,14 +387,14 @@ class HgResource(_DAVResource):
         destHgPath = destHgPath.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
-        _logger.info("handle_copy %s -> %s" % (self.localHgPath, destHgPath))
+        _logger.info(f"handle_copy {self.localHgPath} -> {destHgPath}")
         if self.rev is None and destType == "edit":
             # MOVE /edit/a/b to /edit/c/d: turn into 'hg rename -f a/b c/d'
             commands.rename(ui, repo, self.localHgPath, destHgPath, force=True)
         elif self.rev is None and destType == "released":
             # MOVE /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
-            self._commit("WsgiDAV commit (MOVE %s -> %s)" % (self.path, dest_path))
+            self._commit(f"WsgiDAV commit (MOVE {self.path} -> {dest_path})")
         else:
             raise DAVError(HTTP_FORBIDDEN)
         # Return True: request was handled
@@ -546,14 +546,14 @@ class HgResourceProvider(DAVProvider):
                     if p1 == "":
                         p1 = p2
                     else:
-                        p1 = "%s/%s" % (p1, p2)
+                        p1 = f"{p1}/{p2}"
                 dirinfos.setdefault(p1, ([], []))[1].append(parents[-1])
             filedict[file] = True
         files.sort()
 
         cache = {"files": files, "dirinfos": dirinfos, "filedict": filedict}
         caches[util.to_str(rev)] = cache
-        _logger.info("_getRepoInfo(%s) took %.3f" % (rev, time.time() - start_time))
+        _logger.info(f"_getRepoInfo({rev}) took {time.time() - start_time:.3f}")
         return cache
 
     #    def _listMembers(self, path, rev=None):

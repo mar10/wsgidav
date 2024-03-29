@@ -258,7 +258,7 @@ class MySQLBrowserResource(_DAVResource):
             conn = self.provider._init_connection()
             fieldlist = self.provider._get_field_list(conn, tableName)
             for fieldname in fieldlist:
-                propNames.append("{%s:}%s" % (tableName, fieldname))
+                propNames.append(f"{{{tableName}:}}{fieldname}")
             conn.close()
         return propNames
 
@@ -316,12 +316,7 @@ class MySQLBrowserProvider(DAVProvider):
         self._count_initConnection = 0
 
     def __repr__(self):
-        return "%s for db '%s' on '%s' (user: '%s')'" % (
-            self.__class__.__name__,
-            self._db,
-            self._host,
-            self._user,
-        )
+        return f"{self.__class__.__name__} for db '{self._db}' on '{self._host}' (user: '{self._user}')'"
 
     def _split_path(self, path):
         """Return (tableName, primaryKey) tuple for a request path."""

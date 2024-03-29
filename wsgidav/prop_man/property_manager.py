@@ -91,7 +91,7 @@ class PropertyManager:
             if not self._loaded:
                 return True
             for k, v in self._dict.items():
-                _dummy = "{}, {}".format(k, v)  # noqa
+                _dummy = f"{k}, {v}"  # noqa
             #            _logger.debug("{} checks ok {}".format(self.__class__.__name__, msg))
             return True
         except Exception:

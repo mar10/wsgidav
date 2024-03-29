@@ -114,8 +114,7 @@ class RequestServer:
             )
             # sort: 0:"calls",1:"time", 2: "cumulative"
             profile.print_stats(sort=2)
-            for v in res:
-                yield v
+            yield from res
             if hasattr(res, "close"):
                 res.close()
             return
@@ -126,9 +125,7 @@ class RequestServer:
         # _logger.warning("#1... 2")
         try:
             # _logger.warning("#1... 3")
-            for v in app_iter:
-                # _logger.warning("#1... 4")
-                yield v
+            yield from app_iter
             # _logger.warning("#1... 5")
         # except Exception:
         #     _logger.warning("#1... 6")
