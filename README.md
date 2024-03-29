@@ -44,7 +44,10 @@ Main features:
 
   - **Note:** Windows users may prefer the
     [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
-    (see <kbd>Assets</kbd> section).
+    (see <kbd>Assets</kbd> section), or use _winget_:
+    ```ps1
+    > winget install wsgidav
+    ```
 
   - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
     web server with SSL support.
