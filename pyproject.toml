@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 88
-target-version = ['py36', 'py37', 'py38']
+target-version = ['py38', 'py39', 'py310', 'py311']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -31,20 +31,34 @@ src_paths = ["wsgidav", "tests"]
 target-version = "py38"
 src = ["wsgidav", "tests"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["wsgidav", "tests"]
+
 [tool.ruff.lint]
 select = [
+  "B",  # bugbear
   "E",  # pycodestyle
   "F",  # pyflakes
   "G",  # flake8-logging-format
   "UP", # pyupgrade
   "T",  # print, ...
   # "D",   # pydocstyle
+  "I", # isort
+  # "C",  # codespell
+  # "SIM",  # 
 ]
 ignore = [
   # We need the old syntax for python <= 3.9
   "UP006", # Use `list` instead of `List` for type annotations (since Py39)
   "UP007", # Use `X | Y` for type annotations (since Py310)
   "E721",  #  Do not compare types, use `isinstance()`
+  "E501",  # Line too long
+  "G001",  # Logging statement uses str.format
+  "G002",  # Logging statement uses % formatting
+  "G004",  # Logging format string does not contain any variables
+  "T201",  # `print()` statement found
+  "T203",  # `pprint()` statement found
+  "UP031", # Use format specifiers instead of percent format
 ]
 
 # [tool.ruff.pydocstyle]

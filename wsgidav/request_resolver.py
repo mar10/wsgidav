@@ -220,8 +220,9 @@ class RequestResolver(BaseMiddleware):
         # request
         app = RequestServer(provider)
         app_iter = app(environ, start_response)
-        for v in app_iter:
-            yield v
+
+        yield from app_iter
+
         if hasattr(app_iter, "close"):
             app_iter.close()
         return

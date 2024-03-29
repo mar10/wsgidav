@@ -31,6 +31,7 @@ Configuration is defined like this:
        ``--root=FOLDER`` option creates a FilesystemProvider that publishes
        FOLDER on the '/' share.
 """
+
 import argparse
 import copy
 import logging

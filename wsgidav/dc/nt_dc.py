@@ -95,7 +95,9 @@ class NTDomainController(BaseDomainController):
         self.preset_server = dc_conf.get("preset_server")
 
     def __str__(self):
-        return f"{self.__class__.__name__}({self.preset_domain!r}, {self.preset_server!r})"
+        return (
+            f"{self.__class__.__name__}({self.preset_domain!r}, {self.preset_server!r})"
+        )
 
     def get_domain_realm(self, path_info, environ):
         return "Windows Domain Authentication"
@@ -202,9 +204,7 @@ class NTDomainController(BaseDomainController):
                 win32security.LOGON32_PROVIDER_DEFAULT,
             )
             if not htoken:
-                _logger.warning(
-                    f"LogonUser({user_name!r}, {domain!r}, '***') failed."
-                )
+                _logger.warning(f"LogonUser({user_name!r}, {domain!r}, '***') failed.")
                 return False
         except win32security.error as err:
             _logger.warning(

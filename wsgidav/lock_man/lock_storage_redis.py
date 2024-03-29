@@ -145,9 +145,7 @@ class LockStorageRedis:
         else:
             self._redis.lpush(key, token)
         self._flush()
-        _logger.debug(
-            f"LockStorageRedis.set({org_path!r}): {lock_string(lock)}"
-        )
+        _logger.debug(f"LockStorageRedis.set({org_path!r}): {lock_string(lock)}")
         return lock
 
     def refresh(self, token, *, timeout):

@@ -59,9 +59,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             self.htdocs_path = os.path.join(os.path.dirname(__file__), "htdocs")
 
         if not os.path.isdir(self.htdocs_path):
-            raise ValueError(
-                f"Invalid dir_browser htdocs_path {self.htdocs_path!r}"
-            )
+            raise ValueError(f"Invalid dir_browser htdocs_path {self.htdocs_path!r}")
 
         # Add an additional read-only FS provider that serves the dir_browser assets
         self.wsgidav_app.add_provider(ASSET_SHARE, self.htdocs_path, readonly=True)

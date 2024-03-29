@@ -1,6 +1,7 @@
 """
 Abstract base middleware class (optional use).
 """
+
 from abc import ABC, abstractmethod
 
 from wsgidav.util import NO_DEFAULT, get_dict_value

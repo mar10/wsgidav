@@ -267,9 +267,7 @@ class WsgiDAVApp:
             # Add middleware to the stack
             if app:
                 if callable(getattr(app, "is_disabled", None)) and app.is_disabled():
-                    _logger.warning(
-                        f"App {app}.is_disabled() returned True: skipping."
-                    )
+                    _logger.warning(f"App {app}.is_disabled() returned True: skipping.")
                 else:
                     mw_list.append(app)
                     self.application = app
@@ -594,8 +592,7 @@ class WsgiDAVApp:
         # Call first middleware
         app_iter = self.application(environ, _start_response_wrapper)
         try:
-            for v in app_iter:
-                yield v
+            yield from app_iter
         finally:
             if hasattr(app_iter, "close"):
                 app_iter.close()

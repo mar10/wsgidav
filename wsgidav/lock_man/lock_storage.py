@@ -151,9 +151,7 @@ class LockStorageDict:
                 return None
             expire = float(lock["expire"])
             if expire >= 0 and expire < time.time():
-                _logger.debug(
-                    f"Lock timed-out({expire}): {lock_string(lock)}"
-                )
+                _logger.debug(f"Lock timed-out({expire}): {lock_string(lock)}")
                 self.delete(token)
                 return None
             return lock
@@ -217,9 +215,7 @@ class LockStorageDict:
                 tokList.append(token)
                 self._dict[key] = tokList
             self._flush()
-            _logger.debug(
-                f"LockStorageDict.set({org_path!r}): {lock_string(lock)}"
-            )
+            _logger.debug(f"LockStorageDict.set({org_path!r}): {lock_string(lock)}")
             return lock
         finally:
             self._lock.release()

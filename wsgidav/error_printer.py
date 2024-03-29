@@ -79,7 +79,7 @@ class ErrorPrinter(BaseMiddleware):
                 # Caught a non-DAVError
                 # Catch all exceptions to return as 500 Internal Error
                 _logger.error(f"{traceback.format_exc(10)}")
-                raise as_DAVError(e)
+                raise as_DAVError(e) from None
         except DAVError as e:
             _logger.debug(f"Caught {e}")
 
@@ -87,9 +87,7 @@ class ErrorPrinter(BaseMiddleware):
             # Dump internal errors to console
             if e.value == HTTP_INTERNAL_ERROR:
                 tb = traceback.format_exc(10)
-                _logger.error(
-                    f"Caught HTTPRequestException(HTTP_INTERNAL_ERROR)\n{tb}"
-                )
+                _logger.error(f"Caught HTTPRequestException(HTTP_INTERNAL_ERROR)\n{tb}")
                 # traceback.print_exc(10, environ.get("wsgi.errors") or sys.stdout)
                 _logger.error(f"e.src_exception:\n{e.src_exception}")
             elif e.value in (HTTP_NOT_MODIFIED, HTTP_NO_CONTENT):

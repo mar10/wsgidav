@@ -110,9 +110,7 @@ def make_domain_controller(wsgidav_app, config):
         # If a class is passed, instantiate that
         dc = dc(wsgidav_app, config)
     else:
-        raise RuntimeError(
-            f"Could not resolve domain controller class (got {org_dc})"
-        )
+        raise RuntimeError(f"Could not resolve domain controller class (got {org_dc})")
     # print("make_domain_controller", dc)
     return dc
 
@@ -383,9 +381,7 @@ class HTTPAuthenticator(BaseMiddleware):
             req_username = auth_header_dict["username"]
             if not req_username:
                 is_invalid_req = True
-                invalid_req_reasons.append(
-                    f"`username` is empty: {req_username!r}"
-                )
+                invalid_req_reasons.append(f"`username` is empty: {req_username!r}")
             elif r"\\" in req_username:
                 # Hotfix for Windows XP:
                 #   net use W: http://127.0.0.1/dav /USER:DOMAIN\tester tester
@@ -493,9 +489,7 @@ class HTTPAuthenticator(BaseMiddleware):
                     f"Rejected by DC.digest_auth_user({realm!r}, {req_username!r})"
                 )
             elif required_digest != req_response:
-                warning_msg = (
-                    f"_compute_digest_response({realm!r}, {req_username!r}, ...): {required_digest} != {req_response}"
-                )
+                warning_msg = f"_compute_digest_response({realm!r}, {req_username!r}, ...): {required_digest} != {req_response}"
                 if self.winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest

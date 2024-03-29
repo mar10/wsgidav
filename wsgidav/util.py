@@ -734,9 +734,7 @@ def to_unicode_safe(s):
     try:
         u = to_str(s, "utf8")
     except ValueError:
-        _logger.error(
-            f"to_unicode_safe({s!r}) *** UTF-8 failed. Trying ISO-8859-1"
-        )
+        _logger.error(f"to_unicode_safe({s!r}) *** UTF-8 failed. Trying ISO-8859-1")
         u = to_str(s, "ISO-8859-1")
     return u
 
@@ -1159,7 +1157,7 @@ def parse_xml_body(environ, *, allow_empty=False):
             if content_length < 0:
                 raise DAVError(HTTP_BAD_REQUEST, "Negative content-length.")
         except ValueError:
-            raise DAVError(HTTP_BAD_REQUEST, "content-length is not numeric.")
+            raise DAVError(HTTP_BAD_REQUEST, "content-length is not numeric.") from None
 
         if content_length == 0:
             requestbody = ""
@@ -1176,7 +1174,9 @@ def parse_xml_body(environ, *, allow_empty=False):
     try:
         rootEL = etree.fromstring(requestbody)
     except Exception as e:
-        raise DAVError(HTTP_BAD_REQUEST, "Invalid XML format.", src_exception=e)
+        raise DAVError(
+            HTTP_BAD_REQUEST, "Invalid XML format.", src_exception=e
+        ) from None
 
     # If dumps of the body are desired, then this is the place to do it pretty:
     if environ.get("wsgidav.dump_request_body"):
@@ -1437,7 +1437,9 @@ def get_file_etag(file_path):
 
     fstat = os.stat(unicode_file_path)
     if sys.platform == "win32":
-        etag = f"{md5(file_path).hexdigest()}-{fstat[stat.ST_MTIME]}-{fstat[stat.ST_SIZE]}"
+        etag = (
+            f"{md5(file_path).hexdigest()}-{fstat[stat.ST_MTIME]}-{fstat[stat.ST_SIZE]}"
+        )
     else:
         etag = f"{fstat[stat.ST_INO]}-{fstat[stat.ST_MTIME]}-{fstat[stat.ST_SIZE]}"
     return etag
@@ -1705,9 +1707,7 @@ def parse_if_header_dict(environ):
 
 
 def test_if_header_dict(dav_res, if_dict, fullurl, locktoken_list, entity_tag):
-    _logger.debug(
-        f"test_if_header_dict({fullurl}, {locktoken_list}, {entity_tag})"
-    )
+    _logger.debug(f"test_if_header_dict({fullurl}, {locktoken_list}, {entity_tag})")
 
     if fullurl in if_dict:
         listTest = if_dict[fullurl]

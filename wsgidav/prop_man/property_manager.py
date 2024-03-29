@@ -95,9 +95,7 @@ class PropertyManager:
             #            _logger.debug("{} checks ok {}".format(self.__class__.__name__, msg))
             return True
         except Exception:
-            _logger.exception(
-                f"{self.__class__.__name__} _check: ERROR {msg}"
-            )
+            _logger.exception(f"{self.__class__.__name__} _check: ERROR {msg}")
             return False
 
     def _dump(self, msg=""):
@@ -145,9 +143,7 @@ class PropertyManager:
             try:
                 resourceprops = self._dict[norm_url]
             except Exception as e:
-                _logger.exception(
-                    f"get_property({norm_url}, {name}) failed : {e}"
-                )
+                _logger.exception(f"get_property({norm_url}, {name}) failed : {e}")
                 raise
             return resourceprops.get(name)
         finally:
@@ -187,9 +183,7 @@ class PropertyManager:
         """
         Specifying the removal of a property that does not exist is NOT an error.
         """
-        _logger.debug(
-            f"remove_property({norm_url}, {name}, dry_run={dry_run})"
-        )
+        _logger.debug(f"remove_property({norm_url}, {name}, dry_run={dry_run})")
         if dry_run:
             # TODO: can we check anything here?
             return
@@ -239,9 +233,7 @@ class PropertyManager:
             self._lock.release()
 
     def move_properties(self, src_url, dest_url, with_children, environ=None):
-        _logger.debug(
-            f"move_properties({src_url}, {dest_url}, {with_children})"
-        )
+        _logger.debug(f"move_properties({src_url}, {dest_url}, {with_children})")
         self._lock.acquire_write()
         try:
             if __debug__ and self._verbose >= 4:

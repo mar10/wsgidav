@@ -159,15 +159,11 @@ class LockManager:
 
         _logger.info(f"Locks:\n{pformat(tokenDict, indent=0, width=255)}")
         if tokenDict:
-            _logger.info(
-                f"Locks by URL:\n{pformat(urlDict, indent=4, width=255)}"
-            )
+            _logger.info(f"Locks by URL:\n{pformat(urlDict, indent=4, width=255)}")
             _logger.info(
                 f"Locks by principal:\n{pformat(userDict, indent=4, width=255)}"
             )
-            _logger.info(
-                f"Locks by owner:\n{pformat(ownerDict, indent=4, width=255)}"
-            )
+            _logger.info(f"Locks by owner:\n{pformat(ownerDict, indent=4, width=255)}")
 
     def _generate_lock(
         self, principal, lock_type, lock_scope, lock_depth, lock_owner, path, timeout
@@ -385,9 +381,7 @@ class LockManager:
             while u:
                 lock_list = self.get_url_lock_list(u)
                 for lock in lock_list:
-                    _logger.debug(
-                        f"    check parent {u}, {lock_string(lock)}"
-                    )
+                    _logger.debug(f"    check parent {u}, {lock_string(lock)}")
                     if u != url and lock["depth"] != "infinity":
                         # We only consider parents with Depth: infinity
                         continue
@@ -411,9 +405,7 @@ class LockManager:
                 for lock in child_ocks:
                     assert util.is_child_uri(url, lock["root"])
                     #                    if util.is_child_uri(url, lock["root"]):
-                    _logger.debug(
-                        f" -> DENIED due to locked child {lock_string(lock)}"
-                    )
+                    _logger.debug(f" -> DENIED due to locked child {lock_string(lock)}")
                     errcond.add_href(lock["root"])
         finally:
             self._lock.release()
@@ -493,9 +485,7 @@ class LockManager:
                 for lock in child_ocks:
                     assert util.is_child_uri(url, lock["root"])
                     #                    if util.is_child_uri(url, lock["root"]):
-                    _logger.debug(
-                        f" -> DENIED due to locked child {lock_string(lock)}"
-                    )
+                    _logger.debug(f" -> DENIED due to locked child {lock_string(lock)}")
                     errcond.add_href(lock["root"])
         finally:
             self._lock.release()

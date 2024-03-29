@@ -244,9 +244,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # Need to send header prior to data
             statusCode = status[: status.find(" ")]
             statusMsg = status[status.find(" ") + 1 :]
-            _logger.debug(
-                f"wsgiWriteData: send headers '{status!r}', {headers!r}"
-            )
+            _logger.debug(f"wsgiWriteData: send headers '{status!r}', {headers!r}")
             self.send_response(int(statusCode), statusMsg)
             for header, value in headers:
                 self.send_header(header, value)

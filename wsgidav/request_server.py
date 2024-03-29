@@ -181,7 +181,9 @@ class RequestServer:
             assert isinstance(e, DAVError)
             responseEL = etree.SubElement(multistatusEL, "{DAV:}response")
             etree.SubElement(responseEL, "{DAV:}href").text = refurl
-            etree.SubElement(responseEL, "{DAV:}status").text = f"HTTP/1.1 {get_http_status_string(e)}"
+            etree.SubElement(responseEL, "{DAV:}status").text = (
+                f"HTTP/1.1 {get_http_status_string(e)}"
+            )
 
         return util.send_multi_status_response(environ, start_response, multistatusEL)
 
@@ -631,9 +633,7 @@ class RequestServer:
         ignore_dict = {}
         for child_res in reverse_child_ist:
             if child_res.path in ignore_dict:
-                _logger.debug(
-                    f"Skipping {child_res.path} (contains error child)"
-                )
+                _logger.debug(f"Skipping {child_res.path} (contains error child)")
                 ignore_dict[util.get_uri_parent(child_res.path)] = ""
                 continue
 
@@ -981,9 +981,7 @@ class RequestServer:
                     rel_url = dres.path[dest_root_len:]
                     sp = src_path + rel_url
                     if sp not in src_path_list:
-                        _logger.debug(
-                            f"Remove unmatched dest before copy: {dres}"
-                        )
+                        _logger.debug(f"Remove unmatched dest before copy: {dres}")
                         dres.delete()
 
         # --- Let provider implement recursive move ---------------------------
@@ -1003,9 +1001,7 @@ class RequestServer:
 
             if not has_conflicts:
                 try:
-                    _logger.debug(
-                        f"Recursive move: {src_res} -> {dest_path!r}"
-                    )
+                    _logger.debug(f"Recursive move: {src_res} -> {dest_path!r}")
                     error_list = src_res.move_recursive(dest_path)
                 except Exception as e:
                     _debug_exception(e)
@@ -1036,9 +1032,7 @@ class RequestServer:
                     parent_error = True
                     break
             if parent_error:
-                _logger.debug(
-                    f"Copy: skipping {sres.path!r}, because of parent error"
-                )
+                _logger.debug(f"Copy: skipping {sres.path!r}, because of parent error")
                 continue
 
             try:
