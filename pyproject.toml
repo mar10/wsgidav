@@ -24,9 +24,29 @@ profile = "black"
 src_paths = ["wsgidav", "tests"]
 
 
-# [tool.flake8]
-# Flake8 currently does not support pyproject.toml.
-# See [flake8] section in setup.cfg instead.
+[tool.ruff]
+# Decrease the maximum line length to 79 characters.
+# line-length = 79
+# Support Python 3.10+.
+target-version = "py38"
+src = ["wsgidav", "tests"]
+select = [
+  "E",  # pycodestyle
+  "F",  # pyflakes
+  "G",  # flake8-logging-format
+  "UP", # pyupgrade
+  "T",  # print, ...
+  # "D",   # pydocstyle
+]
+ignore = [
+  # We need the old syntax for python <= 3.9
+  "UP006", # Use `list` instead of `List` for type annotations (since Py39)
+  "UP007", # Use `X | Y` for type annotations (since Py310)
+  "E721",  #  Do not compare types, use `isinstance()`
+]
+
+# [tool.ruff.pydocstyle]
+# convention = "google"
 
 [tool.codespell]
 skip = '.git,*.pdf,*.svg,*.lock,*.css,logs'

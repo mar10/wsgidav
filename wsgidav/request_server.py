@@ -368,9 +368,9 @@ class RequestServer:
             util.add_property_response(multistatusEL, href, propList)
 
         if responsedescription:
-            etree.SubElement(
-                multistatusEL, "{DAV:}responsedescription"
-            ).text = "\n".join(responsedescription)
+            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = (
+                "\n".join(responsedescription)
+            )
 
         return util.send_multi_status_response(environ, start_response, multistatusEL)
 
@@ -439,7 +439,7 @@ class RequestServer:
         successflag = True
         writeresultlist = []
 
-        for (name, propvalue) in propupdatelist:
+        for name, propvalue in propupdatelist:
             try:
                 res.set_property_value(name, propvalue, dry_run=True)
             except Exception as e:
@@ -456,7 +456,7 @@ class RequestServer:
 
         if not successflag:
             # If dry run failed: convert all OK to FAILED_DEPENDENCY.
-            for (name, result) in writeresultlist:
+            for name, result in writeresultlist:
                 if result == "200 OK":
                     result = DAVError(HTTP_FAILED_DEPENDENCY)
                 elif isinstance(result, DAVError):
@@ -467,7 +467,7 @@ class RequestServer:
             # Dry-run succeeded: set properties again, this time in 'real' mode
             # In theory, there should be no exceptions thrown here, but this is
             # real live...
-            for (name, propvalue) in propupdatelist:
+            for name, propvalue in propupdatelist:
                 try:
                     res.set_property_value(name, propvalue, dry_run=False)
                     # Set value to None, so the response xml contains empty tags
@@ -482,9 +482,9 @@ class RequestServer:
         href = res.get_href()
         util.add_property_response(multistatusEL, href, propResponseList)
         if responsedescription:
-            etree.SubElement(
-                multistatusEL, "{DAV:}responsedescription"
-            ).text = "\n".join(responsedescription)
+            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = (
+                "\n".join(responsedescription)
+            )
 
         # Send response
         return util.send_multi_status_response(environ, start_response, multistatusEL)

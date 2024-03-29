@@ -1,0 +1,65 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Tests
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      # fail-fast: false
+      matrix:
+        # Python 3.4  # EOL 2019-03-18
+        # Python 3.5  # EOL 2020-09-13
+        # Python 3.6  # EOL 2021-12-21
+        # Python 3.7  # EOL 2023-06-27
+        # Python 3.8  # EOL 2024-10-14
+        # Python 3.9  # EOL 2025-10-05
+        # Python 3.10 # EOL 2026-10-04
+        # Python 3.11 # EOL 2027-10-24
+        # Python 3.12 # EOL 2028-10-02
+        # Python 3.13 # EOL
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -V
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-cov pytest-html rdflib ruff
+          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint with ruff
+        run: |
+          ruff -V
+          ruff check wsgidav tests setup.py
+
+      # - name: Lint with flake8
+      #   run: |
+      #     # stop the build if there are Python syntax errors or undefined names
+      #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        run: |
+          pytest -V
+          pytest -ra -v -x --durations=10 --cov=wsgidav
+          # pytest -ra -v -x --durations=10 --cov=wsgidav --html=build/pytest/report-${{ matrix.python-version }}.html --self-contained-html
+          # pytest -ra -v -x --durations=10 --cov=wsgidav --html=build/pytest/report-{envname}.html --self-contained-html {posargs}
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3

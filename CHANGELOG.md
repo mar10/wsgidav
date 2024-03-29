@@ -6,6 +6,8 @@
 
 - [#318](https://github.com/mar10/wsgidav/issues/318)
 - Test with Python 3.12
+- Update to black 24.3
+- Use ruff instead of flake8
 
 ## 4.3.1 / 2024-03-24
 

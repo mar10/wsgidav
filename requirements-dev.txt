@@ -4,14 +4,12 @@
 
 cheroot~=8.5
 Paste~=2.0
-black~=22.12
-flake8~=6.0
-flake8-bugbear~=23.1
-flake8-quotes~=3.3.2
+black~=24.3
 pytest~=2.7
 pytest-cov~=1.8
 recommonmark
 requests
+ruff
 setuptools~=40.2
 #Sphinx
 #sphinx_rtd_theme

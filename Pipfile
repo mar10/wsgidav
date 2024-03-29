@@ -4,12 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-black = "~=22.12"
+black = "~=24.3"
 Cheroot = "*"  # "~=8.5"
-cx_Freeze = {version = "*", os_name = "== 'nt'"}
-flake8 = "~=6.0"
-flake8-bugbear = "~=23.1"
-flake8-quotes = "~=3.3.2"
+cx_Freeze = {version = "*", markers="sys_platform == 'win32'"}
 isort = "*"
 mypy = "*"
 Paste = "*"  # "~=2.0"
@@ -21,7 +18,8 @@ python-pam = "*"  # "~=1.8"
 pywin32 = {version = "*", markers="sys_platform == 'win32'"}
 recommonmark = "*"
 requests = "*"
-rope = "*"
+# rope = "*"
+ruff = "*"
 setuptools = "*"
 # Sphinx = "*"
 # sphinx_rtd_theme = "*"
