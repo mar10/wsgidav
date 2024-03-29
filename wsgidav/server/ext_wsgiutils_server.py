@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
@@ -108,11 +107,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     # Enable automatic keep-alive:
     protocol_version = "HTTP/1.1"
 
-    server_version = "{} ExtServer/{} {}".format(
-        util.public_wsgidav_info,
-        _version,
-        BaseHTTPServer.BaseHTTPRequestHandler.server_version,
-    )
+    server_version = f"{util.public_wsgidav_info} ExtServer/{_version} {BaseHTTPServer.BaseHTTPRequestHandler.server_version}"
 
     def log_message(self, *args):
         pass
@@ -127,7 +122,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def getApp(self):
         # We want fragments to be returned as part of <path>
         _protocol, _host, path, _parameters, query, _fragment = urlparse(
-            "http://dummyhost{}".format(self.path), allow_fragments=False
+            f"http://dummyhost{self.path}", allow_fragments=False
         )
         # Find any application we might have
         for appPath, app in self.server.wsgiApplications:
@@ -194,7 +189,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "SERVER_PROTOCOL": self.request_version,
         }
         for httpHeader, httpValue in self.headers.items():
-            if not httpHeader.lower() in ("content-type", "content-length"):
+            if httpHeader.lower() not in ("content-type", "content-length"):
                 env["HTTP_{}".format(httpHeader.replace("-", "_").upper())] = httpValue
 
         # Setup the state
@@ -235,9 +230,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def wsgiStartResponse(self, response_status, response_headers, exc_info=None):
         _logger.debug(
-            "wsgiStartResponse({}, {}, {})".format(
-                response_status, response_headers, exc_info
-            )
+            f"wsgiStartResponse({response_status}, {response_headers}, {exc_info})"
         )
         if self.wsgiSentHeaders:
             raise Exception("Headers already sent and start_response called again!")
@@ -252,7 +245,7 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             statusCode = status[: status.find(" ")]
             statusMsg = status[status.find(" ") + 1 :]
             _logger.debug(
-                "wsgiWriteData: send headers '{!r}', {!r}".format(status, headers)
+                f"wsgiWriteData: send headers '{status!r}', {headers!r}"
             )
             self.send_response(int(statusCode), statusMsg)
             for header, value in headers:
@@ -262,18 +255,16 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Send the data
         assert type(data) is bytes  # If not, Content-Length is probably wrong!
         _logger.debug(
-            "wsgiWriteData: write {} bytes: '{!r}'...".format(
-                len(data), util.to_str(data[:50])
-            )
+            f"wsgiWriteData: write {len(data)} bytes: '{util.to_str(data[:50])!r}'..."
         )
         if util.is_str(data):  # If not, Content-Length is probably wrong!
-            _logger.info("ext_wsgiutils_server: Got unicode data: {!r}".format(data))
+            _logger.info(f"ext_wsgiutils_server: Got unicode data: {data!r}")
             # data = util.wsgi_to_bytes(data)
             data = util.to_bytes(data)
 
         try:
             self.wfile.write(data)
-        except socket.error as e:
+        except OSError as e:
             # Suppress stack trace when client aborts connection disgracefully:
             # 10053: Software caused connection abort
             # 10054: Connection reset by peer
@@ -296,15 +287,13 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # 10053: Software caused connection abort
         # 10054: Connection reset by peer
         if e.args[0] in (10053, 10054):
-            _logger.error("*** Caught socket.error: {}".format(e))
+            _logger.error(f"*** Caught socket.error: {e}")
             return
         # This is what BaseHTTPServer.HTTPServer.handle_error does, but with
         # added thread ID and using stderr
         _logger.error("-" * 40, file=sys.stderr)
         _logger.error(
-            "<{}> Exception happened during processing of request from {}".format(
-                threading.current_thread().ident, client_address
-            )
+            f"<{threading.current_thread().ident}> Exception happened during processing of request from {client_address}"
         )
         _logger.error(client_address, file=sys.stderr)
         traceback.print_exc()
@@ -344,7 +333,7 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         # Send request, so socket is unblocked
         (host, port) = self.server_address
         #        _logger.info "stop_serve_forever() sending {}:{}/ SHUTDOWN...".format(host, port)
-        conn = http_client.HTTPConnection("{}:{}".format(host, port))
+        conn = http_client.HTTPConnection(f"{host}:{port}")
         conn.request("SHUTDOWN", "/")
         #        _logger.info "stop_serve_forever() sent SHUTDOWN request, reading response..."
         conn.getresponse()
@@ -387,12 +376,10 @@ def serve(conf, app):
                 socket.gethostname()
             )
             _logger.info(
-                "Serving at {}, port {} (host={!r} {})...".format(
-                    host, port, hostname, ipaddrlist
-                )
+                f"Serving at {host}, port {port} (host={hostname!r} {ipaddrlist})..."
             )
         else:
-            _logger.info("Serving at {}, port {}...".format(host, port))
+            _logger.info(f"Serving at {host}, port {port}...")
     server.serve_forever()
     # server.serve_forever_stoppable()
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -151,7 +150,7 @@ _resourceData = [
     },
     {
         "key": "3",
-        "title": "My doc (euro:\u20AC, uuml:��)".encode("utf8"),
+        "title": "My doc (euro:\u20AC, uuml:��)".encode(),
         "orga": "marketing",
         "tags": ["nice"],
         "status": "published",
@@ -216,10 +215,10 @@ class CategoryTypeCollection(DAVCollection):
         names = []
         for data in _resourceData:
             if self.name == "by_status":
-                if not data["status"] in names:
+                if data["status"] not in names:
                     names.append(data["status"])
             elif self.name == "by_orga":
-                if not data["orga"] in names:
+                if data["orga"] not in names:
                     names.append(data["orga"])
             elif self.name == "by_tag":
                 for tag in data["tags"]:

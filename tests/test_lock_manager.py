@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -380,7 +379,7 @@ class ShelveTest(BasicTest):
         else:
             modifier = "-py3"
         self.path = os.path.join(
-            gettempdir(), "wsgidav-locks{}.shelve".format(modifier)
+            gettempdir(), f"wsgidav-locks{modifier}.shelve"
         )
         storage = lock_storage.LockStorageShelve(self.path)
         self.lm = lock_manager.LockManager(storage)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -147,7 +146,7 @@ class FileResource(DAVNonCollection):
         fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
         assert not util.is_equal_or_child_uri(self.path, dest_path)
         assert not os.path.exists(fpDest)
-        _logger.debug("move_recursive({}, {})".format(self._file_path, fpDest))
+        _logger.debug(f"move_recursive({self._file_path}, {fpDest})")
         shutil.move(self._file_path, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
@@ -251,7 +250,7 @@ class FolderResource(DAVCollection):
 
         See DAVCollection.get_member()
         """
-        assert util.is_str(name), "{!r}".format(name)
+        assert util.is_str(name), f"{name!r}"
         fp = os.path.join(self._file_path, util.to_str(name))
         # name = name.encode("utf8")
         path = util.join_uri(self.path, name)
@@ -320,7 +319,7 @@ class FolderResource(DAVCollection):
             # u'C:\\temp\\litmus\\ccdest'
             shutil.copystat(self._file_path, fpDest)
         except Exception:
-            _logger.exception("Could not copy folder stats: {}".format(self._file_path))
+            _logger.exception(f"Could not copy folder stats: {self._file_path}")
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
         propMan = self.provider.prop_manager
@@ -349,7 +348,7 @@ class FolderResource(DAVCollection):
         fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
         assert not util.is_equal_or_child_uri(self.path, dest_path)
         assert not os.path.exists(fpDest)
-        _logger.debug("move_recursive({}, {})".format(self._file_path, fpDest))
+        _logger.debug(f"move_recursive({self._file_path}, {fpDest})")
         shutil.move(self._file_path, fpDest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties

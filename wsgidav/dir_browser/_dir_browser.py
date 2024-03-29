@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -61,7 +60,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
         if not os.path.isdir(self.htdocs_path):
             raise ValueError(
-                "Invalid dir_browser htdocs_path {!r}".format(self.htdocs_path)
+                f"Invalid dir_browser htdocs_path {self.htdocs_path!r}"
             )
 
         # Add an additional read-only FS provider that serves the dir_browser assets
@@ -152,9 +151,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         e = DAVError(value, context_info, src_exception, err_condition)
         if self.verbose >= 4:
             _logger.warning(
-                "Raising DAVError {}".format(
-                    safe_re_encode(e.get_user_info(), sys.stdout.encoding)
-                )
+                f"Raising DAVError {safe_re_encode(e.get_user_info(), sys.stdout.encoding)}"
             )
         raise e
 
@@ -297,9 +294,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
             rows.append(entry)
         if ignored_list:
             _logger.debug(
-                "Dir browser ignored {} entries: {}".format(
-                    len(ignored_list), ignored_list
-                )
+                f"Dir browser ignored {len(ignored_list)} entries: {ignored_list}"
             )
 
         # sort

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -147,13 +146,13 @@ class LockStorageDict:
             lock = self._dict.get(token)
             if lock is None:
                 # Lock not found: purge dangling URL2TOKEN entries
-                _logger.debug("Lock purged dangling: {}".format(token))
+                _logger.debug(f"Lock purged dangling: {token}")
                 self.delete(token)
                 return None
             expire = float(lock["expire"])
             if expire >= 0 and expire < time.time():
                 _logger.debug(
-                    "Lock timed-out({}): {}".format(expire, lock_string(lock))
+                    f"Lock timed-out({expire}): {lock_string(lock)}"
                 )
                 self.delete(token)
                 return None
@@ -208,7 +207,7 @@ class LockStorageDict:
             self._dict[token] = lock
 
             # Store locked path reference
-            key = "URL2TOKEN:{}".format(path)
+            key = f"URL2TOKEN:{path}"
             if key not in self._dict:
                 self._dict[key] = [token]
             else:
@@ -219,7 +218,7 @@ class LockStorageDict:
                 self._dict[key] = tokList
             self._flush()
             _logger.debug(
-                "LockStorageDict.set({!r}): {}".format(org_path, lock_string(lock))
+                f"LockStorageDict.set({org_path!r}): {lock_string(lock)}"
             )
             return lock
         finally:
@@ -263,7 +262,7 @@ class LockStorageDict:
         self._lock.acquire_write()
         try:
             lock = self._dict.get(token)
-            _logger.debug("delete {}".format(lock_string(lock)))
+            _logger.debug(f"delete {lock_string(lock)}")
             if lock is None:
                 return False
             # Remove url to lock mapping
@@ -322,7 +321,7 @@ class LockStorageDict:
         path = normalize_lock_root(path)
         self._lock.acquire_read()
         try:
-            key = "URL2TOKEN:{}".format(path)
+            key = f"URL2TOKEN:{path}"
             tokList = self._dict.get(key, [])
             lockList = []
             if include_root:
@@ -353,7 +352,7 @@ class LockStorageShelve(LockStorageDict):
         self._storage_path = os.path.abspath(storage_path)
 
     def __repr__(self):
-        return "LockStorageShelve({!r})".format(self._storage_path)
+        return f"LockStorageShelve({self._storage_path!r})"
 
     def _flush(self):
         """Write persistent dictionary to disc."""
@@ -380,7 +379,7 @@ class LockStorageShelve(LockStorageDict):
             self._lock.release()
 
     def open(self):
-        _logger.debug("open({!r})".format(self._storage_path))
+        _logger.debug(f"open({self._storage_path!r})")
         # Open with writeback=False, which is faster, but we have to be
         # careful to re-assign values to _dict after modifying them
         self._dict = shelve.open(self._storage_path, writeback=False)

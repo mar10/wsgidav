@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -60,9 +59,7 @@ class PAMDomainController(BaseDomainController):
             )
             if not is_ok:
                 _logger.warning(
-                    "pam.authenticate({!r}, '<redacted>', {!r}) failed with code {}: {}".format(
-                        user_name, self.pam_service, self.pam.code, self.pam.reason
-                    )
+                    f"pam.authenticate({user_name!r}, '<redacted>', {self.pam_service!r}) failed with code {self.pam.code}: {self.pam.reason}"
                 )
                 return False
 

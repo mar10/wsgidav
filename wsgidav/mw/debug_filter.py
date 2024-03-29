@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -104,7 +103,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         # Turn on max. debugging for selected litmus tests
         litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
         if litmusTag and verbose >= 3:
-            _logger.info("----\nRunning litmus test {!r}...".format(litmusTag))
+            _logger.info(f"----\nRunning litmus test {litmusTag!r}...")
             for litmusSubstring in self.debug_litmus:
                 if litmusSubstring in litmusTag:
                     verbose = 5
@@ -117,7 +116,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     litmusSubstring in self.passedLitmus
                     and litmusSubstring not in litmusTag
                 ):
-                    _logger.info(" *** break after litmus {}".format(litmusTag))
+                    _logger.info(f" *** break after litmus {litmusTag}")
                     sys.exit(-1)
                 if litmusSubstring in litmusTag:
                     self.passedLitmus[litmusSubstring] = True
@@ -138,7 +137,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         # Dump request headers
         if dumpRequest:
-            _logger.info("{} Request ---".format(method))
+            _logger.info(f"{method} Request ---")
             # _logger.info("<{}> --- {} Request ---".format(
             #         threading.current_thread().ident, method))
             for k, v in environ.items():
@@ -146,7 +145,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                     v = safe_re_encode(v, "utf8")
                 except Exception:
                     pass
-                _logger.info("{:<20}: {!r}".format(k, v))
+                _logger.info(f"{k:<20}: {v!r}")
             _logger.info("\n")
 
         # Intercept start_response
@@ -170,15 +169,11 @@ class WsgiDavDebugFilter(BaseMiddleware):
             # Dump response headers
             if first_yield and dumpResponse:
                 _logger.info(
-                    "<{}> ---{}  Response({}): ---".format(
-                        threading.current_thread().ident,
-                        method,
-                        sub_app_start_response.status,
-                    )
+                    f"<{threading.current_thread().ident}> ---{method}  Response({sub_app_start_response.status}): ---"
                 )
                 headersdict = dict(sub_app_start_response.response_headers)
                 for envitem in headersdict.keys():
-                    _logger.info("{}: {}".format(envitem, repr(headersdict[envitem])))
+                    _logger.info(f"{envitem}: {repr(headersdict[envitem])}")
                 _logger.info("")
 
             # Check, if response is a binary string, otherwise we probably have
@@ -195,7 +190,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                 # Else dump what we get, (except for long GET responses)
                 if method == "GET":
                     if first_yield:
-                        _logger.info("{}...".format(v[:50]))
+                        _logger.info(f"{v[:50]}...")
                 elif len(v) > 0:
                     _logger.info(v)
 
@@ -216,8 +211,6 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         if dumpResponse:
             _logger.info(
-                "<{}> --- End of {} Response ({:d} bytes) ---".format(
-                    threading.current_thread().ident, method, nbytes
-                )
+                f"<{threading.current_thread().ident}> --- End of {method} Response ({nbytes:d} bytes) ---"
             )
         return

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -60,7 +59,7 @@ def string_to_xml(text):
             "If lxml is not available, and unicode is involved, then "
             "installing lxml _may_ solve this issue."
         )
-        _logger.error("XML source: {}".format(text))
+        _logger.error(f"XML source: {text}")
         raise
 
 

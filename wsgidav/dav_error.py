@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -136,7 +135,7 @@ class DAVErrorCondition:
         self.hrefs = []
 
     def __str__(self):
-        return "{}({})".format(self.condition_code, self.hrefs)
+        return f"{self.condition_code}({self.hrefs})"
 
     def add_href(self, href):
         assert href.startswith("/")
@@ -204,19 +203,19 @@ class DAVError(Exception):
         )
 
     def __repr__(self):
-        return "DAVError({})".format(self.get_user_info())
+        return f"DAVError({self.get_user_info()})"
 
     def get_user_info(self):
         """Return readable string."""
         if self.value in ERROR_DESCRIPTIONS:
-            s = "{}".format(ERROR_DESCRIPTIONS[self.value])
+            s = f"{ERROR_DESCRIPTIONS[self.value]}"
         else:
             s = f"{self.value}"
 
         if self.context_info:
             s += f": {self.context_info}"
         elif self.value in ERROR_RESPONSES:
-            s += ": {}".format(ERROR_RESPONSES[self.value])
+            s += f": {ERROR_RESPONSES[self.value]}"
 
         if self.src_exception:
             s += f"\n    Source exception: {self.src_exception!r}"
@@ -248,10 +247,10 @@ class DAVError(Exception):
         html.append(
             "  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>"
         )
-        html.append("  <title>{}</title>".format(status))
+        html.append(f"  <title>{status}</title>")
         html.append("</head><body>")
-        html.append("  <h1>{}</h1>".format(status))
-        html.append("  <p>{}</p>".format(html_escape(self.get_user_info())))
+        html.append(f"  <h1>{status}</h1>")
+        html.append(f"  <p>{html_escape(self.get_user_info())}</p>")
         html.append("<hr/>")
         html.append(
             "<a href='https://github.com/mar10/wsgidav/'>{}</a> - {}".format(
@@ -281,7 +280,7 @@ def get_http_status_string(v):
     try:
         return ERROR_DESCRIPTIONS[code]
     except KeyError:
-        return "{} Status".format(code)
+        return f"{code} Status"
 
 
 def get_response_page(v):
@@ -297,4 +296,4 @@ def as_DAVError(e):
         # traceback.print_exc()
         return DAVError(HTTP_INTERNAL_ERROR, src_exception=e)
     else:
-        return DAVError(HTTP_INTERNAL_ERROR, "{}".format(e))
+        return DAVError(HTTP_INTERNAL_ERROR, f"{e}")

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #   Copyright (c) 2006-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,14 +124,14 @@ class DAVClient:
 
     def log(self, msg):
         if self.logger:
-            print("{}: {}".format(self.logger_prefix, msg))
+            print(f"{self.logger_prefix}: {msg}")
 
     def _request(self, method, path="", body=None, headers=None):
         """Internal request method"""
         self.response = None
 
         assert body is None or is_bytes(body)
-        self.log("{} - {}".format(method, path))
+        self.log(f"{method} - {path}")
 
         if headers is None:
             headers = copy.copy(self.headers)
@@ -175,7 +174,7 @@ class DAVClient:
         u_p = ("%s:%s" % (user_name, password)).encode("utf8")
         b64 = base64_encodebytes(u_p)
         # encodestring() returns a bytestring. We want a native str on Python 3
-        if not type(b64) is str:
+        if type(b64) is not str:
             b64 = b64.decode("utf8")
         auth = "Basic %s" % b64.strip()
         self._username = user_name
@@ -524,7 +523,5 @@ class DAVClient:
         for statuscode, hrefs in responses.items():
             if statuscode not in expect_status:
                 raise AppError(
-                    "Invalid multistatus {} for {} (expected {})\n{}".format(
-                        statuscode, hrefs, expect_status, responses
-                    )
+                    f"Invalid multistatus {statuscode} for {hrefs} (expected {expect_status})\n{responses}"
                 )

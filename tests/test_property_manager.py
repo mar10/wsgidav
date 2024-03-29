@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -52,7 +51,7 @@ class BasicTest(unittest.TestCase):
         try:
             pm.get_properties(self.respath)
         except Exception:
-            print("NOTE: if this fails, try to delete the temp files: {}".format(pm))
+            print(f"NOTE: if this fails, try to delete the temp files: {pm}")
             raise
         assert pm._loaded, "PM must be opened after first access"
 
@@ -94,7 +93,7 @@ class ShelveTest(BasicTest):
         else:
             modifier = "-py3"
         self.path = os.path.join(
-            gettempdir(), "wsgidav-props{}.shelve".format(modifier)
+            gettempdir(), f"wsgidav-props{modifier}.shelve"
         )
         # Note: os.remove(self.path) does not work, because Shelve may append
         # a file extension.

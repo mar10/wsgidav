@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -139,7 +138,7 @@ class LockManager:
         self.storage.close()
 
     def __repr__(self):
-        return "{}({!r})".format(self.__class__.__name__, self.storage)
+        return f"{self.__class__.__name__}({self.storage!r})"
 
     def _dump(self, msg=""):
         urlDict = {}  # { <url>: [<tokenlist>] }
@@ -147,7 +146,7 @@ class LockManager:
         userDict = {}  # { <LOCKUSER>: [<tokenlist>] }
         tokenDict = {}  # { <token>: <LOCKURLS> }
 
-        _logger.info("{}: {}".format(self, msg))
+        _logger.info(f"{self}: {msg}")
 
         for lock in self.storage.get_lock_list(
             "/", include_root=True, include_children=True, token_only=False
@@ -158,16 +157,16 @@ class LockManager:
             ownerDict.setdefault(lock["owner"], []).append(tok)
             urlDict.setdefault(lock["root"], []).append(tok)
 
-        _logger.info("Locks:\n{}".format(pformat(tokenDict, indent=0, width=255)))
+        _logger.info(f"Locks:\n{pformat(tokenDict, indent=0, width=255)}")
         if tokenDict:
             _logger.info(
-                "Locks by URL:\n{}".format(pformat(urlDict, indent=4, width=255))
+                f"Locks by URL:\n{pformat(urlDict, indent=4, width=255)}"
             )
             _logger.info(
-                "Locks by principal:\n{}".format(pformat(userDict, indent=4, width=255))
+                f"Locks by principal:\n{pformat(userDict, indent=4, width=255)}"
             )
             _logger.info(
-                "Locks by owner:\n{}".format(pformat(ownerDict, indent=4, width=255))
+                f"Locks by owner:\n{pformat(ownerDict, indent=4, width=255)}"
             )
 
     def _generate_lock(
@@ -373,9 +372,7 @@ class LockManager:
         assert lock_depth in ("0", "infinity")
 
         _logger.debug(
-            "checkLockPermission({}, {}, {}, {})".format(
-                url, lock_scope, lock_depth, principal
-            )
+            f"checkLockPermission({url}, {lock_scope}, {lock_depth}, {principal})"
         )
 
         # Error precondition to collect conflicting URLs
@@ -389,7 +386,7 @@ class LockManager:
                 lock_list = self.get_url_lock_list(u)
                 for lock in lock_list:
                     _logger.debug(
-                        "    check parent {}, {}".format(u, lock_string(lock))
+                        f"    check parent {u}, {lock_string(lock)}"
                     )
                     if u != url and lock["depth"] != "infinity":
                         # We only consider parents with Depth: infinity
@@ -400,7 +397,7 @@ class LockManager:
                         continue
                     # Lock conflict
                     _logger.debug(
-                        " -> DENIED due to locked parent {}".format(lock_string(lock))
+                        f" -> DENIED due to locked parent {lock_string(lock)}"
                     )
                     errcond.add_href(lock["root"])
                 u = util.get_uri_parent(u)
@@ -415,7 +412,7 @@ class LockManager:
                     assert util.is_child_uri(url, lock["root"])
                     #                    if util.is_child_uri(url, lock["root"]):
                     _logger.debug(
-                        " -> DENIED due to locked child {}".format(lock_string(lock))
+                        f" -> DENIED due to locked child {lock_string(lock)}"
                     )
                     errcond.add_href(lock["root"])
         finally:
@@ -458,9 +455,7 @@ class LockManager:
         assert util.is_str(url)
         assert depth in ("0", "infinity")
         _logger.debug(
-            "check_write_permission({}, {}, {}, {})".format(
-                url, depth, token_list, principal
-            )
+            f"check_write_permission({url}, {depth}, {token_list}, {principal})"
         )
 
         # Error precondition to collect conflicting URLs
@@ -472,9 +467,9 @@ class LockManager:
             u = url
             while u:
                 lock_list = self.get_url_lock_list(u)
-                _logger.debug("  checking {}".format(u))
+                _logger.debug(f"  checking {u}")
                 for lock in lock_list:
-                    _logger.debug("     lock={}".format(lock_string(lock)))
+                    _logger.debug(f"     lock={lock_string(lock)}")
                     if u != url and lock["depth"] != "infinity":
                         # We only consider parents with Depth: infinity
                         continue
@@ -484,9 +479,7 @@ class LockManager:
                     else:
                         # Token is owned by principal, but not passed with lock list
                         _logger.debug(
-                            " -> DENIED due to locked parent {}".format(
-                                lock_string(lock)
-                            )
+                            f" -> DENIED due to locked parent {lock_string(lock)}"
                         )
                         errcond.add_href(lock["root"])
                 u = util.get_uri_parent(u)
@@ -501,7 +494,7 @@ class LockManager:
                     assert util.is_child_uri(url, lock["root"])
                     #                    if util.is_child_uri(url, lock["root"]):
                     _logger.debug(
-                        " -> DENIED due to locked child {}".format(lock_string(lock))
+                        f" -> DENIED due to locked child {lock_string(lock)}"
                     )
                     errcond.add_href(lock["root"])
         finally:

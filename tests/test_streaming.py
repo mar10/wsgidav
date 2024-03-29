@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -75,7 +74,7 @@ class MockProxyResource(DAVNonCollection):
         return queue
 
     def end_write(self, *, with_errors):
-        print("end_write: {}".format(self.target_path))
+        print(f"end_write: {self.target_path}")
         self.worker.join()
 
 

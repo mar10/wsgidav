@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -37,7 +36,7 @@ def run():
             if p.returncode == 3:
                 print("server_cli returned 3: restarting...")
             else:
-                print("server_cli returned {}: terminating.".format(p.returncode))
+                print(f"server_cli returned {p.returncode}: terminating.")
                 break
     except Exception as e:
         raise e

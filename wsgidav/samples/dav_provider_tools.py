@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -141,7 +140,7 @@ class FileResource(_VirtualNonCollection):
 
     def __init__(self, path, environ, file_path):
         if not os.path.exists(file_path):
-            _logger.error("FileResource({!r}) does not exist.".format(file_path))
+            _logger.error(f"FileResource({file_path!r}) does not exist.")
         super().__init__(path, environ)
         self.file_path = file_path
 

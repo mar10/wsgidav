@@ -30,6 +30,8 @@ src_paths = ["wsgidav", "tests"]
 # Support Python 3.10+.
 target-version = "py38"
 src = ["wsgidav", "tests"]
+
+[tool.ruff.lint]
 select = [
   "E",  # pycodestyle
   "F",  # pyflakes

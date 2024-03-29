@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -13,7 +12,6 @@ import logging
 import mimetypes
 import os
 import re
-import socket
 import stat
 import sys
 import time
@@ -555,7 +553,7 @@ def dynamic_import_class(name):
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
-        _logger.error("Dynamic import of {!r} failed: {}".format(name, e))
+        _logger.error(f"Dynamic import of {name!r} failed: {e}")
         raise
     the_class = getattr(module, class_name)
     return the_class
@@ -737,7 +735,7 @@ def to_unicode_safe(s):
         u = to_str(s, "utf8")
     except ValueError:
         _logger.error(
-            "to_unicode_safe({!r}) *** UTF-8 failed. Trying ISO-8859-1".format(s)
+            f"to_unicode_safe({s!r}) *** UTF-8 failed. Trying ISO-8859-1"
         )
         u = to_str(s, "ISO-8859-1")
     return u
@@ -765,13 +763,13 @@ def safe_re_encode(s, encoding_to, *, errors="backslashreplace"):
 def string_repr(s):
     """Return a string as hex dump."""
     if is_bytes(s):
-        res = "{!r}: ".format(s)
+        res = f"{s!r}: "
         for b in s:
             if type(b) is str:  # Py2
                 b = ord(b)
             res += "%02x " % b
         return res
-    return "{}".format(s)
+    return f"{s}"
 
 
 def get_file_extension(path):
@@ -811,11 +809,11 @@ def byte_number_string(
         # locale.setlocale(locale.LC_ALL, "")
         # # TODO: make precision configurable
         # snum = locale.format("%d", number, thousandsSep)
-        snum = "{:,d}".format(number)
+        snum = f"{number:,d}"
     else:
         snum = str(number)
 
-    return "{}{}{}".format(snum, magsuffix, bytesuffix)
+    return f"{snum}{magsuffix}{bytesuffix}"
 
 
 def fix_path(path, root, *, expand_vars=True, must_exist=True, allow_none=True):
@@ -921,9 +919,7 @@ def read_and_discard_input(environ):
                 n = 1
             body = wsgi_input.read(n)
             _logger.debug(
-                "Reading {} bytes from potentially unread httpserver.LimitedLengthFile: {!r}...".format(
-                    n, body[:50]
-                )
+                f"Reading {n} bytes from potentially unread httpserver.LimitedLengthFile: {body[:50]!r}..."
             )
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
@@ -941,17 +937,15 @@ def read_and_discard_input(environ):
                     n = 1
                 body = wsgi_input.read(n)
                 _logger.debug(
-                    "Reading {} bytes from potentially unread POST body: {!r}...".format(
-                        n, body[:50]
-                    )
+                    f"Reading {n} bytes from potentially unread POST body: {body[:50]!r}..."
                 )
-            except socket.error as se:
+            except OSError as se:
                 # se(10035, 'The socket operation could not complete without blocking')
-                _logger.error("-> read {} bytes failed: {}".format(n, se))
+                _logger.error(f"-> read {n} bytes failed: {se}")
             # Restore socket settings
             sock.settimeout(timeout)
         except Exception:
-            _logger.error("--> wsgi_input.read(): {}".format(sys.exc_info()))
+            _logger.error(f"--> wsgi_input.read(): {sys.exc_info()}")
 
 
 def fail(
@@ -973,7 +967,7 @@ def fail(
             err_condition=err_condition,
             add_headers=add_headers,
         )
-    _logger.debug("Raising DAVError {}".format(e.get_user_info()))
+    _logger.debug(f"Raising DAVError {e.get_user_info()}")
     raise e
 
 
@@ -1328,7 +1322,7 @@ def add_property_response(multistatus_elem, href, prop_list):
         ns, _ = split_namespace(name)
         if ns != "DAV:" and ns not in nsDict and ns != "":
             nsDict[ns] = True
-            nsMap["NS{}".format(nsCount)] = ns
+            nsMap[f"NS{nsCount}"] = ns
             nsCount += 1
 
         propDict.setdefault(status, []).append((name, value))
@@ -1358,7 +1352,7 @@ def add_property_response(multistatus_elem, href, prop_list):
                 #                etree.SubElement(propEL, name).text = value
                 etree.SubElement(propEL, name).text = to_unicode_safe(value)
         # <status>
-        etree.SubElement(propstatEL, "{DAV:}status").text = "HTTP/1.1 {}".format(status)
+        etree.SubElement(propstatEL, "{DAV:}status").text = f"HTTP/1.1 {status}"
 
 
 # ========================================================================
@@ -1443,17 +1437,9 @@ def get_file_etag(file_path):
 
     fstat = os.stat(unicode_file_path)
     if sys.platform == "win32":
-        etag = "{}-{}-{}".format(
-            md5(file_path).hexdigest(),
-            fstat[stat.ST_MTIME],
-            fstat[stat.ST_SIZE],
-        )
+        etag = f"{md5(file_path).hexdigest()}-{fstat[stat.ST_MTIME]}-{fstat[stat.ST_SIZE]}"
     else:
-        etag = "{}-{}-{}".format(
-            fstat[stat.ST_INO],
-            fstat[stat.ST_MTIME],
-            fstat[stat.ST_SIZE],
-        )
+        etag = f"{fstat[stat.ST_INO]}-{fstat[stat.ST_MTIME]}-{fstat[stat.ST_SIZE]}"
     return etag
 
 
@@ -1714,13 +1700,13 @@ def parse_if_header_dict(environ):
 
     environ["wsgidav.conditions.if"] = ifDict
     environ["wsgidav.ifLockTokenList"] = ifLockList
-    _logger.debug("parse_if_header_dict\n{}".format(pformat(ifDict)))
+    _logger.debug(f"parse_if_header_dict\n{pformat(ifDict)}")
     return
 
 
 def test_if_header_dict(dav_res, if_dict, fullurl, locktoken_list, entity_tag):
     _logger.debug(
-        "test_if_header_dict({}, {}, {})".format(fullurl, locktoken_list, entity_tag)
+        f"test_if_header_dict({fullurl}, {locktoken_list}, {entity_tag})"
     )
 
     if fullurl in if_dict:
@@ -1780,7 +1766,7 @@ def guess_mime_type(url):
     if not mimetype:
         ext = os.path.splitext(url)[1]
         mimetype = _MIME_TYPES.get(ext)
-        _logger.debug("mimetype({}): {}".format(url, mimetype))
+        _logger.debug(f"mimetype({url}): {mimetype}")
     if not mimetype:
         mimetype = "application/octet-stream"
     return mimetype

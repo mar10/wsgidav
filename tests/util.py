@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -44,7 +43,7 @@ class Timing:
 
     def __exit__(self, exc_type, exc_value, traceback):
         elap = time.time() - self.start
-        msg = ["Timing {:<20} took {:>6.3f} sec".format(repr(self.name), elap)]
+        msg = [f"Timing {repr(self.name):<20} took {elap:>6.3f} sec"]
         if self.count:
             fmt = self.fmt or "{:0,.1f} bytes/sec"
             msg.append(fmt.format(float(self.count) / elap))
@@ -214,9 +213,7 @@ class WsgiDavTestServer:
         # time.sleep(self.start_delay)
         if not self.startup_event.wait(self.startup_timeout):
             raise RuntimeError(
-                "WsgiDavTestServer start() timed out after {} seconds".format(
-                    self.startup_timeout
-                )
+                f"WsgiDavTestServer start() timed out after {self.startup_timeout} seconds"
             )
         print("Starting WsgiDavTestServer... running.")
         return self

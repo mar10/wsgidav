@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -83,14 +82,12 @@ class SimpleDomainController(BaseDomainController):
         for share, data in self.user_map.items():
             if type(data) not in (bool, dict) or not data:
                 raise RuntimeError(
-                    "Invalid option: simple_dc.user_mapping[{!r}]: must be True or non-empty dict.".format(
-                        share
-                    )
+                    f"Invalid option: simple_dc.user_mapping[{share!r}]: must be True or non-empty dict."
                 )
         return
 
     def __str__(self):
-        return "{}()".format(self.__class__.__name__)
+        return f"{self.__class__.__name__}()"
 
     def _get_realm_entry(self, realm, user_name=None):
         """Return the matching user_map entry (falling back to default '*' if any)."""
@@ -111,8 +108,8 @@ class SimpleDomainController(BaseDomainController):
         realm_entry = self._get_realm_entry(realm)
         if realm_entry is None:
             _logger.error(
-                'Missing configuration simple_dc.user_mapping["{}"] (or "*"): '
-                "realm is not accessible!".format(realm)
+                f'Missing configuration simple_dc.user_mapping["{realm}"] (or "*"): '
+                "realm is not accessible!"
             )
         return realm_entry is not True
 

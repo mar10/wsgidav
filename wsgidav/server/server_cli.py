@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 server_cli
 ==========
@@ -262,9 +261,7 @@ See https://github.com/mar10/wsgidav for additional information.
         args.config_file = os.path.abspath(args.config_file)
         if not os.path.isfile(args.config_file):
             parser.error(
-                "Could not find specified configuration file: {}".format(
-                    args.config_file
-                )
+                f"Could not find specified configuration file: {args.config_file}"
             )
 
     # Convert args object to dictionary
@@ -272,7 +269,7 @@ See https://github.com/mar10/wsgidav for additional information.
     if args.verbose >= 5:
         print("Command line args:")
         for k, v in cmdLineOpts.items():
-            print("    {:>12}: {}".format(k, v))
+            print(f"    {k:>12}: {v}")
     return cmdLineOpts, parser
 
 
@@ -285,11 +282,11 @@ def _read_config_file(config_file, _verbose):
         raise RuntimeError(f"Couldn't open configuration file {config_file!r}.")
 
     if config_file.endswith(".json"):
-        with open(config_file, mode="rt", encoding="utf-8-sig") as fp:
+        with open(config_file, encoding="utf-8-sig") as fp:
             conf = json_load(fp)
 
     elif config_file.endswith(".yaml"):
-        with open(config_file, mode="rt", encoding="utf-8-sig") as fp:
+        with open(config_file, encoding="utf-8-sig") as fp:
             conf = yaml.safe_load(fp)
 
     else:
@@ -457,7 +454,7 @@ def _run_cheroot(app, config, _server):
         wsgi.Server.ssl_adapter = ssl_adapter(
             info["ssl_cert"], info["ssl_pk"], info["ssl_chain"]
         )
-        _logger.info("SSL / HTTPS enabled. Adapter: {}".format(ssl_adapter))
+        _logger.info(f"SSL / HTTPS enabled. Adapter: {ssl_adapter}")
 
     _logger.info(f"Running {version}")
     _logger.info(f"Serving on {info['url']} ...")

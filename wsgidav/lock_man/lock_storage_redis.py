@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2009-2023 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
@@ -85,13 +84,13 @@ class LockStorageRedis:
         lock = self._redis.get(self._redis_lock_prefix.format(token))
         if lock is None:
             # Lock not found: purge dangling URL2TOKEN entries
-            _logger.debug("Lock purged dangling: {}".format(token))
+            _logger.debug(f"Lock purged dangling: {token}")
             self.delete(token)
             return None
         lock = pickle.loads(lock)
         expire = float(lock["expire"])
         if 0 <= expire < time.time():
-            _logger.debug("Lock timed-out({}): {}".format(expire, lock_string(lock)))
+            _logger.debug(f"Lock timed-out({expire}): {lock_string(lock)}")
             self.delete(token)
             return None
         return lock
@@ -147,7 +146,7 @@ class LockStorageRedis:
             self._redis.lpush(key, token)
         self._flush()
         _logger.debug(
-            "LockStorageRedis.set({!r}): {}".format(org_path, lock_string(lock))
+            f"LockStorageRedis.set({org_path!r}): {lock_string(lock)}"
         )
         return lock
 
@@ -186,7 +185,7 @@ class LockStorageRedis:
         if lock is None:
             return False
         lock = pickle.loads(lock)
-        _logger.debug("delete {}".format(lock_string(lock)))
+        _logger.debug(f"delete {lock_string(lock)}")
         # Remove url to lock mapping
         key = self._redis_url2token_prefix.format(lock.get("root"))
         self._redis.lrem(key, 1, token)
