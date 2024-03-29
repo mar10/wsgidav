@@ -1,6 +1,11 @@
 # Changelog
 
-## 4.3.2 / Unreleased
+## 4.3.3 / Unreleased
+
+## 4.3.2 / 2024-03-29
+
+- [#318](https://github.com/mar10/wsgidav/issues/318)
+- Test with Python 3.12
 
 ## 4.3.1 / 2024-03-24
 
