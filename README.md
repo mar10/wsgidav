@@ -1,9 +1,9 @@
 # ![logo](https://raw.githubusercontent.com/mar10/wsgidav/master/docs/source/logo.png) WsgiDAV
-[![Build Status](https://travis-ci.com/mar10/wsgidav.svg?branch=master)](https://app.travis-ci.com/github/mar10/wsgidav)
+[![Tests](https://github.com/mar10/wsgidav/actions/workflows/tests.yml/badge.svg)](https://github.com/mar10/wsgidav/actions/workflows/tests.yml)
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 [![License](https://img.shields.io/pypi/l/wsgidav.svg)](https://github.com/mar10/wsgidav/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![codecov](https://codecov.io/gh/mar10/wsgidav/graph/badge.svg?token=0hNADSIxDz)](https://codecov.io/gh/mar10/wsgidav)
 [![Released with: Yabs](https://img.shields.io/badge/released%20with-yabs-yellowgreen)](https://github.com/mar10/yabs)
 [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
 
