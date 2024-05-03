@@ -86,7 +86,7 @@ executables = [
         target_name="wsgidav.exe",
         icon="docs/source/logo.ico",
         shortcut_name="WsgiDAV",
-        copyright="(c) 2009-2023 Martin Wendt",
+        copyright="(c) 2009-2024 Martin Wendt",
         # trademarks="...",
     )
 ]
@@ -105,7 +105,7 @@ build_exe_options = {
     "excludes": [
         "tkinter",
     ],
-    "constants": "BUILD_COPYRIGHT='(c) 2009-2023 Martin Wendt'",
+    "constants": "BUILD_COPYRIGHT='(c) 2009-2024 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
 }
