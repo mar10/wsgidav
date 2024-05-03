@@ -2,6 +2,8 @@
 
 ## 4.3.3 / Unreleased
 
+- Deprecate Python 3.8 (EOL: 2024-10-14)
+
 ## 4.3.2 / 2024-03-29
 
 - [#318](https://github.com/mar10/wsgidav/issues/318) Error when used with lxml

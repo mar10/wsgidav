@@ -132,7 +132,7 @@ def _check_config(config):
 
 
 #: Minimal Python version that is supported by WsgiDAV
-MIN_PYTHON_VERSION_INFO = (3, 8)
+MIN_PYTHON_VERSION_INFO = (3, 9)
 
 check_python_version(MIN_PYTHON_VERSION_INFO)
 
