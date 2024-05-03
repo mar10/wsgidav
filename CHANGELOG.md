@@ -3,6 +3,8 @@
 ## 4.3.3 / Unreleased
 
 - Deprecate Python 3.8 (EOL: 2024-10-14)
+- Build Windows installer with Python 3.12
+- Update to Cheroot 10.8
 
 ## 4.3.2 / 2024-03-29
 
