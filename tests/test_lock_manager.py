@@ -404,7 +404,7 @@ class RedisTest(BasicTest):
             raise unittest.SkipTest("Test requires a running redis instance (again)")
 
         try:
-            import redis
+            import redis  # type: ignore
 
             r = redis.Redis()
             r.ping()
