@@ -23,16 +23,17 @@ table.dir-listing {
 table.dir-listing tbody tr:hover
 {
   background-color: #414248;
+  border-radius: 4px;
 }
 table.dir-listing tbody tr td a
 {
   color: #000;
   text-decoration: none;
 }
-table.dir-listing tbody tr:hover td a
+/* table.dir-listing tbody tr:hover td a
 {
   text-decoration: underline;
-}
+} */
 table.dir-listing tr.directory td a
 {
   font-weight: bold;

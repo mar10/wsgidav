@@ -2,30 +2,132 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="generator" content="WsgiDAV/{{ version }}">
-  <title>TorBox WebDAV - {{ display_path }} </title>
+  <meta name="generator" content="TorBox WebDAV/{{ version }}">
+  <title>TorBox WebDAV - Index of {{ display_path }} </title>
+  <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico">
   <link rel="stylesheet" href="{{ htdocs }}/style.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter">
   <script defer src="{{ htdocs }}/script.js"></script>
   <style type="text/css"> A {behavior: url(#default#AnchorClick);} </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body onload="onLoad()">
 
-  <h1>
-    {%- if config.icon %}
-    <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png">
-    {% endif -%}
-    Index of {{ display_path }}
-  </h1>
 
-  {% if config.davmount_links %}
-  <p class="links">
-    <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
-  </p>
-  {% endif %}
+  <header class="w-full px-4 header">
+    <div class="flex items-center justify-between w-full py-4 mx-auto max-w-7xl">
+        <div class="flex items-center">
+          <div class="w-20 h-20 -ml-4">
+            <svg
+              version="1.1"
+              id="Layer_1"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlnsXlink="http://www.w3.org/1999/xlink"
+              x="0px"
+              y="0px"
+              viewBox="0 0 1500 1500"
+              xmlSpace="preserve"
+            >
+              <g>
+                <polygon
+                  style="fill:#00444D;"
+                  points="749.99,749.99 749.99,1191.96 367.25,970.97 367.25,529.01"
+                />
+                <polygon
+                  style="fill:#34BA90;"
+                  points="1132.75,529.01 1132.75,970.97 749.99,1191.96 749.99,749.99 872.87,679.05 956.71,630.66"
+                />
+                <polygon
+                  style="fill:#52A153;"
+                  points="1132.75,529.01 749.99,749.99 367.25,529.01 749.99,308.04"
+                />
+                <polygon
+                  style="fill:#FFFFFF"
+                  points="1043.04,739.36 958.66,1057.08 952.4,851.84 839.71,915.39 872.87,679.05 956.71,630.66 931.81,799.21"
+                />
+              </g>
+            </svg>
+          </div>
+          <h1 class="-ml-3 text-3xl font-semibold">WebDAV</h1>
+        </div>
+      <div class="flex items-center justify-center gap-6">
+        <a
+          href="https://torbox.app/pricing"
+          class="hidden text-sm text-gray-300 sm:block"
+          aria-label="Pricing"
+          title="Pricing"
+          name="Pricing"
+        >
+          Pricing
+        </a>
+        <a
+          href="https://support.torbox.app"
+          target="_blank"
+          class="hidden text-sm text-gray-300 sm:block"
+          aria-label="Help Center"
+          title="Help Center"
+          name="Help Center"
+        >
+          Help Center
+        </a>
+        <a
+          href="https://api-docs.torbox.app"
+          target="_blank"
+          class="hidden text-sm text-gray-300 sm:block"
+          aria-label="API"
+          title="API"
+          name="API"
+        >
+          API
+        </a>
+        <a
+          href="https://join-discord.torbox.app"
+          target="_blank"
+          class="hidden text-sm text-gray-300 sm:block"
+          aria-label="Discord"
+          title="Discord"
+          name="Discord"
+        >
+          Discord
+        </a>
+        <a
+          href="https://status.torbox.app"
+          target="_blank"
+          class="hidden text-sm text-gray-300 sm:block"
+          aria-label="Status"
+          title="Status"
+          name="Status"
+        >
+          Status
+        </a>
+        <a
+          href="https://torbox.app/about"
+          class="hidden text-sm text-gray-300 sm:block"
+          aria-label="about"
+          title="about"
+          name="about"
+        >
+          About
+        </ak>
+        <div class="rounded-md bg-gradient-to-r from-[#026873] via-[#04BF8A] to-[#025940] p-[1px]">
+          <a
+            href="https://torbox.app/dashboard"
+            class="flex items-center justify-center bg-[#1c1c1c] rounded-md p-2"
+            aria-label="Login"
+            title="Login"
+            name="Login"
+          >
+            <h1 class="px-3 font-semibold text-white text-md">
+              Dashboard
+            </h1>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
 
-  {%- if user_name and config.show_user %}
+  <!-- {%- if user_name and config.show_user %}
   <p class="auth-user">
     | User: <span class="user-text">{{user_name}}</span> | On: <span class="user-text">{{realm}}</span> |
     {%- if is_authenticated and config.show_logout %}
@@ -35,79 +137,110 @@
       , roles: {{ user_roles }}
     {% endif -%}
   </p>
-  {% endif -%}
+  {% endif -%} -->
 
-  <hr>
+  <!-- <hr> -->
 
-  <table class="dir-listing" onclick="return onClickTable(event)">
+  <div class="w-full px-4">
+    <div class="w-full h-full border p-4 rounded-md border-[#212A36] bg-[#1E2129] max-w-7xl mb-4 mx-auto flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="text-sm text-gray-400">Index of <span class="text-white">{{display_path}}</span></p>
+        {% macro count_files(rows) %}
+          {% set total_files = namespace(value=0) %}
+          {% for row in rows %}
+              {% set total_files.value = total_files.value + (row | length) %}
+          {% endfor %}
+          {{ total_files.value }}
+        {% endmacro %}
+        <p class="text-sm text-gray-400">Number of downloads: <span class="text-white">{{ rows | length }}</span></p>
+        <p class="text-sm text-gray-400">Number of files: <span class="text-white">{{ count_files(rows) }}</span></p>
+      </div>
+      
+      <div class="flex flex-col gap-2">
+        <p>Logged in as {{user_name}}</p>
+        <button class="px-3 py-2 font-bold text-white bg-[#04BF8A] rounded-md flex items-center gap-2 text-center justify-center" onclick="logout()">Log out</button>
+      </div>
+    </div>
+  </div>
 
-    <colgroup>
-      <col>
-      <col>
-      <col class="right">
-      <col class="right">
-    </colgroup>
+  <div class="w-full px-4">
+    <div class="w-full h-full border p-4 rounded-md border-[#212A36] bg-[#1E2129] max-w-7xl mb-4 mx-auto">
+    <table class="w-full dir-listing" onclick="return onClickTable(event)">
+      
+      <colgroup>
+        <col>
+        <col>
+        <col class="right">
+        <col class="right">
+      </colgroup>
 
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Size</th>
-        <th>Last modified</th>
-      </tr>
-    </thead>
+      <thead>
+        <tr>
+          <th class="text-xl font-black">Name</th>
+          <th class="text-xl font-black">Type</th>
+          <th class="text-xl font-black">Size</th>
+          <th class="text-xl font-black">Last modified</th>
+        </tr>
+      </thead>
 
-    <tbody>
-      {%- if not is_top_dir %}
-      <tr class="directory">
+      <tbody>
+        {%- if not is_top_dir %}
+        <tr class="directory">
+            <td>
+              <a href="..">
+                <span class="go-up">
+                  ..
+                </span>
+              </a>
+            </td>
+          <td>Directory</td>
+          <td>-</td>
+          <td></td>
+        </tr>
+        {% endif -%}
+
+        {% for row in rows %}
+        <tr class="{{ row.tr_class }} hover:bg-[#414248] hover:rounded-md">
           <td>
-            <a href="..">
-              <span class="go-up">
-                ..
-              </span>
-            </a>
-          </td>
-        <td>Directory</td>
-        <td>-</td>
-        <td></td>
-      </tr>
-      {% endif -%}
-
-      {% for row in rows %}
-      <tr class="{{ row.tr_class }}">
-        <td>
-          <a class="{{ row.a_class }}" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
-            <span class="item-text">
-              {{row.display_name}}
-            </span>
-          </a>
-          {%- if row.href_2 %}
-            <a class="{{ row.a_class_2 }}" href="{{row.href_2}}" {% if row.ofe_prefix_2%} data-ofe="{{row.ofe_prefix_2}}" {% endif %} >
+            <a class="{{ row.a_class }} no-underline" href="{{row.href}}" {% if row.ofe_prefix %} data-ofe="{{row.ofe_prefix}}" {% endif %} >
               <span class="item-text">
-                {{row.display_name_2}}
+                {{row.display_name}}
               </span>
             </a>
-          {% endif -%}
-          {%- if row.add_link_html %}
-              {{row.add_link_html | safe}}
-          {% endif -%}
-        </td>
-        <td>{{ row.display_type }}</td>
-        <td>{{ row.str_size }}</td>
-        <td>{{ row.str_modified }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+            {%- if row.href_2 %}
+              <a class="{{ row.a_class_2 }} no-underline" href="{{row.href_2}}" {% if row.ofe_prefix_2%} data-ofe="{{row.ofe_prefix_2}}" {% endif %} >
+                <span class="item-text">
+                  {{row.display_name_2}}
+                </span>
+              </a>
+            {% endif -%}
+            {%- if row.add_link_html %}
+                {{row.add_link_html | safe}}
+            {% endif -%}
+          </td>
+          <td>{{ row.display_type }}</td>
+          <td>{{ row.str_size }}</td>
+          <td>{{ row.str_modified }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
 
-  <hr>
+  <!-- <hr> -->
 
-  {% if trailer %}
+  <!-- {% if trailer %}
   <p class="trailer">{{ trailer | safe }}</p>
   {% endif %}
 
   <object id="winFirefoxPlugin" type="application/x-sharepoint"
-      width="0" height="0" style="visibility: hidden;"></object>
-
+      width="0" height="0" style="visibility: hidden;"></object> -->
+<script>
+  function logout() {
+    var p = window.location.protocol + "//";
+    window.location = window.location.href.replace(p, p + "log:out@");
+  }
+</script>
 </body>
 </html>
