@@ -36,3 +36,4 @@ wsgidav*.yaml
 wsgidav-props.shelve.dat
 wsgidav-props.shelve.dir
 manifests/
+.venv
