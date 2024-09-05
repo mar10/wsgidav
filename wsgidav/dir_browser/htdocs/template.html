@@ -170,7 +170,6 @@
         <col>
         <col>
         <col class="right">
-        <col class="right">
       </colgroup>
 
       <thead>
@@ -178,7 +177,6 @@
           <th class="text-xl font-black">Name</th>
           <th class="text-xl font-black">Type</th>
           <th class="text-xl font-black">Size</th>
-          <th class="text-xl font-black">Last modified</th>
         </tr>
       </thead>
 
@@ -194,7 +192,6 @@
             </td>
           <td>Directory</td>
           <td>-</td>
-          <td></td>
         </tr>
         {% endif -%}
 
@@ -219,7 +216,6 @@
           </td>
           <td>{{ row.display_type }}</td>
           <td>{{ row.str_size }}</td>
-          <td>{{ row.str_modified }}</td>
         </tr>
         {% endfor %}
       </tbody>
