@@ -1,6 +1,13 @@
 # Changelog
 
-## 4.3.3 / Unreleased
+## 4.3.4 / Unreleased
+
+## 4.3.3 / 2024-05-04
+
+- Deprecate Python 3.8 (EOL: 2024-10-14)
+- Build Windows installer with Python 3.12
+- Update to Cheroot 10.8
+- [#315](https://github.com/mar10/wsgidav/issues/315) CHANGELOG.md is installed into the virtualenv or prefix root directory
 
 ## 4.3.2 / 2024-03-29
 
