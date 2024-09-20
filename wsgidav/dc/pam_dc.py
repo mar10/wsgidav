@@ -8,6 +8,7 @@ Used by HTTPAuthenticator. Only available on linux and macOS.
 
 See https://wsgidav.readthedocs.io/en/latest/user_guide_configure.html
 """
+import os
 import threading
 
 from wsgidav import util
@@ -37,6 +38,8 @@ class PAMDomainController(BaseDomainController):
         self.pam_service = dc_conf.get("service", "login")
         self.pam_encoding = dc_conf.get("encoding", "utf-8")
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
+        self.allow_users = dc_conf.get("allow_users", "all") # "all", "current" or list of allowed users
+        self.deny_users = dc_conf.get("deny_users", [])
 
     def __str__(self):
         return f"{self.__class__.__name__}({self.pam_service!r})"
@@ -47,8 +50,23 @@ class PAMDomainController(BaseDomainController):
     def require_authentication(self, realm, environ):
         return True
 
+    def validate_user(self, user_name):
+        if user_name in self.deny_users:
+            return False
+        if self.allow_users == "all":
+            return True
+        if self.allow_users == "current":
+            if user_name == os.getlogin():
+                return True
+        if user_name in self.allow_users:
+            return True
+        return False
+
     def basic_auth_user(self, realm, user_name, password, environ):
         # Seems that python_pam is not threadsafe (#265)
+        if not self.validate_user(user_name):
+            _logger.warning(f"User {user_name!r} is not allowed.")
+            return False
         with self.lock:
             is_ok = self.pam.authenticate(
                 user_name,
