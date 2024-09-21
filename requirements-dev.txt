@@ -7,12 +7,10 @@ Paste~=3.0
 black~=24.3
 pytest~=8.2
 pytest-cov~=5.0
-recommonmark
+# recommonmark
 requests
 ruff
 setuptools~=69.5
-#Sphinx
-#sphinx_rtd_theme
 stressor
 tox~=4.15
 twine~=5.0

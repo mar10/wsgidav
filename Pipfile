@@ -16,7 +16,7 @@ pytest-cov = "*"  # "~=4.0"
 pytest-html = "*"
 python-pam = "*"  # "~=1.8"
 pywin32 = {version = "*", markers="sys_platform == 'win32'"}
-recommonmark = "*"
+# recommonmark = "*"
 requests = "*"
 # rope = "*"
 ruff = "*"
