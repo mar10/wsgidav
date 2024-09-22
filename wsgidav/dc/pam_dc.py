@@ -38,8 +38,12 @@ class PAMDomainController(BaseDomainController):
         self.pam_service = dc_conf.get("service", "login")
         self.pam_encoding = dc_conf.get("encoding", "utf-8")
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
-        self.allow_users = dc_conf.get("allow_users", "all") # "all", "current" or list of allowed users
+        self.allow_users = dc_conf.get("allow_users", "all")
+        assert self.allow_users in ("all", "current") or isinstance(self.allow_users, list), \
+            f"Invalid 'allow_users' value: {self.allow_users!r}, expected 'all', 'current' or list of allowed users."
         self.deny_users = dc_conf.get("deny_users", [])
+        assert isinstance(self.deny_users, list), \
+            f"Invalid 'deny_users' value: {self.deny_users!r}, expected list of denied users."
 
     def __str__(self):
         return f"{self.__class__.__name__}({self.pam_service!r})"
@@ -50,7 +54,7 @@ class PAMDomainController(BaseDomainController):
     def require_authentication(self, realm, environ):
         return True
 
-    def validate_user(self, user_name):
+    def _validate_user(self, user_name):
         if user_name in self.deny_users:
             return False
         if self.allow_users == "all":
@@ -64,7 +68,7 @@ class PAMDomainController(BaseDomainController):
 
     def basic_auth_user(self, realm, user_name, password, environ):
         # Seems that python_pam is not threadsafe (#265)
-        if not self.validate_user(user_name):
+        if not self._validate_user(user_name):
             _logger.warning(f"User {user_name!r} is not allowed.")
             return False
         with self.lock:
