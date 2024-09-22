@@ -416,6 +416,11 @@ known user accounts::
 
     pam_dc:
         service: "login"
+        allow_users: "all"
+        #: or "current" for the current user, or a list of user names like deny_users
+        # deny_users:
+        #   - "root"
+        #   - "daemon"
 
 If no config file is used, PAM authentication can be enabled on the command
 line like::
