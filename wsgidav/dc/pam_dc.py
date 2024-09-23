@@ -39,11 +39,15 @@ class PAMDomainController(BaseDomainController):
         self.pam_encoding = dc_conf.get("encoding", "utf-8")
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
         self.allow_users = dc_conf.get("allow_users", "all")
-        assert self.allow_users in ("all", "current") or isinstance(self.allow_users, list), \
-            f"Invalid 'allow_users' value: {self.allow_users!r}, expected 'all', 'current' or list of allowed users."
+        if not (self.allow_users in ("all", "current") or isinstance(self.allow_users, list)):
+            raise ValueError(
+                f"Invalid 'allow_users' value: {self.allow_users!r}, expected 'all', 'current' or list of allowed users."
+            )
         self.deny_users = dc_conf.get("deny_users", [])
-        assert isinstance(self.deny_users, list), \
-            f"Invalid 'deny_users' value: {self.deny_users!r}, expected list of denied users."
+        if not isinstance(self.deny_users, list):
+            raise ValueError(
+                f"Invalid 'deny_users' value: {self.deny_users!r}, expected list of denied users."
+            )
 
     def __str__(self):
         return f"{self.__class__.__name__}({self.pam_service!r})"
