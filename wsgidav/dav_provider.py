@@ -95,7 +95,8 @@ from wsgidav.dav_error import (
     PRECONDITION_CODE_ProtectedProperty,
     as_DAVError,
 )
-from wsgidav.util import etree
+# from wsgidav.util import etree
+import xml.etree.ElementTree as etree
 
 __docformat__ = "reStructuredText"
 
