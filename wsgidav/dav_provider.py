@@ -113,6 +113,7 @@ _standardLivePropNames = [
     # "{DAV:}source", # removed in rfc4918
 ]
 _lockPropertyNames = ["{DAV:}lockdiscovery", "{DAV:}supportedlock"]
+etree.register_namespace('D', 'DAV:')
 
 
 # ========================================================================
@@ -726,7 +727,7 @@ class _DAVResource(ABC):
                 return self.get_content_type()
             elif name == "{DAV:}resourcetype":
                 if self.is_collection:
-                    resourcetypeEL = etree.Element(name)
+                    resourcetypeEL = etree.Element("{DAV:}resourcetype", xmlns="DAV:")
                     etree.SubElement(resourcetypeEL, "{DAV:}collection")
                     return resourcetypeEL
                 return ""
