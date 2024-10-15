@@ -7,10 +7,13 @@ import logging
 import logging.handlers
 import sys
 import unittest
+from lxml import etree
 from io import StringIO
 
+from wsgidav import xml_tools
 from wsgidav.util import (
     BASE_LOGGER_NAME,
+    add_property_response,
     check_tags,
     checked_etag,
     deep_update,
@@ -25,6 +28,7 @@ from wsgidav.util import (
     pop_path,
     removeprefix,
     shift_path,
+    to_str,
     update_headers_in_place,
 )
 
@@ -180,6 +184,17 @@ class BasicTest(unittest.TestCase):
         assert get_dict_value(d, "c", as_dict=True) is False
         assert get_dict_value(d, "x", as_dict=True) == {}
         self.assertRaises(KeyError, get_dict_value, d, "x", as_dict=False)
+        
+        multistatus_el = xml_tools.make_multistatus_el()
+        add_property_response(multistatus_el, "", [
+            ('{custom}name', etree.Element("{custom}name", nsmap={"C": "custom"}))
+        ])
+        assert to_str(xml_tools.xml_to_bytes(multistatus_el, pretty=False)) == (
+            '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n'
+            '<D:multistatus xmlns:D="DAV:"><D:response>'
+            '<D:href></D:href><D:propstat><D:prop><C:name xmlns:C="custom"/></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat>'
+            '</D:response></D:multistatus>'
+        )
 
 
 class LoggerTest(unittest.TestCase):
