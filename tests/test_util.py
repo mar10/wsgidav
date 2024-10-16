@@ -9,8 +9,6 @@ import sys
 import unittest
 from io import StringIO
 
-from lxml import etree
-
 from wsgidav import xml_tools
 from wsgidav.util import (
     BASE_LOGGER_NAME,
@@ -32,6 +30,7 @@ from wsgidav.util import (
     to_str,
     update_headers_in_place,
 )
+from wsgidav.xml_tools import etree
 
 
 class BasicTest(unittest.TestCase):
