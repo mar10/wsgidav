@@ -3,7 +3,6 @@
 # NOTE: isort must not change this import order:
 # isort: skip_file
 
-import os
 import re
 import sys
 
@@ -15,8 +14,8 @@ from wsgidav import __version__
 # Check for Windows MSI Setup
 if "bdist_msi" not in sys.argv:  # or len(sys.argv) != 2:
     raise RuntimeError(
-        "This setup.py variant is only for creating 'bdist_msi' targets: {}\n"
-        "Example `{} bdist_msi`".format(sys.argv, sys.argv[0])
+        f"This setup.py variant is only for creating 'bdist_msi' targets: {sys.argv}\n"
+        f"Example `{sys.argv[0]} bdist_msi`"
     )
 
 org_version = __version__
@@ -54,12 +53,12 @@ else:
     patch = int(patch)
     alpha = 0
 
-version = "{}.{}.{}.{}".format(major, minor, patch, alpha)
-print("Version {}, using {}".format(org_version, version))
+version = f"{major}.{minor}.{patch}.{alpha}"
+print(f"Version {org_version}, using {version}")
 
 try:
-    readme = open("README.md", "rt").read()
-except IOError:
+    readme = open("README.md").read()
+except OSError:
     readme = "(readme not found. Running from tox/setup.py test?)"
 
 # These dependencies are for plain WsgiDAV:

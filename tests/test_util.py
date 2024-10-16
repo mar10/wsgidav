@@ -7,8 +7,9 @@ import logging
 import logging.handlers
 import sys
 import unittest
-from lxml import etree
 from io import StringIO
+
+from lxml import etree
 
 from wsgidav import xml_tools
 from wsgidav.util import (
