@@ -39,7 +39,6 @@ PyYAML = "*"  # "~=5.1"
 json5 = "*"
 
 [requires]
-# cx_Freeze 6.x does not yet support Pathon 3.12
 python_version = "3.12"
 
 [pipenv]

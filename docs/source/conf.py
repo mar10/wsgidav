@@ -67,6 +67,8 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
+    'sphinxcontrib.googleanalytics',
+    'sphinxcontrib.mermaid',
     # 'sphinx_automodapi.automodapi',
     # 'sphinx_search.extension',
 ]
@@ -142,6 +144,9 @@ html_theme_options = {
 # html_theme_path = []
 # html_theme = 'bootstrap'
 # html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+
+googleanalytics_id = 'G-NESEWWF02Y'
+# googleanalytics_enabled = False
 
 # MyST Markdown Support
 myst_enable_extensions = [

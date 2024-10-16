@@ -6,7 +6,6 @@ python-pam~=2.0.2
 PyYAML~=6.0
 # RTD:
 furo
-# recommonmark~=0.7.1
-# MyST
 myst-parser[linkify]
+sphinxcontrib-googleanalytics
 sphinxcontrib-mermaid
