@@ -185,16 +185,18 @@ class BasicTest(unittest.TestCase):
         assert get_dict_value(d, "c", as_dict=True) is False
         assert get_dict_value(d, "x", as_dict=True) == {}
         self.assertRaises(KeyError, get_dict_value, d, "x", as_dict=False)
-        
+
         multistatus_el = xml_tools.make_multistatus_el()
-        add_property_response(multistatus_el, "", [
-            ('{custom}name', etree.Element("{custom}name", nsmap={"C": "custom"}))
-        ])
+        add_property_response(
+            multistatus_el,
+            "",
+            [("{custom}name", etree.Element("{custom}name", nsmap={"C": "custom"}))],
+        )
         assert to_str(xml_tools.xml_to_bytes(multistatus_el, pretty=False)) == (
-            '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n'
+            "<?xml version='1.0' encoding='UTF-8'?>\n"
             '<D:multistatus xmlns:D="DAV:"><D:response>'
             '<D:href></D:href><D:propstat><D:prop><C:name xmlns:C="custom"/></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat>'
-            '</D:response></D:multistatus>'
+            "</D:response></D:multistatus>"
         )
 
 

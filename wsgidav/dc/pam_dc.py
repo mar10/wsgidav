@@ -39,7 +39,9 @@ class PAMDomainController(BaseDomainController):
         self.pam_encoding = dc_conf.get("encoding", "utf-8")
         self.pam_resetcreds = dc_conf.get("resetcreds", True)
         self.allow_users = dc_conf.get("allow_users", "all")
-        if not (self.allow_users in ("all", "current") or isinstance(self.allow_users, list)):
+        if not (
+            self.allow_users in ("all", "current") or isinstance(self.allow_users, list)
+        ):
             raise ValueError(
                 f"Invalid 'allow_users' value: {self.allow_users!r}, expected 'all', 'current' or list of allowed users."
             )
