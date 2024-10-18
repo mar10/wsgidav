@@ -1306,7 +1306,7 @@ def add_property_response(multistatus_elem, href, prop_list):
     """
     # Split prop_list by status code and build a unique list of namespaces
     nsCount = 1
-    nsDict = {}
+    nsSet = set()
     nsMap = {}
     propDict = {}
 
@@ -1320,10 +1320,11 @@ def add_property_response(multistatus_elem, href, prop_list):
         # Collect namespaces, so we can declare them in the <response> for
         # compacter output
         ns, _ = split_namespace(name)
-        if ns != "DAV:" and ns not in nsDict and ns != "":
-            nsDict[ns] = True
-            nsMap[f"NS{nsCount}"] = ns
-            nsCount += 1
+        if ns != "DAV:" and ns not in nsSet and ns != "":
+            if not is_etree_element(value) or ns not in value.nsmap.values():
+                nsMap[f"NS{nsCount}"] = ns
+                nsCount += 1
+            nsSet.add(ns)
 
         propDict.setdefault(status, []).append((name, value))
 
