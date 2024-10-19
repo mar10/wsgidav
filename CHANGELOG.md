@@ -400,7 +400,7 @@ This release contains **BREAKING CHANGES!**
 
 ## 0.4.0.b1
 
-- Using HTTP/1.1 with keep-alive (Stéphane KLEIN)
+- Using HTTP/1.1 with keep-alive (Stéphane Kein)
 - Correctly return pre- and postconditions on lock conflicts.
 - Added Sphinx docs
 - Added Mercurial provider
