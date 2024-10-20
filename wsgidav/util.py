@@ -5,6 +5,7 @@
 """
 Miscellaneous support functions for WsgiDAV.
 """
+
 import base64
 import calendar
 import collections.abc
@@ -820,7 +821,6 @@ def fix_path(path, root, *, expand_vars=True, must_exist=True, allow_none=True):
     Convert path to absolute if required, expand leading '~' as user home dir,
     expand %VAR%, $Var, ...
     """
-    # org_path = path
     if path in (None, ""):
         if allow_none:
             return None
@@ -836,6 +836,9 @@ def fix_path(path, root, *, expand_vars=True, must_exist=True, allow_none=True):
                 root = os.path.dirname(config_file)
             else:
                 root = os.getcwd()
+        # NOTE:
+        # Changed in version 3.13: On Windows, `os.path.isabs` returns False
+        # if the given path starts with exactly one (back)slash.
         path = os.path.abspath(os.path.join(root, path))
 
     if expand_vars:
@@ -844,8 +847,6 @@ def fix_path(path, root, *, expand_vars=True, must_exist=True, allow_none=True):
     if must_exist and not os.path.exists(path):
         raise ValueError(f"Invalid path: {path!r}")
 
-    # if org_path != path:
-    #     print(f"fix_path({org_path}) => {path}")
     return path
 
 
