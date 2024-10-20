@@ -20,18 +20,19 @@ jobs:
         # Python 3.5  # EOL 2020-09-13
         # Python 3.6  # EOL 2021-12-21
         # Python 3.7  # EOL 2023-06-27
-        # Python 3.8  # EOL 2024-10-14
-        # Python 3.9  # EOL 2025-10-05
-        # Python 3.10 # EOL 2026-10-04
-        # Python 3.11 # EOL 2027-10-24
-        # Python 3.12 # EOL 2028-10-02
-        # Python 3.13 # EOL
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        # Python 3.8  # EOL 2024-10
+        # Python 3.9  # EOL 2025-10
+        # Python 3.10 # EOL 2026-10
+        # Python 3.11 # EOL 2027-10
+        # Python 3.12 # EOL 2028-10
+        # Python 3.13 # EOL 2029-10
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -63,4 +64,6 @@ jobs:
           # pytest -ra -v -x --durations=10 --cov=wsgidav --html=build/pytest/report-{envname}.html --self-contained-html {posargs}
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -2,18 +2,21 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
-    Unit test for wsgidav HTTP request functionality
+Unit test for wsgidav HTTP request functionality
 
-    This test suite uses webtest.TestApp to send fake requests to the WSGI
-    stack.
+This test suite uses webtest.TestApp to send fake requests to the WSGI
+stack.
 
-    See http://webtest.readthedocs.org/en/latest/
-        (successor of http://pythonpaste.org/testing-applications.html)
+See http://webtest.readthedocs.org/en/latest/
+    (successor of http://pythonpaste.org/testing-applications.html)
 """
+
 import shutil
 import sys
 import unittest
 from urllib.parse import quote
+
+import pytest
 
 from tests.util import create_test_folder
 from wsgidav import util
@@ -30,7 +33,9 @@ except ImportError:
         file=sys.stderr,
     )
     print("*" * 70, file=sys.stderr)
-    raise
+    raise pytest.skip(
+        "Skip tests that require WebTest", allow_module_level=True
+    ) from None
 
 # ========================================================================
 # ServerTest
@@ -165,7 +170,7 @@ class ServerTest(unittest.TestCase):
         uniData = (
             "This is a file with special characters:\n"
             + "Umlaute(äöüß)\n"
-            + "Euro(\u20AC)\n"
+            + "Euro(\u20ac)\n"
             + "Male(\u2642)"
         )
 
@@ -201,9 +206,9 @@ class ServerTest(unittest.TestCase):
             return quote(s.encode("utf8"))
 
         # äöüß: (part of latin1)
-        __testrw(unicode_to_url("/file uml(\u00E4\u00F6\u00FC\u00DF).txt"))
+        __testrw(unicode_to_url("/file uml(\u00e4\u00f6\u00fc\u00df).txt"))
         # Euro sign (not latin1, but Cp1252)
-        __testrw(unicode_to_url("/file euro(\u20AC).txt"))
+        __testrw(unicode_to_url("/file euro(\u20ac).txt"))
         # Male sign (only utf8)
         __testrw(unicode_to_url("/file male(\u2642).txt"))
 

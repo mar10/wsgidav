@@ -2,6 +2,8 @@
 
 ## 4.3.4 / Unreleased
 
+- Test with Python 3.13
+
 ## 4.3.3 / 2024-05-04
 
 - Deprecate Python 3.8 (EOL: 2024-10-14)
@@ -22,7 +24,7 @@
   responses (default: false).
 - #298: `--root` argument honors `fs_dav_provider` configuration.
 - #301: `_DAVResource` should have `is_link()` method to avoid dir_browser issues.
-- #308: remove defusedxml dependency.
+- #308: remove defusedxml.lxml dependency.
 
 ## 4.3.0 / 2023-09-24
 
@@ -398,7 +400,7 @@ This release contains **BREAKING CHANGES!**
 
 ## 0.4.0.b1
 
-- Using HTTP/1.1 with keep-alive (Stéphane KLEIN)
+- Using HTTP/1.1 with keep-alive (Stéphane Kein)
 - Correctly return pre- and postconditions on lock conflicts.
 - Added Sphinx docs
 - Added Mercurial provider
