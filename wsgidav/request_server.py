@@ -99,7 +99,7 @@ class RequestServer:
             method_name = f"do_{requestmethod}"
             method = getattr(self, method_name, None)
         if not method:
-            _logger.error("Invalid HTTP method {requestmethod!r}")
+            _logger.error(f"Invalid HTTP method {requestmethod!r}")
             self._fail(HTTP_METHOD_NOT_ALLOWED)
 
         if environ.get("wsgidav.debug_break"):
