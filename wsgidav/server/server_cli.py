@@ -233,8 +233,9 @@ See https://github.com/mar10/wsgidav for additional information.
 
     if args.version:
         if args.verbose >= 4:
-            version_info = "WsgiDAV/{} Python/{}({} bit) {}".format(
+            version_info = "WsgiDAV/{} {}/{}({} bit) {}".format(
                 __version__,
+                platform.python_implementation(),
                 util.PYTHON_VERSION,
                 "64" if sys.maxsize > 2**32 else "32",
                 platform.platform(aliased=True),
