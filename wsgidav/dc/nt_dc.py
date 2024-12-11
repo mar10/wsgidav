@@ -74,6 +74,7 @@ Testability and caveats
    This class is being tested for a network domain (I'm setting one up to test).
 
 """
+
 import win32net
 import win32netcon
 import win32security
@@ -186,7 +187,6 @@ class NTDomainController(BaseDomainController):
         return False
 
     def _auth_user(self, user_name, password, domain, server):
-
         # TODO: implement caching?
 
         # TODO: is this pre-test efficient, or should we simply try LogonUser()?

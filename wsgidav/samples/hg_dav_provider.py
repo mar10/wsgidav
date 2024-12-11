@@ -70,6 +70,7 @@ Requirements:
     from here: http://mercurial.berkwood.com/
     http://mercurial.berkwood.com/binaries/mercurial-1.4.win32-py2.6.exe
 """
+
 import os
 import sys
 import time

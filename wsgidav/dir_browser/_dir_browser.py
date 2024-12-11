@@ -4,6 +4,7 @@
 """
 WSGI middleware that handles GET requests on collections to display directories.
 """
+
 import os
 import sys
 from fnmatch import fnmatch

@@ -6,6 +6,7 @@ WSGI middleware used for CORS support (optional).
 
 Respond to CORS preflight OPTIONS request and inject CORS headers.
 """
+
 from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware
 

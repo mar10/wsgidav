@@ -4,6 +4,7 @@
 Wrapper for ``server_cli``, that restarts the server when source code is
 modified.
 """
+
 import os
 import sys
 from subprocess import Popen

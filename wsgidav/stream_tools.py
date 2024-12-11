@@ -15,6 +15,7 @@ consumer at the same time::
         return queue
 
 """
+
 import queue
 
 from wsgidav import util

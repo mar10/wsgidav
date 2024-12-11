@@ -4,6 +4,7 @@
 """
 Simple example how to a run WsgiDAV in a 3rd-party WSGI server.
 """
+
 from cheroot import wsgi
 
 from wsgidav import util

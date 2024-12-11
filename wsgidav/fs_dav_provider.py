@@ -14,6 +14,7 @@ This provider creates instances of :class:`~wsgidav.fs_dav_provider.FileResource
 and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
 directories respectively.
 """
+
 import os
 import shutil
 import stat

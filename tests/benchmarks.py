@@ -47,6 +47,7 @@ Test cases
       subfolder10-10/
         file10-10-1.txt -> 1k
 """
+
 import datetime
 import logging
 import platform
@@ -80,7 +81,6 @@ def _setup_fixture(opts, client):
 
 
 def _bench_litmus(opts):
-
     try:
         with Timing("litmus test suite"):
             # Run litmus test suite without printing output
@@ -196,7 +196,6 @@ def _bench_script(opts):
 
 
 def run_benchmarks(opts):
-
     py_version = "{}.{}.{}".format(*sys.version_info)
 
     print("#-- WsgiDAV Benchmark ---------------------------------------------")

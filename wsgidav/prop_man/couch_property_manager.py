@@ -21,6 +21,7 @@ Valid options are (sample shows defaults)::
             }
 
 """
+
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -130,9 +131,7 @@ class CouchPropertyManager:
                 if(doc.type === 'properties' && url.indexOf('%s') === 0) {
                     emit(doc.url, { 'id': doc._id, 'url': doc.url });
                 }
-            }""" % (
-            url + "/"
-        )
+            }""" % (url + "/")
         vr = self.db.query(map_fun, include_docs=True)
         for row in vr:
             yield row.doc

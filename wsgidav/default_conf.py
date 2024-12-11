@@ -13,6 +13,7 @@ r"""
 
 Default configuration.
 """
+
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
 from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter

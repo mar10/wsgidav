@@ -5,6 +5,7 @@
 """
 WSGI application that handles one single WebDAV request.
 """
+
 from urllib.parse import unquote, urlparse
 
 from wsgidav import util, xml_tools
@@ -178,9 +179,9 @@ class RequestServer:
             assert isinstance(e, DAVError)
             responseEL = etree.SubElement(multistatusEL, "{DAV:}response")
             etree.SubElement(responseEL, "{DAV:}href").text = refurl
-            etree.SubElement(responseEL, "{DAV:}status").text = (
-                f"HTTP/1.1 {get_http_status_string(e)}"
-            )
+            etree.SubElement(
+                responseEL, "{DAV:}status"
+            ).text = f"HTTP/1.1 {get_http_status_string(e)}"
 
         return util.send_multi_status_response(environ, start_response, multistatusEL)
 
@@ -352,7 +353,6 @@ class RequestServer:
         responsedescription = []
 
         for child in reslist:
-
             if propFindMode == "allprop":
                 propList = child.get_properties("allprop")
             elif propFindMode == "name":
@@ -364,9 +364,9 @@ class RequestServer:
             util.add_property_response(multistatusEL, href, propList)
 
         if responsedescription:
-            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = (
-                "\n".join(responsedescription)
-            )
+            etree.SubElement(
+                multistatusEL, "{DAV:}responsedescription"
+            ).text = "\n".join(responsedescription)
 
         return util.send_multi_status_response(environ, start_response, multistatusEL)
 
@@ -478,9 +478,9 @@ class RequestServer:
         href = res.get_href()
         util.add_property_response(multistatusEL, href, propResponseList)
         if responsedescription:
-            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = (
-                "\n".join(responsedescription)
-            )
+            etree.SubElement(
+                multistatusEL, "{DAV:}responsedescription"
+            ).text = "\n".join(responsedescription)
 
         # Send response
         return util.send_multi_status_response(environ, start_response, multistatusEL)

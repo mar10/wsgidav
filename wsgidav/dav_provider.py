@@ -78,6 +78,7 @@ lockStorage
 
 See :doc:`reference_guide` for more information about the WsgiDAV architecture.
 """
+
 import os
 import sys
 import time

@@ -8,6 +8,7 @@ Example:
     with WsgiDavTestServer(opts):
         ... test methods
 """
+
 import multiprocessing
 import os
 import shutil

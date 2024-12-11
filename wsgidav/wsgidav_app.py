@@ -46,6 +46,7 @@ For every request:
     Note: The OPTIONS method for the '*' path is handled directly.
 
 """
+
 import copy
 import inspect
 import platform

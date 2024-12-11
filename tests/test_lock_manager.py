@@ -2,6 +2,7 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """Unit test for lock_manager.py"""
+
 import os
 import unittest
 from tempfile import gettempdir

@@ -2,13 +2,14 @@
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
-    Functional test suite for WsgiDAV.
+Functional test suite for WsgiDAV.
 
-    This test suite uses davclient to generate WebDAV requests.
+This test suite uses davclient to generate WebDAV requests.
 
-    See http://chandlerproject.org/Projects/Davclient
-        http://svn.osafoundation.org/tools/davclient/trunk/src/davclient/davclient.py
+See http://chandlerproject.org/Projects/Davclient
+    http://svn.osafoundation.org/tools/davclient/trunk/src/davclient/davclient.py
 """
+
 import os
 import time
 import unittest

@@ -21,6 +21,7 @@ Valid options are (sample shows defaults)::
             }
 
 """
+
 from urllib.parse import quote
 
 import pymongo

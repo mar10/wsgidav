@@ -56,6 +56,7 @@ its limitations:
       unnecessary queries to the database.
 
 """
+
 import csv
 import hashlib
 import time

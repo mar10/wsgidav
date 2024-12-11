@@ -35,6 +35,7 @@ The lock data model is a dictionary with these fields:
         Automatically generated unique token.
 
 """
+
 import random
 import time
 from pprint import pformat

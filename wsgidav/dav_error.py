@@ -5,6 +5,7 @@
 """
 Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 """
+
 import datetime
 from html import escape as html_escape
 

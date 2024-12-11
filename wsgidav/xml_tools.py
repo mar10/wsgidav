@@ -5,6 +5,7 @@
 """
 Small wrapper for different etree packages.
 """
+
 import logging
 from io import StringIO
 

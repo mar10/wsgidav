@@ -93,6 +93,7 @@ header, if present, to::
    environ['wsgidav.destresourceAL'] = fileabstractionlayer.MyOwnFilesystemAbstractionLayer()
 
 """
+
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
 from wsgidav.mw.base_mw import BaseMiddleware

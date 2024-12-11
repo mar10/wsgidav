@@ -94,6 +94,7 @@ When accessed using WebDAV, the following URLs both return the same resource
     <share>/by_tag/hot/My doc 1
     <share>/by_key/1
 """
+
 import os
 import stat
 from io import BytesIO
@@ -150,7 +151,7 @@ _resourceData = [
     },
     {
         "key": "3",
-        "title": "My doc (euro:\u20AC, uuml:��)".encode(),
+        "title": "My doc (euro:\u20ac, uuml:��)".encode(),
         "orga": "marketing",
         "tags": ["nice"],
         "status": "published",

@@ -12,6 +12,7 @@ See :class:`~wsgidav.lock_man.lock_manager.LockManager`
 See :class:`~wsgidav.lock_man.lock_storage.LockStorageDict`
 See :class:`~wsgidav.lock_man.lock_storage.LockStorageShelve`
 """
+
 import os
 import shelve
 import time

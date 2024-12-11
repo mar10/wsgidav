@@ -6,6 +6,7 @@
 WSGI middleware to catch application thrown DAVErrors and return proper
 responses.
 """
+
 import traceback
 
 from wsgidav import util

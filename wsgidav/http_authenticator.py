@@ -76,6 +76,7 @@ The environ variable here is the WSGI 'environ' dictionary. It is passed to
 all methods of the domain controller as a means for developers to pass information
 from previous middleware or server config (if required).
 """
+
 import base64
 import inspect
 import random
@@ -333,7 +334,6 @@ class HTTPAuthenticator(BaseMiddleware):
         return [body]
 
     def handle_digest_auth_request(self, environ, start_response):
-
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
 
         if not realm:
