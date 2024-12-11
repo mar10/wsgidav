@@ -1,29 +1,3 @@
-# [tool.black]
-# line-length = 88
-# target-version = ['py38', 'py39', 'py310', 'py311']
-# include = '\.pyi?$'
-# exclude = '''
-# /(
-#     \.git
-#   | \.hg
-#   | \.tox
-#   | \.venv
-#   | \.eggs
-#   | \.cache
-#   | build
-#   | __pycache__
-#   | dist
-#   | \.*
-
-# )/
-# '''
-
-# [tool.isort]
-# # See https://black.readthedocs.io/en/stable/compatible_configs.html
-# profile = "black"
-# src_paths = ["wsgidav", "tests"]
-
-
 [tool.ruff]
 # Decrease the maximum line length to 79 characters.
 # line-length = 79
@@ -31,8 +5,6 @@
 target-version = "py38"
 src = ["wsgidav", "tests"]
 
-[tool.ruff.lint.isort]
-known-first-party = ["wsgidav", "tests"]
 
 [tool.ruff.lint]
 select = [
@@ -47,6 +19,7 @@ select = [
   # "C",  # codespell
   # "SIM",  # 
 ]
+
 ignore = [
   # We need the old syntax for python <= 3.9
   "UP006", # Use `list` instead of `List` for type annotations (since Py39)
@@ -61,11 +34,64 @@ ignore = [
   "UP031", # Use format specifiers instead of percent format
 ]
 
-# [tool.ruff.pydocstyle]
-# convention = "google"
+[tool.ruff.lint.isort]
+known-first-party = ["wsgidav", "tests"]
+
 
 [tool.codespell]
 skip = '.git,*.pdf,*.svg,*.lock,*.css,logs'
 check-hidden = true
 # ignore-regex = ''
 # ignore-words-list = ''
+
+
+# --- Pytest and Coverage Settings ---------------------------------------------
+[tool.pytest.ini_options]
+# addopts = "-ra -q --cov=wsgidav"
+
+testpaths = [
+    # ".",
+    "tests/*.py"
+]
+
+markers = [
+    "benchmarks: include slow benchmarks (enable with '-m benchmarks')",
+    # "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    # "serial",
+]
+
+[tool.coverage.run]
+# branch = true
+omit = [
+    "tests/*",
+    "setup.py",
+    "wsgidav/prop_man/couch_property_manager.py",
+    "wsgidav/prop_man/mongo_property_manager.py",
+    "wsgidav/samples/*",
+    "wsgidav/server/run_reloading_server.py",
+    "wsgidav/server/server_sample.py",
+]
+
+[tool.coverage.report]
+precision = 2
+# show_missing = true
+sort = "Name"
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+exclude_also = [
+    # 1. Exclude an except clause of a specific form:
+    # "except ValueError:\\n\\s*assume\\(False\\)",
+    # 2. Comments to turn coverage on and off:
+    # "no cover: start(?s:.)*?no cover: stop",
+    # 3. A pragma comment that excludes an entire file:
+    # "\\A(?s:.*# pragma: exclude file.*)\\Z",
+    "\\A(?s:.*# pragma: exclude-file-from-coverage.*)\\Z",
+    ]
+
+[tool.coverage.html]
+directory = "build/coverage"
