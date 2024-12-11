@@ -1,27 +1,27 @@
-[tool.black]
-line-length = 88
-target-version = ['py38', 'py39', 'py310', 'py311']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.tox
-  | \.venv
-  | \.eggs
-  | \.cache
-  | build
-  | __pycache__
-  | dist
-  | \.*
+# [tool.black]
+# line-length = 88
+# target-version = ['py38', 'py39', 'py310', 'py311']
+# include = '\.pyi?$'
+# exclude = '''
+# /(
+#     \.git
+#   | \.hg
+#   | \.tox
+#   | \.venv
+#   | \.eggs
+#   | \.cache
+#   | build
+#   | __pycache__
+#   | dist
+#   | \.*
 
-)/
-'''
+# )/
+# '''
 
-[tool.isort]
-# See https://black.readthedocs.io/en/stable/compatible_configs.html
-profile = "black"
-src_paths = ["wsgidav", "tests"]
+# [tool.isort]
+# # See https://black.readthedocs.io/en/stable/compatible_configs.html
+# profile = "black"
+# src_paths = ["wsgidav", "tests"]
 
 
 [tool.ruff]

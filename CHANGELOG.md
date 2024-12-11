@@ -3,6 +3,7 @@
 ## 4.3.4 / Unreleased
 
 - Test with Python 3.13
+- Use ruff instead of black/isort
 
 ## 4.3.3 / 2024-05-04
 

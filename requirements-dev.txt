@@ -4,7 +4,6 @@
 
 cheroot~=10.0
 Paste~=3.0
-black~=24.3
 pytest~=8.2
 pytest-cov~=5.0
 # recommonmark
