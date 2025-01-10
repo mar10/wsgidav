@@ -16,6 +16,10 @@
 #: used in production.
 #: All other servers must have been installed before, e.g. `pip install cheroot`.
 #: (The binary MSI distribution already includes 'cheroot'.)
+#: NOTE: Using 'gunicorn' with more than 1 worker can cause problems with the
+#: in-memory and shelve-based lock storage as both are not safe for concurrent
+#: access. (see issue #332) Instead, you can use 'gunicorn' with multiple `threads`
+#: or try the 'redis' based lock storage (#186).
 #: Default: 'cheroot', use the `--server` command line option to change this.
 
 server: cheroot
