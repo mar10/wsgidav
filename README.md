@@ -8,7 +8,7 @@
 [![Released with: Yabs](https://img.shields.io/badge/released%20with-yabs-yellowgreen)](https://github.com/mar10/yabs)
 [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
 
-[![Edit online in vscode.dev](https://img.shields.io/static/v1?logo=visualstudiocode&label=&message=Open%20in%20Visual%20Studio%20Code&labelColor=2c2c32&color=007acc&logoColor=007acc) ](https://vscode.dev/github/mar10/wsgidav)
+<!-- [![Edit online in vscode.dev](https://img.shields.io/static/v1?logo=visualstudiocode&label=&message=Open%20in%20Visual%20Studio%20Code&labelColor=2c2c32&color=007acc&logoColor=007acc) ](https://vscode.dev/github/mar10/wsgidav) -->
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-3333/).
@@ -18,7 +18,7 @@ Main features:
 - WsgiDAV is a stand-alone WebDAV server with SSL support, that can be
   installed and run as Python command line script on Linux, OSX, and Windows:<br>
 
-  ```
+  ```log
   $ pip install wsgidav cheroot
   $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
   Running without configuration file.
@@ -38,17 +38,32 @@ Main features:
   needed as extra requirement if pam-login authentication is used on Linux
   or OSX:
 
-  ```
+  ```bash
   $ pip install wsgidav[pam]
   $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=pam-login
   ```
 
-- **Note:** Windows users may prefer the
+- Windows users may prefer the
   [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
   (see <kbd>Assets</kbd> section), or use _winget_:
 
   ```ps1
   > winget install wsgidav
+  ```
+
+- Use with [Docker](https://hub.docker.com/r/mar10/wsgidav/): <br>
+  An experimental Docker image that exposes a local directory using WebDAV
+  is available here:
+
+  ```bash
+  $ docker pull mar10/wsgidav
+  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+  ```
+
+  for example::
+
+  ```bash
+  $ docker run --rm -it -p 8080:8080 -v /tmp:/var/wsgidav-root mar10/wsgidav
   ```
 
 - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
