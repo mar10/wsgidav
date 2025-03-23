@@ -184,8 +184,8 @@ Hack, Hack, Hack
       `Black library <https://black.readthedocs.io/en/stable/>`_.
 
       Failing tests or not following PEP 8 will break builds on
-      `travis <https://app.travis-ci.com/github/mar10/wsgidav>`_ and therefore be
-      automatically rejected:
+      `GitHub <https://github.com/mar10/wsgidav/actions/workflows/tests.yml>`_ 
+      and therefore be automatically rejected:
 
         - Run ``$ tox -e format`` to re-format the code, or
           `look for plugins for your favorite editor <https://black.readthedocs.io/en/stable/editor_integration.html>`_

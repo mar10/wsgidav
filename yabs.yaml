@@ -103,7 +103,7 @@ tasks:
 
   - task: commit
     add_known: true
-    # '[ci skip]' tells travis to ignore
+    # '[ci skip]' tells GH-Actions to ignore
     message: |
       Bump prerelease ({version}) [ci skip]
 
