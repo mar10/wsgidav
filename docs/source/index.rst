@@ -82,6 +82,19 @@ Windows NT Domain Controller) like so::
 
 There is much more to configure. Read this docs to find out.
 
+**Docker**
+An experimental Docker image that exposes a local directory using WebDAV
+is available here: https://hub.docker.com/r/mar10/wsgidav/
+
+::
+
+    $ docker pull mar10/wsgidav
+    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+
+for example::
+
+    $ docker run --rm -it -p 8080:8080 -v c:/temp:/var/wsgidav-root mar10/wsgidav
+
 
 Supported Clients
 =================

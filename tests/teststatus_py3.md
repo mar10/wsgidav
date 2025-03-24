@@ -45,7 +45,7 @@ behavior, but anyway:
                              and 10% faster than WsgiDAV 1.x on Python 2.7
   - WsgiDAV 1.x on Python 2.7 is 10% faster than WsgiDAV 2.x on Python 2.7
 
-  - lxml improvemes performance of propfind/proppatch by aprox. 10%
+  - lxml improvemes performance of propfind/proppatch by approx. 10%
 
 
 #### Details
