@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content="WsgiDAV/{{ version }}" />
+    <title>WsgiDAV - Index of {{ display_path }}</title>
+
+    <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mar10/wunderbaum@main/dist/wunderbaum.css" />
+    <link rel="stylesheet" href="{{ htdocs }}/style.css" />
+
+    <script defer type="module" src="{{ htdocs }}/script.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        {%- if config.icon %}
+        <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png" />
+        {% endif -%} Index of {{ display_path }}
+      </h1>
+
+      {% if config.davmount_links %}
+      <p class="links">
+        <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
+      </p>
+      {% endif %} {%- if user_name and config.show_user %}
+      <p class="auth-user">
+        Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
+        <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
+        {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%}
+      </p>
+      {% endif -%}
+    </header>
+    <div class="main-container">
+      <main>
+        <div id="tree"></div>
+      </main>
+      <aside>
+        <p>Optional right-side area.</p>
+      </aside>
+    </div>
+    <footer>
+      {% if trailer %}
+      <p class="trailer">{{ trailer | safe }}</p>
+      {% endif %}
+
+      <object id="winFirefoxPlugin" type="application/x-sharepoint" width="0" height="0" style="visibility: hidden"></object>
+    </footer>
+  </body>
+</html>
