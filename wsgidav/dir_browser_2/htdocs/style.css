@@ -7,23 +7,30 @@ body {
   height: 100vh;
 }
 
+p {
+  margin-bottom: 4px;
+}
+
+#winFirefoxPlugin {
+  height: 0px;
+  max-height: 0px;
+  display: inline;
+}
+
 header {
   background-color: #4CAF50;
   color: white;
-  padding: 15px;
-  text-align: center;
-  flex: 0 0 60px;
-  /* Fixed height */
+  padding: 5px;
+  /* text-align: center; */
+  flex: 0 0 40px;
 }
 
 footer {
   background-color: #333;
-  color: white;
-  text-align: center;
-  padding: 10px;
-  flex: 0 0 40px;
-  /* Fixed height */
   color: antiquewhite;
+  text-align: center;
+  padding: 5px;
+  flex: 0 0 20px;
 }
 
 footer a {
@@ -55,5 +62,3 @@ aside {
   /* display: none; */
   /* Hidden by default */
 }
-
-#tree {}

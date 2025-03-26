@@ -7,8 +7,10 @@
     <title>WsgiDAV - Index of {{ display_path }}</title>
 
     <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico" />
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mar10/wunderbaum@main/dist/wunderbaum.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-reboot@4.5.6/reboot.min.css" />
     <link rel="stylesheet" href="{{ htdocs }}/style.css" />
 
     <script defer type="module" src="{{ htdocs }}/script.js"></script>
@@ -34,10 +36,13 @@
       {% endif -%}
     </header>
     <div class="main-container">
+      <aside class="left">
+        <p>Optional left-side area.</p>
+      </aside>
       <main>
         <div id="tree"></div>
       </main>
-      <aside>
+      <aside class="right">
         <p>Optional right-side area.</p>
       </aside>
     </div>
@@ -46,7 +51,7 @@
       <p class="trailer">{{ trailer | safe }}</p>
       {% endif %}
 
-      <object id="winFirefoxPlugin" type="application/x-sharepoint" width="0" height="0" style="visibility: hidden"></object>
+      <!-- <object id="winFirefoxPlugin" type="application/x-sharepoint" width="0" height="0" style="visibility: hidden"></object> -->
     </footer>
   </body>
 </html>
