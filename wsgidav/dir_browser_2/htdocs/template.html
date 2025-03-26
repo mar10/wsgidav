@@ -32,13 +32,11 @@
         Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
         <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
         {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%}
+        <button><i class="bi bi-window-split"></i></button>
       </p>
       {% endif -%}
     </header>
     <div class="main-container">
-      <aside class="left">
-        <p>Optional left-side area.</p>
-      </aside>
       <main>
         <div id="tree"></div>
       </main>

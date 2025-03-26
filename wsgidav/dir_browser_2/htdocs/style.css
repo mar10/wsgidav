@@ -46,19 +46,19 @@ footer a {
 }
 
 main {
-  flex: 1;
+  /* flex: 1; */
   /* Main content takes most of the space */
-  padding: 20px;
+  padding: 10px;
   background-color: #f4f4f4;
 }
 
 
 /* To show the optional area, remove the display: none; rule below */
 aside {
-  flex: 0 0 250px;
+  /* flex: 0 0 250px; */
   /* Optional right-side area with fixed width */
   background-color: #ddd;
-  padding: 20px;
+  padding: 5px;
   /* display: none; */
   /* Hidden by default */
 }

@@ -1,66 +1,16 @@
 "use strict";
 
-import { Wunderbaum } from "https://esm.run/wunderbaum@0.13";
+import { Wunderbaum } from "./wunderbaum.esm.js";
+// import { Wunderbaum } from "https://esm.run/wunderbaum@0.13";
 // /** @type {import("https://cdn.jsdelivr.net/npm/wunderbaum@0.13.0/dist/wunderbaum.d.ts")} */
 import { createClient } from "https://esm.run/webdav@5.8.0";
+import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
+// import { foo } from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
+import { fileTypeIcons } from "./previews.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
 let _client = null;
-
-
-const fileTypeIcons = {
-	aac: "bi bi-filetype-aac",
-	ai: "bi bi-filetype-ai",
-	bmp: "bi bi-filetype-bmp",
-	cs: "bi bi-filetype-cs",
-	css: "bi bi-filetype-css",
-	csv: "bi bi-filetype-csv",
-	doc: "bi bi-filetype-doc",
-	docx: "bi bi-filetype-docx",
-	exe: "bi bi-filetype-exe",
-	gif: "bi bi-filetype-gif",
-	heic: "bi bi-filetype-heic",
-	html: "bi bi-filetype-html",
-	java: "bi bi-filetype-java",
-	jpg: "bi bi-filetype-jpg",
-	js: "bi bi-filetype-js",
-	json: "bi bi-filetype-json",
-	jsx: "bi bi-filetype-jsx",
-	key: "bi bi-filetype-key",
-	m4p: "bi bi-filetype-m4p",
-	md: "bi bi-filetype-md",
-	mdx: "bi bi-filetype-mdx",
-	mov: "bi bi-filetype-mov",
-	mp3: "bi bi-filetype-mp3",
-	mp4: "bi bi-filetype-mp4",
-	otf: "bi bi-filetype-otf",
-	pdf: "bi bi-filetype-pdf",
-	php: "bi bi-filetype-php",
-	png: "bi bi-filetype-png",
-	ppt: "bi bi-filetype-ppt",
-	pptx: "bi bi-filetype-pptx",
-	psd: "bi bi-filetype-psd",
-	py: "bi bi-filetype-py",
-	raw: "bi bi-filetype-raw",
-	rb: "bi bi-filetype-rb",
-	sass: "bi bi-filetype-sass",
-	scss: "bi bi-filetype-scss",
-	sh: "bi bi-filetype-sh",
-	sql: "bi bi-filetype-sql",
-	svg: "bi bi-filetype-svg",
-	tiff: "bi bi-filetype-tiff",
-	tsx: "bi bi-filetype-tsx",
-	ttf: "bi bi-filetype-ttf",
-	txt: "bi bi-filetype-txt",
-	wav: "bi bi-filetype-wav",
-	woff: "bi bi-filetype-woff",
-	xls: "bi bi-filetype-xls",
-	xlsx: "bi bi-filetype-xlsx",
-	xml: "bi bi-filetype-xml",
-	yaml: "bi bi-filetype-yml",
-	yml: "bi bi-filetype-yml",
-};
 
 /**
  * Find (and cache) an available ActiveXObject Sharepoint plugin.
@@ -188,6 +138,14 @@ function nodeSorter(a, b) {
 
 // Execute on startup
 document.addEventListener("DOMContentLoaded", function () {
+
+	const splitter = Split(["main", "aside"], {
+		sizes: [75, 25],
+		minSize: 5,
+		gutterSize: 5,
+	});
+	splitter.collapse(1);
+
 	const tree = new Wunderbaum({
 		element: "div#tree",
 		types: {},
@@ -218,7 +176,11 @@ document.addEventListener("DOMContentLoaded", function () {
 			const path = e.node.getPath();
 			return loadWbResources({ path: path });
 		},
-
+		buttonClick: (e) => {
+			if (e.command === "sort") {
+				e.tree.sortByProperty({ colId: e.info.colId, updateColInfo: true });
+			}
+		},
 		render: function (e) {
 			const node = e.node;
 
@@ -236,6 +198,35 @@ document.addEventListener("DOMContentLoaded", function () {
 						break;
 				}
 			}
+		},
+		dnd: {
+			dragStart: (e) => {
+				console.log(e.type, e)
+				return true;
+			},
+			dragEnter: (e) => {
+				console.log(e.type, e);
+				return true;
+			},
+			drop: (e) => {
+				const dataTransfer = e.dataTransfer;  // Wunderbaum >= 0.13.1
+				console.log(e.type, e, dataTransfer.items.length)
+				if (dataTransfer.items) {
+					// Use DataTransferItemList interface to access the file(s)
+					[...dataTransfer.items].forEach((item, i) => {
+						// If dropped items aren't files, reject them
+						if (item.kind === "file") {
+							const file = item.getAsFile();
+							console.log(`… file[${i}].name = ${file.name}`);
+						}
+					});
+				} else {
+					// Use DataTransfer interface to access the file(s)
+					[...e.dataTransfer.files].forEach((file, i) => {
+						console.log(`… file[${i}].name = ${file.name}`);
+					});
+				}
+			},
 		},
 	});
 
