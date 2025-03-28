@@ -1,21 +1,6 @@
 "use strict";
 
-export const commandHtmlTemplateFile = `
-<span class="command-palette">
-	<i class="bi bi-cloud-download" title="Download file..." data-command="download"></i>
-	<i class="bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
-	<i class="bi bi-trash3" title="Delete file" data-command="delete"></i>
-	<i class="bi bi-pencil-square" title="Rename file" data-command="rename"></i>
-</span>
-`;
-export const commandHtmlTemplateFolder = `
-<span class="command-palette">
-	<i class="bi bi-cloud-download inactive" title="Download folder..."></i>
-	<i class="bi bi-windows inactive" title="Open in MS-Office"></i>
-	<i class="bi bi-trash3" title="Delete folder" data-command="delete"></i>
-	<i class="bi bi-pencil-square" title="Rename folder" data-command="rename"></i>
-</span>
-`;
+import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
 
 export const fileTypeIcons = {
 	"7z": "bi bi-file-earmark-zip",
@@ -75,3 +60,61 @@ export const fileTypeIcons = {
 	yml: "bi bi-filetype-yml",
 	zip: "bi bi-file-earmark-zip",
 };
+
+/**
+ * Splitter and Preview pane
+ */
+const splitterSize = [75, 25];
+const splitter = Split(["main", "aside.right"], {
+	sizes: splitterSize,
+	minSize: 5,
+	gutterSize: 5,
+});
+
+export function togglePreviewPane(flag = true) {
+	if (flag) {
+		splitter.setSizes(splitterSize);
+	} else {
+		splitter.collapse(1);
+	}
+	document.querySelector("aside.right").classList.toggle("show", flag);
+
+}
+
+export function isPreviewPaneOpen() {
+	const element = document.querySelector("aside.right.show");
+	return !!element;
+}
+
+export async function showPreview(urlOrNode, options = {}) {
+	let { autoOpen = false } = options;
+	const imgElem = document.querySelector("aside.right img#preview-img");
+	const textElem = document.querySelector("aside.right pre#preview-text");
+	const placeholderElem = document.querySelector("aside.right p#preview-placeholder");
+
+	imgElem.src = "";
+	textElem.textContent = "";
+	if (!urlOrNode) {
+		return false;
+	}
+	if (!isPreviewPaneOpen()) {
+		if (autoOpen) { togglePreviewPane(); } else { return false; }
+	}
+	let url = (!typeof urlOrNode === "string") ? urlOrNode : urlOrNode.getPath();
+	url = url.startsWith("/") ? url.slice(1) : url;
+	url = window.location.href + url;
+	const extension = url.split('.').pop().toLowerCase();
+	const isImage = ["jpg", "jpeg", "png", "gif", "bmp", "svg", "tiff", "heic", "raw", "psd", "pdf"].includes(extension);
+	const isText = ["txt", "md", "ini", "json", "xml", "html", "css", "js", "jsx", "ts", "tsx", "yaml", "yml", "csv"].includes(extension);
+	imgElem.classList.toggle("hidden", !isImage);
+	textElem.classList.toggle("hidden", !isText);
+	placeholderElem.classList.toggle("hidden", (isImage || isText));
+	if (isImage) {
+		imgElem.src = url;
+	} else if (isText) {
+		const response = await fetch(url);
+		const text = await response.text();
+		textElem.textContent = text;
+	}
+	return true;
+}

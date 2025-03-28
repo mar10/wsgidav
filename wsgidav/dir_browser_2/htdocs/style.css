@@ -79,7 +79,38 @@ aside {
   cursor: row-resize;
 }
 
+/* Preview Pane */
+.hidden {
+  display: none;
+}
+
+div#preview {
+  position: relative;
+  text-align: center;
+  margin: 5px;
+  overflow: auto;
+  max-height: calc(100% - 10px);
+}
+
+div#preview>img,
+div#preview>pre {
+  max-width: 100%;
+  background-color: white;
+  border-radius: 3px;
+  border: 1px solid lightblue;
+}
+
+div#preview>pre {
+  overflow: auto;
+  text-align: left;
+  font-size: smaller;
+  background: #f8f9fa;
+  padding: 10px;
+  border: 1px solid #ddd
+}
+
 /* Command Palette */
+
 span.command-palette {
   display: none;
 }
@@ -89,10 +120,22 @@ span.command-palette {
   display: unset;
 }
 
-span.command-palette i.inactive {
+.wb-button {
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.wb-button.disabled {
   color: lightgray;
 }
 
-span.command-palette i:not(.inactive):hover {
+.wb-button.wb-button-toggle.wb-pressed {
+  color: white;
+  background-color: #cdd0fc;
+}
+
+.wb-button:not(.disabled):hover {
   color: #4CAF50;
+  border-color: #4CAF50;
+  cursor: pointer;
 }

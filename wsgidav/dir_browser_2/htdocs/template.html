@@ -42,9 +42,10 @@
         Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
         <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
         {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%}
-        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#rightPane" aria-expanded="false" aria-controls="rightPane">
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#rightPane" aria-expanded="false" aria-controls="rightPane">
           <i class="bi bi-window-split"></i>
-        </button>
+        </button> -->
+        <i class="wb-button wb-button-toggle bi bi-window-split down" data-command="togglePreview" title="Toggle details pane"></i>
       </p>
       {% endif -%}
     </header>
@@ -52,8 +53,12 @@
       <main>
         <div id="tree"></div>
       </main>
-      <aside id="rightPane" class="right collapse collapse-horizontal" style="width: 200px">
-        <p>Optional right-side area.</p>
+      <aside id="rightPane" class="right collapse-horizontal">
+        <div id="preview">
+          <img id="preview-img" src="" alt="Image Preview" class="hidden" />
+          <pre id="preview-text" class="hidden"></pre>
+          <p id="preview-placeholder">No preview available</p>
+        </div>
       </aside>
     </div>
     <footer>
@@ -63,5 +68,22 @@
 
       <!-- <object id="winFirefoxPlugin" type="application/x-sharepoint" width="0" height="0" style="visibility: hidden"></object> -->
     </footer>
+    <script>
+      function updateImagePreview(url) {
+        const previewImg = document.getElementById("preview-img");
+        const placeholder = document.getElementById("preview-placeholder");
+
+        if (url) {
+          previewImg.src = url;
+          previewImg.style.display = "block";
+          placeholder.style.display = "none";
+        } else {
+          previewImg.style.display = "none";
+          placeholder.style.display = "block";
+        }
+      }
+
+      // Example usage: Call updateImagePreview('https://example.com/image.jpg') to update the preview
+    </script>
   </body>
 </html>

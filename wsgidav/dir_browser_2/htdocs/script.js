@@ -1,14 +1,15 @@
 "use strict";
 
 import { Wunderbaum } from "./wunderbaum.esm.js";
-// import { Wunderbaum } from "https://esm.run/wunderbaum@0.13";
+// import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 // /** @type {import("https://cdn.jsdelivr.net/npm/wunderbaum@0.13.0/dist/wunderbaum.d.ts")} */
 import { createClient } from "https://esm.run/webdav@5.8.0";
-import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
 import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
-import { fileTypeIcons, commandHtmlTemplateFile, commandHtmlTemplateFolder } from "./previews.js";
+import { util } from "./util.js";
+import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
+import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder } from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
@@ -115,31 +116,26 @@ function getDAVClient(options = {}) {
 }
 
 async function loadWbResources(options = {}) {
-	options = Object.assign({ path: "/" }, options);
+	options = Object.assign({ path: "/", details: false }, options);
 	const client = getDAVClient();
 
-	const resList = await client.getDirectoryContents(options.path);
-	console.log(resList)
+	const resList = await client.getDirectoryContents(options.path, options);
+	console.log(resList);
 
 	const nodeList = [];
 	for (let res of resList) {
 		res.title = res.basename;
 		delete res.basename;
 		if (res.type === "directory") res.lazy = true;
-		nodeList.push(res)
+		nodeList.push(res);
 	}
-	console.info("getDirectoryContents", nodeList)
+	console.info("getDirectoryContents", nodeList);
 	return nodeList;
 }
 
 
-
-const splitter = Split(["main", "aside"], {
-	sizes: [75, 25],
-	minSize: 5,
-	gutterSize: 5,
-});
-splitter.collapse(1);
+const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
+const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
 
 const tree = new Wunderbaum({
 	element: "div#tree",
@@ -161,11 +157,12 @@ const tree = new Wunderbaum({
 		const ext = e.node.title.split('.').pop().toLowerCase();
 		if (fileTypeIcons[ext]) return fileTypeIcons[ext];
 	},
+
 	source: loadWbResources(),
 
 	init: function (e) {
 		e.tree.setFocus();
-
+		togglePreviewPane(false);
 	},
 	load: function (e) {
 		e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
@@ -179,12 +176,15 @@ const tree = new Wunderbaum({
 			e.tree.sort({ colId: e.info.colId, updateColInfo: true, foldersFirst: true });
 		}
 	},
+	activate: (e) => {
+		showPreview(e.node);
+	},
 	edit: {
 		trigger: ["clickActive", "F2", "macEnter"],
 		apply: (e) => {
 			const oldValue = e.oldValue;
 			const newValue = e.newValue;
-			e.node.logInfo(`Move to ${newValue}`)
+			e.node.logInfo(`Move to ${newValue}`);
 			return getDAVClient().moveFile(oldValue, newValue);
 		},
 	},
@@ -200,7 +200,10 @@ const tree = new Wunderbaum({
 				case "commands":
 					// <a href="ms-word:ofe|u|http://some_WebDav_enabled_address.com/some_Word_document.docx">Open Document in Word</a>
 					// https://stackoverflow.com/a/25765784/19166
-					col.elem.innerHTML = isDir ? commandHtmlTemplateFolder : commandHtmlTemplateFile;
+					if (e.isNew) {
+						const cmdBar = isDir ? commandBarFolder : commandBarFile;
+						col.elem.appendChild(cmdBar.cloneNode(true));
+					}
 					break;
 				case "size":
 					col.elem.textContent = isDir ? "" : node.data.size.toLocaleString();
@@ -214,7 +217,7 @@ const tree = new Wunderbaum({
 	},
 	dnd: {
 		dragStart: (e) => {
-			console.log(e.type, e)
+			console.log(e.type, e);
 			return true;
 		},
 		dragEnter: (e) => {
@@ -223,7 +226,7 @@ const tree = new Wunderbaum({
 		},
 		drop: (e) => {
 			const dataTransfer = e.dataTransfer;  // Wunderbaum >= 0.13.1
-			console.log(e.type, e, dataTransfer.items.length)
+			console.log(e.type, e, dataTransfer.items.length);
 			if (dataTransfer.items) {
 				// Use DataTransferItemList interface to access the file(s)
 				[...dataTransfer.items].forEach((item, i) => {
@@ -241,4 +244,14 @@ const tree = new Wunderbaum({
 			}
 		},
 	},
+});
+
+registerCommandButtons("body", (e) => {
+	console.info("got", `${e.node}`, e.command, e);
+	switch (e.command) {
+		case "togglePreview":
+			togglePreviewPane(e.isPressed);
+			if (e.isPressed) { showPreview(e.node); } else { showPreview(null); }
+			break;
+	}
 });
