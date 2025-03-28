@@ -1,0 +1,141 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+p {
+  margin-bottom: 4px;
+}
+
+#winFirefoxPlugin {
+  height: 0px;
+  max-height: 0px;
+  display: inline;
+}
+
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 5px;
+  /* text-align: center; */
+  flex: 0 0 40px;
+}
+
+footer {
+  background-color: #333;
+  color: antiquewhite;
+  text-align: center;
+  padding: 5px;
+  flex: 0 0 20px;
+}
+
+footer a {
+  color: antiquewhite;
+  text-decoration: none;
+}
+
+.main-container {
+  display: flex;
+  flex: 1;
+  /* Take remaining space */
+  overflow: hidden;
+}
+
+main {
+  /* flex: 1; */
+  /* Main content takes most of the space */
+  padding: 10px;
+  background-color: #f4f4f4;
+}
+
+
+/* To show the optional area, remove the display: none; rule below */
+aside {
+  /* flex: 0 0 250px; */
+  /* Optional right-side area with fixed width */
+  background-color: #ddd;
+  padding: 5px;
+  /* display: none; */
+  /* Hidden by default */
+}
+
+.gutter {
+  background-color: #767676;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  cursor: row-resize;
+}
+
+/* Preview Pane */
+.hidden {
+  display: none;
+}
+
+div#preview {
+  position: relative;
+  text-align: center;
+  margin: 5px;
+  overflow: auto;
+  max-height: calc(100% - 10px);
+}
+
+div#preview>img,
+div#preview>pre {
+  max-width: 100%;
+  background-color: white;
+  border-radius: 3px;
+  border: 1px solid lightblue;
+}
+
+div#preview>pre {
+  overflow: auto;
+  text-align: left;
+  font-size: smaller;
+  background: #f8f9fa;
+  padding: 10px;
+  border: 1px solid #ddd
+}
+
+/* Command Palette */
+
+span.command-palette {
+  display: none;
+}
+
+.wb-row:hover span.command-palette,
+.wb-row.wb-active span.command-palette {
+  display: unset;
+}
+
+.wb-button {
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.wb-button.disabled {
+  color: lightgray;
+}
+
+.wb-button.wb-button-toggle.wb-pressed {
+  color: white;
+  background-color: #cdd0fc;
+}
+
+.wb-button:not(.disabled):hover {
+  color: #4CAF50;
+  border-color: #4CAF50;
+  cursor: pointer;
+}

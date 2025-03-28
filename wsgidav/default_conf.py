@@ -15,7 +15,8 @@ Default configuration.
 """
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
-from wsgidav.dir_browser import WsgiDavDirBrowser
+# from wsgidav.dir_browser import WsgiDavDirBrowser
+from wsgidav.dir_browser_2 import WsgiDavDirBrowser2
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.mw.cors import Cors
@@ -57,7 +58,7 @@ DEFAULT_CONFIG = {
         Cors,
         ErrorPrinter,
         HTTPAuthenticator,
-        WsgiDavDirBrowser,  # configured under dir_browser option (see below)
+        WsgiDavDirBrowser2,  # configured under dir_browser option (see below)
         RequestResolver,  # this must be the last middleware item
     ],
     # HTTP Authentication Options
@@ -93,6 +94,30 @@ DEFAULT_CONFIG = {
     },
     #: Options for `WsgiDavDirBrowser`
     "dir_browser": {
+        "enable": True,  # Render HTML listing for GET requests on collections
+        # Add a trailing slash to directory URLs (by generating a 301 redirect):
+        "directory_slash": True,
+        # List of fnmatch patterns:
+        "ignore": [
+            ".DS_Store",  # macOS folder meta data
+            "._*",  # macOS hidden data files
+            "Thumbs.db",  # Windows image previews
+        ],
+        "icon": True,
+        "response_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
+        "show_user": True,  # Show authenticated user an realm
+        # Send <dm:mount> response if request URL contains '?davmount' (rfc4709)
+        "davmount": True,
+        # Add 'Mount' link at the top
+        "davmount_links": False,
+        "ms_sharepoint_support": True,  # Invoke MS Office documents for editing using WebDAV
+        "libre_office_support": True,  # Invoke Libre Office documents for editing using WebDAV
+        # The path to the directory that contains template.html and associated assets.
+        # The default is the htdocs directory within the dir_browser directory.
+        "htdocs_path": None,
+    },
+    #: Options for `WsgiDavDirBrowser2`
+    "dir_browser_2": {
         "enable": True,  # Render HTML listing for GET requests on collections
         # Add a trailing slash to directory URLs (by generating a 301 redirect):
         "directory_slash": True,

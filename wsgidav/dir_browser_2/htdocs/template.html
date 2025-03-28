@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content="WsgiDAV/{{ version }}" />
+    <title>WsgiDAV - Index of {{ display_path }}</title>
+
+    <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mar10/wunderbaum@main/dist/wunderbaum.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-reboot@4.5.6/reboot.min.css" />
+    <link rel="stylesheet" href="{{ htdocs }}/style.css" />
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
+          "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.esm.min.js"
+        }
+      }
+    </script>
+    <script defer type="module" src="{{ htdocs }}/script.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        {%- if config.icon %}
+        <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png" />
+        {% endif -%} Index of {{ display_path }}
+      </h1>
+
+      {% if config.davmount_links %}
+      <p class="links">
+        <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
+      </p>
+      {% endif %} {%- if user_name and config.show_user %}
+      <p class="auth-user">
+        Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
+        <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
+        {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%}
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#rightPane" aria-expanded="false" aria-controls="rightPane">
+          <i class="bi bi-window-split"></i>
+        </button> -->
+        <i class="wb-button wb-button-toggle bi bi-window-split down" data-command="togglePreview" title="Toggle details pane"></i>
+      </p>
+      {% endif -%}
+    </header>
+    <div class="main-container">
+      <main>
+        <div id="tree"></div>
+      </main>
+      <aside id="rightPane" class="right collapse-horizontal">
+        <div id="preview">
+          <img id="preview-img" src="" alt="Image Preview" class="hidden" />
+          <pre id="preview-text" class="hidden"></pre>
+          <p id="preview-placeholder">No preview available</p>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      {% if trailer %}
+      <p class="trailer">{{ trailer | safe }}</p>
+      {% endif %}
+
+      <!-- <object id="winFirefoxPlugin" type="application/x-sharepoint" width="0" height="0" style="visibility: hidden"></object> -->
+    </footer>
+    <script>
+      function updateImagePreview(url) {
+        const previewImg = document.getElementById("preview-img");
+        const placeholder = document.getElementById("preview-placeholder");
+
+        if (url) {
+          previewImg.src = url;
+          previewImg.style.display = "block";
+          placeholder.style.display = "none";
+        } else {
+          previewImg.style.display = "none";
+          placeholder.style.display = "block";
+        }
+      }
+
+      // Example usage: Call updateImagePreview('https://example.com/image.jpg') to update the preview
+    </script>
+  </body>
+</html>
