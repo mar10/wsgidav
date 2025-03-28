@@ -78,3 +78,21 @@ aside {
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
   cursor: row-resize;
 }
+
+/* Command Palette */
+span.command-palette {
+  display: none;
+}
+
+.wb-row:hover span.command-palette,
+.wb-row.wb-active span.command-palette {
+  display: unset;
+}
+
+span.command-palette i.inactive {
+  color: lightgray;
+}
+
+span.command-palette i:not(.inactive):hover {
+  color: #4CAF50;
+}

@@ -1,5 +1,21 @@
 "use strict";
 
+export const commandHtmlTemplateFile = `
+<span class="command-palette">
+	<i class="bi bi-cloud-download" title="Download file..." data-command="download"></i>
+	<i class="bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
+	<i class="bi bi-trash3" title="Delete file" data-command="delete"></i>
+	<i class="bi bi-pencil-square" title="Rename file" data-command="rename"></i>
+</span>
+`;
+export const commandHtmlTemplateFolder = `
+<span class="command-palette">
+	<i class="bi bi-cloud-download inactive" title="Download folder..."></i>
+	<i class="bi bi-windows inactive" title="Open in MS-Office"></i>
+	<i class="bi bi-trash3" title="Delete folder" data-command="delete"></i>
+	<i class="bi bi-pencil-square" title="Rename folder" data-command="rename"></i>
+</span>
+`;
 
 export const fileTypeIcons = {
 	"7z": "bi bi-file-earmark-zip",
