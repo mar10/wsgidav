@@ -253,6 +253,9 @@ registerCommandButtons("body", (e) => {
 			togglePreviewPane(e.isPressed);
 			if (e.isPressed) { showPreview(e.node); } else { showPreview(null); }
 			break;
+		case "rename":
+			e.node.startEditTitle();
+			break;
 		case "download":
 			const link = document.createElement("a");
 			link.href = getNodeResourceUrl(e.node);
