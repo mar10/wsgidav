@@ -3,17 +3,15 @@
 import { Wunderbaum } from "./wunderbaum.esm.js";
 // import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 // /** @type {import("https://cdn.jsdelivr.net/npm/wunderbaum@0.13.0/dist/wunderbaum.d.ts")} */
-import { createClient } from "https://esm.run/webdav@5.8.0";
 import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
-import { getNodeResourceUrl, util } from "./util.js";
+import { getNodeResourceUrl, getDAVClient, util } from "./util.js";
 import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
-import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, showNotification } from "./widgets.js";
+import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, downloadFile, uploadFiles, showNotification } from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
-let _client = null;
 
 /**
  * Find (and cache) an available ActiveXObject Sharepoint plugin.
@@ -105,14 +103,6 @@ function onClickTable(event) {
 			return false;
 		}
 	}
-}
-
-function getDAVClient(options = {}) {
-	options = Object.assign({ remoteURL: window.location.href }, options);
-	if (_client === null) {
-		_client = createClient(options.remoteURL);
-	}
-	return _client;
 }
 
 async function loadWbResources(options = {}) {
@@ -264,14 +254,11 @@ registerCommandButtons("body", (e) => {
 				});
 			}
 			break;
+		case "upload":
+			uploadFiles(node);
+			break;
 		case "download":
-			const link = document.createElement("a");
-			link.href = getNodeResourceUrl(node);
-			link.download = node.title;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			showNotification("Download started.", { type: "info" });
+			downloadFile(node);
 			break;
 		case "copyUrl":
 			navigator.clipboard.writeText(getNodeResourceUrl(node))

@@ -148,6 +148,7 @@ span.command-palette {
   margin-top: 10px;
   border-radius: 5px;
   position: fixed;
+  z-index: 1000;
 
   left: 50%;
   top: 50%;
