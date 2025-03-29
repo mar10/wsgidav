@@ -68,22 +68,5 @@
 
       <!-- <object id="winFirefoxPlugin" type="application/x-sharepoint" width="0" height="0" style="visibility: hidden"></object> -->
     </footer>
-    <script>
-      function updateImagePreview(url) {
-        const previewImg = document.getElementById("preview-img");
-        const placeholder = document.getElementById("preview-placeholder");
-
-        if (url) {
-          previewImg.src = url;
-          previewImg.style.display = "block";
-          placeholder.style.display = "none";
-        } else {
-          previewImg.style.display = "none";
-          placeholder.style.display = "block";
-        }
-      }
-
-      // Example usage: Call updateImagePreview('https://example.com/image.jpg') to update the preview
-    </script>
   </body>
 </html>

@@ -61,6 +61,22 @@ export const fileTypeIcons = {
 	zip: "bi bi-file-earmark-zip",
 };
 
+const imgPlaceholderLoadingSvg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+	<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150" fill="none">
+	  <rect width="200" height="150" fill="#ddd"/>
+	  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#aaa" font-size="20" font-family="Arial, sans-serif">
+		Loading image...
+	  </text>
+	</svg>
+  `);
+const imgPlaceholderErrorSvg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+	<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150" fill="none">
+	  <rect width="200" height="150" fill="#ddd"/>
+	  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#aaa" stroke="red" font-size="20" font-family="Arial, sans-serif">
+		Error loading image.
+	  </text>
+	</svg>
+  `);
 /**
  * Splitter and Preview pane
  */
@@ -103,6 +119,7 @@ export async function showPreview(urlOrNode, options = {}) {
 	let url = (!typeof urlOrNode === "string") ? urlOrNode : urlOrNode.getPath();
 	url = url.startsWith("/") ? url.slice(1) : url;
 	url = window.location.href + url;
+
 	const extension = url.split('.').pop().toLowerCase();
 	const isImage = ["jpg", "jpeg", "png", "gif", "bmp", "svg", "tiff", "heic", "raw", "psd", "pdf"].includes(extension);
 	const isText = ["txt", "md", "ini", "json", "xml", "html", "css", "js", "jsx", "ts", "tsx", "yaml", "yml", "csv"].includes(extension);
@@ -110,8 +127,18 @@ export async function showPreview(urlOrNode, options = {}) {
 	textElem.classList.toggle("hidden", !isText);
 	placeholderElem.classList.toggle("hidden", (isImage || isText));
 	if (isImage) {
-		imgElem.src = url;
+		imgElem.onload = () => {
+			imgElem.onload = null;
+			imgElem.setAttribute("src", url);
+		};
+		imgElem.onerror = (e) => {
+			imgElem.onerror = null;
+			console.error(`Error loading preview ${url}`, e);
+			imgElem.src = imgPlaceholderErrorSvg;
+		};
+		imgElem.setAttribute("src", imgPlaceholderLoadingSvg);
 	} else if (isText) {
+		textElem.textContent = "Loading...";
 		const response = await fetch(url);
 		const text = await response.text();
 		textElem.textContent = text;

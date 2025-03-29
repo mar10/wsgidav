@@ -42,3 +42,9 @@ export function registerCommandButtons(parent, handler) {
         return res;
     });
 }
+// export function setCommandButton(command, options = {}) {
+//     const { pressed = undefined, icon = undefined } = options;
+//     const buttonElem = document.querySelector(`.wb-button[data-cmd=${command}]`);
+//     console.info("command:", buttonElem);
+
+// }
