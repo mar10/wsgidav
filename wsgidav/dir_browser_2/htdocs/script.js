@@ -7,7 +7,7 @@ import { createClient } from "https://esm.run/webdav@5.8.0";
 import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
-import { util } from "./util.js";
+import { getNodeResourceUrl, util } from "./util.js";
 import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
 import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder } from "./widgets.js";
 
@@ -252,6 +252,14 @@ registerCommandButtons("body", (e) => {
 		case "togglePreview":
 			togglePreviewPane(e.isPressed);
 			if (e.isPressed) { showPreview(e.node); } else { showPreview(null); }
+			break;
+		case "download":
+			const link = document.createElement("a");
+			link.href = getNodeResourceUrl(e.node);
+			link.download = e.node.title;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
 			break;
 	}
 });

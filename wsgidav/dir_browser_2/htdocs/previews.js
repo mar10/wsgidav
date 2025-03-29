@@ -1,6 +1,7 @@
 "use strict";
 
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
+import { getNodeResourceUrl } from "./util.js";
 
 export const fileTypeIcons = {
 	"7z": "bi bi-file-earmark-zip",
@@ -116,9 +117,7 @@ export async function showPreview(urlOrNode, options = {}) {
 	if (!isPreviewPaneOpen()) {
 		if (autoOpen) { togglePreviewPane(); } else { return false; }
 	}
-	let url = (!typeof urlOrNode === "string") ? urlOrNode : urlOrNode.getPath();
-	url = url.startsWith("/") ? url.slice(1) : url;
-	url = window.location.href + url;
+	const url = (!typeof urlOrNode === "string") ? urlOrNode : getNodeResourceUrl(urlOrNode);
 
 	const extension = url.split('.').pop().toLowerCase();
 	const isImage = ["jpg", "jpeg", "png", "gif", "bmp", "svg", "tiff", "heic", "raw", "psd", "pdf"].includes(extension);

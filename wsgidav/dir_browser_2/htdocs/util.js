@@ -7,8 +7,10 @@
 import { Wunderbaum } from "./wunderbaum.esm.js";
 
 export const util = Wunderbaum.util;
+
 export function getNodeResourceUrl(node) {
-    let path = node.getPath();
-    path = window.location.href + path;
-    return path;
+    let url = node.getPath();
+    url = url.startsWith("/") ? url.slice(1) : url;
+    url = window.location.href + url;
+    return url;
 }
