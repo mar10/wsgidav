@@ -247,19 +247,27 @@ const tree = new Wunderbaum({
 });
 
 registerCommandButtons("body", (e) => {
-	console.info("got", `${e.node}`, e.command, e);
+	const node = e.node;
+	console.info("got", `${node}`, e.command, e);
 	switch (e.command) {
 		case "togglePreview":
 			togglePreviewPane(e.isPressed);
-			if (e.isPressed) { showPreview(e.node); } else { showPreview(null); }
+			if (e.isPressed) { showPreview(node); } else { showPreview(null); }
 			break;
 		case "rename":
-			e.node.startEditTitle();
+			node.startEditTitle();
+			break;
+		case "delete":
+			if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
+				getDAVClient().deleteFile(node.getPath()).then(() => {
+					node.remove();
+				});
+			}
 			break;
 		case "download":
 			const link = document.createElement("a");
-			link.href = getNodeResourceUrl(e.node);
-			link.download = e.node.title;
+			link.href = getNodeResourceUrl(node);
+			link.download = node.title;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
