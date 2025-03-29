@@ -9,7 +9,7 @@ import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
 import { getNodeResourceUrl, util } from "./util.js";
 import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
-import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder } from "./widgets.js";
+import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, showNotification } from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
@@ -271,15 +271,16 @@ registerCommandButtons("body", (e) => {
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
+			showNotification("Download started.", { type: "info" });
 			break;
 		case "copyUrl":
 			navigator.clipboard.writeText(getNodeResourceUrl(node))
 				.then(() => {
-					Toast.success("URL copied to clipboard.");
+					showNotification("URL copied to clipboard.", { type: "info" });
 				})
 				.catch((err) => {
+					showNotification("Failed to copy URL.", { type: "error" });
 					console.error("Failed to copy URL: ", err);
-					Toast.error("Failed to copy URL.");
 				});
 			break;
 	}

@@ -13,7 +13,7 @@ export const commandHtmlTemplateFile = `
 	<i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
 	<i class="wb-button bi bi-trash3" title="Delete file" data-command="delete"></i>
 	<i class="wb-button bi bi-pencil-square" title="Rename file" data-command="rename"></i>
-	<i class="wb-button bi bi-unlock" title="File is unlocked" data-command="lock"></i>
+<!--	<i class="wb-button bi bi-unlock" title="File is unlocked" data-command="lock"></i> -->
 </span>
 `;
 export const commandHtmlTemplateFolder = `
@@ -50,3 +50,17 @@ export function registerCommandButtons(parent, handler) {
 //     console.info("command:", buttonElem);
 
 // }
+
+export async function showNotification(message, options = {}) {
+    const { type = "info", duration = 5000 } = options;
+    const notification = document.getElementById("notification");
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = "inline";
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            notification.style.display = "none";
+            resolve();
+        }, duration);
+    });
+}
