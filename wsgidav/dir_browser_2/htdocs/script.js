@@ -272,5 +272,15 @@ registerCommandButtons("body", (e) => {
 			link.click();
 			document.body.removeChild(link);
 			break;
+		case "copyUrl":
+			navigator.clipboard.writeText(getNodeResourceUrl(node))
+				.then(() => {
+					Toast.success("URL copied to clipboard.");
+				})
+				.catch((err) => {
+					console.error("Failed to copy URL: ", err);
+					Toast.error("Failed to copy URL.");
+				});
+			break;
 	}
 });

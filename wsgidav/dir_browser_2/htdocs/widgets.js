@@ -8,6 +8,7 @@ import { util } from "./util.js";
  */
 export const commandHtmlTemplateFile = `
 <span class="command-palette">
+    <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
 	<i class="wb-button bi bi-cloud-download" title="Download file..." data-command="download"></i>
 	<i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
 	<i class="wb-button bi bi-trash3" title="Delete file" data-command="delete"></i>
@@ -17,6 +18,7 @@ export const commandHtmlTemplateFile = `
 `;
 export const commandHtmlTemplateFolder = `
 <span class="command-palette">
+    <i class="wb-button bi bi-copy disabled" title="Copy link"></i>
 	<i class="wb-button bi bi-cloud-download disabled" title="Download folder..."></i>
 	<i class="wb-button bi bi-windows disabled" title="Open in MS-Office"></i>
 	<i class="wb-button bi bi-trash3" title="Delete folder" data-command="delete"></i>
