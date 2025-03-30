@@ -17,6 +17,8 @@ p {
   display: inline;
 }
 
+/* --- Basic Layout --- */
+
 header {
   background-color: #4CAF50;
   color: white;
@@ -55,9 +57,15 @@ footer {
   flex: 0 0 20px;
 }
 
-footer a {
+footer a,
+footer a:hover,
+footer a:active {
   color: antiquewhite;
   text-decoration: none;
+}
+
+header h1 small {
+  font-size: 50%;
 }
 
 .main-container {
@@ -85,6 +93,8 @@ aside {
   /* Hidden by default */
 }
 
+/* --- Splitter --- */
+
 .gutter {
   background-color: #767676;
   background-repeat: no-repeat;
@@ -101,7 +111,8 @@ aside {
   cursor: row-resize;
 }
 
-/* Preview Pane */
+/* --- Preview Pane --- */
+
 .hidden {
   display: none;
 }
@@ -115,7 +126,7 @@ div#preview {
 }
 
 div#preview>img,
-div#preview>p.preview-placeholder,
+div#preview>p.preview-unknown,
 div#preview>pre {
   max-width: 100%;
   background-color: white;
@@ -123,7 +134,7 @@ div#preview>pre {
   border: 2px solid gray;
 }
 
-div#preview>p#preview-placeholder {
+div#preview>p#preview-unknown {
   color: gray;
 }
 
@@ -134,7 +145,22 @@ div#preview>pre {
   padding: 10px;
 }
 
-/* Command Palette */
+/* --- Dropzone --- */
+
+.dropzone {
+  border: 2px dashed #007bff;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dropzone.dragover {
+  background-color: #e9f5ff;
+}
+
+/* --- Command Palette --- */
 
 span.command-palette {
   display: none;
@@ -165,7 +191,7 @@ span.command-palette {
   cursor: pointer;
 }
 
-/* Notification toast */
+/* --- Notification toast --- */
 
 .notification {
   display: none;

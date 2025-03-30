@@ -3,12 +3,29 @@
 import { Wunderbaum } from "./wunderbaum.esm.js";
 // import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 // /** @type {import("https://cdn.jsdelivr.net/npm/wunderbaum@0.13.0/dist/wunderbaum.d.ts")} */
-import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
+// import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
-import { getNodeResourceUrl, getDAVClient, util } from "./util.js";
-import { fileExtensionMap, showPreview, togglePreviewPane } from "./previews.js";
-import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, createFolder, downloadFile, uploadFiles, showNotification } from "./widgets.js";
+import {
+	getDAVClient,
+	getNodeOrActive,
+	getNodeResourceUrl,
+	util,
+} from "./util.js";
+import {
+	fileExtensionMap,
+	showPreview,
+	togglePreviewPane,
+} from "./previews.js";
+import {
+	commandHtmlTemplateFile,
+	commandHtmlTemplateFolder,
+	createFolder,
+	downloadFile,
+	registerCommandButtons,
+	showNotification,
+	uploadFiles,
+} from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
@@ -133,7 +150,7 @@ const tree = new Wunderbaum({
 	types: {},
 	columns: [
 		{ id: "*", title: "Path", width: "300px" },
-		{ id: "commands", title: " ", width: "100px", sortable: false },
+		{ id: "commands", title: " ", width: "140px", sortable: false },
 		{ id: "type", title: "Type", width: "100px" },
 		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
 		{ id: "lastmod", title: "Modified", width: "250px" },
@@ -254,8 +271,9 @@ const tree = new Wunderbaum({
 });
 
 registerCommandButtons("body", (e) => {
-	const node = e.node;
-	console.info("got", `${node}`, e.command, e);
+	let node = getNodeOrActive(e.node);
+	console.info(`Command [${e.command}] ${node}`);
+
 	switch (e.command) {
 		case "togglePreview":
 			togglePreviewPane(e.isPressed);
@@ -264,19 +282,29 @@ registerCommandButtons("body", (e) => {
 		case "rename":
 			node.startEditTitle();
 			break;
+		case "newTopFolder":
+			node = e.tree.root;
+		// fall through
 		case "newFolder":
-			const newName = prompt(`Enter the name of the folder of ${node.getPath()}`);
+			const newName = prompt(`Enter the name of a new  subfolder of "/${node.getPath()}/"`);
 			if (newName) {
 				createFolder(node, newName);
 			}
 			break;
 		case "delete":
-			if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
+			if (confirm(`Delete "/${node.getPath()}" from the server?\n\nThis cannot be undone!`)) {
 				getDAVClient().deleteFile(node.getPath()).then(() => {
 					node.remove();
+					showNotification(`Deleted "/${node.getPath()}".`);
+				}).catch((err) => {
+					showNotification("Failed to delete.", { type: "error" });
+					console.error("Failed to delete: ", err);
 				});
 			}
 			break;
+		case "uploadTop":
+			node = e.tree.root;
+		// fall through
 		case "upload":
 			uploadFiles(node);
 			break;

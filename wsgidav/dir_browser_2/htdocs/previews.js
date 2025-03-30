@@ -156,9 +156,11 @@ export function isPreviewPaneOpen() {
 
 export async function showPreview(urlOrNode, options = {}) {
 	let { autoOpen = false } = options;
+
 	const imgElem = document.querySelector("aside.right img#preview-img");
 	const textElem = document.querySelector("aside.right pre#preview-text");
-	const placeholderElem = document.querySelector("aside.right p#preview-placeholder");
+	const folderElem = document.querySelector("aside.right div#preview-folder");
+	const placeholderElem = document.querySelector("aside.right div#preview-unknown");
 
 	imgElem.src = "";
 	textElem.textContent = "";
@@ -166,25 +168,43 @@ export async function showPreview(urlOrNode, options = {}) {
 		return false;
 	}
 	if (!isPreviewPaneOpen()) {
-		if (autoOpen) { togglePreviewPane(); } else { return false; }
+		if (autoOpen) {
+			togglePreviewPane();
+		} else {
+			return false;
+		}
 	}
 	const url = (!typeof urlOrNode === "string") ? urlOrNode : getNodeResourceUrl(urlOrNode);
+	const node = (!typeof urlOrNode === "string") ? null : urlOrNode;
 
 	const extension = url.split('.').pop().toLowerCase();
 	const typeInfo = fileExtensionMap[extension] ?? {};
 	const preview = typeInfo.preview;
+	const isFolder = node?.type === "directory";
+
 	imgElem.classList.toggle("hidden", preview !== "image");
 	textElem.classList.toggle("hidden", preview !== "text");
-	placeholderElem.classList.toggle("hidden", preview != null);
+	placeholderElem.classList.toggle("hidden", isFolder || preview != null);
+	folderElem.classList.toggle("hidden", !isFolder);
+
 	switch (preview) {
 		case "text":
+			textElem.textContent = "Loading...";
 			const response = await fetch(url);
 			const text = await response.text();
 			textElem.textContent = text;
 			break;
 		case "image":
-			imgElem.src = url;
-			break;
+			imgElem.onload = () => {
+				imgElem.onload = null;
+				imgElem.setAttribute("src", url);
+			};
+			imgElem.onerror = (e) => {
+				imgElem.onerror = null;
+				console.error(`Error loading preview ${url}`, e);
+				imgElem.src = imgPlaceholderErrorSvg;
+			};
+			imgElem.setAttribute("src", imgPlaceholderLoadingSvg);
 	}
 	return true;
 }

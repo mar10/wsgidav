@@ -36,8 +36,8 @@
 
       <div class="header-bar">
         <span class="header-bar-left">
-          <i class="wb-button bi bi-cloud-plus" title="Upload file to root folder..." data-command="upload"></i>
-          <i class="wb-button bi bi-folder-plus" title="Creat topfolder..." data-command="newFolder"></i>
+          <i class="wb-button bi bi-cloud-plus" title="Upload file to root folder..." data-command="uploadTop"></i>
+          <i class="wb-button bi bi-folder-plus" title="Create topfolder..." data-command="newTopFolder"></i>
           {% if config.davmount_links %}
           <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
           {% endif -%}
@@ -59,9 +59,17 @@
       </main>
       <aside id="rightPane" class="right collapse-horizontal">
         <div id="preview">
-          <img id="preview-img" src="" alt="Image Preview" class="hidden" />
-          <pre id="preview-text" class="hidden"></pre>
-          <p id="preview-placeholder">No preview available</p>
+          <img id="preview-img" src="" alt="Image Preview" class="preview-pane hidden" />
+          <pre id="preview-text" class="preview-pane hidden"></pre>
+          <div id="preview-folder" class="preview-pane hidden">
+            <div id="dropzone" class="dropzone">
+              <p>Drag and drop files here to upload, or click to select files.</p>
+              <input type="file" id="fileInput" multiple style="display: none" />
+            </div>
+          </div>
+          <div id="preview-unknown" class="preview-pane hidden">
+            <p>No preview available</p>
+          </div>
         </div>
       </aside>
     </div>

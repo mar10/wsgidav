@@ -30,6 +30,8 @@ export const commandHtmlTemplateFolder = `
 </span>
 `;
 
+/* --- */
+
 export function registerCommandButtons(parent, handler) {
     util.onEvent(parent, "click", "i.wb-button:not(.disabled)", (e) => {
         // console.info("click", e, e.target);
@@ -42,6 +44,7 @@ export function registerCommandButtons(parent, handler) {
             event: e,
             isPressed: isPressed,
             command: target.dataset.command,
+            tree: Wunderbaum.getTree(),
             node: Wunderbaum.getNode(target),
             target: target,
         });
@@ -56,7 +59,11 @@ export function registerCommandButtons(parent, handler) {
 // }
 
 export async function showNotification(message, options = {}) {
-    const { type = "info", duration = 5000 } = options;
+    const durationMap = { info: 5000, warning: 10000, error: 20000 };
+    let { type = "info", duration = undefined } = options;
+    if (!durationMap[type]) { type = "error"; }
+    duration ??= durationMap[type];
+
     const notification = document.getElementById("notification");
     notification.textContent = message;
     notification.className = `notification ${type}`;
@@ -76,7 +83,7 @@ export async function downloadFile(node, options = {}) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showNotification("Download started.", { type: "info" });
+    showNotification("Download started...", { type: "info" });
 
 }
 
@@ -91,30 +98,36 @@ export async function uploadFiles(node, options = {}) {
             showNotification("No files selected for upload.", { type: "warning" });
             return;
         }
+        showNotification("Upload started...");
 
         const client = getDAVClient();
         const uploadPath = node.getPath();
+        let curPath = uploadPath;
 
         for (const file of files) {
             try {
                 const filePath = `${uploadPath}/${file.name}`;
+                curPath = filePath;
                 const data = await file.arrayBuffer();
                 // console.log("data", data);
                 // if(client.exists())
-                await client.putFileContents(filePath, data, { overwrite: false });
-                showNotification(`Uploaded '${file.name}' successfully.`);
+
+                const res = await client.putFileContents(filePath, data, { overwrite: false });
+                if (!res) {
+                    throw new Error("Failed");
+                }
+                showNotification(`Uploaded "${filePath}".`);
                 if (!node.isUnloaded()) {
                     node.addChildren({ title: file.name, type: "file", size: file.size });
                 }
             } catch (error) {
-                showNotification(`Failed to upload '${file.name}'.`, { type: "error" });
+                showNotification(`Failed to upload "${curPath}".`, { type: "error" });
                 console.error("Upload error:", error);
             }
         }
     });
 
     input.click();
-    showNotification("Upload started.");
 }
 
 export async function createFolder(node, newName, options = {}) {
@@ -123,8 +136,43 @@ export async function createFolder(node, newName, options = {}) {
 
     const filePath = `${path}/${newName}`;
     await client.createDirectory(filePath);
-    showNotification(`Created '${filePath}' successfully.`);
+    showNotification(`Created "${filePath}/".`);
     if (!node.isUnloaded()) {
         node.add({ title: newName, type: "file" });
     }
-} 
+}
+
+/* --- Dropzone --- */
+
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+
+dropzone.addEventListener("click", () => fileInput.click());
+
+dropzone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    dropzone.classList.add("dragover");
+});
+
+dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("dragover");
+});
+
+dropzone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    dropzone.classList.remove("dragover");
+    const files = event.dataTransfer.files;
+    handleFiles(files);
+});
+
+fileInput.addEventListener("change", () => {
+    const files = fileInput.files;
+    handleFiles(files);
+});
+
+function handleFiles(files) {
+    for (const file of files) {
+        console.log("File uploaded:", file.name);
+        // Add your file upload logic here
+    }
+}
