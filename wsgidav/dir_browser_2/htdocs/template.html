@@ -30,7 +30,8 @@
       <h1>
         {%- if config.icon %}
         <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png" />
-        {% endif -%} Index of {{ display_path }}
+        {% endif -%} <small>Wsgi</small>DAV-Explorer
+        <!-- Index of {{ display_path }} -->
       </h1>
 
       {% if config.davmount_links %}
@@ -38,15 +39,19 @@
         <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
       </p>
       {% endif %} {%- if user_name and config.show_user %}
-      <p class="auth-user">
+      <span class="auth-user">
         Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
         <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
         {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%}
+      </span>
+      <span class="top-menu">
         <!-- <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#rightPane" aria-expanded="false" aria-controls="rightPane">
           <i class="bi bi-window-split"></i>
         </button> -->
+        <i class="wb-button bi bi-cloud-plus" title="Upload file to this folder..." data-command="upload"></i>
+        <i class="wb-button bi bi-folder-plus" title="Creat subfolder..." data-command="newFolder"></i>
         <i class="wb-button wb-button-toggle bi bi-window-split down" data-command="togglePreview" title="Toggle details pane"></i>
-      </p>
+      </span>
       {% endif -%}
       <span id="notification" class="notification"></span>
     </header>
