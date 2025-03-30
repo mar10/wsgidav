@@ -2,64 +2,103 @@
 
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
 
-export const fileTypeIcons = {
-	"7z": "bi bi-file-earmark-zip",
-	aac: "bi bi-file-earmark-music",  //"bi bi-filetype-aac",
-	ai: "bi bi-file-earmark-image", //"bi bi-filetype-ai",
-	bat: "bi bi-file-earmark-terminal", //"bi bi-filetype-sh",
-	bmp: "bi bi-file-earmark-image",  // "bi bi-filetype-bmp",
-	cs: "bi bi-filetype-cs",
-	css: "bi bi-filetype-css",
-	csv: "bi bi-filetype-csv",
-	doc: "bi bi-file-earmark-richtext", // "bi bi-filetype-doc",
-	docx: "bi bi-file-earmark-richtext", //"bi bi-filetype-docx",
-	exe: "bi bi-windows",//"bi bi-filetype-exe",
-	gif: "bi bi-file-earmark-image",  // "bi bi-filetype-gif",
-	gz: "bi bi-file-earmark-zip",
-	heic: "bi bi-file-earmark-image",  // "bi bi-filetype-heic",
-	html: "bi bi-filetype-html",
-	java: "bi bi-filetype-java",
-	jpg: "bi bi-file-earmark-image",  // "bi bi-filetype-jpg",
-	js: "bi bi-filetype-js",
-	json: "bi bi-filetype-json",
-	jsx: "bi bi-filetype-jsx",
-	key: "bi bi-filetype-key",
-	m4p: "bi bi-file-earmark-music",  //"bi bi-filetype-m4p",
-	md: "bi bi-file-earmark-text", //"bi bi-filetype-md",
-	mdx: "bi bi-filetype-mdx",
-	mov: "bi bi-file-earmark-play",  // "bi bi-filetype-mov",
-	mp3: "bi bi-file-earmark-music",  //"bi bi-filetype-mp3",
-	mp4: "bi bi-file-earmark-play", //"bi bi-filetype-mp4",
-	otf: "bi bi-file-earmark-font", //"bi bi-filetype-otf",
-	pdf: "bi bi-file-earmark-pdf",//"bi bi-filetype-pdf",
-	php: "bi bi-filetype-php",
-	png: "bi bi-file-earmark-image",  // "bi bi-filetype-png",
-	ppt: "bi bi-file-earmark-slides", //"bi bi-filetype-ppt",
-	pptx: "bi bi-file-earmark-slides",//"bi bi-filetype-pptx",
-	ps1: "bi bi-file-earmark-terminal", //"bi bi-filetype-sh",
-	psd: "bi bi-file-earmark-image",  //"bi bi-filetype-psd",
-	py: "bi bi-filetype-py",
-	raw: "bi bi-file-earmark-image",//"bi bi-filetype-raw",
-	rb: "bi bi-filetype-rb",
-	sass: "bi bi-filetype-sass",
-	scss: "bi bi-filetype-scss",
-	sh: "bi bi-file-earmark-terminal", //"bi bi-filetype-sh",
-	sql: "bi bi-filetype-sql",
-	svg: "bi bi-file-earmark-image", //"bi bi-filetype-svg",
-	tar: "bi bi-file-earmark-zip",
-	tiff: "bi bi-file-earmark-image",  //"bi bi-filetype-tiff",
-	tsx: "bi bi-filetype-tsx",
-	ttf: "bi bi-file-earmark-font", //"bi bi-filetype-ttf",
-	txt: "bi bi-file-earmark-text", //"bi bi-filetype-txt",
-	wav: "bi bi-file-earmark-play",  //"bi bi-filetype-wav",
-	woff: "bi bi-file-earmark-font", //"bi bi-filetype-woff",
-	xls: "bi bi-file-earmark-spreadsheet",//"bi bi-filetype-xls",
-	xlsx: "bi bi-file-earmark-spreadsheet",//"bi bi-filetype-xlsx",
-	xml: "bi bi-filetype-xml",
-	yaml: "bi bi-filetype-yml",
-	yml: "bi bi-filetype-yml",
-	zip: "bi bi-file-earmark-zip",
+const fileTypeIcons = {
+	text: {
+		csv: "bi bi-filetype-csv",
+		md: "bi bi-file-earmark-text",
+		mdx: "bi bi-filetype-mdx",
+		txt: "bi bi-file-earmark-text",
+		yaml: "bi bi-filetype-yml",
+		yml: "bi bi-filetype-yml",
+	},
+	image: {
+		ai: "bi bi-file-earmark-image",
+		bmp: "bi bi-file-earmark-image",
+		gif: "bi bi-file-earmark-image",
+		heic: "bi bi-file-earmark-image",
+		jpg: "bi bi-file-earmark-image",
+		jpeg: "bi bi-file-earmark-image",
+		png: "bi bi-file-earmark-image",
+		psd: "bi bi-file-earmark-image",
+		raw: "bi bi-file-earmark-image",
+		svg: "bi bi-file-earmark-image",
+		tiff: "bi bi-file-earmark-image",
+	},
+	audio: {
+		aac: "bi bi-file-earmark-music",
+		m4p: "bi bi-file-earmark-music",
+		mp3: "bi bi-file-earmark-music",
+		wav: "bi bi-file-earmark-play",
+	},
+	video: {
+		mov: "bi bi-file-earmark-play",
+		mp4: "bi bi-file-earmark-play",
+	},
+	pdf: {
+		pdf: "bi bi-file-earmark-pdf",
+	},
+	office: {
+		doc: "bi bi-file-earmark-richtext",
+		docx: "bi bi-file-earmark-richtext",
+		key: "bi bi-filetype-key",
+		ppt: "bi bi-file-earmark-slides",
+		pptx: "bi bi-file-earmark-slides",
+		xls: "bi bi-file-earmark-spreadsheet",
+		xlsx: "bi bi-file-earmark-spreadsheet",
+	},
+	archive: {
+		"7z": "bi bi-file-earmark-zip",
+		gz: "bi bi-file-earmark-zip",
+		tar: "bi bi-file-earmark-zip",
+		zip: "bi bi-file-earmark-zip",
+	},
+	font: {
+		otf: "bi bi-file-earmark-font",
+		ttf: "bi bi-file-earmark-font",
+		woff: "bi bi-file-earmark-font",
+	},
+	executable: {
+		bat: "bi bi-file-earmark-terminal",
+		exe: "bi bi-windows",
+		ps1: "bi bi-file-earmark-terminal",
+		sh: "bi bi-file-earmark-terminal",
+	},
+	code: {
+		css: "bi bi-filetype-css",
+		html: "bi bi-filetype-html",
+		js: "bi bi-filetype-js",
+		json: "bi bi-filetype-json",
+		jsx: "bi bi-filetype-jsx",
+		php: "bi bi-filetype-php",
+		py: "bi bi-filetype-py",
+		rb: "bi bi-filetype-rb",
+		sass: "bi bi-filetype-sass",
+		scss: "bi bi-filetype-scss",
+		sql: "bi bi-filetype-sql",
+		tsx: "bi bi-filetype-tsx",
+		xml: "bi bi-filetype-xml",
+		java: "bi bi-filetype-java",
+	},
+	other: {},
 };
+export const fileExtensionMap = {};
+for (let [type, extensions] of Object.entries(fileTypeIcons)) {
+	for (let [ext, icon] of Object.entries(extensions)) {
+		let preview;
+		switch (type) {
+			case "image":
+			case "pdf":
+				preview = "image";
+				break;
+			case "text":
+			case "code":
+				preview = "text";
+				break;
+		}
+		fileExtensionMap[ext] = { icon: icon, type: type, preview: preview };
+	}
+}
+// console.dir(fileExtensionMap);
 
 /**
  * Splitter and Preview pane
@@ -69,6 +108,18 @@ const splitter = Split(["main", "aside.right"], {
 	sizes: splitterSize,
 	minSize: 5,
 	gutterSize: 5,
+});
+
+// async function setPreviewImageUrl(url) {
+// 	return new Promise(function (resolve, reject) {
+// 		var image = new Image();
+// 		image.addEventListener('load', resolve);
+// 		image.addEventListener('error', reject);
+// 		image.src = url;
+// 	});
+// }
+document.querySelector("aside.right img#preview-img").addEventListener("error", (e) => {
+	console.error(`Could not load preview <img src=${e.target.src}>`, e);
 });
 
 export function togglePreviewPane(flag = true) {
@@ -104,17 +155,20 @@ export async function showPreview(urlOrNode, options = {}) {
 	url = url.startsWith("/") ? url.slice(1) : url;
 	url = window.location.href + url;
 	const extension = url.split('.').pop().toLowerCase();
-	const isImage = ["jpg", "jpeg", "png", "gif", "bmp", "svg", "tiff", "heic", "raw", "psd", "pdf"].includes(extension);
-	const isText = ["txt", "md", "ini", "json", "xml", "html", "css", "js", "jsx", "ts", "tsx", "yaml", "yml", "csv"].includes(extension);
-	imgElem.classList.toggle("hidden", !isImage);
-	textElem.classList.toggle("hidden", !isText);
-	placeholderElem.classList.toggle("hidden", (isImage || isText));
-	if (isImage) {
-		imgElem.src = url;
-	} else if (isText) {
-		const response = await fetch(url);
-		const text = await response.text();
-		textElem.textContent = text;
+	const typeInfo = fileExtensionMap[extension] ?? {};
+	const preview = typeInfo.preview;
+	imgElem.classList.toggle("hidden", preview !== "image");
+	textElem.classList.toggle("hidden", preview !== "text");
+	placeholderElem.classList.toggle("hidden", preview != null);
+	switch (preview) {
+		case "text":
+			const response = await fetch(url);
+			const text = await response.text();
+			textElem.textContent = text;
+			break;
+		case "image":
+			imgElem.src = url;
+			break;
 	}
 	return true;
 }

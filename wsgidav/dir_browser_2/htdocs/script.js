@@ -8,7 +8,7 @@ import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
 import { util } from "./util.js";
-import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
+import { fileExtensionMap, showPreview, togglePreviewPane } from "./previews.js";
 import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder } from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
@@ -155,7 +155,7 @@ const tree = new Wunderbaum({
 	navigationModeOption: "row",
 	icon: (e) => {
 		const ext = e.node.title.split('.').pop().toLowerCase();
-		if (fileTypeIcons[ext]) return fileTypeIcons[ext];
+		if (fileExtensionMap[ext]) return fileExtensionMap[ext].icon;
 	},
 
 	source: loadWbResources(),
@@ -222,12 +222,29 @@ const tree = new Wunderbaum({
 		},
 		dragEnter: (e) => {
 			console.log(e.type, e);
-			return true;
+			const res = new Set();
+			if (!e.sourceNode || e.sourceNode.parent !== e.node.parent) {
+				res.add("before");
+				res.add("after");
+			}
+			if (e.node.type === "directory" && e.sourceNode !== e.node.parent) {
+				res.add("over");
+			}
+			return res;
+		},
+		dragOver: (e) => {
+			console.log(e.type, e);
+			e.event.dataTransfer.dropEffect = 'copy';
+			e.event.preventDefault();
+			return false;
 		},
 		drop: (e) => {
-			const dataTransfer = e.dataTransfer;  // Wunderbaum >= 0.13.1
-			console.log(e.type, e, dataTransfer.items.length);
+			const dataTransfer = e.event.dataTransfer;
+			const file = e.event?.dataTransfer?.files[0] || this?.files[0];
+			console.log(e.type, file, e, "" + dataTransfer.files.length, "" + dataTransfer.items.length);
 			if (dataTransfer.items) {
+				console.log(JSON.stringify(e.event.dataTransfer.items[0]?.kind));
+				console.log("items", "" + dataTransfer.items.length);
 				// Use DataTransferItemList interface to access the file(s)
 				[...dataTransfer.items].forEach((item, i) => {
 					// If dropped items aren't files, reject them
