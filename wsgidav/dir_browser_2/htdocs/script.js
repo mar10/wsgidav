@@ -21,6 +21,7 @@ import {
 	commandHtmlTemplateFile,
 	commandHtmlTemplateFolder,
 	createFolder,
+	deleteResource,
 	downloadFile,
 	registerCommandButtons,
 	showNotification,
@@ -127,7 +128,7 @@ async function loadWbResources(options = {}) {
 	const client = getDAVClient();
 
 	const resList = await client.getDirectoryContents(options.path, options);
-	console.log(resList);
+	// console.log(resList);
 
 	const nodeList = [];
 	for (let res of resList) {
@@ -136,7 +137,7 @@ async function loadWbResources(options = {}) {
 		if (res.type === "directory") res.lazy = true;
 		nodeList.push(res);
 	}
-	console.info("getDirectoryContents", nodeList);
+	// console.info("getDirectoryContents", nodeList);
 	return nodeList;
 }
 
@@ -144,7 +145,7 @@ async function loadWbResources(options = {}) {
 const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
 const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
 
-const tree = new Wunderbaum({
+const _tree = new Wunderbaum({
 	element: "div#tree",
 	debugLevel: 5,
 	types: {},
@@ -246,6 +247,7 @@ const tree = new Wunderbaum({
 			return false;
 		},
 		drop: (e) => {
+			e.event.preventDefault();
 			const dataTransfer = e.event.dataTransfer;
 			const file = e.event?.dataTransfer?.files[0] || this?.files[0];
 			console.log(e.type, file, e, "" + dataTransfer.files.length, "" + dataTransfer.items.length);
@@ -293,13 +295,7 @@ registerCommandButtons("body", (e) => {
 			break;
 		case "delete":
 			if (confirm(`Delete "/${node.getPath()}" from the server?\n\nThis cannot be undone!`)) {
-				getDAVClient().deleteFile(node.getPath()).then(() => {
-					node.remove();
-					showNotification(`Deleted "/${node.getPath()}".`);
-				}).catch((err) => {
-					showNotification("Failed to delete.", { type: "error" });
-					console.error("Failed to delete: ", err);
-				});
+				deleteResource(node);
 			}
 			break;
 		case "uploadTop":

@@ -87,6 +87,17 @@ export async function downloadFile(node, options = {}) {
 
 }
 
+export async function deleteResource(node, options = {}) {
+    try {
+        await getDAVClient().deleteFile(node.getPath());
+        showNotification(`Deleted "/${node.getPath()}".`);
+        node.remove();
+    } catch (e) {
+        showNotification("Failed to delete.", { type: "error" });
+        console.error("Failed to delete: ", err);
+    }
+}
+
 export async function uploadFiles(node, options = {}) {
     const input = document.createElement("input");
     input.type = "file";
