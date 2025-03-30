@@ -1,6 +1,7 @@
 "use strict";
 
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
+import { getNodeResourceUrl } from "./util.js";
 
 const fileTypeIcons = {
 	text: {
@@ -100,6 +101,22 @@ for (let [type, extensions] of Object.entries(fileTypeIcons)) {
 }
 // console.dir(fileExtensionMap);
 
+const imgPlaceholderLoadingSvg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+	<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150" fill="none">
+	  <rect width="200" height="150" fill="#ddd"/>
+	  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#aaa" font-size="20" font-family="Arial, sans-serif">
+		Loading image...
+	  </text>
+	</svg>
+  `);
+const imgPlaceholderErrorSvg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+	<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150" fill="none">
+	  <rect width="200" height="150" fill="#ddd"/>
+	  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#aaa" stroke="red" font-size="20" font-family="Arial, sans-serif">
+		Error loading image.
+	  </text>
+	</svg>
+  `);
 /**
  * Splitter and Preview pane
  */
@@ -151,9 +168,8 @@ export async function showPreview(urlOrNode, options = {}) {
 	if (!isPreviewPaneOpen()) {
 		if (autoOpen) { togglePreviewPane(); } else { return false; }
 	}
-	let url = (!typeof urlOrNode === "string") ? urlOrNode : urlOrNode.getPath();
-	url = url.startsWith("/") ? url.slice(1) : url;
-	url = window.location.href + url;
+	const url = (!typeof urlOrNode === "string") ? urlOrNode : getNodeResourceUrl(urlOrNode);
+
 	const extension = url.split('.').pop().toLowerCase();
 	const typeInfo = fileExtensionMap[extension] ?? {};
 	const preview = typeInfo.preview;

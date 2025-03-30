@@ -1571,7 +1571,7 @@ class DAVProvider(ABC):
         return "/" + unquote(util.removeprefix(ref_url, self.share_path)).lstrip("/")
 
     @abstractmethod
-    def get_resource_inst(self, path: str, environ: dict):
+    def get_resource_inst(self, path: str, environ: dict) -> _DAVResource:
         """Return a _DAVResource object for path.
 
         Should be called only once per request and resource::
