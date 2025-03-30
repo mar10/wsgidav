@@ -132,7 +132,7 @@ export async function showPreview(urlOrNode, options = {}) {
 		};
 		imgElem.onerror = (e) => {
 			imgElem.onerror = null;
-			console.error(`Error loading preview ${url}`, e);
+			console.error("Error loading preview:", url, e);
 			imgElem.src = imgPlaceholderErrorSvg;
 		};
 		imgElem.setAttribute("src", imgPlaceholderLoadingSvg);

@@ -116,3 +116,15 @@ export async function uploadFiles(node, options = {}) {
     input.click();
     showNotification("Upload started.");
 }
+
+export async function createFolder(node, newName, options = {}) {
+    const client = getDAVClient();
+    const path = node.getPath();
+
+    const filePath = `${path}/${newName}`;
+    await client.createDirectory(filePath);
+    showNotification(`Created '${filePath}' successfully.`);
+    if (!node.isUnloaded()) {
+        node.add({ title: newName, type: "file" });
+    }
+} 

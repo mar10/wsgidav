@@ -8,7 +8,7 @@ import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
 import { getNodeResourceUrl, getDAVClient, util } from "./util.js";
 import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
-import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, downloadFile, uploadFiles, showNotification } from "./widgets.js";
+import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, createFolder, downloadFile, uploadFiles, showNotification } from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
@@ -152,7 +152,7 @@ const tree = new Wunderbaum({
 
 	init: function (e) {
 		e.tree.setFocus();
-		togglePreviewPane(false);
+		togglePreviewPane(true);
 	},
 	load: function (e) {
 		e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
@@ -246,6 +246,12 @@ registerCommandButtons("body", (e) => {
 			break;
 		case "rename":
 			node.startEditTitle();
+			break;
+		case "newFolder":
+			const newName = prompt(`Enter the name of the folder of ${node.getPath()}`);
+			if (newName) {
+				createFolder(node, newName);
+			}
 			break;
 		case "delete":
 			if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
