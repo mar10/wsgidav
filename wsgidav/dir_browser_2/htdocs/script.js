@@ -127,7 +127,7 @@ async function loadWbResources(options = {}) {
 const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
 const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
 
-const tree = new Wunderbaum({
+const _tree = new Wunderbaum({
 	element: "div#tree",
 	debugLevel: 5,
 	types: {},
@@ -215,21 +215,15 @@ const tree = new Wunderbaum({
 			return true;
 		},
 		drop: (e) => {
-			const dataTransfer = e.dataTransfer;  // Wunderbaum >= 0.13.1
-			console.log(e.type, e, dataTransfer.items.length);
+			const dataTransfer = e.event.dataTransfer;
+			console.log(e.type, e, dataTransfer.items?.length);
 			if (dataTransfer.items) {
-				// Use DataTransferItemList interface to access the file(s)
 				[...dataTransfer.items].forEach((item, i) => {
 					// If dropped items aren't files, reject them
 					if (item.kind === "file") {
 						const file = item.getAsFile();
-						console.log(`… file[${i}].name = ${file.name} `);
+						console.log(`  - file[${i}].name = ${file.name} `);
 					}
-				});
-			} else {
-				// Use DataTransfer interface to access the file(s)
-				[...e.dataTransfer.files].forEach((file, i) => {
-					console.log(`… file[${i}].name = ${file.name}`);
 				});
 			}
 		},
