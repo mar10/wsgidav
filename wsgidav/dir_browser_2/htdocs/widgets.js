@@ -10,10 +10,10 @@ export const commandHtmlTemplateFile = `
 <span class="command-palette">
     <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
 	<i class="wb-button bi bi-cloud-plus disabled" title="Upload file..."></i>
-    <i class="wb-button bi bi-folder-plus disabled" title="Creat subfolder..."></i>
+    <i class="wb-button bi bi-folder-plus disabled" title="Create subfolder..."></i>
 	<i class="wb-button bi bi-cloud-download" title="Download file..." data-command="download"></i>
 	<i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
-	<i class="wb-button bi bi-trash3" title="Delete file" data-command="delete"></i>
+	<i class="wb-button bi bi-trash3 alert" title="Delete file" data-command="delete"></i>
 	<i class="wb-button bi bi-pencil-square" title="Rename file" data-command="rename"></i>
     <!--	<i class="wb-button bi bi-unlock" title="File is unlocked" data-command="lock"></i> -->
     </span>
@@ -22,10 +22,10 @@ export const commandHtmlTemplateFolder = `
     <span class="command-palette">
     <i class="wb-button bi bi-copy disabled" title="Copy link"></i>
 	<i class="wb-button bi bi-cloud-plus" title="Upload file to this folder..." data-command="upload"></i>
-	<i class="wb-button bi bi-folder-plus" title="Creat subfolder..." data-command="newFolder"></i>
+	<i class="wb-button bi bi-folder-plus" title="Create subfolder..." data-command="newFolder"></i>
 	<i class="wb-button bi bi-cloud-download disabled" title="Download folder..."></i>
 	<i class="wb-button bi bi-windows disabled" title="Open in MS-Office"></i>
-	<i class="wb-button bi bi-trash3" title="Delete folder" data-command="delete"></i>
+	<i class="wb-button bi bi-trash3 alert" title="Delete folder" data-command="delete"></i>
 	<i class="wb-button bi bi-pencil-square" title="Rename folder" data-command="rename"></i>
 </span>
 `;
@@ -80,41 +80,43 @@ export async function downloadFile(node, options = {}) {
 
 }
 
-export async function uploadFiles(node, options = {}) {
+export async function uploadFiles(node, fileArray, options = {}) {
+    const client = getDAVClient();
+    const uploadPath = node.getPath();
+
+    showNotification("Upload started.");
+    for (const file of fileArray) {
+        try {
+            const filePath = `${uploadPath}/${file.name}`;
+            const data = await file.arrayBuffer();
+            // console.log("data", data);
+            // if(client.exists())
+            await client.putFileContents(filePath, data, { overwrite: false });
+            showNotification(`Uploaded '${file.name}' successfully.`);
+            if (!node.isUnloaded()) {
+                node.addChildren({ title: file.name, type: "file", size: file.size });
+            }
+        } catch (error) {
+            showNotification(`Failed to upload '${file.name}'.`, { type: "error" });
+            console.error("Upload error:", error);
+        }
+    }
+}
+
+export async function uploadFilesDialog(node, options = {}) {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
 
     input.addEventListener("change", async (event) => {
-        const files = event.target.files;
-        if (files.length === 0) {
+        const fileArray = event.target.files;
+        if (fileArray.length === 0) {
             showNotification("No files selected for upload.", { type: "warning" });
-            return;
+            return false;
         }
-
-        const client = getDAVClient();
-        const uploadPath = node.getPath();
-
-        for (const file of files) {
-            try {
-                const filePath = `${uploadPath}/${file.name}`;
-                const data = await file.arrayBuffer();
-                // console.log("data", data);
-                // if(client.exists())
-                await client.putFileContents(filePath, data, { overwrite: false });
-                showNotification(`Uploaded '${file.name}' successfully.`);
-                if (!node.isUnloaded()) {
-                    node.addChildren({ title: file.name, type: "file", size: file.size });
-                }
-            } catch (error) {
-                showNotification(`Failed to upload '${file.name}'.`, { type: "error" });
-                console.error("Upload error:", error);
-            }
-        }
+        return uploadFiles(node, fileArray, options);
     });
-
     input.click();
-    showNotification("Upload started.");
 }
 
 export async function createFolder(node, newName, options = {}) {

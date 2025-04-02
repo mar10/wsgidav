@@ -55,7 +55,9 @@ footer {
   flex: 0 0 20px;
 }
 
-footer a {
+footer a,
+footer a:active,
+footer a:hover {
   color: antiquewhite;
   text-decoration: none;
 }
@@ -163,6 +165,10 @@ span.command-palette {
   color: var(--wb-focus-border-color);
   border-color: var(--wb-focus-border-color);
   cursor: pointer;
+}
+
+.wb-button.alert:not(.disabled):hover {
+  color: red;
 }
 
 /* Notification toast */

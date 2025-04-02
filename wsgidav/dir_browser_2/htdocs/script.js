@@ -3,12 +3,27 @@
 import { Wunderbaum } from "./wunderbaum.esm.js";
 // import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 // /** @type {import("https://cdn.jsdelivr.net/npm/wunderbaum@0.13.0/dist/wunderbaum.d.ts")} */
-import { Toast } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
-import { getNodeResourceUrl, getDAVClient, util } from "./util.js";
-import { fileTypeIcons, showPreview, togglePreviewPane } from "./previews.js";
-import { registerCommandButtons, commandHtmlTemplateFile, commandHtmlTemplateFolder, createFolder, downloadFile, uploadFiles, showNotification } from "./widgets.js";
+import {
+	getDAVClient, util,
+	getNodeResourceUrl,
+} from "./util.js";
+import {
+	fileTypeIcons,
+	showPreview,
+	togglePreviewPane,
+} from "./previews.js";
+import {
+	commandHtmlTemplateFile,
+	commandHtmlTemplateFolder,
+	createFolder,
+	downloadFile,
+	registerCommandButtons,
+	showNotification,
+	uploadFiles,
+	uploadFilesDialog,
+} from "./widgets.js";
 
 // Cached plugin reference (or null. if it could not be instantiated)
 let sharePointPlugin = undefined;
@@ -133,7 +148,7 @@ const _tree = new Wunderbaum({
 	types: {},
 	columns: [
 		{ id: "*", title: "Path", width: "300px" },
-		{ id: "commands", title: " ", width: "100px", sortable: false },
+		{ id: "commands", title: " ", width: "140px", sortable: false },
 		{ id: "type", title: "Type", width: "100px" },
 		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
 		{ id: "lastmod", title: "Modified", width: "250px" },
@@ -218,13 +233,16 @@ const _tree = new Wunderbaum({
 			const dataTransfer = e.event.dataTransfer;
 			console.log(e.type, e, dataTransfer.items?.length);
 			if (dataTransfer.items) {
+				const fileArray = [];
 				[...dataTransfer.items].forEach((item, i) => {
 					// If dropped items aren't files, reject them
 					if (item.kind === "file") {
 						const file = item.getAsFile();
 						console.log(`  - file[${i}].name = ${file.name} `);
+						fileArray.push(file);
 					}
 				});
+				uploadFiles(node, fileArray);
 			}
 		},
 	},
@@ -255,7 +273,7 @@ registerCommandButtons("body", (e) => {
 			}
 			break;
 		case "upload":
-			uploadFiles(node);
+			uploadFilesDialog(node);
 			break;
 		case "download":
 			downloadFile(node);
