@@ -1,7 +1,7 @@
 /*!
  * Wunderbaum - debounce.ts
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 /*
  * debounce & throttle, taken from https://github.com/lodash/lodash v4.17.21
@@ -293,7 +293,7 @@ function throttle(func, wait = 0, options = {}) {
 /*!
  * Wunderbaum - util
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 /** @module util */
 /** Readable names for `MouseEvent.button` */
@@ -1140,7 +1140,7 @@ var util = /*#__PURE__*/Object.freeze({
 /*!
  * Wunderbaum - types
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 /**
  * Possible values for {@link WunderbaumNode.update} and {@link Wunderbaum.update}.
@@ -1208,7 +1208,7 @@ var NavModeEnum;
 /*!
  * Wunderbaum - wb_extension_base
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 class WunderbaumExtension {
     constructor(tree, id, defaults) {
@@ -1267,7 +1267,7 @@ class WunderbaumExtension {
 /*!
  * Wunderbaum - ext-filter
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 const START_MARKER = "\uFFF7";
 const END_MARKER = "\uFFF8";
@@ -1399,7 +1399,7 @@ class FilterExtension extends WunderbaumExtension {
     _applyFilterImpl(filter, _opts) {
         var _a;
         let //temp,
-            count = 0;
+        count = 0;
         const start = Date.now();
         const tree = this.tree;
         const treeOpts = tree.options;
@@ -1430,10 +1430,10 @@ class FilterExtension extends WunderbaumExtension {
                     // escape each character after splitting
                     .map(escapeRegex)
                     .reduce(function (a, b) {
-                        // create capture groups for parts that comes before
-                        // the character
-                        return a + "([^" + b + "]*)" + b;
-                    }, "");
+                    // create capture groups for parts that comes before
+                    // the character
+                    return a + "([^" + b + "]*)" + b;
+                }, "");
                 filterRegExp = new RegExp(matchReString, "i");
                 // highlightRegExp = new RegExp(escapeRegex(filter), "gi");
             }
@@ -1616,8 +1616,8 @@ class FilterExtension extends WunderbaumExtension {
         tree.filterMode = null;
         this.lastFilterArgs = null;
         tree.element.classList.remove(
-            // "wb-ext-filter",
-            "wb-ext-filter-dim", "wb-ext-filter-hide");
+        // "wb-ext-filter",
+        "wb-ext-filter-dim", "wb-ext-filter-hide");
         this._updatedConnectedControls();
         tree.enableUpdate(true);
     }
@@ -1633,10 +1633,10 @@ function _markFuzzyMatchedChars(text, matches, escapeTitles = true) {
     const matchingIndices = [];
     // get the indices of matched characters (Iterate through `RegExpMatchArray`)
     for (let _matchingArrIdx = 1; _matchingArrIdx < matches.length; _matchingArrIdx++) {
-        const _mIdx =
-            // get matching char index by cumulatively adding
-            // the matched group length
-            matches[_matchingArrIdx].length +
+        const _mIdx = 
+        // get matching char index by cumulatively adding
+        // the matched group length
+        matches[_matchingArrIdx].length +
             (_matchingArrIdx === 1 ? 0 : 1) +
             (matchingIndices[matchingIndices.length - 1] || 0);
         matchingIndices.push(_mIdx);
@@ -1662,7 +1662,7 @@ function _markFuzzyMatchedChars(text, matches, escapeTitles = true) {
 /*!
  * Wunderbaum - ext-keynav
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 const QUICKSEARCH_DELAY = 500;
 class KeynavExtension extends WunderbaumExtension {
@@ -2026,7 +2026,7 @@ class KeynavExtension extends WunderbaumExtension {
 /*!
  * Wunderbaum - ext-logger
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 class LoggerExtension extends WunderbaumExtension {
     constructor(tree) {
@@ -2068,7 +2068,7 @@ class LoggerExtension extends WunderbaumExtension {
 /*!
  * Wunderbaum - ext-dnd
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 const nodeMimeType = "application/x-wunderbaum-node";
 class DndExtension extends WunderbaumExtension {
@@ -2304,7 +2304,6 @@ class DndExtension extends WunderbaumExtension {
      */
     onDragEvent(e) {
         var _a;
-        // const tree = this.tree;
         const dndOpts = this.treeOpts.dnd;
         const srcNode = Wunderbaum.getNode(e);
         if (!srcNode) {
@@ -2410,8 +2409,8 @@ class DndExtension extends WunderbaumExtension {
             this.lastTargetNode = targetNode;
             this.lastEnterStamp = Date.now();
             if (
-                // Don't drop on status node:
-                _t(targetNode.isStatusNode(), "is status node") ||
+            // Don't drop on status node:
+            _t(targetNode.isStatusNode(), "is status node") ||
                 // Prevent dropping nodes from different Wunderbaum trees:
                 _t(dndOpts.preventForeignNodes && targetNode.tree !== srcTree, "preventForeignNodes") ||
                 // Prevent dropping items on unloaded lazy Wunderbaum tree nodes:
@@ -2497,20 +2496,20 @@ class DndExtension extends WunderbaumExtension {
             nodeData = nodeData ? JSON.parse(nodeData) : null;
             const srcNode = this.srcNode;
             const lastDropEffect = this.lastDropEffect;
-            setTimeout(() => {
-                // Decouple this call, because drop actions may prevent the dragend event
-                // from being fired on some browsers
-                targetNode._callEvent("dnd.drop", {
-                    event: e,
-                    region: region,
-                    suggestedDropMode: region === "over" ? "appendChild" : region,
-                    suggestedDropEffect: lastDropEffect,
-                    // suggestedDropEffect: e.dataTransfer?.dropEffect,
-                    sourceNode: srcNode,
-                    sourceNodeData: nodeData,
-                    dataTransfer: e.dataTransfer,
-                });
-            }, 10);
+            /* Before v0.14.0, we decoupled `_callEvent` like so:
+                 Decouple this call, because drop actions may prevent the dragend
+                 event from being fired on some browsers.
+                 setTimeout(() => {...}, 10);
+              however this made e.dataTransfer.items inaccessible */
+            targetNode._callEvent("dnd.drop", {
+                event: e,
+                region: region,
+                suggestedDropMode: region === "over" ? "appendChild" : region,
+                suggestedDropEffect: lastDropEffect,
+                sourceNode: srcNode,
+                sourceNodeData: nodeData,
+                dataTransfer: e.dataTransfer,
+            });
         }
         return false;
     }
@@ -2519,7 +2518,7 @@ class DndExtension extends WunderbaumExtension {
 /*!
  * Wunderbaum - drag_observer
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 /**
  * Convert mouse- and touch events to 'dragstart', 'drag', and 'dragstop'.
@@ -2668,7 +2667,7 @@ class DragObserver {
 /*!
  * Wunderbaum - common
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 const DEFAULT_DEBUGLEVEL = 3; // Replaced by rollup script
 /**
@@ -2922,7 +2921,7 @@ function unflattenSource(source) {
             keyToNodeMap[key] = kwargs;
         }
         let parentNode = null;
-        if (parentId === null);
+        if (parentId === null) ;
         else if (typeof parentId === "number") {
             parentNode = indexToNodeMap[parentId];
             if (parentNode === undefined) {
@@ -3032,12 +3031,12 @@ function decompressSourceData(source) {
 /*!
  * Wunderbaum - ext-grid
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 class GridExtension extends WunderbaumExtension {
     constructor(tree) {
         super(tree, "grid", {
-            // throttle: 200,
+        // throttle: 200,
         });
         this.observer = new DragObserver({
             root: window.document,
@@ -3123,7 +3122,7 @@ class GridExtension extends WunderbaumExtension {
 /*!
  * Wunderbaum - deferred
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 /**
  * Implement a ES6 Promise, that exposes a resolve() and reject() method.
@@ -3176,7 +3175,7 @@ class Deferred {
 /*!
  * Wunderbaum - wunderbaum_node
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 /** WunderbaumNode properties that can be passed with source data.
  * (Any other source properties will be stored as `node.data.PROP`.)
@@ -4685,9 +4684,9 @@ class WunderbaumNode {
             else {
                 titleSpan.style.width =
                     columns[0]._widthPx -
-                    nodeElem._ofsTitlePx -
-                    TITLE_SPAN_PAD_Y +
-                    "px";
+                        nodeElem._ofsTitlePx -
+                        TITLE_SPAN_PAD_Y +
+                        "px";
             }
         }
         // Update row classes
@@ -5496,9 +5495,9 @@ class WunderbaumNode {
      */
     sort(options) {
         const tree = this.tree;
-        let { propName = undefined, deep = true, key = undefined, order = undefined, caseInsensitive = true, foldersFirst = false, cmp = undefined,
-            // Support click on column sort header:
-            updateColInfo = false, nativeOrderPropName = "_nativeIndex", colId = undefined, } = options;
+        let { propName = undefined, deep = true, key = undefined, order = undefined, caseInsensitive = true, foldersFirst = false, cmp = undefined, 
+        // Support click on column sort header:
+        updateColInfo = false, nativeOrderPropName = "_nativeIndex", colId = undefined, } = options;
         propName !== null && propName !== void 0 ? propName : (propName = colId);
         if (propName === "*") {
             propName = "title";
@@ -5710,7 +5709,7 @@ WunderbaumNode.sequence = 0;
 /*!
  * Wunderbaum - ext-edit
  * Copyright (c) 2021-2025, Martin Wendt. Released under the MIT license.
- * v0.13.1-0, Fri, 28 Mar 2025 07:42:37 GMT (https://github.com/mar10/wunderbaum)
+ * v0.13.1-0, Mon, 31 Mar 2025 19:14:36 GMT (https://github.com/mar10/wunderbaum)
  */
 // const START_MARKER = "\uFFF7";
 class EditExtension extends WunderbaumExtension {
@@ -5751,41 +5750,41 @@ class EditExtension extends WunderbaumExtension {
             // normalize to promise, even if a scalar value was returned and await it
             Promise.resolve(res)
                 .then((res) => {
-                    resolve(res);
-                })
+                resolve(res);
+            })
                 .catch((err) => {
-                    reject(err);
-                });
+                reject(err);
+            });
         })
             .then((res) => {
-                if (!inputElem.checkValidity()) {
-                    // Native validation failed or handler called 'inputElem.setCustomValidity()'
-                    node.logWarn("inputElem.checkValidity() failed: throwing....");
-                    throw new ValidationError(inputElem.validationMessage);
-                }
-                return res;
-            })
+            if (!inputElem.checkValidity()) {
+                // Native validation failed or handler called 'inputElem.setCustomValidity()'
+                node.logWarn("inputElem.checkValidity() failed: throwing....");
+                throw new ValidationError(inputElem.validationMessage);
+            }
+            return res;
+        })
             .catch((err) => {
-                if (err instanceof ValidationError) {
-                    node.logWarn("catched ", err);
-                    colElem.classList.add("wb-invalid");
-                    if (inputElem.setCustomValidity && !inputElem.validationMessage) {
-                        inputElem.setCustomValidity(err.message);
-                    }
-                    if (inputElem.validationMessage) {
-                        inputElem.reportValidity();
-                    }
-                    // throw err;
+            if (err instanceof ValidationError) {
+                node.logWarn("catched ", err);
+                colElem.classList.add("wb-invalid");
+                if (inputElem.setCustomValidity && !inputElem.validationMessage) {
+                    inputElem.setCustomValidity(err.message);
                 }
-                else {
-                    node.logError(`Error in ${eventName} event handler (throw e.util.ValidationError instead if this was intended)`, err);
-                    colElem.classList.add("wb-error");
-                    throw err;
+                if (inputElem.validationMessage) {
+                    inputElem.reportValidity();
                 }
-            })
+                // throw err;
+            }
+            else {
+                node.logError(`Error in ${eventName} event handler (throw e.util.ValidationError instead if this was intended)`, err);
+                colElem.classList.add("wb-error");
+                throw err;
+            }
+        })
             .finally(() => {
-                colElem.classList.remove("wb-busy");
-            });
+            colElem.classList.remove("wb-busy");
+        });
     }
     /*
      * Called for when a control that is embedded in a cell fires a `change` event.
@@ -5810,13 +5809,13 @@ class EditExtension extends WunderbaumExtension {
     init() {
         super.init();
         onEvent(this.tree.element, "change", //"change input",
-            ".contenteditable,input,textarea,select",
-            // #61: we must not debounce the `change`, event.target may be reset to null
-            // when the debounced handler is called.
-            // (e) => {
-            //   this.debouncedOnChange(e);
-            // }
-            (e) => this._onChange(e));
+        ".contenteditable,input,textarea,select", 
+        // #61: we must not debounce the `change`, event.target may be reset to null
+        // when the debounced handler is called.
+        // (e) => {
+        //   this.debouncedOnChange(e);
+        // }
+        (e) => this._onChange(e));
     }
     /* Called by ext_keynav to pre-process input. */
     _preprocessKeyEvent(data) {
@@ -5895,7 +5894,7 @@ class EditExtension extends WunderbaumExtension {
             const required = opt > 0 ? " required" : "";
             inputHtml =
                 `<input type=text class="wb-input-edit" tabindex=-1 value="${title}" ` +
-                `autocorrect="off"${required}${minlength}${maxlength} >`;
+                    `autocorrect="off"${required}${minlength}${maxlength} >`;
         }
         const titleSpan = node
             .getColElem(0)
@@ -6046,7 +6045,7 @@ class EditExtension extends WunderbaumExtension {
  *
  * Released under the MIT license.
  * @version v0.13.1-0
- * @date Fri, 28 Mar 2025 07:42:37 GMT
+ * @date Mon, 31 Mar 2025 19:14:36 GMT
  */
 // import "./wunderbaum.scss";
 class WbSystemRoot extends WunderbaumNode {
@@ -6179,27 +6178,27 @@ class Wunderbaum {
         let readyOk = false;
         this.ready
             .then(() => {
-                readyOk = true;
-                try {
-                    this._callEvent("init");
-                }
-                catch (error) {
-                    // We re-raise in the reject handler, but Chrome resets the stack
-                    // frame then, so we log it here:
-                    this.logError("Exception inside `init(e)` event:", error);
-                }
-            })
+            readyOk = true;
+            try {
+                this._callEvent("init");
+            }
+            catch (error) {
+                // We re-raise in the reject handler, but Chrome resets the stack
+                // frame then, so we log it here:
+                this.logError("Exception inside `init(e)` event:", error);
+            }
+        })
             .catch((err) => {
-                if (readyOk) {
-                    // Error occurred in `init` handler. We can re-raise, but Chrome
-                    // resets the stack frame.
-                    throw err;
-                }
-                else {
-                    // Error in load process
-                    this._callEvent("init", { error: err });
-                }
-            });
+            if (readyOk) {
+                // Error occurred in `init` handler. We can re-raise, but Chrome
+                // resets the stack frame.
+                throw err;
+            }
+            else {
+                // Error in load process
+                this._callEvent("init", { error: err });
+            }
+        });
         this.id = initOptions.id || "wb_" + ++Wunderbaum.sequence;
         delete initOptions.id;
         this.root = new WbSystemRoot(this);
@@ -6306,29 +6305,29 @@ class Wunderbaum {
             }
             this.load(initOptions.source)
                 .then(() => {
-                    // The source may have defined columns, so we may adjust the nav mode
-                    if (opts.navigationModeOption == null) {
-                        if (this.isGrid()) {
-                            this.setNavigationOption(NavModeEnum.cell);
-                        }
-                        else {
-                            this.setNavigationOption(NavModeEnum.row);
-                        }
+                // The source may have defined columns, so we may adjust the nav mode
+                if (opts.navigationModeOption == null) {
+                    if (this.isGrid()) {
+                        this.setNavigationOption(NavModeEnum.cell);
                     }
                     else {
-                        this.setNavigationOption(opts.navigationModeOption);
+                        this.setNavigationOption(NavModeEnum.row);
                     }
-                    this.update(ChangeType.structure, { immediate: true });
-                    readyDeferred.resolve();
-                })
+                }
+                else {
+                    this.setNavigationOption(opts.navigationModeOption);
+                }
+                this.update(ChangeType.structure, { immediate: true });
+                readyDeferred.resolve();
+            })
                 .catch((error) => {
-                    readyDeferred.reject(error);
-                })
+                readyDeferred.reject(error);
+            })
                 .finally(() => {
-                    var _a;
-                    (_a = this.element.querySelector("progress.spinner")) === null || _a === void 0 ? void 0 : _a.remove();
-                    this.element.classList.remove("wb-initializing");
-                });
+                var _a;
+                (_a = this.element.querySelector("progress.spinner")) === null || _a === void 0 ? void 0 : _a.remove();
+                this.element.classList.remove("wb-initializing");
+            });
         }
         else {
             readyDeferred.resolve();
@@ -6736,7 +6735,7 @@ class Wunderbaum {
      */
     applyCommand(cmd, nodeOrOpts, options) {
         let // clipboard,
-            node, refNode;
+        node, refNode;
         // options = $.extend(
         // 	{ setActive: true, clipboard: CLIPBOARD },
         // 	options_
@@ -7534,7 +7533,7 @@ class Wunderbaum {
         // this.log( `scrollTo(${node.title}), vpTop:${vpTop}px, scrollTop:${scrollTop}, vpHeight:${vpHeight}, rowTop:${rowTop}, vpRowTop:${vpRowTop}`, nodeOrOpts , options);
         let newScrollTop = null;
         if (vpRowTop >= vpTop) {
-            if (vpRowBottom <= vpHeight);
+            if (vpRowBottom <= vpHeight) ;
             else {
                 // Node is below viewport
                 // this.log("Below viewport");
@@ -8117,7 +8116,7 @@ class Wunderbaum {
         if (icon === false) {
             return null; // explicitly disabled: don't try default icons
         }
-        if (typeof icon === "string");
+        if (typeof icon === "string") ;
         else if (node.statusNodeType) {
             icon = iconMap[node.statusNodeType];
         }
