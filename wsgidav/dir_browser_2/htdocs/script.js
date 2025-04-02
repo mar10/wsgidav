@@ -32,7 +32,7 @@ let sharePointPlugin = undefined;
  * Find (and cache) an available ActiveXObject Sharepoint plugin.
  *
  * @returns {ActiveXObject} or null
-	*/
+ */
 function getSharePointPlugin() {
 	if (sharePointPlugin !== undefined) {
 		return sharePointPlugin;
@@ -67,15 +67,14 @@ function getSharePointPlugin() {
 	return sharePointPlugin;
 }
 
-
 /**
  * Open an MS Office document either with SharePoint plugin or using the 'ms-' URL prefix.
  *
  * @param {object} opts
-	* @returns {boolean} true if the URL could be opened
-	*/
+ * @returns {boolean} true if the URL could be opened
+ */
 function openWebDavDocument(opts) {
-	var ofe_link = opts.ofe + opts.href,  // (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
+	var ofe_link = opts.ofe + opts.href, // (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
 		url = opts.href;
 
 	var plugin = getSharePointPlugin();
@@ -101,7 +100,6 @@ function openWebDavDocument(opts) {
 	return res;
 }
 
-
 /**
  * Event delegation handler for clicks on a-tags with class 'msoffice'.
  */
@@ -109,7 +107,7 @@ function onClickTable(event) {
 	var target = event.target || event.srcElement,
 		opts = {
 			href: target.href,
-			ofe: target.getAttribute("data-ofe")
+			ofe: target.getAttribute("data-ofe"),
 		};
 
 	if (target.className === "msoffice") {
@@ -125,7 +123,7 @@ async function loadWbResources(options = {}) {
 	const client = getDAVClient();
 
 	const resList = await client.getDirectoryContents(options.path, options);
-	console.log(resList);
+	// console.log(resList);
 
 	const nodeList = [];
 	for (let res of resList) {
@@ -134,10 +132,9 @@ async function loadWbResources(options = {}) {
 		if (res.type === "directory") res.lazy = true;
 		nodeList.push(res);
 	}
-	console.info("getDirectoryContents", nodeList);
+	// console.info("getDirectoryContents", nodeList);
 	return nodeList;
 }
-
 
 const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
 const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);

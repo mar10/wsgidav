@@ -9,6 +9,18 @@ import { Wunderbaum } from "./wunderbaum.esm.js";
 
 export const util = Wunderbaum.util;
 
+export function getTree() {
+    return Wunderbaum.getTree();
+}
+
+export function getNodeOrActive(node) {
+    return node == null ? getTree().getActiveNode() : node;
+}
+
+export function getNodeOrTop(node) {
+    return node == null ? getTree().root : node;
+}
+
 export function getNodeResourceUrl(node) {
     let url = node.getPath();
     url = url.startsWith("/") ? url.slice(1) : url;

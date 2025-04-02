@@ -30,6 +30,8 @@ export const commandHtmlTemplateFolder = `
 </span>
 `;
 
+/* --- */
+
 export function registerCommandButtons(parent, handler) {
     util.onEvent(parent, "click", "i.wb-button:not(.disabled)", (e) => {
         // console.info("click", e, e.target);
@@ -42,6 +44,7 @@ export function registerCommandButtons(parent, handler) {
             event: e,
             isPressed: isPressed,
             command: target.dataset.command,
+            tree: Wunderbaum.getTree(),
             node: Wunderbaum.getNode(target),
             target: target,
         });
@@ -56,7 +59,11 @@ export function registerCommandButtons(parent, handler) {
 // }
 
 export async function showNotification(message, options = {}) {
-    const { type = "info", duration = 5000 } = options;
+    const durationMap = { info: 5000, warning: 10000, error: 20000 };
+    let { type = "info", duration = undefined } = options;
+    if (!durationMap[type]) { type = "error"; }
+    duration ??= durationMap[type];
+
     const notification = document.getElementById("notification");
     notification.textContent = message;
     notification.className = `notification ${type}`;
@@ -76,7 +83,7 @@ export async function downloadFile(node, options = {}) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showNotification("Download started.", { type: "info" });
+    showNotification("Download started...", { type: "info" });
 
 }
 
@@ -119,14 +126,60 @@ export async function uploadFilesDialog(node, options = {}) {
     input.click();
 }
 
+export async function deleteResource(node, options = {}) {
+    try {
+        await getDAVClient().deleteFile(node.getPath());
+        showNotification(`Deleted "/${node.getPath()}".`);
+        node.remove();
+    } catch (e) {
+        showNotification("Failed to delete.", { type: "error" });
+        console.error("Failed to delete: ", err);
+    }
+}
+
 export async function createFolder(node, newName, options = {}) {
     const client = getDAVClient();
     const path = node.getPath();
 
     const filePath = `${path}/${newName}`;
     await client.createDirectory(filePath);
-    showNotification(`Created '${filePath}' successfully.`);
+    showNotification(`Created "${filePath}/".`);
     if (!node.isUnloaded()) {
         node.add({ title: newName, type: "file" });
     }
-} 
+}
+
+/* --- Dropzone --- */
+
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+
+dropzone.addEventListener("click", () => fileInput.click());
+
+dropzone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    dropzone.classList.add("dragover");
+});
+
+dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("dragover");
+});
+
+dropzone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    dropzone.classList.remove("dragover");
+    const files = event.dataTransfer.files;
+    handleFiles(files);
+});
+
+fileInput.addEventListener("change", () => {
+    const files = fileInput.files;
+    handleFiles(files);
+});
+
+function handleFiles(files) {
+    for (const file of files) {
+        console.log("File uploaded:", file.name);
+        // Add your file upload logic here
+    }
+}
