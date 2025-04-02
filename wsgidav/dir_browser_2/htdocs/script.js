@@ -8,6 +8,7 @@ import { Wunderbaum } from "./wunderbaum.esm.js";
 import {
 	getDAVClient, util,
 	getNodeResourceUrl,
+	getTree,
 } from "./util.js";
 import {
 	fileTypeIcons,
@@ -232,21 +233,20 @@ const _tree = new Wunderbaum({
 			if (dataTransfer.items) {
 				const fileArray = [];
 				[...dataTransfer.items].forEach((item, i) => {
-					// If dropped items aren't files, reject them
 					if (item.kind === "file") {
 						const file = item.getAsFile();
-						console.log(`  - file[${i}].name = ${file.name} `);
+						// console.log(`  - file[${i}].name = ${file.name} `);
 						fileArray.push(file);
 					}
 				});
-				uploadFiles(node, fileArray);
+				uploadFiles(e.node, fileArray);
 			}
 		},
 	},
 });
 
 registerCommandButtons("body", (e) => {
-	const node = e.node;
+	let node = e.node;
 	console.info("got", `${node}`, e.command, e);
 	switch (e.command) {
 		case "togglePreview":
@@ -256,6 +256,12 @@ registerCommandButtons("body", (e) => {
 		case "rename":
 			node.startEditTitle();
 			break;
+		case "reloadTree":
+			getTree().reload();
+			break;
+		case "newTopFolder":
+			node = getTree().root;
+		// fall through
 		case "newFolder":
 			const newName = prompt(`Enter the name of the folder of ${node.getPath()}`);
 			if (newName) {
@@ -269,6 +275,9 @@ registerCommandButtons("body", (e) => {
 				});
 			}
 			break;
+		case "uploadTop":
+			node = getTree().root;
+		// fall through
 		case "upload":
 			uploadFilesDialog(node);
 			break;

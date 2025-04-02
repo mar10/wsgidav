@@ -13,8 +13,12 @@ export function getTree() {
     return Wunderbaum.getTree();
 }
 
+export function getActiveNode() {
+    return getTree().getActiveNode();
+}
+
 export function getNodeOrActive(node) {
-    return node == null ? getTree().getActiveNode() : node;
+    return node == null ? getActiveNode() : node;
 }
 
 export function getNodeOrTop(node) {

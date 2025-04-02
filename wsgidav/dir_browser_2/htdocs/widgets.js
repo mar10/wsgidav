@@ -1,7 +1,7 @@
 "use strict";
 
 import { Wunderbaum } from "./wunderbaum.esm.js";
-import { util, getNodeResourceUrl, getDAVClient } from "./util.js";
+import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode } from "./util.js";
 
 /**
  * Command Buttons & Palette
@@ -91,6 +91,14 @@ export async function uploadFiles(node, fileArray, options = {}) {
     const client = getDAVClient();
     const uploadPath = node.getPath();
 
+    // `node` should be the parent of the uploaded files.
+    // We accept either the tree's system root or a directory. If the node is
+    // a file, use its parent folder node
+    if (node.parent != null) {
+        if (node.type !== "directory") node = node.parent;
+        if (node.type !== "directory") throw new Error("No active directory.");
+    }
+
     showNotification("Upload started.");
     for (const file of fileArray) {
         try {
@@ -145,7 +153,7 @@ export async function createFolder(node, newName, options = {}) {
     await client.createDirectory(filePath);
     showNotification(`Created "${filePath}/".`);
     if (!node.isUnloaded()) {
-        node.add({ title: newName, type: "file" });
+        node.addChildren({ title: newName, type: "directory" });
     }
 }
 
@@ -169,17 +177,11 @@ dropzone.addEventListener("drop", (event) => {
     event.preventDefault();
     dropzone.classList.remove("dragover");
     const files = event.dataTransfer.files;
-    handleFiles(files);
+    uploadFiles(getActiveNode(), files);
 });
 
 fileInput.addEventListener("change", () => {
     const files = fileInput.files;
-    handleFiles(files);
+    uploadFiles(getActiveNode(), files);
 });
 
-function handleFiles(files) {
-    for (const file of files) {
-        console.log("File uploaded:", file.name);
-        // Add your file upload logic here
-    }
-}

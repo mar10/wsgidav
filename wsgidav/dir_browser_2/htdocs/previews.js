@@ -127,16 +127,8 @@ const splitter = Split(["main", "aside.right"], {
 	gutterSize: 5,
 });
 
-// async function setPreviewImageUrl(url) {
-// 	return new Promise(function (resolve, reject) {
-// 		var image = new Image();
-// 		image.addEventListener('load', resolve);
-// 		image.addEventListener('error', reject);
-// 		image.src = url;
-// 	});
-// }
 document.querySelector("aside.right img#preview-img").addEventListener("error", (e) => {
-	console.error(`Could not load preview <img src=${e.target.src}>`, e);
+	console.error(`Could not load preview <img src="${e.target.src}">`, e);
 });
 
 export function togglePreviewPane(flag = true) {
@@ -145,13 +137,12 @@ export function togglePreviewPane(flag = true) {
 	} else {
 		splitter.collapse(1);
 	}
-	document.querySelector("aside.right").classList.toggle("show", flag);
+	document.querySelector("aside.right").classList.toggle("show", !!flag);
 
 }
 
 export function isPreviewPaneOpen() {
-	const element = document.querySelector("aside.right.show");
-	return !!element;
+	return !!document.querySelector("aside.right.show");
 }
 
 export async function showPreview(urlOrNode, options = {}) {
@@ -184,8 +175,8 @@ export async function showPreview(urlOrNode, options = {}) {
 
 	imgElem.classList.toggle("hidden", preview !== "image");
 	textElem.classList.toggle("hidden", preview !== "text");
-	placeholderElem.classList.toggle("hidden", isFolder || preview != null);
 	folderElem.classList.toggle("hidden", !isFolder);
+	placeholderElem.classList.toggle("hidden", isFolder || preview != null);
 
 	switch (preview) {
 		case "text":

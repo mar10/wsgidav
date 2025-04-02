@@ -64,6 +64,10 @@ footer a:hover {
   text-decoration: none;
 }
 
+p.trailer {
+  font-size: smaller;
+}
+
 header h1 small {
   font-size: 50%;
 }
