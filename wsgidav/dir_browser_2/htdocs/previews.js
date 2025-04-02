@@ -3,7 +3,7 @@
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
 import { getNodeResourceUrl } from "./util.js";
 
-const fileTypeIcons = {
+export const fileTypeIcons = {
 	text: {
 		csv: "bi bi-filetype-csv",
 		md: "bi bi-file-earmark-text",
