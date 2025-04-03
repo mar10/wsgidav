@@ -130,7 +130,7 @@ div#preview {
 }
 
 div#preview>img,
-div#preview>p.preview-unknown,
+div#preview>div.preview-unknown,
 div#preview>pre {
   max-width: 100%;
   background-color: white;
@@ -138,7 +138,7 @@ div#preview>pre {
   border: 2px solid gray;
 }
 
-div#preview>p#preview-unknown {
+div#preview>div#preview-unknown {
   color: gray;
 }
 

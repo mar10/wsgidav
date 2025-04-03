@@ -6,7 +6,6 @@
 WSGI application that handles one single WebDAV request.
 """
 
-import time
 from urllib.parse import unquote, urlparse
 
 from wsgidav import util, xml_tools

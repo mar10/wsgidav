@@ -257,13 +257,13 @@ registerCommandButtons("body", (e) => {
 			node.startEditTitle();
 			break;
 		case "reloadTree":
-			getTree().reload();
+			getTree().load();
 			break;
 		case "newTopFolder":
 			node = getTree().root;
 		// fall through
 		case "newFolder":
-			const newName = prompt(`Enter the name of the folder of ${node.getPath()}`);
+			const newName = prompt(`Enter the name of the new subfolder of\n '${node.getPath() + "/"}'`);
 			if (newName) {
 				createFolder(node, newName);
 			}
