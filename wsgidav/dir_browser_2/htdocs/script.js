@@ -231,15 +231,37 @@ const _tree = new Wunderbaum({
 			return true;
 		},
 		dragEnter: (e) => {
-			console.log(e.type, e);
+			// console.log(e.type, e);
 			return true;
 		},
 		drop: (e) => {
+			const node = e.node;
 			const dataTransfer = e.event.dataTransfer;
 			console.log(e.type, e, dataTransfer.items?.length);
 			if (e.sourceNode) {
 				// copy/move a node inside the tree
-
+				const sourcePath = e.sourceNode.getPath();
+				let targetPath;
+				if (node.type === "directory" && e.suggestedDropMode === "over") {
+					targetPath = node.getPath() + e.sourceNode.title;
+				} else {
+					targetPath = node.parent.getPath() + e.sourceNode.title;
+				}
+				console.log(e.type, `${e.suggestedDropEffect} ${sourcePath} -> ${targetPath} `, e);
+				switch (e.suggestedDropEffect) {
+					case "copy":
+						getDAVClient().copyFile(sourcePath, targetPath).then(() => {
+							node.addNode(
+								{ title: `${e.sourceNodeData.title}` },
+								e.suggestedDropMode
+							);
+						});
+						break;
+					default:
+						getDAVClient().moveFile(sourcePath, targetPath).then(() => {
+							e.sourceNode.moveTo(node, e.suggestedDropMode);
+						});
+				}
 			} else if (dataTransfer.items && dataTransfer.items.length) {
 				// drop an external file onto the tree
 				const fileArray = [];

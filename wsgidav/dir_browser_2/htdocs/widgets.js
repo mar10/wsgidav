@@ -87,6 +87,7 @@ export async function downloadFile(node, options = {}) {
 
 }
 
+/** Drop axternal file(s) into a directory (use node's parent if node is a file) */
 export async function uploadFiles(node, fileArray, options = {}) {
     const client = getDAVClient();
     const uploadPath = node.getPath();
