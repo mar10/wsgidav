@@ -221,6 +221,13 @@ const _tree = new Wunderbaum({
 	dnd: {
 		dragStart: (e) => {
 			console.log(e.type, e);
+			if (e.node.type !== "directory") {
+				const url = getNodeResourceUrl(e.node);
+				const name = e.node.title;
+				const mime = e.node.data.mime || "text/plain";
+				console.log(e.node);
+				e.event.dataTransfer.setData("DownloadURL", `${mime}:${name}:${url}`);
+			};
 			return true;
 		},
 		dragEnter: (e) => {
@@ -230,7 +237,11 @@ const _tree = new Wunderbaum({
 		drop: (e) => {
 			const dataTransfer = e.event.dataTransfer;
 			console.log(e.type, e, dataTransfer.items?.length);
-			if (dataTransfer.items) {
+			if (e.sourceNode) {
+				// copy/move a node inside the tree
+
+			} else if (dataTransfer.items && dataTransfer.items.length) {
+				// drop an external file onto the tree
 				const fileArray = [];
 				[...dataTransfer.items].forEach((item, i) => {
 					if (item.kind === "file") {
