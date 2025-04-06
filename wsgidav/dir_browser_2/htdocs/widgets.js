@@ -1,7 +1,7 @@
 "use strict";
 
 import { Wunderbaum } from "./wunderbaum.esm.js";
-import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode } from "./util.js";
+import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode, isFile, isFolder } from "./util.js";
 
 /**
  * Command Buttons & Palette
@@ -104,7 +104,8 @@ async function downloadFileToFolder(node, options = {}) {
     if (!response.ok) throw new Error(`Failed to fetch file: ${response.statusText}`);
 
     const blob = await response.blob();
-    const fileName = fileUrl.split("/").pop(); // Extract file name from URL
+    const fileName = node.title;
+    // const fileName = fileUrl.split("/").pop(); // Extract file name from URL
 
     // Request the user to select a folder
     const handle = await window.showDirectoryPicker();
@@ -121,6 +122,34 @@ async function downloadFileToFolder(node, options = {}) {
   } catch (error) {
     console.error("Error downloading file:", error);
   }
+}
+
+function supportsDownloadURL() {
+  // 'DownloadURL' is ignored by Safari and Firefox
+  return /Chrome|Chromium|Edg/.test(navigator.userAgent) && !/Firefox|Safari/.test(navigator.userAgent);
+}
+
+export async function addFileToDataTransfer(node, dragStartEvent) {
+  if (!isFile(node)) {
+    return false;
+  }
+  const dt = dragStartEvent.dataTransfer;
+  const fileUrl = getNodeResourceUrl(node);
+  const name = node.title;
+  const mime = node.data.mime || "text/plain";
+
+  if (supportsDownloadURL()) {
+    console.info("Drag file using DownloadURL");
+    dt.setData("DownloadURL", `${mime}:${name}:${fileUrl}`);
+  } else {
+    console.warn("Drag file using temporary fetch (DownloadURL not supported)");
+    const response = await fetch(fileUrl);
+    const blob = await response.blob();
+    const file = new File([blob], name, { type: mime });
+    dt.effectAllowed = "copy";
+    dt.items.add(file);
+  }
+  return true;
 }
 
 /** */
@@ -187,8 +216,8 @@ export async function uploadFiles(node, fileArray, options = {}) {
   // We accept either the tree's system root or a directory. If the node is
   // a file, use its parent folder node
   if (node.parent != null) {
-    if (node.type !== "directory") node = node.parent;
-    if (node.type !== "directory") throw new Error("No active directory.");
+    if (isFile(node)) node = node.parent;
+    if (!isFolder(node)) throw new Error("No active directory.");
   }
 
   showNotification("Upload started.");

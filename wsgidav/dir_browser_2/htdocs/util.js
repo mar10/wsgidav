@@ -17,6 +17,14 @@ export function getActiveNode() {
     return getTree().getActiveNode();
 }
 
+export function isFolder(node) {
+    return node?.type === "directory";
+}
+
+export function isFile(node) {
+    return !!(node && node.type !== "directory");
+}
+
 export function getNodeOrActive(node) {
     return node == null ? getActiveNode() : node;
 }

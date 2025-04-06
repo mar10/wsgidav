@@ -9,6 +9,7 @@ import {
 	getDAVClient, util,
 	getNodeResourceUrl,
 	getTree,
+	isFile,
 } from "./util.js";
 import {
 	fileTypeIcons,
@@ -16,6 +17,7 @@ import {
 	togglePreviewPane,
 } from "./previews.js";
 import {
+	addFileToDataTransfer,
 	commandHtmlTemplateFile,
 	commandHtmlTemplateFolder,
 	createFolder,
@@ -182,6 +184,9 @@ const _tree = new Wunderbaum({
 	activate: (e) => {
 		showPreview(e.node);
 	},
+	dblclick: (e) => {
+		if (isFile(e.node)) { window.open(getNodeResourceUrl(e.node)); };
+	},
 	edit: {
 		trigger: ["clickActive", "F2", "macEnter"],
 		apply: (e) => {
@@ -221,13 +226,7 @@ const _tree = new Wunderbaum({
 	dnd: {
 		dragStart: (e) => {
 			console.log(e.type, e);
-			if (e.node.type !== "directory") {
-				const url = getNodeResourceUrl(e.node);
-				const name = e.node.title;
-				const mime = e.node.data.mime || "text/plain";
-				console.log(e.node);
-				e.event.dataTransfer.setData("DownloadURL", `${mime}:${name}:${url}`);
-			};
+			addFileToDataTransfer(e.node, e.event);
 			return true;
 		},
 		dragEnter: (e) => {
