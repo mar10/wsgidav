@@ -31,6 +31,7 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
+from wsgidav.dav_provider import DAVProvider
 from wsgidav.util import checked_etag, etree
 
 __docformat__ = "reStructuredText"
@@ -44,7 +45,7 @@ DEFAULT_BLOCK_SIZE = 8192
 # RequestServer
 # ========================================================================
 class RequestServer:
-    def __init__(self, dav_provider):
+    def __init__(self, dav_provider: DAVProvider):
         self._davProvider = dav_provider
         self.allow_propfind_infinite = True
         self._verbose = 3

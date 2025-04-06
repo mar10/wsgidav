@@ -1,0 +1,233 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+p {
+  margin-bottom: 4px;
+}
+
+#winFirefoxPlugin {
+  height: 0px;
+  max-height: 0px;
+  display: inline;
+}
+
+/* --- Basic Layout --- */
+
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 5px;
+  /* text-align: center; */
+  flex: 0 0 40px;
+}
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  /* Space between left and right sections */
+  align-items: center;
+  /* Vertically align items */
+  /* padding: 5px; */
+}
+
+.header-bar-left {
+  text-align: left;
+  margin-left: 5px;
+}
+
+.header-bar-right {
+  position: relative;
+  text-align: right;
+  /* Align text to the right */
+  margin-right: 10px;
+  /* Optional: Add spacing from the right edge */
+}
+
+footer {
+  background-color: #333;
+  color: antiquewhite;
+  text-align: center;
+  padding: 5px;
+  flex: 0 0 20px;
+}
+
+footer a,
+footer a:active,
+footer a:hover {
+  color: antiquewhite;
+  text-decoration: none;
+}
+
+p.trailer {
+  font-size: smaller;
+}
+
+header h1 small {
+  font-size: 50%;
+}
+
+.main-container {
+  display: flex;
+  flex: 1;
+  /* Take remaining space */
+  overflow: hidden;
+}
+
+main {
+  /* flex: 1; */
+  /* Main content takes most of the space */
+  padding: 10px;
+  background-color: #f4f4f4;
+}
+
+
+/* To show the optional area, remove the display: none; rule below */
+aside {
+  /* flex: 0 0 250px; */
+  /* Optional right-side area with fixed width */
+  background-color: #f4f4f4;
+  padding: 5px;
+  /* display: none; */
+  /* Hidden by default */
+}
+
+/* --- Splitter --- */
+
+.gutter {
+  background-color: #767676;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  cursor: row-resize;
+}
+
+/* --- Preview Pane --- */
+
+.hidden {
+  display: none;
+}
+
+div#preview {
+  position: relative;
+  text-align: center;
+  margin: 4px;
+  overflow: auto;
+  max-height: calc(100% - 10px);
+}
+
+div#preview>img,
+div#preview>div.preview-unknown,
+div#preview>pre {
+  max-width: 100%;
+  background-color: white;
+  border-radius: 4px;
+  border: 2px solid gray;
+}
+
+div#preview>div#preview-unknown {
+  color: gray;
+}
+
+div#preview>pre {
+  overflow: auto;
+  text-align: left;
+  font-size: 70%;
+  padding: 10px;
+}
+
+/* --- Dropzone --- */
+
+.dropzone {
+  border: 2px dashed #007bff;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dropzone.dragover {
+  background-color: #e9f5ff;
+}
+
+/* --- Command Palette --- */
+
+span.command-palette {
+  display: none;
+}
+
+.wb-row:hover span.command-palette,
+.wb-row.wb-active span.command-palette {
+  display: unset;
+}
+
+.wb-button {
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.wb-button.disabled {
+  color: lightgray;
+}
+
+.wb-button.wb-button-toggle.wb-pressed {
+  color: white;
+  background-color: #cdd0fc;
+}
+
+.wb-button:not(.disabled):hover {
+  color: var(--wb-focus-border-color);
+  border-color: var(--wb-focus-border-color);
+  cursor: pointer;
+}
+
+.wb-button.alert:not(.disabled):hover {
+  color: red;
+}
+
+/* --- Notification toast --- */
+
+.notification {
+  display: none;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
+  position: fixed;
+  z-index: 1000;
+
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.notification.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.notification.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.notification.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}

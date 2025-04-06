@@ -27,6 +27,7 @@ Package ``wsgidav``
    wsgidav.dav_error
    wsgidav.dav_provider
    wsgidav.dir_browser
+   wsgidav.dir_browser_2
    wsgidav.error_printer
    wsgidav.fs_dav_provider
    wsgidav.http_authenticator
