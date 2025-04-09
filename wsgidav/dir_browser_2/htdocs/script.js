@@ -10,6 +10,7 @@ import {
 	getNodeResourceUrl,
 	getTree,
 	isFile,
+	isFolder,
 } from "./util.js";
 import {
 	fileTypeIcons,
@@ -158,6 +159,8 @@ const _tree = new Wunderbaum({
 	columnsSortable: true,
 	columnsResizable: true,
 	navigationModeOption: "row",
+	emptyChildListExpandable: true,
+
 	icon: (e) => {
 		const ext = e.node.title.split('.').pop().toLowerCase();
 		if (fileTypeIcons[ext]) return fileTypeIcons[ext];
@@ -170,7 +173,7 @@ const _tree = new Wunderbaum({
 		togglePreviewPane(true);
 	},
 	load: function (e) {
-		e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
+		// e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
 	},
 	lazyLoad: function (e) {
 		const path = e.node.getPath();
@@ -231,7 +234,13 @@ const _tree = new Wunderbaum({
 		},
 		dragEnter: (e) => {
 			// console.log(e.type, e);
-			return true;
+			if (e.node.parent === e.sourceNode.parent) {
+				return isFolder(e.node) ? "over" : false;
+			}
+			if (isFolder(e.node)) {
+				return true;
+			}
+			return ["before", "after"];
 		},
 		drop: (e) => {
 			const node = e.node;
