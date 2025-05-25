@@ -156,6 +156,7 @@ const _tree = new Wunderbaum({
 		// {id: "etag", title: "ETag", width: "80px" },
 		{ id: "mime", title: "Mime", width: 1 },
 	],
+	autoKeys: true,
 	columnsSortable: true,
 	columnsResizable: true,
 	navigationModeOption: "row",
@@ -298,7 +299,7 @@ registerCommandButtons("body", (e) => {
 			node.startEditTitle();
 			break;
 		case "reloadTree":
-			getTree().load();
+			getTree().reload();
 			break;
 		case "newTopFolder":
 			node = getTree().root;
