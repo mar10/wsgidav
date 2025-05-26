@@ -235,7 +235,7 @@ const _tree = new Wunderbaum({
 		},
 		dragEnter: (e) => {
 			// console.log(e.type, e);
-			if (e.node.parent === e.sourceNode.parent) {
+			if (e.node.parent === e.sourceNode?.parent) {
 				return isFolder(e.node) ? "over" : false;
 			}
 			if (isFolder(e.node)) {
