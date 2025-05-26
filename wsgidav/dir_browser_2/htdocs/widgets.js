@@ -10,7 +10,7 @@ export const commandHtmlTemplateFile = `
 <span class="command-palette">
     <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
 	<i class="wb-button bi bi-cloud-plus disabled" title="Upload file..."></i>
-    <i class="wb-button bi bi-folder-plus disabled" title="Create subfolder..."></i>
+  <i class="wb-button bi bi-folder-plus disabled" title="Create subfolder..."></i>
 	<i class="wb-button bi bi-cloud-download" title="Download file..." data-command="download"></i>
 	<i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
 	<i class="wb-button bi bi-trash3 alert" title="Delete file" data-command="delete"></i>

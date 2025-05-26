@@ -82,6 +82,7 @@ export const fileTypeIcons = {
 	},
 	other: {},
 };
+
 export const fileExtensionMap = {};
 for (let [type, extensions] of Object.entries(fileTypeIcons)) {
 	for (let [ext, icon] of Object.entries(extensions)) {
@@ -101,6 +102,14 @@ for (let [type, extensions] of Object.entries(fileTypeIcons)) {
 }
 // console.dir(fileExtensionMap);
 
+const imgElem = document.querySelector("aside.right img#preview-img");
+const textElem = document.querySelector("aside.right pre#preview-text");
+const folderElem = document.querySelector("aside.right div#preview-folder");
+const placeholderElem = document.querySelector("aside.right div#preview-unknown");
+const iframeElem = document.querySelector("aside.right iframe#preview-iframe");
+
+
+const imgPlaceholderEmpty = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 const imgPlaceholderLoadingSvg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
 	<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150" viewBox="0 0 200 150" fill="none">
 	  <rect width="200" height="150" fill="#ddd"/>
@@ -128,7 +137,7 @@ const splitter = Split(["main", "aside.right"], {
 });
 
 document.querySelector("aside.right img#preview-img").addEventListener("error", (e) => {
-	console.error(`Could not load preview <img src="${e.target.src}">`, e);
+	console.warn(`Could not load preview <img src="${e.target.src}">`, e);
 });
 
 export function togglePreviewPane(flag = true) {
@@ -146,14 +155,9 @@ export function isPreviewPaneOpen() {
 }
 
 export async function showPreview(urlOrNode, options = {}) {
-	let { autoOpen = false } = options;
+	let { autoOpen = false, iframe = false } = options;
 
-	const imgElem = document.querySelector("aside.right img#preview-img");
-	const textElem = document.querySelector("aside.right pre#preview-text");
-	const folderElem = document.querySelector("aside.right div#preview-folder");
-	const placeholderElem = document.querySelector("aside.right div#preview-unknown");
-
-	imgElem.src = "";
+	imgElem.src = imgPlaceholderEmpty;
 	textElem.textContent = "";
 	if (!urlOrNode) {
 		return false;
@@ -165,18 +169,23 @@ export async function showPreview(urlOrNode, options = {}) {
 			return false;
 		}
 	}
-	const url = (!typeof urlOrNode === "string") ? urlOrNode : getNodeResourceUrl(urlOrNode);
-	const node = (!typeof urlOrNode === "string") ? null : urlOrNode;
-
-	const extension = url.split('.').pop().toLowerCase();
-	const typeInfo = fileExtensionMap[extension] ?? {};
-	const preview = typeInfo.preview;
+	const node = (!urlOrNode || typeof urlOrNode === "string") ? null : urlOrNode;
+	const url = node ? getNodeResourceUrl(urlOrNode) : urlOrNode;
 	const isFolder = node?.type === "directory";
+	let preview;
+	if (iframe) {
+		preview = "iframe";
+	} else {
+		const extension = url.split('.').pop().toLowerCase();
+		const typeInfo = fileExtensionMap[extension] ?? {};
+		preview = typeInfo.preview;
+	}
 
 	imgElem.classList.toggle("hidden", preview !== "image");
 	textElem.classList.toggle("hidden", preview !== "text");
 	folderElem.classList.toggle("hidden", !isFolder);
 	placeholderElem.classList.toggle("hidden", isFolder || preview != null);
+	iframeElem.classList.toggle("hidden", preview !== "iframe");
 
 	switch (preview) {
 		case "text":
@@ -192,10 +201,17 @@ export async function showPreview(urlOrNode, options = {}) {
 			};
 			imgElem.onerror = (e) => {
 				imgElem.onerror = null;
-				console.error(`Error loading preview ${url}`, e);
+				console.warn(`Error loading preview ${url}`, e);
 				imgElem.src = imgPlaceholderErrorSvg;
 			};
 			imgElem.setAttribute("src", imgPlaceholderLoadingSvg);
+			break;
+		case "iframe":
+			// const iframe = document.querySelector("aside.right div#preview-iframe iframe");
+			// const iframe = iframeElem.querySelector("iframe");
+			iframeElem.src = "about:blank"; // Reset before setting new src
+			iframeElem.setAttribute("src", url);
+			break;
 	}
 	return true;
 }

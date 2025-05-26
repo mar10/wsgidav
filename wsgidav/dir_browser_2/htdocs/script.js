@@ -295,6 +295,9 @@ registerCommandButtons("body", (e) => {
 			togglePreviewPane(e.isPressed);
 			if (e.isPressed) { showPreview(node); } else { showPreview(null); }
 			break;
+		case "showHelp":
+			showPreview(":dir_browser/help.html", { autoOpen: true, iframe: true });
+			break;
 		case "rename":
 			node.startEditTitle();
 			break;

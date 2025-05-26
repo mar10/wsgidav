@@ -127,6 +127,7 @@ div#preview {
   margin: 4px;
   overflow: auto;
   max-height: calc(100% - 10px);
+  height: calc(100% - 10px);
 }
 
 div#preview>img,
