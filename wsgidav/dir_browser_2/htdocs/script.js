@@ -170,11 +170,16 @@ const _tree = new Wunderbaum({
 	source: loadWbResources(),
 
 	init: function (e) {
+		e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
 		e.tree.setFocus();
 		togglePreviewPane(true);
 	},
 	load: function (e) {
-		// e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
+		// TODO: should be impmemented by Wunderbaum
+		const coldef = e.tree._columnsById['*'];
+		if (coldef.sortOrder != null) {
+			e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true, order: coldef.sortOrder });
+		}
 	},
 	lazyLoad: function (e) {
 		const path = e.node.getPath();
