@@ -127,13 +127,14 @@ async function loadWbResources(options = {}) {
 	const client = getDAVClient();
 
 	const resList = await client.getDirectoryContents(options.path, options);
-	// console.log(resList);
 
 	const nodeList = [];
 	for (let res of resList) {
 		res.title = res.basename;
 		delete res.basename;
 		if (res.type === "directory") res.lazy = true;
+		// Convert 'Mon, 07 Apr 2025 19:46:35 GMT' to a unix timestamp
+		res.lastmod = parseDateToTimestamp(res.lastmod);
 		nodeList.push(res);
 	}
 	// console.info("getDirectoryContents", nodeList);
@@ -152,7 +153,7 @@ const _tree = new Wunderbaum({
 		{ id: "commands", title: " ", width: "140px", sortable: false },
 		{ id: "type", title: "Type", width: "100px" },
 		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
-		{ id: "lastmod", title: "Modified", width: "250px" },
+		{ id: "lastmod", title: "Modified", width: "150px", classes: "wb-helper-end" },
 		// {id: "etag", title: "ETag", width: "80px" },
 		{ id: "mime", title: "Mime", width: 1 },
 	],
@@ -224,6 +225,9 @@ const _tree = new Wunderbaum({
 					break;
 				case "size":
 					col.elem.textContent = isDir ? "" : node.data.size.toLocaleString();
+					break;
+				case "lastmod":
+					col.elem.textContent = new Date(node.data.lastmod).toLocaleString();
 					break;
 				default:
 					// Assumption: we named column.id === node.data.NAME
@@ -346,3 +350,14 @@ registerCommandButtons("body", (e) => {
 			break;
 	}
 });
+
+/**
+ * Convert an RFC1123 or ISO 8601 date string to a Unix timestamp (milliseconds since epoch).
+ * Returns NaN if parsing fails.
+ * @param {string} dateStr
+ * @returns {number}
+ */
+function parseDateToTimestamp(dateStr) {
+	// Date.parse handles both RFC1123 and ISO 8601 in modern browsers
+	return Date.parse(dateStr);
+}
