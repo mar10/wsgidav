@@ -159,8 +159,9 @@ const _tree = new Wunderbaum({
 		{ id: "mime", title: "Mime", width: 1 },
 	],
 	autoKeys: true,
-	columnsSortable: true,
 	columnsResizable: true,
+	columnsSortable: true,
+	sortFoldersFirst: true,
 	navigationModeOption: "row",
 	emptyChildListExpandable: true,
 
@@ -172,22 +173,21 @@ const _tree = new Wunderbaum({
 	source: loadWbResources(),
 
 	init: function (e) {
-		e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true });
+		e.tree.sort({ colId: "*", updateColInfo: true });
 		e.tree.setFocus();
 		togglePreviewPane(true);
 	},
 	load: function (e) {
 		// Whe loading a lazy branch, apply current sort order if any
-		e.node.resort({ foldersFirst: true });
+		e.node.resort();
 	},
 	lazyLoad: function (e) {
 		const path = e.node.getPath();
 		return loadWbResources({ path: path });
 	},
 	buttonClick: (e) => {
-		// const foldersFirst = e.tree._columnsById['*'].sortOrder != null;
 		if (e.command === "sort") {
-			e.tree.sort({ colId: e.info.colId, updateColInfo: true, foldersFirst: true });
+			e.tree.sort({ colId: e.info.colId, updateColInfo: true });
 		}
 	},
 	activate: (e) => {
