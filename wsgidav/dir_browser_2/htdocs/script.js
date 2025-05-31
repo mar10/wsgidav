@@ -260,9 +260,9 @@ const _tree = new Wunderbaum({
 				const sourcePath = e.sourceNode.getPath();
 				let targetPath;
 				if (node.type === "directory" && e.suggestedDropMode === "over") {
-					targetPath = node.getPath() + e.sourceNode.title;
+					targetPath = node.getPath() + "/" + e.sourceNode.title;
 				} else {
-					targetPath = node.parent.getPath() + e.sourceNode.title;
+					targetPath = node.parent.getPath() + "/" + e.sourceNode.title;
 				}
 				console.log(e.type, `${e.suggestedDropEffect} ${sourcePath} -> ${targetPath} `, e);
 				switch (e.suggestedDropEffect) {
