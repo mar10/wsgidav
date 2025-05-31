@@ -51,12 +51,15 @@ export function registerCommandButtons(parent, handler) {
     return res;
   });
 }
-// export function setCommandButton(command, options = {}) {
-//     const { pressed = undefined, icon = undefined } = options;
-//     const buttonElem = document.querySelector(`.wb-button[data-cmd=${command}]`);
-//     console.info("command:", buttonElem);
 
-// }
+export function setCommandButton(command, options = {}) {
+  const { pressed = undefined, icon = undefined } = options;
+  const buttonElem = document.querySelector(`.wb-button[data-command=${command}]`);
+  if (pressed !== undefined && buttonElem.classList.contains("wb-button-toggle")) {
+    buttonElem.classList.toggle("wb-pressed", pressed);
+  }
+  console.info("command:", command, buttonElem);
+}
 
 export async function showNotification(message, options = {}) {
   const durationMap = { info: 5000, warning: 10000, error: 20000 };

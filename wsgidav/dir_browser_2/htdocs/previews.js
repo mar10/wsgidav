@@ -2,6 +2,7 @@
 
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
 import { getNodeResourceUrl } from "./util.js";
+import { setCommandButton } from "./widgets.js";
 
 export const fileTypeIcons = {
 	text: {
@@ -134,6 +135,11 @@ const splitter = Split(["main", "aside.right"], {
 	sizes: splitterSize,
 	minSize: 5,
 	gutterSize: 5,
+	onDragEnd: (sizes) => {
+		const isOpen = sizes[1] > 5;
+		document.querySelector("aside.right").classList.toggle("show", isOpen);
+		setCommandButton("togglePreview", { pressed: isOpen });
+	},
 });
 
 document.querySelector("aside.right img#preview-img").addEventListener("error", (e) => {
@@ -147,7 +153,7 @@ export function togglePreviewPane(flag = true) {
 		splitter.collapse(1);
 	}
 	document.querySelector("aside.right").classList.toggle("show", !!flag);
-
+	setCommandButton("togglePreview", { pressed: !!flag });
 }
 
 export function isPreviewPaneOpen() {
