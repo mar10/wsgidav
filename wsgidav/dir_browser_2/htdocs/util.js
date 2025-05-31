@@ -50,3 +50,14 @@ export function getDAVClient(options = {}) {
     return _dav_client;
 }
 
+/**
+ * Convert an RFC1123 or ISO 8601 date string to a Unix timestamp (milliseconds since epoch).
+ * Returns NaN if parsing fails.
+ * @param {string} dateStr
+ * @returns {number}
+ */
+export function parseDateToTimestamp(dateStr) {
+    // Date.parse handles both RFC1123 and ISO 8601 in modern browsers
+    return Date.parse(dateStr);
+}
+

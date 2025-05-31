@@ -11,6 +11,7 @@ import {
 	getTree,
 	isFile,
 	isFolder,
+	parseDateToTimestamp,
 } from "./util.js";
 import {
 	fileTypeIcons,
@@ -176,17 +177,15 @@ const _tree = new Wunderbaum({
 		togglePreviewPane(true);
 	},
 	load: function (e) {
-		// TODO: should be impmemented by Wunderbaum
-		const coldef = e.tree._columnsById['*'];
-		if (coldef.sortOrder != null) {
-			e.tree.sort({ colId: "*", updateColInfo: true, foldersFirst: true, order: coldef.sortOrder });
-		}
+		// Whe loading a lazy branch, apply current sort order if any
+		e.node.resort({ foldersFirst: true });
 	},
 	lazyLoad: function (e) {
 		const path = e.node.getPath();
 		return loadWbResources({ path: path });
 	},
 	buttonClick: (e) => {
+		// const foldersFirst = e.tree._columnsById['*'].sortOrder != null;
 		if (e.command === "sort") {
 			e.tree.sort({ colId: e.info.colId, updateColInfo: true, foldersFirst: true });
 		}
@@ -350,14 +349,3 @@ registerCommandButtons("body", (e) => {
 			break;
 	}
 });
-
-/**
- * Convert an RFC1123 or ISO 8601 date string to a Unix timestamp (milliseconds since epoch).
- * Returns NaN if parsing fails.
- * @param {string} dateStr
- * @returns {number}
- */
-function parseDateToTimestamp(dateStr) {
-	// Date.parse handles both RFC1123 and ISO 8601 in modern browsers
-	return Date.parse(dateStr);
-}
