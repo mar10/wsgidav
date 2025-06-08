@@ -1,7 +1,7 @@
 "use strict";
 
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
-import { getNodeResourceUrl } from "./util.js";
+import { getNodeResourceUrl, getTree } from "./util.js";
 import { setCommandButton } from "./widgets.js";
 
 export const fileTypeIcons = {
@@ -154,6 +154,15 @@ export function togglePreviewPane(flag = true) {
 	}
 	document.querySelector("aside.right").classList.toggle("show", !!flag);
 	setCommandButton("togglePreview", { pressed: !!flag });
+	if (flag) {
+		const tree = getTree();
+		const activeNode = tree.getActiveNode();
+		if (activeNode) {
+			showPreview(activeNode, { autoOpen: false });
+		}
+	} else {
+		showPreview(null, { autoOpen: false });
+	}
 }
 
 export function isPreviewPaneOpen() {
@@ -161,7 +170,7 @@ export function isPreviewPaneOpen() {
 }
 
 export async function showPreview(urlOrNode, options = {}) {
-	let { autoOpen = false, iframe = false } = options;
+	let { autoOpen = false, iframe = false, maxSize = 500 * 1024 } = options;
 
 	imgElem.src = imgPlaceholderEmpty;
 	textElem.textContent = "";
@@ -178,13 +187,20 @@ export async function showPreview(urlOrNode, options = {}) {
 	const node = (!urlOrNode || typeof urlOrNode === "string") ? null : urlOrNode;
 	const url = node ? getNodeResourceUrl(urlOrNode) : urlOrNode;
 	const isFolder = node?.type === "directory";
-	let preview;
+	let preview = null;
+
 	if (iframe) {
 		preview = "iframe";
 	} else {
 		const extension = url.split('.').pop().toLowerCase();
 		const typeInfo = fileExtensionMap[extension] ?? {};
 		preview = typeInfo.preview;
+	}
+	placeholderElem.innerHTML = "<p>No preview available.</p>";
+	console.info(`showPreview(${urlOrNode}, { autoOpen: ${autoOpen}, iframe: ${iframe} })`, preview, node);
+	if (preview && node && node.data.size > maxSize) {
+		placeholderElem.innerHTML = `File is too large. <a href="${url}" target="_blank">Click here</a> to preview.`;
+		preview = null;
 	}
 
 	imgElem.classList.toggle("hidden", preview !== "image");

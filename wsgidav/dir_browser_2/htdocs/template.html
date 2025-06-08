@@ -60,6 +60,9 @@
       </main>
       <aside id="rightPane" class="right collapse-horizontal">
         <div id="preview">
+          <div id="preview-unknown" class="preview-pane">
+            <p>Please select a file or folder.</p>
+          </div>
           <img id="preview-img" src="" alt="Image Preview" class="preview-pane hidden" />
           <pre id="preview-text" class="preview-pane hidden"></pre>
           <div id="preview-folder" class="preview-pane hidden">
@@ -67,9 +70,6 @@
               <p>Drag and drop files here to upload, or click to select files.</p>
               <input type="file" id="fileInput" multiple style="display: none" />
             </div>
-          </div>
-          <div id="preview-unknown" class="preview-pane hidden">
-            <p>No preview available</p>
           </div>
           <iframe id="preview-iframe" class="preview-pane hidden" src="" frameborder="0" title="Preview" style="width: 100%; height: 100%"></iframe>
         </div>
