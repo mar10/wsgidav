@@ -150,7 +150,7 @@ const _tree = new Wunderbaum({
 	debugLevel: 5,
 	types: {},
 	columns: [
-		{ id: "*", title: "Path", width: "300px" },
+		{ id: "*", title: "Path", width: 2 },
 		{ id: "commands", title: " ", width: "140px", sortable: false },
 		{ id: "type", title: "Type", width: "100px" },
 		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
@@ -310,7 +310,7 @@ registerCommandButtons("body", (e) => {
 			node.startEditTitle();
 			break;
 		case "reloadTree":
-			getTree().reload();
+			getTree().reload({ source: loadWbResources() });
 			break;
 		case "newTopFolder":
 			node = getTree().root;
