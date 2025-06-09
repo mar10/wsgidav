@@ -51,6 +51,7 @@ const fileTypeInfo = {
 		odm: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word" },
 		ott: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word", nft: true },
 		oth: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word", nft: true },
+		uot: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word" },
 		// Excel:
 		xls: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
 		xlsm: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
@@ -60,6 +61,7 @@ const fileTypeInfo = {
 		xltm: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel", nft: true },
 		ods: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
 		ots: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel", nft: true },
+		uos: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
 		// PowerPoint:
 		ppt: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
 		pptm: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
@@ -70,6 +72,7 @@ const fileTypeInfo = {
 		potm: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint", nft: true },
 		odp: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
 		otp: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint", nft: true },
+		uop: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
 		key: { icon: "bi bi-filetype-key" },
 		// Publisher:
 		pub: { icon: "bi bi-file-earmark-ppt", protocol: "ms-publisher" },
