@@ -4,89 +4,125 @@ import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
 import { getNodeResourceUrl, getTree } from "./util.js";
 import { setCommandButton } from "./widgets.js";
 
-export const fileTypeIcons = {
+const fileTypeInfo = {
 	text: {
-		csv: "bi bi-filetype-csv",
-		md: "bi bi-file-earmark-text",
-		mdx: "bi bi-filetype-mdx",
-		txt: "bi bi-file-earmark-text",
-		yaml: "bi bi-filetype-yml",
-		yml: "bi bi-filetype-yml",
+		csv: { icon: "bi bi-filetype-csv" },
+		md: { icon: "bi bi-file-earmark-text" },
+		mdx: { icon: "bi bi-filetype-mdx" },
+		txt: { icon: "bi bi-file-earmark-text" },
+		yaml: { icon: "bi bi-filetype-yml" },
+		yml: { icon: "bi bi-filetype-yml" },
 	},
 	image: {
-		ai: "bi bi-file-earmark-image",
-		bmp: "bi bi-file-earmark-image",
-		gif: "bi bi-file-earmark-image",
-		heic: "bi bi-file-earmark-image",
-		jpg: "bi bi-file-earmark-image",
-		jpeg: "bi bi-file-earmark-image",
-		png: "bi bi-file-earmark-image",
-		psd: "bi bi-file-earmark-image",
-		raw: "bi bi-file-earmark-image",
-		svg: "bi bi-file-earmark-image",
-		tiff: "bi bi-file-earmark-image",
+		ai: { icon: "bi bi-file-earmark-image" },
+		bmp: { icon: "bi bi-file-earmark-image" },
+		gif: { icon: "bi bi-file-earmark-image" },
+		heic: { icon: "bi bi-file-earmark-image" },
+		jpg: { icon: "bi bi-file-earmark-image" },
+		jpeg: { icon: "bi bi-file-earmark-image" },
+		png: { icon: "bi bi-file-earmark-image" },
+		psd: { icon: "bi bi-file-earmark-image" },
+		raw: { icon: "bi bi-file-earmark-image" },
+		svg: { icon: "bi bi-file-earmark-image" },
+		tiff: { icon: "bi bi-file-earmark-image" },
 	},
 	audio: {
-		aac: "bi bi-file-earmark-music",
-		m4p: "bi bi-file-earmark-music",
-		mp3: "bi bi-file-earmark-music",
-		wav: "bi bi-file-earmark-play",
+		aac: { icon: "bi bi-file-earmark-music" },
+		m4p: { icon: "bi bi-file-earmark-music" },
+		mp3: { icon: "bi bi-file-earmark-music" },
+		wav: { icon: "bi bi-file-earmark-play" },
 	},
 	video: {
-		mov: "bi bi-file-earmark-play",
-		mp4: "bi bi-file-earmark-play",
+		mov: { icon: "bi bi-file-earmark-play" },
+		mp4: { icon: "bi bi-file-earmark-play" },
 	},
 	pdf: {
-		pdf: "bi bi-file-earmark-pdf",
+		pdf: { icon: "bi bi-file-earmark-pdf" },
 	},
-	office: {
-		doc: "bi bi-file-earmark-richtext",
-		docx: "bi bi-file-earmark-richtext",
-		key: "bi bi-filetype-key",
-		ppt: "bi bi-file-earmark-slides",
-		pptx: "bi bi-file-earmark-slides",
-		xls: "bi bi-file-earmark-spreadsheet",
-		xlsx: "bi bi-file-earmark-spreadsheet",
+	office: { // Microsoft Office and Open Document formats
+		// Word:
+		doc: { icon: "bi bi-file-earmark-word", protocol: "ms-word" },
+		docm: { icon: "bi bi-file-earmark-word", protocol: "ms-word" },
+		docx: { icon: "bi bi-file-earmark-word", protocol: "ms-word" },
+		dot: { icon: "bi bi-file-earmark-word", protocol: "ms-word", nft: true },
+		dotx: { icon: "bi bi-file-earmark-word", protocol: "ms-word", nft: true },
+		dotm: { icon: "bi bi-file-earmark-word", protocol: "ms-word", nft: true },
+		odt: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word" },
+		odm: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word" },
+		ott: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word", nft: true },
+		oth: { icon: "bi bi-file-earmark-richtext", protocol: "ms-word", nft: true },
+		// Excel:
+		xls: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
+		xlsm: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
+		xlsx: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
+		xlt: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel", nft: true },
+		xltx: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel", nft: true },
+		xltm: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel", nft: true },
+		ods: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel" },
+		ots: { icon: "bi bi-file-earmark-spreadsheet", protocol: "ms-excel", nft: true },
+		// PowerPoint:
+		ppt: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
+		pptm: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
+		pptx: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
+		ppsx: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
+		ppsm: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
+		potx: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint", nft: true },
+		potm: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint", nft: true },
+		odp: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint" },
+		otp: { icon: "bi bi-file-earmark-slides", protocol: "ms-powerpoint", nft: true },
+		key: { icon: "bi bi-filetype-key" },
+		// Publisher:
+		pub: { icon: "bi bi-file-earmark-ppt", protocol: "ms-publisher" },
+		// Visio:
+		vsd: { icon: "bi bi-file-earmark-diagram", protocol: "ms-visio" },
+		vsdx: { icon: "bi bi-file-earmark-diagram", protocol: "ms-visio" },
+		// Project:
+		mpp: { icon: "bi bi-file-earmark-project", protocol: "ms-project" },
+		mpt: { icon: "bi bi-file-earmark-project", protocol: "ms-project" },
+		//Access:
+		mdb: { icon: "bi bi-file-earmark-database", protocol: "ms-access" },
+		accdb: { icon: "bi bi-file-earmark-database", protocol: "ms-access" },
 	},
 	archive: {
-		"7z": "bi bi-file-earmark-zip",
-		gz: "bi bi-file-earmark-zip",
-		tar: "bi bi-file-earmark-zip",
-		zip: "bi bi-file-earmark-zip",
+		"7z": { icon: "bi bi-file-earmark-zip" },
+		gz: { icon: "bi bi-file-earmark-zip" },
+		tar: { icon: "bi bi-file-earmark-zip" },
+		zip: { icon: "bi bi-file-earmark-zip" },
 	},
 	font: {
-		otf: "bi bi-file-earmark-font",
-		ttf: "bi bi-file-earmark-font",
-		woff: "bi bi-file-earmark-font",
+		otf: { icon: "bi bi-file-earmark-font" },
+		ttf: { icon: "bi bi-file-earmark-font" },
+		woff: { icon: "bi bi-file-earmark-font" },
 	},
 	executable: {
-		bat: "bi bi-file-earmark-terminal",
-		exe: "bi bi-windows",
-		ps1: "bi bi-file-earmark-terminal",
-		sh: "bi bi-file-earmark-terminal",
+		bat: { icon: "bi bi-file-earmark-terminal" },
+		exe: { icon: "bi bi-windows" },
+		ps1: { icon: "bi bi-file-earmark-terminal" },
+		sh: { icon: "bi bi-file-earmark-terminal" },
 	},
 	code: {
-		css: "bi bi-filetype-css",
-		html: "bi bi-filetype-html",
-		js: "bi bi-filetype-js",
-		json: "bi bi-filetype-json",
-		jsx: "bi bi-filetype-jsx",
-		php: "bi bi-filetype-php",
-		py: "bi bi-filetype-py",
-		rb: "bi bi-filetype-rb",
-		sass: "bi bi-filetype-sass",
-		scss: "bi bi-filetype-scss",
-		sql: "bi bi-filetype-sql",
-		tsx: "bi bi-filetype-tsx",
-		xml: "bi bi-filetype-xml",
-		java: "bi bi-filetype-java",
+		css: { icon: "bi bi-filetype-css" },
+		html: { icon: "bi bi-filetype-html" },
+		js: { icon: "bi bi-filetype-js" },
+		json: { icon: "bi bi-filetype-json" },
+		jsx: { icon: "bi bi-filetype-jsx" },
+		php: { icon: "bi bi-filetype-php" },
+		py: { icon: "bi bi-filetype-py" },
+		rb: { icon: "bi bi-filetype-rb" },
+		sass: { icon: "bi bi-filetype-sass" },
+		scss: { icon: "bi bi-filetype-scss" },
+		sql: { icon: "bi bi-filetype-sql" },
+		tsx: { icon: "bi bi-filetype-tsx" },
+		xml: { icon: "bi bi-filetype-xml" },
+		java: { icon: "bi bi-filetype-java" },
 	},
 	other: {},
 };
 
-export const fileExtensionMap = {};
-for (let [type, extensions] of Object.entries(fileTypeIcons)) {
-	for (let [ext, icon] of Object.entries(extensions)) {
+
+const fileExtensionMap = {};
+for (let [type, extensions] of Object.entries(fileTypeInfo)) {
+	for (let [ext, info] of Object.entries(extensions)) {
 		let preview;
 		switch (type) {
 			case "image":
@@ -98,10 +134,41 @@ for (let [type, extensions] of Object.entries(fileTypeIcons)) {
 				preview = "text";
 				break;
 		}
-		fileExtensionMap[ext] = { icon: icon, type: type, preview: preview };
+		fileExtensionMap[ext] = { icon: info.icon, type: type, preview: preview, protocol: info.protocol, nft: info.nft || false };
 	}
 }
 // console.dir(fileExtensionMap);
+
+export function getFileInfo(name) {
+	if (!name || typeof name !== "string") {
+		return null;
+	}
+	const extension = name.split('.').pop().toLowerCase();
+	return fileExtensionMap[extension] || null;
+}
+
+export function getFileIcon(name) {
+	const extension = name.split('.').pop().toLowerCase();
+	return fileExtensionMap[extension] ? fileExtensionMap[extension].icon : undefined;
+}
+
+/**
+ * Get the Office type information for a given file name.
+ * @param {string} name - The file name.
+ * @returns {object|null} The Office type information or null if not found.
+ */
+export function getOfficeUrlPrefix(node, options = {}) {
+	const { newFromTemplate = false, readonly = false } = options;
+	const info = getFileInfo(node.title);
+	if (!info || !info.type || info.type !== "office") {
+		return null;
+	}
+	const protocol = info.protocol;
+	const operation = newFromTemplate ? "nft" : (readonly ? "ofv" : "ofe");
+	return info.protocol ? `${protocol}:${operation}|u|${getNodeResourceUrl(node)}` : null;
+}
+
+
 
 const imgElem = document.querySelector("aside.right img#preview-img");
 const textElem = document.querySelector("aside.right pre#preview-text");
