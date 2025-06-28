@@ -1,2 +1,1 @@
-# flake8: noqa
-from ._dir_browser import WsgiDavExplorer
+from .app import WsgiDavExplorer  # noqa: F401

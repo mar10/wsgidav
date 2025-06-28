@@ -182,8 +182,6 @@ export function getOfficeUrlPrefix(node, options = {}) {
 	return info.protocol ? `${protocol}:${operation}|u|${getNodeResourceUrl(node)}` : null;
 }
 
-
-
 const imgElem = document.querySelector("aside.right img#preview-img");
 const textElem = document.querySelector("aside.right pre#preview-text");
 const folderElem = document.querySelector("aside.right div#preview-folder");
@@ -251,7 +249,7 @@ export function isPreviewPaneOpen() {
 }
 
 export async function showPreview(urlOrNode, options = {}) {
-	let { autoOpen = false, iframe = false, maxSize = 500 * 1024 } = options;
+	let { autoOpen = false, iframe = false, maxSize = config.max_preview_size } = options;
 
 	imgElem.src = imgPlaceholderEmpty;
 	textElem.textContent = "";

@@ -105,7 +105,7 @@ DEFAULT_CONFIG = {
         ],
         "icon": True,
         "response_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
-        "show_user": True,  # Show authenticated user an realm
+        "show_user": True,  # Show authenticated user and realm
         # Send <dm:mount> response if request URL contains '?davmount' (rfc4709)
         "davmount": True,
         # Add 'Mount' link at the top
@@ -119,23 +119,18 @@ DEFAULT_CONFIG = {
     #: Options for `WsgiDavExplorer`
     "dav_explorer": {
         "enable": True,  # Render HTML listing for GET requests on collections
-        # Add a trailing slash to directory URLs (by generating a 301 redirect):
-        "directory_slash": True,
+        "readonly": False,  # Force readonly mode for the directory browser
         # List of fnmatch patterns:
-        "ignore": [
+        "ignore_list": [
             ".DS_Store",  # macOS folder meta data
             "._*",  # macOS hidden data files
             "Thumbs.db",  # Windows image previews
         ],
         "icon": True,
-        "response_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
-        "show_user": True,  # Show authenticated user an realm
-        # Send <dm:mount> response if request URL contains '?davmount' (rfc4709)
-        "davmount": True,
-        # Add 'Mount' link at the top
-        "davmount_links": False,
-        "ms_sharepoint_support": True,  # Invoke MS Office documents for editing using WebDAV
-        "libre_office_support": True,  # Invoke Libre Office documents for editing using WebDAV
+        "page_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
+        "show_user": True,  # Show authenticated user and realm
+        "max_preview_size": 500 * 1024,  # Maximum size of file to preview in HTML
+        "office_support": True,  # Invoke MS- and Libre-Office documents for editing using WebDAV
         # The path to the directory that contains template.html and associated assets.
         # The default is the htdocs directory within the dav_explorer directory.
         "htdocs_path": None,

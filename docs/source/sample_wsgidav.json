@@ -47,9 +47,6 @@
     "dav_explorer": {
         "enable": true,
         "response_trailer": "",
-        "davmount": true,
-        "davmount_links": false,
-        "ms_sharepoint_support": true,
         "htdocs_path": null
     }
 }

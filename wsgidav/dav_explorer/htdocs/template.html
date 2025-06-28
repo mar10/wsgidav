@@ -22,12 +22,15 @@
         }
       }
     </script> -->
+    <script>
+      const config = {{ js_config | tojson | safe }};
+    </script>
     <script defer type="module" src="{{ htdocs }}/script.js"></script>
   </head>
   <body>
     <header>
       <h1>
-        {%- if config.icon %}
+        {%- if icon %}
         <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png" />
         {% endif -%} <small>Wsgi</small>DAV-Explorer
         <!-- Index of {{ display_path }} -->
@@ -38,13 +41,10 @@
           <i class="wb-button bi bi-arrow-clockwise" title="Reload" data-command="reloadTree"></i>
           <i class="wb-button bi bi-cloud-plus" title="Upload file to root folder..." data-command="uploadTop"></i>
           <i class="wb-button bi bi-folder-plus" title="Create topfolder..." data-command="newTopFolder"></i>
-          {% if config.davmount_links %}
-          <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
-          {% endif -%}
         </span>
         <span class="header-bar-right">
           <span class="auth-user">
-            {%- if user_name and config.show_user %} Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
+            {%- if user_name and show_user %} Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and show_logout %}
             <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
             {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%} {% endif -%}
           </span>

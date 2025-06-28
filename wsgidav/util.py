@@ -311,6 +311,11 @@ def re_encode_wsgi(s: str, *, encoding="utf-8", fallback=False) -> str:
 # ========================================================================
 
 
+def get_current_year():
+    """Return the current year as integer."""
+    return time.gmtime().tm_year
+
+
 def get_rfc1123_time(secs=None):
     """Return <secs> in rfc 1123 date/time format (pass secs=None for current date)."""
     # GC issue #20: time string must be locale independent

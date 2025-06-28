@@ -326,7 +326,7 @@ logging:
 dav_explorer:
     enable: true
     #: List of fnmatch patterns that will be hidden in the directory listing
-    ignore:
+    ignore_list:
         - '.DS_Store'  # macOS folder meta data
         - 'Thumbs.db'  # Windows image previews
         - '._*'  # macOS hidden data files
@@ -339,20 +339,8 @@ dav_explorer:
     #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
     show_logout: true
-    #: Send <dm:mount> response if request URL contains '?davmount'
-    #: (See https://tools.ietf.org/html/rfc4709)
-    davmount: true
-    #: Add a 'Mount' link at the top of the listing
-    davmount_links: false
-    #: Invoke MS Office documents for editing using WebDAV by adding a JavaScript
-    #: click handler.
-    #: - For IE 11 and below invokes the SharePoint ActiveXObject("SharePoint.OpenDocuments")
-    #: - If the custom legacy Firefox plugin is available, it will be used
-    #:   https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-2010/ff407576(v%3Doffice.14)
-    #: - Otherwise the Office URL prefix is used (e.g. 'ms-word:ofe|u|http://server/path/file.docx')
-    ms_sharepoint_support: true
-    #: Invoke Libre Office documents for editing using WebDAV
-    libre_office_support: true
+    #: Generate `ms-word:ofe|u|" prefix for office URLs (Microsoft and LibreOffice)
+    office_support: true
     #: The path to the directory that contains template.html and associated
     #: assets.
     #: The default is the htdocs directory within the dav_explorer directory.
