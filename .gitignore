@@ -36,4 +36,4 @@ wsgidav*.yaml
 wsgidav-props.shelve.dat
 wsgidav-props.shelve.dir
 manifests/
-wsgidav/dir_browser_2/htdocs/wunderbaum.*
+wsgidav/dav_explorer/htdocs/wunderbaum.*

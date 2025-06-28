@@ -31,7 +31,7 @@ Permissions and Roles
 
 A domain controller MAY add entries to the `environment["wsgidav.auth. ..."]`
 namespace in order to define access permissions for the following middleware
-(e.g. dir_browser) and DAV providers.
+(e.g. dav_explorer) and DAV providers.
 
 TODO: Work In Progress / Subject to change
 

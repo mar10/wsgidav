@@ -35,7 +35,7 @@ WsgiDAV implements this WSGI application stack::
                   http_authenticator.HTTPAuthenticator (middleware)
                     |           \- Uses a domain controller object
                     |
-                  dir_browser.WsgiDavDirBrowser (middleware, optional)
+                  dav_explorer.WsgiDavExplorer (middleware, optional)
                     |
                   request_resolver.RequestResolver (middleware)
                     |
@@ -151,7 +151,7 @@ interface is implemented.
 Applications
 ============
 
-.. inheritance-diagram:: wsgidav.mw.base_mw wsgidav.dir_browser wsgidav.mw.cors wsgidav.mw.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
+.. inheritance-diagram:: wsgidav.mw.base_mw wsgidav.dir_browser wsgidav.dav_explorer wsgidav.mw.cors wsgidav.mw.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
    :parts: 2
    :private-bases:
 
@@ -208,9 +208,9 @@ For every request:
         ``environ['httpauthentication.username']``
 
 
-WsgiDavDirBrowser
+WsgiDavExplorer
 -----------------
-Middleware :class:`wsgidav.dir_browser._dir_browser.WsgiDavDirBrowser`.
+Middleware :class:`wsgidav.dav_explorer._dir_browser.WsgiDavExplorer`.
 Handles GET requests on collections to display a HTML directory listing.
 
 On init:
@@ -221,6 +221,13 @@ For every request:
 
     If path maps to a collection:
         Render collection members as directory (HTML table).
+
+
+WsgiDavDirBrowser
+-----------------
+Middleware :class:`wsgidav.dav_explorer._dir_browser.WsgiDavDirBrowser`.
+
+Deprecated: replaced by :class:`wsgidav.dav_explorer.WsgiDavExplorer`.
 
 
 RequestResolver

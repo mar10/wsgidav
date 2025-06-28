@@ -42,13 +42,13 @@ for t, el in MS_OFFICE_TYPE_TO_EXT_MAP.items():
 OPEN_OFFICE_EXTENSIONS = {"odt", "odp", "odx"}
 
 
-class WsgiDavDirBrowser2(BaseMiddleware):
+class WsgiDavExplorer(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
     def __init__(self, wsgidav_app, next_app, config):
         super().__init__(wsgidav_app, next_app, config)
 
-        self.dir_config = util.get_dict_value(config, "dir_browser_2", as_dict=True)
+        self.dir_config = util.get_dict_value(config, "dav_explorer", as_dict=True)
 
         # mount path must be "" or start (but not end) with '/'
         self.mount_path = config.get("mount_path") or ""

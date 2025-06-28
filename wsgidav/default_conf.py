@@ -16,7 +16,7 @@ Default configuration.
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
 # from wsgidav.dir_browser import WsgiDavDirBrowser
-from wsgidav.dir_browser_2 import WsgiDavDirBrowser2
+from wsgidav.dav_explorer import WsgiDavExplorer
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.mw.cors import Cors
@@ -58,7 +58,7 @@ DEFAULT_CONFIG = {
         Cors,
         ErrorPrinter,
         HTTPAuthenticator,
-        WsgiDavDirBrowser2,  # configured under dir_browser option (see below)
+        WsgiDavExplorer,  # configured under dav_explorer option (see below)
         RequestResolver,  # this must be the last middleware item
     ],
     # HTTP Authentication Options
@@ -116,8 +116,8 @@ DEFAULT_CONFIG = {
         # The default is the htdocs directory within the dir_browser directory.
         "htdocs_path": None,
     },
-    #: Options for `WsgiDavDirBrowser2`
-    "dir_browser_2": {
+    #: Options for `WsgiDavExplorer`
+    "dav_explorer": {
         "enable": True,  # Render HTML listing for GET requests on collections
         # Add a trailing slash to directory URLs (by generating a 301 redirect):
         "directory_slash": True,
@@ -137,7 +137,7 @@ DEFAULT_CONFIG = {
         "ms_sharepoint_support": True,  # Invoke MS Office documents for editing using WebDAV
         "libre_office_support": True,  # Invoke Libre Office documents for editing using WebDAV
         # The path to the directory that contains template.html and associated assets.
-        # The default is the htdocs directory within the dir_browser directory.
+        # The default is the htdocs directory within the dav_explorer directory.
         "htdocs_path": None,
     },
 }

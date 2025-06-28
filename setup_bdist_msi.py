@@ -100,7 +100,7 @@ build_exe_options = {
         "cheroot",
         "dbm",
         "wsgidav.dir_browser",
-        "wsgidav.dir_browser_2",
+        "wsgidav.dav_explorer",
         "wsgidav.dc.nt_dc",
     ],
     "excludes": [
@@ -139,7 +139,7 @@ setup(
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
         "wsgidav.dir_browser": ["htdocs/*.*"],
-        "wsgidav.dir_browser_2": ["htdocs/*.*"],
+        "wsgidav.dav_explorer": ["htdocs/*.*"],
     },
     install_requires=install_requires,
     setup_requires=setup_requires,

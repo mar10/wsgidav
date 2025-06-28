@@ -44,7 +44,7 @@
         "ms_sharepoint_support": true,
         "htdocs_path": null
     },
-    "dir_browser_2": {
+    "dav_explorer": {
         "enable": true,
         "response_trailer": "",
         "davmount": true,

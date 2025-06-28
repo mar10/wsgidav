@@ -2,6 +2,8 @@
 
 ## `feature/update-web-ui` / Unreleased
 
+- WsgiDavExplorer: new web frontent that replaces DirBrowser by default.
+
 ## 4.3.4 / Unreleased
 
 - Test with Python 3.13

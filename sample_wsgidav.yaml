@@ -97,7 +97,8 @@ middleware_stack:
     # - wsgidav.mw.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
-    - wsgidav.dir_browser.WsgiDavDirBrowser
+    # - wsgidav.dir_browser.WsgiDavDirBrowser
+    - wsgidav.dav_explorer.WsgiDavExplorer
     - wsgidav.request_resolver.RequestResolver  # this must be the last middleware item
 
 # ==============================================================================
@@ -320,9 +321,9 @@ logging:
 
 
 # ----------------------------------------------------------------------------
-# WsgiDavDirBrowser
+# WsgiDavExplorer
 
-dir_browser:
+dav_explorer:
     enable: true
     #: List of fnmatch patterns that will be hidden in the directory listing
     ignore:
@@ -354,5 +355,5 @@ dir_browser:
     libre_office_support: true
     #: The path to the directory that contains template.html and associated
     #: assets.
-    #: The default is the htdocs directory within the dir_browser directory.
+    #: The default is the htdocs directory within the dav_explorer directory.
     htdocs_path: null
