@@ -5,9 +5,15 @@
 "use strict";
 
 import { createClient } from "https://esm.run/webdav@5.8.0";
+import { PersistentObject } from "https://esm.run/persisto@2.0.2";
 import { Wunderbaum } from "./wunderbaum.esm.js";
 
 export const util = Wunderbaum.util;
+
+export const persist = new PersistentObject("dav-explorer", {
+    // Init default settings from jinja variable
+    defailts: config || {}
+});
 
 export function getTree() {
     return Wunderbaum.getTree();

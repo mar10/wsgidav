@@ -53,7 +53,7 @@ class WsgiDavExplorer(BaseMiddleware):
         # Prepare a Jinja2 template
         templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
         templateEnv = Environment(loader=templateLoader, autoescape=select_autoescape())
-        self.template = templateEnv.get_template("template.html")
+        self.template = templateEnv.get_template("app.html")
 
     def is_disabled(self):
         return self.dir_config.get("enable") is False
@@ -133,7 +133,6 @@ class WsgiDavExplorer(BaseMiddleware):
                 "ignore_list",
                 "max_preview_size",
                 "office_support",
-                # "readonly",
             ]
         }
         js_config.update(
