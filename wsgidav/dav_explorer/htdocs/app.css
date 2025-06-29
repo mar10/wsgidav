@@ -1,12 +1,13 @@
 :root {
   --wdx-text-color: #222;
-  --wdx-bg-color: #f6f8fa;
-  --wdx-bg-color-content: #fff;
+  --wdx-bg-color: #F7FAFC;
+  --wdx-bg-color-content: #F7FAFC;
 
-  --wdx-header-bg-color: #2563eb;
+  --wdx-header-bg-color: #4A5568;
+  /* --wdx-header-bg-color: #2563eb; */
   --wdx-header-bg-color-active: color-mix(in srgb, var(--wdx-header-bg-color) 80%, white 30%);
-  --wdx-header-text-color: #eee;
-  --wdx-header-text-color-active: #fff;
+  --wdx-header-text-color: #FFFEF7;
+  --wdx-header-text-color-active: #F7FAFC;
   --wdx-header-text-color-disabled: #ccc;
 
   --wdx-statbar-bg-color: var(--wdx-header-bg-color);

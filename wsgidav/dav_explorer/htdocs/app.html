@@ -72,7 +72,22 @@
               <input type="file" id="fileInput" multiple style="display: none" />
             </div>
           </div>
-          <div id="preview-settings" class="preview-pane hidden"></div>
+          <div id="preview-settings" class="preview-pane hidden">
+            <h2>Settings</h2>
+            <form id="settingsForm">
+              <div class="form-group">
+                <label for="max_preview_size_kb">Max preview size (KB)</label>
+                <input type="number" id="max_preview_size_kb" name="max_preview_size_kb" min="0" />
+              </div>
+              <div class="form-group">
+                <label for="office_support">Support Office</label>
+                <input type="checkbox" id="office_support" name="office_support" />
+              </div>
+              <div class="form-group">
+                <label for="readonly">Open Office documents in readonly mode</label>
+                <input type="checkbox" id="readonly" name="readonly" />
+              </div>
+          </div>
           <iframe id="preview-iframe" class="preview-pane hidden" src="" frameborder="0" title="Preview" style="width: 100%; height: 100%"></iframe>
         </div>
       </aside>

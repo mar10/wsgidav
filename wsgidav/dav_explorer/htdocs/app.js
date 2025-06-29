@@ -33,12 +33,6 @@ import {
 } from "./widgets.js";
 
 
-const davExplorerOptions = {
-	showInfoPane: true, // Show the info pane on the right side
-	maxPreviewSize: 500 * 1024, // 500 KiB;
-	assumeOffice: true, // Assume that clients have MS/LibreOffice installed
-	readonlyOffice: false, // Open Office documents in readonly mode by default
-}
 
 /**
  * Open an MS Office/LibreOffice document the 'ms-' protocol scheme.
@@ -243,6 +237,9 @@ registerCommandButtons("body", (e) => {
 			break;
 		case "showHelp":
 			showPreview(":dir_browser/help.html", { autoOpen: true, iframe: true });
+			break;
+		case "showSettings":
+			showPreview("settings", { autoOpen: true });
 			break;
 		case "rename":
 			node.startEditTitle();

@@ -129,7 +129,7 @@ DEFAULT_CONFIG = {
         "icon": True,
         "page_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
         "show_user": True,  # Show authenticated user and realm
-        "max_preview_size": 500 * 1024,  # Maximum size of file to preview in HTML
+        "max_preview_size_kb": 500,  # Maximum size of file to preview
         "office_support": True,  # Invoke MS- and Libre-Office documents for editing using WebDAV
         # The path to the directory that contains template.html and associated assets.
         # The default is the htdocs directory within the dav_explorer directory.

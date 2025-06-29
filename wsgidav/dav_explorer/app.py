@@ -29,12 +29,12 @@ class WsgiDavExplorer(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
         super().__init__(wsgidav_app, next_app, config)
 
-        self.dir_config = util.get_dict_value(config, "dav_explorer", as_dict=True)
+        self.davex_config = util.get_dict_value(config, "dav_explorer", as_dict=True)
 
         # mount path must be "" or start (but not end) with '/'
         self.mount_path = config.get("mount_path") or ""
 
-        htdocs_path = self.dir_config.get("htdocs_path")
+        htdocs_path = self.davex_config.get("htdocs_path")
         if htdocs_path:
             self.htdocs_path = os.path.realpath(htdocs_path)
         else:
@@ -56,7 +56,7 @@ class WsgiDavExplorer(BaseMiddleware):
         self.template = templateEnv.get_template("app.html")
 
     def is_disabled(self):
-        return self.dir_config.get("enable") is False
+        return self.davex_config.get("enable") is False
 
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
@@ -81,7 +81,7 @@ class WsgiDavExplorer(BaseMiddleware):
                     environ, start_response, HTTP_OK, is_head=True
                 )
 
-            directory_slash = self.dir_config.get("directory_slash")
+            directory_slash = self.davex_config.get("directory_slash")
             requrest_uri = environ.get("REQUEST_URI")
             if directory_slash and requrest_uri and not requrest_uri.endswith("/"):
                 _logger.info(f"Redirect {requrest_uri} to {requrest_uri}/")
@@ -89,7 +89,7 @@ class WsgiDavExplorer(BaseMiddleware):
                     environ, start_response, location=requrest_uri + "/"
                 )
 
-            context = self._get_context(environ, dav_res)
+            context = self._get_jinja_context(environ, dav_res)
 
             res = self.template.render(**context)
             res = util.to_bytes(res)
@@ -115,11 +115,11 @@ class WsgiDavExplorer(BaseMiddleware):
             )
         raise e
 
-    def _get_context(self, environ, dav_res) -> dict:
+    def _get_jinja_context(self, environ, dav_res) -> dict:
         assert dav_res.is_collection
 
         is_readonly = bool(
-            self.dir_config.get("force_readonly")
+            self.davex_config.get("force_readonly")
             or environ["wsgidav.provider"].is_readonly()
         )
 
@@ -127,12 +127,14 @@ class WsgiDavExplorer(BaseMiddleware):
 
         js_config = {
             k: v
-            for k, v in self.dir_config.items()
+            for k, v in self.davex_config.items()
             if k
             in [
-                "ignore_list",
-                "max_preview_size",
+                # "ignore_list",
+                "max_preview_size_kb",
                 "office_support",
+                "open_info_pane",
+                "readonly",
             ]
         }
         js_config.update(
@@ -154,7 +156,7 @@ class WsgiDavExplorer(BaseMiddleware):
             "is_authenticated": False,
         }
 
-        trailer = self.dir_config.get("page_trailer")
+        trailer = self.davex_config.get("page_trailer")
         if trailer is True:
             trailer = "${version} &mdash; ${copy}"
 

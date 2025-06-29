@@ -1,7 +1,7 @@
 "use strict";
 
 import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
-import { getNodeResourceUrl, getTree } from "./util.js";
+import { getNodeResourceUrl, getTree, settingsStore } from "./util.js";
 import { setCommandButton } from "./widgets.js";
 
 const fileTypeInfo = {
@@ -186,6 +186,7 @@ const imgElem = document.querySelector("aside.right img#preview-img");
 const textElem = document.querySelector("aside.right pre#preview-text");
 const folderElem = document.querySelector("aside.right div#preview-folder");
 const placeholderElem = document.querySelector("aside.right div#preview-unknown");
+const settingsElem = document.querySelector("aside.right div#preview-settings");
 const iframeElem = document.querySelector("aside.right iframe#preview-iframe");
 
 
@@ -249,7 +250,7 @@ export function isPreviewPaneOpen() {
 }
 
 export async function showPreview(urlOrNode, options = {}) {
-	let { autoOpen = false, iframe = false, maxSize = config.max_preview_size } = options;
+	let { autoOpen = false, iframe = false, maxSize = settingsStore.max_preview_size_kb } = options;
 
 	imgElem.src = imgPlaceholderEmpty;
 	textElem.textContent = "";
@@ -268,7 +269,9 @@ export async function showPreview(urlOrNode, options = {}) {
 	const isFolder = node?.type === "directory";
 	let preview = null;
 
-	if (iframe) {
+	if (urlOrNode === "settings") {
+		preview = "settings";
+	} else if (iframe) {
 		preview = "iframe";
 	} else {
 		const extension = url.split('.').pop().toLowerCase();
@@ -284,6 +287,7 @@ export async function showPreview(urlOrNode, options = {}) {
 
 	imgElem.classList.toggle("hidden", preview !== "image");
 	textElem.classList.toggle("hidden", preview !== "text");
+	settingsElem.classList.toggle("hidden", preview !== "settings");
 	folderElem.classList.toggle("hidden", !isFolder);
 	placeholderElem.classList.toggle("hidden", isFolder || preview != null);
 	iframeElem.classList.toggle("hidden", preview !== "iframe");

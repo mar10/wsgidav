@@ -10,10 +10,30 @@ import { Wunderbaum } from "./wunderbaum.esm.js";
 
 export const util = Wunderbaum.util;
 
-export const persist = new PersistentObject("dav-explorer", {
+// export let settingsStore = null;//new PersistentObject();
+// document.addEventListener("DOMContentLoaded", function (event) {
+export const settingsStore = new PersistentObject("dav-explorer", {
+    // debug: 2,
+    store: localStorage,
+    // Attach to the form with id "settingsForm"
+    attachForm: "#settingsForm",
     // Init default settings from jinja variable
-    defailts: config || {}
+    defaults: {
+        showInfoPane: config.showInfoPane, // Show the info pane on the right side
+        max_preview_size_kb: config.max_preview_size_kb || 500, // 500 KiB;
+        office_support: config.office_support || true, // Assume that clients have MS/LibreOffice installed
+        readonly: config.readonly || false, // Open Office documents in readonly mode by default
+        readonlyOffice: config.readonlyOffice || false, // Open Office documents in readonly mode by default
+    }
 });
+
+// settingsStore.ready
+//     .then((value) => {
+//         console.log(settingsStore + ":  is initialized.");
+//     })
+//     .catch((reason) => {
+//         console.log(settingsStore + ": init failed.");
+//     });
 
 export function getTree() {
     return Wunderbaum.getTree();
