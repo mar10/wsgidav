@@ -250,7 +250,7 @@ export function isPreviewPaneOpen() {
 }
 
 export async function showPreview(urlOrNode, options = {}) {
-	let { autoOpen = false, iframe = false, maxSize = settingsStore.max_preview_size_kb } = options;
+	let { autoOpen = false, iframe = false, maxSizeKB = settingsStore.get("max_preview_size_kb") } = options;
 
 	imgElem.src = imgPlaceholderEmpty;
 	textElem.textContent = "";
@@ -280,8 +280,9 @@ export async function showPreview(urlOrNode, options = {}) {
 	}
 	placeholderElem.innerHTML = "<p>No preview available.</p>";
 	console.info(`showPreview(${urlOrNode}, { autoOpen: ${autoOpen}, iframe: ${iframe} })`, preview, node);
-	if (preview && node && node.data.size > maxSize) {
-		placeholderElem.innerHTML = `File is too large. <a href="${url}" target="_blank">Click here</a> to preview.`;
+	if (preview && node && node.data.size > 1024 * maxSizeKB) {
+		placeholderElem.innerHTML = `File is too large (> ${maxSizeKB} KB).<br>
+		<a href="${url}" target="_blank">Click here</a> to preview.`;
 		preview = null;
 	}
 

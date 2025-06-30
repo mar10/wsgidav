@@ -141,6 +141,12 @@ aside {
   cursor: row-resize;
 }
 
+/* --- Wunderbaum --- */
+div.wunderbaum:focus-visible {
+  /* Suppress system focus outline. */
+  outline-style: none;
+}
+
 /* --- Preview Pane --- */
 
 .hidden {

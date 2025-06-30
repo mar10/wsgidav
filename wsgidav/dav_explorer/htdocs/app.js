@@ -6,12 +6,14 @@ import { Wunderbaum } from "./wunderbaum.esm.js";
 
 // import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
 import {
+	config,
 	getDAVClient, util,
 	getNodeResourceUrl,
 	getTree,
 	isFile,
 	isFolder,
 	parseDateToTimestamp,
+	settingsStore,
 } from "./util.js";
 import {
 	getFileIcon,
@@ -41,19 +43,20 @@ import {
  * @returns {boolean} true if the URL could be opened
  */;
 function openDocument(node, options = {}) {
-	const { readonly = false } = options;
+	const { readonly = config.readonly, officeSupport = settingsStore.get("office_support") } = options;
 	const info = node ? getFileInfo(node.title) : null;
 	if (!info || !isFile(node)) {
 		return false;
 	}
 	let url = getOfficeUrlPrefix(node, { readonly: readonly });
-	if (url) {
+	console.log("Open %s...", url);
+	if (officeSupport && url) {
 		showNotification(`Opening ${node.title} in Office`, { type: "info" });
+		return window.open(url, "_self");
 	} else {
 		url = getNodeResourceUrl(node);
+		return window.open(url, "_blank");
 	}
-	console.log("Open %s...", url);
-	return window.open(url, "_self");
 }
 
 async function loadWbResources(options = {}) {

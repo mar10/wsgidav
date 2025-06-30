@@ -22,8 +22,9 @@
         }
       }
     </script> -->
-    <script>
-      const config = {{ js_config | tojson | safe }};
+
+    <script id="context-data" type="application/json">
+        {{ js_config | tojson }}
     </script>
     <script defer type="module" src="{{ htdocs }}/app.js"></script>
   </head>
@@ -74,10 +75,11 @@
           </div>
           <div id="preview-settings" class="preview-pane hidden">
             <h2>Settings</h2>
+            <!-- This form values are meintained by Persisto -->
             <form id="settingsForm">
               <div class="form-group">
                 <label for="max_preview_size_kb">Max preview size (KB)</label>
-                <input type="number" id="max_preview_size_kb" name="max_preview_size_kb" min="0" />
+                <input type="number" id="max_preview_size_kb" name="max_preview_size_kb" min="0" style="width: 5em;"/>
               </div>
               <div class="form-group">
                 <label for="office_support">Support Office</label>
