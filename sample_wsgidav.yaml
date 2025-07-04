@@ -42,6 +42,17 @@ port: 8080
 # Transfer block size in bytes
 block_size: 8192
 
+# Manipulate filesystem as unix user with matching name to remote user
+setuid: false
+
+# Custom WebDAV user to Unix user mapping
+custom_user_mapping:
+    user1: leo
+    user2: michael
+
+# Map WebDAV user to Unix user as is
+#custom_user_mapping: null
+
 #: Add the MS-Author-Via Response Header to OPTIONS command to allow editing
 #: with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
