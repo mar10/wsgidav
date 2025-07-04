@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from wsgidav import __version__, util
 from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.mw.base_mw import BaseMiddleware
-from wsgidav.util import get_uri_name, safe_re_encode, send_redirect_response
+from wsgidav.util import SetUID, get_uri_name, safe_re_encode, send_redirect_response
 
 __docformat__ = "reStructuredText"
 
@@ -78,41 +78,68 @@ class WsgiDavDirBrowser(BaseMiddleware):
         return self.dir_config.get("enable") is False
 
     def __call__(self, environ, start_response):
-        path = environ["PATH_INFO"]
-
-        dav_res = None
-        if environ["wsgidav.provider"]:
-            dav_res = environ["wsgidav.provider"].get_resource_inst(path, environ)
-
-        if (
-            environ["REQUEST_METHOD"] in ("GET", "HEAD")
-            and dav_res
-            and dav_res.is_collection
+        with util.SetUID(
+            environ.get('wsgidav.auth.uid', None),
+            environ.get('wsgidav.auth.gid', None),
         ):
-            if util.get_content_length(environ) != 0:
-                self._fail(
-                    HTTP_MEDIATYPE_NOT_SUPPORTED,
-                    "The server does not handle any body content.",
-                )
+            path = environ["PATH_INFO"]
 
-            if environ["REQUEST_METHOD"] == "HEAD":
-                return util.send_status_response(
-                    environ, start_response, HTTP_OK, is_head=True
-                )
+            dav_res = None
+            if environ["wsgidav.provider"]:
+                dav_res = environ["wsgidav.provider"].get_resource_inst(path, environ)
 
-            # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
-            if self.dir_config.get("davmount") and "davmount" in environ.get(
-                "QUERY_STRING", ""
+            if (
+                environ["REQUEST_METHOD"] in ("GET", "HEAD")
+                and dav_res
+                and dav_res.is_collection
             ):
-                collectionUrl = util.make_complete_url(environ)
-                collectionUrl = collectionUrl.split("?", 1)[0]
-                res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
-                # TODO: support <dm:open>%s</dm:open>
+                if util.get_content_length(environ) != 0:
+                    self._fail(
+                        HTTP_MEDIATYPE_NOT_SUPPORTED,
+                        "The server does not handle any body content.",
+                    )
 
+                if environ["REQUEST_METHOD"] == "HEAD":
+                    return util.send_status_response(
+                        environ, start_response, HTTP_OK, is_head=True
+                    )
+
+                # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
+                if self.dir_config.get("davmount") and "davmount" in environ.get(
+                    "QUERY_STRING", ""
+                ):
+                    collectionUrl = util.make_complete_url(environ)
+                    collectionUrl = collectionUrl.split("?", 1)[0]
+                    res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
+                    # TODO: support <dm:open>%s</dm:open>
+
+                    start_response(
+                        "200 OK",
+                        [
+                            ("Content-Type", "application/davmount+xml"),
+                            ("Content-Length", str(len(res))),
+                            ("Cache-Control", "private"),
+                            ("Date", util.get_rfc1123_time()),
+                        ],
+                    )
+                    return [res]
+
+                directory_slash = self.dir_config.get("directory_slash")
+                requrest_uri = environ.get("REQUEST_URI")
+                if directory_slash and requrest_uri and not requrest_uri.endswith("/"):
+                    _logger.info(f"Redirect {requrest_uri} to {requrest_uri}/")
+                    return send_redirect_response(
+                        environ, start_response, location=requrest_uri + "/"
+                    )
+
+                context = self._get_context(environ, dav_res)
+
+                res = self.template.render(**context)
+                res = util.to_bytes(res)
                 start_response(
                     "200 OK",
                     [
-                        ("Content-Type", "application/davmount+xml"),
+                        ("Content-Type", "text/html; charset=utf-8"),
                         ("Content-Length", str(len(res))),
                         ("Cache-Control", "private"),
                         ("Date", util.get_rfc1123_time()),
@@ -120,30 +147,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 )
                 return [res]
 
-            directory_slash = self.dir_config.get("directory_slash")
-            requrest_uri = environ.get("REQUEST_URI")
-            if directory_slash and requrest_uri and not requrest_uri.endswith("/"):
-                _logger.info(f"Redirect {requrest_uri} to {requrest_uri}/")
-                return send_redirect_response(
-                    environ, start_response, location=requrest_uri + "/"
-                )
-
-            context = self._get_context(environ, dav_res)
-
-            res = self.template.render(**context)
-            res = util.to_bytes(res)
-            start_response(
-                "200 OK",
-                [
-                    ("Content-Type", "text/html; charset=utf-8"),
-                    ("Content-Length", str(len(res))),
-                    ("Cache-Control", "private"),
-                    ("Date", util.get_rfc1123_time()),
-                ],
-            )
-            return [res]
-
-        return self.next_app(environ, start_response)
+            return self.next_app(environ, start_response)
 
     def _fail(self, value, context_info=None, src_exception=None, err_condition=None):
         """Wrapper to raise (and log) DAVError."""
