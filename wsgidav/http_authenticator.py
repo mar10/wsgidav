@@ -85,6 +85,7 @@ import re
 import time
 from hashlib import md5
 from textwrap import dedent
+from typing import Tuple
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
@@ -586,9 +587,9 @@ class HTTPAuthenticator(BaseMiddleware):
 
         return res
 
-    def _map_id(self, username: str):
+    def _map_id(self, username: str) -> Tuple[int, int] | None:
         if not self.config.get("setuid", False):
-            return (None, None)
+            return None
 
         unix_username = None
 
