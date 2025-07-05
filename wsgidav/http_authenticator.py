@@ -229,7 +229,7 @@ class HTTPAuthenticator(BaseMiddleware):
             )
             # environ["wsgidav.auth.realm"] = realm
             environ["wsgidav.auth.user_name"] = environ.get(self.trusted_auth_header)
-            environ["wsgidav.auth.uid"], environ["wsgidav.auth.gid"] = self._map_id(environ["wsgidav.auth.user_name"])
+            environ["wsgidav.auth.unix_ids"] = self._map_id(environ["wsgidav.auth.user_name"])
             return self.next_app(environ, start_response)
 
         if "HTTP_AUTHORIZATION" in environ and not force_logout:
@@ -299,7 +299,7 @@ class HTTPAuthenticator(BaseMiddleware):
         if self.domain_controller.basic_auth_user(realm, user_name, password, environ):
             environ["wsgidav.auth.realm"] = realm
             environ["wsgidav.auth.user_name"] = user_name
-            environ["wsgidav.auth.uid"], environ["wsgidav.auth.gid"] = self._map_id(environ["wsgidav.auth.user_name"])
+            environ["wsgidav.auth.unix_ids"] = self._map_id(environ["wsgidav.auth.user_name"])
             return self.next_app(environ, start_response)
 
         _logger.warning(
@@ -541,7 +541,7 @@ class HTTPAuthenticator(BaseMiddleware):
 
         environ["wsgidav.auth.realm"] = realm
         environ["wsgidav.auth.user_name"] = req_username
-        environ["wsgidav.auth.uid"], environ["wsgidav.auth.gid"] = self._map_id(environ["wsgidav.auth.user_name"])
+        environ["wsgidav.auth.unix_ids"] = self._map_id(environ["wsgidav.auth.user_name"])
         return self.next_app(environ, start_response)
 
     def _compute_digest_response(
