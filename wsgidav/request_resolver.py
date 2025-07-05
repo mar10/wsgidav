@@ -160,10 +160,7 @@ class RequestResolver(BaseMiddleware):
         super().__init__(wsgidav_app, next_app, config)
 
     def __call__(self, environ, start_response):
-        with util.SetUID(
-            environ.get('wsgidav.auth.uid', None),
-            environ.get('wsgidav.auth.gid', None),
-        ):
+        with util.SetUID(environ.get('wsgidav.auth.unix_ids', None)):
             path = environ["PATH_INFO"]
 
             # We want to answer OPTIONS(*), even if no handler was registered for
