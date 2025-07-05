@@ -9,6 +9,7 @@ Miscellaneous support functions for WsgiDAV.
 import base64
 import calendar
 import collections.abc
+from contextlib import AbstractContextManager
 import logging
 import mimetypes
 import os
@@ -1771,3 +1772,32 @@ def guess_mime_type(url):
     if not mimetype:
         mimetype = "application/octet-stream"
     return mimetype
+
+
+# ========================================================================
+# switch UID
+# ========================================================================
+class SetUID(AbstractContextManager):
+    def __init__(self, ids: Tuple[int, int] | None) -> None:
+        if ids is None:
+            self._en = False
+            return
+        self._en = True
+        self._euid = ids[0]
+        self._egid = ids[1]
+        self._old_euid = os.geteuid()
+        self._old_egid = os.getegid()
+
+    def __enter__(self):
+        if not self._en:
+            return
+        os.seteuid(self._euid)
+        os.setegid(self._egid)
+        _logger.debug(f"SUID context started, uid:gid = {self._euid}:{self._egid}")
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if not self._en:
+            return
+        os.seteuid(self._old_euid)
+        os.setegid(self._old_egid)
+        _logger.debug(f"SUID context ended, uid:gid = {self._old_euid}:{self._old_egid}")
