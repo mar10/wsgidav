@@ -9,7 +9,6 @@ Miscellaneous support functions for WsgiDAV.
 import base64
 import calendar
 import collections.abc
-from contextlib import AbstractContextManager
 import logging
 import mimetypes
 import os
@@ -17,7 +16,6 @@ import re
 import stat
 import sys
 import time
-from types import TracebackType
 import warnings
 from copy import deepcopy
 from email.utils import formatdate, parsedate
@@ -1773,26 +1771,3 @@ def guess_mime_type(url):
     if not mimetype:
         mimetype = "application/octet-stream"
     return mimetype
-
-
-# ========================================================================
-# switch UID
-# ========================================================================
-class SetUID(AbstractContextManager):
-    def __init__(self, euid: int | None, egid: int | None) -> None:
-        self.__euid = euid
-        self.__egid = egid
-        self.__old_euid = os.geteuid()
-        self.__old_egid = os.getegid()
-
-    def __enter__(self):
-        _logger.info(f"switch euid:egid = {self.__euid}:{self.__egid}")
-        if self.__egid is not None:
-            os.setegid(self.__egid)
-        if self.__euid is not None:
-            os.seteuid(self.__euid)
-
-    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None, /):
-        _logger.info(f"switch back euid:egid = {self.__old_euid}:{self.__old_egid}")
-        os.setegid(self.__old_egid)
-        os.seteuid(self.__old_euid)
