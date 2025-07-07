@@ -17,6 +17,7 @@ import re
 import stat
 import sys
 import time
+from types import TracebackType
 import warnings
 from copy import deepcopy
 from email.utils import formatdate, parsedate
@@ -1778,26 +1779,20 @@ def guess_mime_type(url):
 # switch UID
 # ========================================================================
 class SetUID(AbstractContextManager):
-    def __init__(self, ids: Tuple[int, int] | None) -> None:
-        if ids is None:
-            self._en = False
-            return
-        self._en = True
-        self._euid = ids[0]
-        self._egid = ids[1]
-        self._old_euid = os.geteuid()
-        self._old_egid = os.getegid()
+    def __init__(self, euid: int | None, egid: int | None) -> None:
+        self.__euid = euid
+        self.__egid = egid
+        self.__old_euid = os.geteuid()
+        self.__old_egid = os.getegid()
 
     def __enter__(self):
-        if not self._en:
-            return
-        os.seteuid(self._euid)
-        os.setegid(self._egid)
-        _logger.debug(f"SUID context started, uid:gid = {self._euid}:{self._egid}")
+        _logger.info(f"switch euid:egid = {self.__euid}:{self.__egid}")
+        if self.__egid is not None:
+            os.setegid(self.__egid)
+        if self.__euid is not None:
+            os.seteuid(self.__euid)
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        if not self._en:
-            return
-        os.seteuid(self._old_euid)
-        os.setegid(self._old_egid)
-        _logger.debug(f"SUID context ended, uid:gid = {self._old_euid}:{self._old_egid}")
+    def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None, /):
+        _logger.info(f"switch back euid:egid = {self.__old_euid}:{self.__old_egid}")
+        os.setegid(self.__old_egid)
+        os.seteuid(self.__old_euid)
