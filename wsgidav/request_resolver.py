@@ -160,74 +160,70 @@ class RequestResolver(BaseMiddleware):
         super().__init__(wsgidav_app, next_app, config)
 
     def __call__(self, environ, start_response):
-        with util.SetUID(
-            environ.get('wsgidav.auth.uid', None),
-            environ.get('wsgidav.auth.gid', None),
-        ):
-            path = environ["PATH_INFO"]
+        path = environ["PATH_INFO"]
 
-            # We want to answer OPTIONS(*), even if no handler was registered for
-            # the top-level realm (e.g. required to map drive letters).
+        # We want to answer OPTIONS(*), even if no handler was registered for
+        # the top-level realm (e.g. required to map drive letters).
 
-            provider = environ["wsgidav.provider"]
-            config = environ["wsgidav.config"]
-            hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
+        provider = environ["wsgidav.provider"]
+        config = environ["wsgidav.config"]
+        hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
 
-            is_asterisk_options = environ["REQUEST_METHOD"] == "OPTIONS" and path == "*"
-            if path == "/":
-                # Hotfix for WinXP / Vista: accept '/' for a '*'
-                treat_as_asterisk = hotfixes.get("treat_root_options_as_asterisk")
-                if treat_as_asterisk:
-                    is_asterisk_options = True
-                else:
-                    _logger.info("Got OPTIONS '/' request")
+        is_asterisk_options = environ["REQUEST_METHOD"] == "OPTIONS" and path == "*"
+        if path == "/":
+            # Hotfix for WinXP / Vista: accept '/' for a '*'
+            treat_as_asterisk = hotfixes.get("treat_root_options_as_asterisk")
+            if treat_as_asterisk:
+                is_asterisk_options = True
+            else:
+                _logger.info("Got OPTIONS '/' request")
 
-            if is_asterisk_options:
-                # Answer HTTP 'OPTIONS' method on server-level.
-                # From RFC 2616:
-                # If the Request-URI is an asterisk ("*"), the OPTIONS request is
-                # intended to apply to the server in general rather than to a specific
-                # resource. Since a server's communication options typically depend on
-                # the resource, the "*" request is only useful as a "ping" or "no-op"
-                # type of method; it does nothing beyond allowing the client to test the
-                # capabilities of the server. For example, this can be used to test a
-                # proxy for HTTP/1.1 compliance (or lack thereof).
+        if is_asterisk_options:
+            # Answer HTTP 'OPTIONS' method on server-level.
+            # From RFC 2616:
+            # If the Request-URI is an asterisk ("*"), the OPTIONS request is
+            # intended to apply to the server in general rather than to a specific
+            # resource. Since a server's communication options typically depend on
+            # the resource, the "*" request is only useful as a "ping" or "no-op"
+            # type of method; it does nothing beyond allowing the client to test the
+            # capabilities of the server. For example, this can be used to test a
+            # proxy for HTTP/1.1 compliance (or lack thereof).
 
-                dav_compliance_level = "1,2"
+            dav_compliance_level = "1,2"
 
-                if (
-                    provider is None
-                    or provider.is_readonly()
-                    or provider.lock_manager is None
-                ):
-                    dav_compliance_level = "1"
+            if (
+                provider is None
+                or provider.is_readonly()
+                or provider.lock_manager is None
+            ):
+                dav_compliance_level = "1"
 
-                headers = [
-                    ("Content-Type", "text/html; charset=utf-8"),
-                    ("Content-Length", "0"),
-                    ("DAV", dav_compliance_level),
-                    ("Date", util.get_rfc1123_time()),
-                ]
+            headers = [
+                ("Content-Type", "text/html; charset=utf-8"),
+                ("Content-Length", "0"),
+                ("DAV", dav_compliance_level),
+                ("Date", util.get_rfc1123_time()),
+            ]
 
-                if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
-                    headers.append(("MS-Author-Via", "DAV"))
+            if environ["wsgidav.config"].get("add_header_MS_Author_Via", False):
+                headers.append(("MS-Author-Via", "DAV"))
 
-                start_response("200 OK", headers)
-                yield b""
-                return
-
-            if provider is None:
-                raise DAVError(
-                    HTTP_NOT_FOUND, f"Could not find resource provider for {path!r}"
-                )
-
-            # Let the appropriate resource provider for the realm handle the
-            # request
-            app = RequestServer(provider)
-            app_iter = app(environ, start_response)
-
-            yield from app_iter
-
-            if hasattr(app_iter, "close"):
-                app_iter.close()
+            start_response("200 OK", headers)
+            yield b""
             return
+
+        if provider is None:
+            raise DAVError(
+                HTTP_NOT_FOUND, f"Could not find resource provider for {path!r}"
+            )
+
+        # Let the appropriate resource provider for the realm handle the
+        # request
+        app = RequestServer(provider)
+        app_iter = app(environ, start_response)
+
+        yield from app_iter
+
+        if hasattr(app_iter, "close"):
+            app_iter.close()
+        return
