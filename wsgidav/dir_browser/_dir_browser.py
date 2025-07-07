@@ -79,7 +79,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
         return self.dir_config.get("enable") is False
 
     def __call__(self, environ, start_response):
-        with util.SetUID(environ.get('wsgidav.auth.unix_ids', None)):
+        with util.SetUID(
+            environ.get('wsgidav.auth.uid', None),
+            environ.get('wsgidav.auth.gid', None),
+        ):
             path = environ["PATH_INFO"]
 
             dav_res = None
