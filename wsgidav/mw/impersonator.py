@@ -67,5 +67,5 @@ class Impersonator(BaseMiddleware):
 		except:
 			raise RuntimeError(f"Unix username '{unix_username}' does not exist")
 		else:
-			_logger.debug(f"impersonator: Unix user {unix_username} -> uid:gid={passwd.pw_uid}:{passwd.pw_gid}")
+			_logger.debug(f"impersonator: Unix user {unix_username} -> uid:gid = {passwd.pw_uid}:{passwd.pw_gid}")
 			return (passwd.pw_uid, passwd.pw_gid)
