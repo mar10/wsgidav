@@ -1,5 +1,6 @@
 import os
 from contextlib import AbstractContextManager
+import pwd
 from typing import Tuple
 from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware 
@@ -38,6 +39,33 @@ class Impersonator(BaseMiddleware):
 		super().__init__(wsgidav_app, next_app, config)
 
 	def __call__(self, environ, start_response):
-		ids = environ.get("wsgidav.auth.unix_ids", None)
+		username = environ.get("wsgidav.auth.user_name", "")
+		ids = self._map_id(username)
 		with ImpersonateContext(ids):
 			yield from self.next_app(environ, start_response)
+
+	def _map_id(self, username: str) -> Tuple[int, int] | None:
+		if not self.get_config("impersonator.enable", False): # type: ignore
+			return None
+
+		unix_username = None
+
+		if not username or username == "anonymous":
+			unix_username = "nobody"
+		elif self.get_config("impersonator.custom_user_mapping", None) is None: # type: ignore
+			unix_username = username
+		else:
+			unix_username = self.get_config("impersonator.custom_user_mapping").get(username, None) # type: ignore
+
+		if unix_username is None:
+			raise RuntimeError(f"Failed mapping HTTP username '{username}' to Unix username")
+
+		_logger.debug(f"impersonator: HTTP user {username} -> Unix user {unix_username}")
+
+		try:
+			passwd = pwd.getpwnam(unix_username)
+		except:
+			raise RuntimeError(f"Unix username '{unix_username}' does not exist")
+		else:
+			_logger.debug(f"impersonator: Unix user {unix_username} -> uid:gid={passwd.pw_uid}:{passwd.pw_gid}")
+			return (passwd.pw_uid, passwd.pw_gid)

@@ -42,17 +42,6 @@ port: 8080
 # Transfer block size in bytes
 block_size: 8192
 
-# Manipulate filesystem as unix user with matching name to remote user
-setuid: false
-
-# Custom WebDAV user to Unix user mapping
-custom_user_mapping:
-    user1: leo
-    user2: michael
-
-# Map WebDAV user to Unix user as is
-#custom_user_mapping: null
-
 #: Add the MS-Author-Via Response Header to OPTIONS command to allow editing
 #: with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
@@ -108,7 +97,7 @@ middleware_stack:
     # - wsgidav.mw.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
-    - wsgidav.impersonator.Impersonator
+    # - wsgidav.impersonator.Impersonator
     - wsgidav.dir_browser.WsgiDavDirBrowser
     - wsgidav.request_resolver.RequestResolver  # this must be the last middleware item
 
@@ -211,6 +200,22 @@ pam_dc:
     service: 'login'
     encoding: 'utf-8'
     resetcreds: true
+
+
+# ----------------------------------------------------------------------------
+# User/Group Impersonating
+# (Requires `wsgidav.mw.impersonator.Impersonator`, which is disabled by default.)
+impersonator:
+    # enabling impersonating
+    enable: false
+
+    # custom map WebDAV (HTTP) usernames to Unix usernames
+    # custom_user_mapping:
+    #     leonlee: leo
+    #     jenifer: jenny
+
+    # or, use WebDAV (HTTP) usernames as is
+    custom_user_mapping: null
 
 
 # ----------------------------------------------------------------------------

@@ -79,13 +79,11 @@ from previous middleware or server config (if required).
 
 import base64
 import inspect
-import pwd
 import random
 import re
 import time
 from hashlib import md5
 from textwrap import dedent
-from typing import Tuple
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
@@ -229,7 +227,6 @@ class HTTPAuthenticator(BaseMiddleware):
             )
             # environ["wsgidav.auth.realm"] = realm
             environ["wsgidav.auth.user_name"] = environ.get(self.trusted_auth_header)
-            environ["wsgidav.auth.unix_ids"] = self._map_id(environ["wsgidav.auth.user_name"])
             return self.next_app(environ, start_response)
 
         if "HTTP_AUTHORIZATION" in environ and not force_logout:
@@ -299,7 +296,6 @@ class HTTPAuthenticator(BaseMiddleware):
         if self.domain_controller.basic_auth_user(realm, user_name, password, environ):
             environ["wsgidav.auth.realm"] = realm
             environ["wsgidav.auth.user_name"] = user_name
-            environ["wsgidav.auth.unix_ids"] = self._map_id(environ["wsgidav.auth.user_name"])
             return self.next_app(environ, start_response)
 
         _logger.warning(
@@ -541,7 +537,6 @@ class HTTPAuthenticator(BaseMiddleware):
 
         environ["wsgidav.auth.realm"] = realm
         environ["wsgidav.auth.user_name"] = req_username
-        environ["wsgidav.auth.unix_ids"] = self._map_id(environ["wsgidav.auth.user_name"])
         return self.next_app(environ, start_response)
 
     def _compute_digest_response(
@@ -586,26 +581,3 @@ class HTTPAuthenticator(BaseMiddleware):
             res = md5kd(A1, nonce + ":" + md5h(A2))
 
         return res
-
-    def _map_id(self, username: str) -> Tuple[int, int] | None:
-        if not self.config.get("setuid", False):
-            return None
-
-        unix_username = None
-
-        if username == "anonymous":
-            unix_username = "nobody"
-        elif self.config.get("custom_user_mapping", None) is None:
-            unix_username = username
-        else:
-            unix_username = self.config["custom_user_mapping"].get(username, None)
-
-        if unix_username is None:
-            raise RuntimeError(f"Failed mapping HTTP username '{username}' to Unix username")
-
-        try:
-            passwd = pwd.getpwnam(unix_username)
-        except Exception:
-            raise RuntimeError(f"Unix username '{unix_username}' does not exist")
-        else:
-            return (passwd.pw_uid, passwd.pw_gid)
