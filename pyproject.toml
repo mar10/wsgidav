@@ -16,7 +16,10 @@ select = [
   "T",  # print, ...
   # "D",   # pydocstyle
   "I", # isort
-  # "C",  # codespell
+# "C",  # codespell
+  "W191", # Indentation contains tabs
+  "W292", # Trailing whitespace
+  "W293", # Blank line contains whitespace
   # "SIM",  # 
 ]
 
