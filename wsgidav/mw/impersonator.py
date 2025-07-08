@@ -63,7 +63,7 @@ class Impersonator(BaseMiddleware):
 
 		unix_username = None
 
-		if not username or username == "anonymous":
+		if not username:
 			unix_username = "nobody"
 		elif self.get_config("impersonator.custom_user_mapping", None) is None: # type: ignore
 			unix_username = username
@@ -73,7 +73,7 @@ class Impersonator(BaseMiddleware):
 		if unix_username is None:
 			raise RuntimeError(f"Failed mapping HTTP username '{username}' to Unix username")
 
-		_logger.debug(f"impersonator: HTTP user {username} -> Unix user {unix_username}")
+		_logger.debug(f"impersonator: HTTP user {username or '(anonymous)'} -> Unix user {unix_username}")
 
 		try:
 			passwd = pwd.getpwnam(unix_username)
