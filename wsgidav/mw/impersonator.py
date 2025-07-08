@@ -54,8 +54,11 @@ class Impersonator(BaseMiddleware):
 		with ImpersonateContext(ids):
 			yield from self.next_app(environ, start_response)
 
+	def is_disabled(self):  # type: ignore
+		return not self.get_config("impersonator.enable", False)  # type: ignore
+
 	def _map_id(self, username: str) -> Tuple[int, int] | None:
-		if not self.get_config("impersonator.enable", False): # type: ignore
+		if self.is_disabled():
 			return None
 
 		unix_username = None
