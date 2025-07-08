@@ -7,10 +7,12 @@ WSGI middleware to catch application thrown DAVErrors and return proper
 responses.
 """
 
+import errno
 import traceback
 
 from wsgidav import util
 from wsgidav.dav_error import (
+    HTTP_FORBIDDEN,
     HTTP_INTERNAL_ERROR,
     HTTP_NO_CONTENT,
     HTTP_NOT_MODIFIED,
@@ -76,6 +78,10 @@ class ErrorPrinter(BaseMiddleware):
                 return
             except DAVError:
                 raise  # Deliberately generated or already converted
+            except OSError as e:
+                if e.errno == errno.EACCES:
+                    raise DAVError(HTTP_FORBIDDEN, e.strerror)
+                raise as_DAVError(e) from None
             except Exception as e:
                 # Caught a non-DAVError
                 # Catch all exceptions to return as 500 Internal Error

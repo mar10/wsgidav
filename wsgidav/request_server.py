@@ -6,7 +6,6 @@
 WSGI application that handles one single WebDAV request.
 """
 
-import errno
 from urllib.parse import unquote, urlparse
 
 from wsgidav import util, xml_tools
@@ -346,12 +345,7 @@ class RequestServer:
 
         # --- Build list of resource URIs
 
-        try:
-            reslist = res.get_descendants(depth=environ["HTTP_DEPTH"], add_self=True)
-        except OSError as e:
-            if e.errno == errno.EACCES:
-                raise DAVError(HTTP_FORBIDDEN, e.strerror)
-            raise e
+        reslist = res.get_descendants(depth=environ["HTTP_DEPTH"], add_self=True)
         #        if environ["wsgidav.verbose"] >= 3:
         #            pprint(reslist, indent=4)
 
@@ -1568,12 +1562,7 @@ class RequestServer:
             yield b""
             return
 
-        try:
-            fileobj = res.get_content()
-        except OSError as e:
-            if e.errno == errno.EACCES:
-                raise DAVError(HTTP_FORBIDDEN, e.strerror)
-            raise e
+        fileobj = res.get_content()
 
         if not do_ignore_ranges:
             fileobj.seek(range_start)

@@ -5,7 +5,6 @@
 WSGI middleware that handles GET requests on collections to display directories.
 """
 
-import errno
 import os
 import sys
 from fnmatch import fnmatch
@@ -14,7 +13,7 @@ from urllib.parse import unquote
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from wsgidav import __version__, util
-from wsgidav.dav_error import HTTP_FORBIDDEN, HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
+from wsgidav.dav_error import HTTP_MEDIATYPE_NOT_SUPPORTED, HTTP_OK, DAVError
 from wsgidav.mw.base_mw import BaseMiddleware
 from wsgidav.util import get_uri_name, safe_re_encode, send_redirect_response
 
@@ -205,12 +204,7 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if dir_info_list is None:
             # No pre-build info: traverse members
             dir_info_list = []
-            try:
-                childList = dav_res.get_descendants(depth="1", add_self=False)
-            except OSError as e:
-                if e.errno == errno.EACCES:
-                    raise DAVError(HTTP_FORBIDDEN, e.strerror)
-                raise e
+            childList = dav_res.get_descendants(depth="1", add_self=False)
             for res in childList:
                 di = res.get_display_info()
                 href = res.get_href()
