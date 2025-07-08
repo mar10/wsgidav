@@ -6,6 +6,9 @@ from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware 
 
 _logger = util.get_module_logger(__name__)
+_init_euid = os.geteuid()
+_init_egid = os.getegid()
+_logger.debug(f"impersonator: initial uid:gid = {_init_euid}:{_init_egid}")
 
 
 class ImpersonateContext(AbstractContextManager):
@@ -18,6 +21,13 @@ class ImpersonateContext(AbstractContextManager):
 		self._new_egid = ids[1]
 		self._old_euid = os.geteuid()
 		self._old_egid = os.getegid()
+
+		if self._old_euid != _init_euid or self._old_egid != _init_egid:
+			raise Exception(
+				"old ids mismatched with init ids: "
+				f"{self._old_euid}:{self._old_egid} versus {_init_euid}:{_init_egid}, "
+				"multithreading MUST be disabled for impersonator to function correctly"
+			)
 
 	def __enter__(self):
 		if not self._enabled:
