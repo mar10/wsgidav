@@ -97,7 +97,7 @@ middleware_stack:
     # - wsgidav.mw.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
-    # - wsgidav.impersonator.Impersonator
+    # - wsgidav.mw.impersonator.Impersonator
     - wsgidav.dir_browser.WsgiDavDirBrowser
     - wsgidav.request_resolver.RequestResolver  # this must be the last middleware item
 
