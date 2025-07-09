@@ -163,8 +163,7 @@ See https://github.com/mar10/wsgidav for additional information.
     parser.add_argument(
         "--auth",
         choices=("anonymous", "nt", "pam-login"),
-        help="quick configuration of a domain controller when no config file "
-        "is used",
+        help="quick configuration of a domain controller when no config file is used",
     )
     parser.add_argument(
         "--server",

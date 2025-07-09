@@ -80,7 +80,7 @@ class ErrorPrinter(BaseMiddleware):
                 raise  # Deliberately generated or already converted
             except OSError as e:
                 if e.errno == errno.EACCES:
-                    raise DAVError(HTTP_FORBIDDEN, e.strerror)
+                    raise DAVError(HTTP_FORBIDDEN, e.strerror) from None
                 raise as_DAVError(e) from None
             except Exception as e:
                 # Caught a non-DAVError

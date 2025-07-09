@@ -18,6 +18,7 @@ Default configuration.
 from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
+
 # from wsgidav.mw.impersonator import Impersonator
 from wsgidav.mw.cors import Cors
 from wsgidav.request_resolver import RequestResolver
