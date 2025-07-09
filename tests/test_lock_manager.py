@@ -238,25 +238,25 @@ class BasicTest(unittest.TestCase):
         #        res = lm.get_url_lock_list(url, "another user")
         #        assert len(res) == 0
 
-        assert lm.is_url_locked_by_token("/dav/res", tok), (
-            "url not directly locked by lock_token."
-        )
-        assert lm.is_url_locked_by_token("/dav/res/", tok), (
-            "url not directly locked by lock_token."
-        )
-        assert lm.is_url_locked_by_token("/dav/res/sub", tok), (
-            "child url not indirectly locked"
-        )
+        assert lm.is_url_locked_by_token(
+            "/dav/res", tok
+        ), "url not directly locked by lock_token."
+        assert lm.is_url_locked_by_token(
+            "/dav/res/", tok
+        ), "url not directly locked by lock_token."
+        assert lm.is_url_locked_by_token(
+            "/dav/res/sub", tok
+        ), "child url not indirectly locked"
 
-        assert not lm.is_url_locked_by_token("/dav/ressub", tok), (
-            "non-child url reported as locked"
-        )
-        assert not lm.is_url_locked_by_token("/dav", tok), (
-            "parent url reported as locked"
-        )
-        assert not lm.is_url_locked_by_token("/dav/", tok), (
-            "parent url reported as locked"
-        )
+        assert not lm.is_url_locked_by_token(
+            "/dav/ressub", tok
+        ), "non-child url reported as locked"
+        assert not lm.is_url_locked_by_token(
+            "/dav", tok
+        ), "parent url reported as locked"
+        assert not lm.is_url_locked_by_token(
+            "/dav/", tok
+        ), "parent url reported as locked"
 
     def testTimeout(self):
         """Locks should be purged after expiration date."""

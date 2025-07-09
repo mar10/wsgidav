@@ -165,9 +165,9 @@ class DAVErrorCondition:
 
     def as_xml(self):
         if self.condition_code == PRECONDITION_CODE_MissingLockToken:
-            assert len(self.hrefs) > 0, (
-                "lock-token-submitted requires at least one href"
-            )
+            assert (
+                len(self.hrefs) > 0
+            ), "lock-token-submitted requires at least one href"
         error_el = etree.Element("{DAV:}error")
         cond_el = etree.SubElement(error_el, self.condition_code)
         for href in self.hrefs:
