@@ -4,6 +4,8 @@
 
 - Test with Python 3.13
 - Use ruff instead of black/isort
+- [#343](https://github.com/mar10/wsgidav/issues/343) 
+  Add experimental middleware for impersonation (@leo9800)
 
 ## 4.3.3 / 2024-05-04
 

@@ -1,3 +1,20 @@
+# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
+"""
+WSGI middleware to impersonate a Unix user based on the HTTP username.
+This middleware changes the effective user ID (euid) and group ID (egid) of the
+current process to match the Unix user corresponding to the HTTP username.
+This is useful for applications that need to access files or resources with the
+permissions of a specific Unix user.
+
+NOTE: **Experimental**:
+This middleware is not thread-safe and should not be used in a
+multithreaded environment. It is designed to be used in a single-threaded
+context where the effective user ID and group ID can be safely changed and
+restored.
+"""
+
 import os
 import pwd
 from contextlib import AbstractContextManager

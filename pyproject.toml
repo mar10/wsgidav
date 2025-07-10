@@ -63,8 +63,9 @@ markers = [
 [tool.coverage.run]
 # branch = true
 omit = [
-    "tests/*",
     "setup.py",
+    "tests/*",
+    "wsgidav/mw/impersonator.py",
     "wsgidav/prop_man/couch_property_manager.py",
     "wsgidav/prop_man/mongo_property_manager.py",
     "wsgidav/samples/*",
