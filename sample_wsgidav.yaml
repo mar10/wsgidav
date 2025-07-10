@@ -97,6 +97,7 @@ middleware_stack:
     # - wsgidav.mw.debug_filter.WsgiDavDebugFilter
     - wsgidav.error_printer.ErrorPrinter
     - wsgidav.http_authenticator.HTTPAuthenticator
+    # - wsgidav.mw.impersonator.Impersonator
     - wsgidav.dir_browser.WsgiDavDirBrowser
     - wsgidav.request_resolver.RequestResolver  # this must be the last middleware item
 
@@ -199,6 +200,22 @@ pam_dc:
     service: 'login'
     encoding: 'utf-8'
     resetcreds: true
+
+
+# ----------------------------------------------------------------------------
+# User/Group Impersonating
+# (Requires `wsgidav.mw.impersonator.Impersonator`, which is disabled by default.)
+impersonator:
+    # enabling impersonating
+    enable: false
+
+    # custom map WebDAV (HTTP) usernames to Unix usernames
+    # custom_user_mapping:
+    #     leonlee: leo
+    #     jenifer: jenny
+
+    # or, use WebDAV (HTTP) usernames as is
+    custom_user_mapping: null
 
 
 # ----------------------------------------------------------------------------
