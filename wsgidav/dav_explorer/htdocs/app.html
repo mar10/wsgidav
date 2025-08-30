@@ -89,6 +89,17 @@
                 <label for="readonly">Open Office documents in readonly mode</label>
                 <input type="checkbox" id="readonly" name="readonly" />
               </div>
+              <div class="form-group">
+                <label for="dblclick_action">Double-click</label>
+                <select id="dblclick_action" name="dblclick_action">
+                  <option value="download">Download file</option>
+                  <option value="open">Open file</option>
+                  <option value="nothing">Do nothing</option>
+                </select>
+              </div>
+                <button type="button" id="resetSettings" class="btn btn-secondary"  >
+                <i class="bi bi-arrow-counterclockwise"></i> Reset to defaults
+                </button>
           </div>
           <iframe id="preview-iframe" class="preview-pane hidden" src="" frameborder="0" title="Preview" style="width: 100%; height: 100%"></iframe>
         </div>
