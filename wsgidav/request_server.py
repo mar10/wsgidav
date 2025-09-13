@@ -515,11 +515,12 @@ class RequestServer:
         # In case of honor_mtime_header is enabled, try parse mtime,
         # if invalid value if found in header `X-OC-Mtime`, fail 400 bad request
         if environ["wsgidav.config"].get("honor_mtime_header", False) is True:
-            mtime_header = environ.get("HTTP_X_OC_MTIME")
-            if mtime_header is not None and not mtime_header.isdigit():
-                util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
-            else:
-                mtime = int(mtime_header)
+            mtime_header = environ.get("HTTP_X_OC_MTIME", None)
+            if mtime_header is not None:
+                if not mtime_header.isdigit():
+                    util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
+                else:
+                    mtime = int(mtime_header)
 
         parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
         if not parentRes or not parentRes.is_collection:
@@ -706,11 +707,12 @@ class RequestServer:
         # In case of honor_mtime_header is enabled, try parse mtime,
         # if invalid value if found in header `X-OC-Mtime`, fail 400 bad request
         if environ["wsgidav.config"].get("honor_mtime_header", False) is True:
-            mtime_header = environ.get("HTTP_X_OC_MTIME")
-            if mtime_header is not None and not mtime_header.isdigit():
-                util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
-            else:
-                mtime = int(mtime_header)
+            mtime_header = environ.get("HTTP_X_OC_MTIME", None)
+            if mtime_header is not None:
+                if not mtime_header.isdigit():
+                    util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
+                else:
+                    mtime = int(mtime_header)
 
         if res and res.is_collection:
             self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
