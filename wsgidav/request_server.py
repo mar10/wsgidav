@@ -493,6 +493,7 @@ class RequestServer:
         path = environ["PATH_INFO"]
         provider = self._davProvider
         #        res = provider.get_resource_inst(path, environ)
+        mtime = None
 
         # Do not understand ANY request body entities
         if util.get_content_length(environ) != 0:
@@ -511,6 +512,15 @@ class RequestServer:
                 "MKCOL can only be executed on an unmapped URL.",
             )
 
+        # In case of honor_mtime_header is enabled, try parse mtime,
+        # if invalid value if found in header `X-OC-Mtime`, fail 400 bad request
+        if environ.get("wsgidav.honor_mtime_header") is True:
+            mtime_header = environ.get("HTTP_X_OC_MTIME")
+            if mtime_header is not None and not mtime_header.isdigit():
+                util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
+            else:
+                mtime = int(mtime_header)
+
         parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
         if not parentRes or not parentRes.is_collection:
             self._fail(HTTP_CONFLICT, "Parent must be an existing collection.")
@@ -521,6 +531,9 @@ class RequestServer:
         self._check_write_permission(parentRes, "0", environ)
 
         parentRes.create_collection(util.get_uri_name(path))
+        if mtime is not None:
+            createdRes = provider.get_resource_inst(util.get_uri_name(path), environ)
+            createdRes.set_last_modified(mtime, dry_run=False)
 
         return util.send_status_response(environ, start_response, HTTP_CREATED)
 
@@ -675,6 +688,7 @@ class RequestServer:
         parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
 
         isnewfile = res is None
+        mtime = None
 
         # Test for unsupported stuff
         if "HTTP_CONTENT_ENCODING" in environ:
@@ -688,6 +702,15 @@ class RequestServer:
             util.fail(
                 HTTP_BAD_REQUEST, "Content-range header is not allowed on PUT requests."
             )
+
+        # In case of honor_mtime_header is enabled, try parse mtime,
+        # if invalid value if found in header `X-OC-Mtime`, fail 400 bad request
+        if environ.get("wsgidav.honor_mtime_header") is True:
+            mtime_header = environ.get("HTTP_X_OC_MTIME")
+            if mtime_header is not None and not mtime_header.isdigit():
+                util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
+            else:
+                mtime = int(mtime_header)
 
         if res and res.is_collection:
             self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
@@ -736,6 +759,9 @@ class RequestServer:
             etag = checked_etag(res.get_etag(), allow_none=True)
             if etag is not None:
                 headers = [("ETag", f'"{etag}"')]
+
+        if mtime is not None:
+            res.set_last_modified(mtime, dry_run=False)
 
         if isnewfile:
             return util.send_status_response(
