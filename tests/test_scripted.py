@@ -211,7 +211,7 @@ class ServerTest(unittest.TestCase):
     def testMkcolWithMtime(self):
         client = self.client
         client.delete("/test/")
-        client.mkcol("/test/", headers={'x-oc-mtime': '1735660800'})
+        client.mkcol("/test/", headers={"x-oc-mtime": "1735660800"})
         client.check_response(201)
 
         stat = os.stat(os.path.join(gettempdir(), "wsgidav-test", "test"))
@@ -220,7 +220,7 @@ class ServerTest(unittest.TestCase):
     def testMkcolWithInvalidMtime(self):
         client = self.client
         client.delete("/test/")
-        client.mkcol("/test/", headers={'x-oc-mtime': 'nonsense'})
+        client.mkcol("/test/", headers={"x-oc-mtime": "nonsense"})
         client.check_response(400)
 
     def testPutWithMtime(self):
@@ -229,7 +229,7 @@ class ServerTest(unittest.TestCase):
         client.delete("/test/")
         client.mkcol("/test/")
         client.check_response(201)
-        client.put("/test/file1.txt", data1, headers={'x-oc-mtime': '1735660800'})
+        client.put("/test/file1.txt", data1, headers={"x-oc-mtime": "1735660800"})
         client.check_response(201)
 
         stat = os.stat(os.path.join(gettempdir(), "wsgidav-test", "test", "file1.txt"))
@@ -241,7 +241,7 @@ class ServerTest(unittest.TestCase):
         client.delete("/test/")
         client.mkcol("/test/")
         client.check_response(201)
-        client.put("/test/file1.txt", data1, headers={'x-oc-mtime': 'nonsense'})
+        client.put("/test/file1.txt", data1, headers={"x-oc-mtime": "nonsense"})
         client.check_response(400)
 
     def testGetPut(self):
