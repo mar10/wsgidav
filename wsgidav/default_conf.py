@@ -41,6 +41,7 @@ DEFAULT_CONFIG = {
         "shadow_map": {},
         "follow_symlinks": False,
     },
+    "honor_mtime_header": False,
     "add_header_MS_Author_Via": True,
     "hotfixes": {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
