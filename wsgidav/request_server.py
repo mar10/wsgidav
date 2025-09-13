@@ -514,7 +514,7 @@ class RequestServer:
 
         # In case of honor_mtime_header is enabled, try parse mtime,
         # if invalid value if found in header `X-OC-Mtime`, fail 400 bad request
-        if environ.get("wsgidav.honor_mtime_header") is True:
+        if environ["wsgidav.config"].get("honor_mtime_header", False) is True:
             mtime_header = environ.get("HTTP_X_OC_MTIME")
             if mtime_header is not None and not mtime_header.isdigit():
                 util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
@@ -532,8 +532,8 @@ class RequestServer:
 
         parentRes.create_collection(util.get_uri_name(path))
         if mtime is not None:
-            createdRes = provider.get_resource_inst(util.get_uri_name(path), environ)
-            createdRes.set_last_modified(mtime, dry_run=False)
+            createdRes = provider.get_resource_inst(path, environ)
+            createdRes.set_last_modified(createdRes.path, mtime, dry_run=False)
 
         return util.send_status_response(environ, start_response, HTTP_CREATED)
 
@@ -705,7 +705,7 @@ class RequestServer:
 
         # In case of honor_mtime_header is enabled, try parse mtime,
         # if invalid value if found in header `X-OC-Mtime`, fail 400 bad request
-        if environ.get("wsgidav.honor_mtime_header") is True:
+        if environ["wsgidav.config"].get("honor_mtime_header", False) is True:
             mtime_header = environ.get("HTTP_X_OC_MTIME")
             if mtime_header is not None and not mtime_header.isdigit():
                 util.fail(HTTP_BAD_REQUEST, "Invalid X-OC-Mtime header.")
@@ -761,7 +761,7 @@ class RequestServer:
                 headers = [("ETag", f'"{etag}"')]
 
         if mtime is not None:
-            res.set_last_modified(mtime, dry_run=False)
+            res.set_last_modified(res.path, mtime, dry_run=False)
 
         if isnewfile:
             return util.send_status_response(
