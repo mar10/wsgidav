@@ -172,6 +172,7 @@ http_authenticator:
     # domain_controller: wsgidav.dc.simple_dc.SimpleDomainController
     # domain_controller: wsgidav.dc.pam_dc.PAMDomainController
     # domain_controller: wsgidav.dc.nt_dc.NTDomainController
+    # domain_controller: wsgidav.dc.htpasswd_dc.HtpasswdDomainController
 
 
 # Additional options for SimpleDomainController only:
@@ -200,6 +201,10 @@ pam_dc:
     service: 'login'
     encoding: 'utf-8'
     resetcreds: true
+
+# Additional options for HtpasswdDomainController only:
+htpasswd_dc:
+    htpasswd_file: '/path/to/wsgidav.htpasswd'
 
 
 # ----------------------------------------------------------------------------
