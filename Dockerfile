@@ -10,6 +10,16 @@
 
 # NOTE 2018-07-28: alpine does not compile lxml
 # NOTE 2019-11-27: smallest image generated at the end
+# NOTE 2025-12-10: add capability wrapper for impersonating in containers
+FROM alpine AS wrapper-builder
+WORKDIR /root
+ADD suid-wrapper.c /root
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache build-base libcap-ng-dev libcap-ng-static
+RUN gcc suid-wrapper.c -static -o suid-wrapper \
+    $(pkg-config --cflags --libs libcap-ng)
+
 FROM python:3-alpine
 
 #dependencies
@@ -19,6 +29,7 @@ RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml p
 
 RUN pip install --no-cache-dir wsgidav cheroot lxml
 RUN mkdir -p /var/wsgidav-root
+COPY --from=wrapper-builder /root/suid-wrapper /usr/local/bin/
 
 EXPOSE 8080
 
