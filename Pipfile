@@ -37,6 +37,8 @@ defusedxml = "*"  # "~=0.7"
 Jinja2 = "*"  # "~=2.10"
 PyYAML = "*"  # "~=5.1"
 json5 = "*"
+passlib = "*"
+bcrypt = "4.*"  # https://foss.heptapod.net/python-libs/passlib/-/issues/196
 
 [requires]
 python_version = "3.12"
