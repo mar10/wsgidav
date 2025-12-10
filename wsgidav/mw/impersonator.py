@@ -18,7 +18,6 @@ restored.
 import os
 import pwd
 from contextlib import AbstractContextManager
-from typing import Tuple
 
 from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware
@@ -100,6 +99,12 @@ class Impersonator(BaseMiddleware):
 
         try:
             passwd = pwd.getpwnam(unix_username)
+            if self.get_config("impersonator.reject_system_users", False) and passwd.pw_uid <= 999:
+                raise ValueError
+        except ValueError:
+            raise RuntimeError(
+                f"Unix user '{unix_username}' is a system user, impersonating rejected"
+            ) from None
         except Exception:
             raise RuntimeError(
                 f"Unix username '{unix_username}' does not exist"
