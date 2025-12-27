@@ -1758,7 +1758,7 @@ _MIME_TYPES = {
 }
 
 
-def guess_mime_type(url):
+def guess_mime_type(url, default_charset:str = 'utf-8'):
     """Use the mimetypes module to lookup the type for an extension.
 
     This function also adds some extensions required for HTML5
@@ -1770,4 +1770,6 @@ def guess_mime_type(url):
         _logger.debug(f"mimetype({url}): {mimetype}")
     if not mimetype:
         mimetype = "application/octet-stream"
+    if mimetype.startswith('text/'):
+        mimetype += f"; charset={default_charset}"
     return mimetype
