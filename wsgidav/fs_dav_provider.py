@@ -54,7 +54,8 @@ class FileResource(DAVNonCollection):
         return self.file_stat[stat.ST_SIZE]
 
     def get_content_type(self):
-        return util.guess_mime_type(self.path)
+        config = self.environ["wsgidav.config"]
+        return util.guess_mime_type(self.path, config)
 
     def get_creation_date(self):
         return self.file_stat[stat.ST_CTIME]

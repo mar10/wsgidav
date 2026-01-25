@@ -3,3 +3,5 @@ Jinja2~=3.1
 json5~=0.9
 python-pam~=2.0
 PyYAML~=6.0
+passlib~=1.7
+bcrypt~=4.3
