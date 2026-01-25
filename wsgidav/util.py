@@ -21,7 +21,7 @@ from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Iterable, Optional, Tuple
+from typing import Dict, Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav import __version__
@@ -1758,7 +1758,7 @@ _MIME_TYPES = {
 }
 
 
-def guess_mime_type(url: str, options: dict | None = None) -> str:
+def guess_mime_type(url: str, options: Optional[Dict] = None) -> str:
     """Use the mimetypes module to lookup the type for an extension.
 
     This function also adds some extensions required for HTML5

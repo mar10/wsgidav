@@ -7,7 +7,7 @@
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental middleware for impersonation (@leo9800)
 - [New option `default_charset`](https://github.com/mar10/wsgidav/pull/354)
-  Defaults to 'utf-8'
+  Defaults to 'utf-8' (@leo9800)
 
 ## 4.3.3 / 2024-05-04
 
