@@ -42,6 +42,7 @@ DEFAULT_CONFIG = {
         "follow_symlinks": False,
     },
     "add_header_MS_Author_Via": True,
+    "default_charset": "utf-8",  # e.g. "utf-8"
     "hotfixes": {
         "emulate_win32_lastmod": False,  # True: support Win32LastModifiedTime
         "re_encode_path_info": True,  # (See issue #73)
