@@ -1,4 +1,5 @@
 from passlib.apache import HtpasswdFile
+
 from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
 

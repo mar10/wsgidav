@@ -1,11 +1,13 @@
 # Changelog
 
-## 4.3.4 / Unreleased
+## 4.4.0 / Unreleased
 
 - Test with Python 3.13
 - Use ruff instead of black/isort
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental middleware for impersonation (@leo9800)
+- [#352](https://github.com/mar10/wsgidav/pull/352)
+  Apache htpasswd based domain controller
 
 ## 4.3.3 / 2024-05-04
 
