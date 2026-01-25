@@ -6,6 +6,8 @@
 - Use ruff instead of black/isort
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental middleware for impersonation (@leo9800)
+- [#348](https://github.com/mar10/wsgidav/issues/348) 
+  Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
 - [#352](https://github.com/mar10/wsgidav/pull/352)
   Apache htpasswd based domain controller (@leo9800)
 - [#354`](https://github.com/mar10/wsgidav/pull/354)

@@ -155,6 +155,9 @@ fs_dav_provider:
     #: Serve symbolic link files and folders (default: false)
     follow_symlinks: false
 
+#: Set last modification based on timestamp provided by `X-OC-Mtime` header
+honor_mtime_header: false
+
 # ==============================================================================
 # AUTHENTICATION
 http_authenticator:
