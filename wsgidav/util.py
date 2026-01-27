@@ -1211,7 +1211,7 @@ def send_redirect_response(environ, start_response, *, location):
         [
             ("Content-Length", "0"),
             ("Date", get_rfc1123_time()),
-            ("Location", location),
+            ("Location", quote(location)),
         ],
     )
     return [b""]
