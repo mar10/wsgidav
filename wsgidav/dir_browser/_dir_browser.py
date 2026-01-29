@@ -121,11 +121,10 @@ class WsgiDavDirBrowser(BaseMiddleware):
                 return [res]
 
             directory_slash = self.dir_config.get("directory_slash")
-            requrest_uri = environ.get("REQUEST_URI")
-            if directory_slash and requrest_uri and not requrest_uri.endswith("/"):
-                _logger.info(f"Redirect {requrest_uri} to {requrest_uri}/")
+            if directory_slash and not path.endswith("/"):
+                _logger.info(f"Redirect {path} to {path}/")
                 return send_redirect_response(
-                    environ, start_response, location=requrest_uri + "/"
+                    environ, start_response, location=f"{path}/"
                 )
 
             context = self._get_context(environ, dav_res)
