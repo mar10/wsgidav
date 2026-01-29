@@ -10,8 +10,10 @@
   Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
 - [#352](https://github.com/mar10/wsgidav/pull/352)
   Apache htpasswd based domain controller (@leo9800)
-- [#354`](https://github.com/mar10/wsgidav/pull/354)
-  New option `default_charset, defaults to 'utf-8' (@leo9800)
+- [#354](https://github.com/mar10/wsgidav/pull/354)
+  New option `default_charset`, defaults to 'utf-8' (@leo9800)
+- [#355](https://github.com/mar10/wsgidav/pull/355)
+  Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
 
 ## 4.3.3 / 2024-05-04
 
