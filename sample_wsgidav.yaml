@@ -229,6 +229,9 @@ impersonator:
     # or, use WebDAV (HTTP) usernames as is
     custom_user_mapping: null
 
+    # do not allow impersonating as system users (UID <= 999)
+    reject_system_users: false
+
 
 # ----------------------------------------------------------------------------
 # CORS
