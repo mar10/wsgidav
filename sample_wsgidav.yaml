@@ -180,6 +180,7 @@ http_authenticator:
     # domain_controller: wsgidav.dc.pam_dc.PAMDomainController
     # domain_controller: wsgidav.dc.nt_dc.NTDomainController
     # domain_controller: wsgidav.dc.htpasswd_dc.HtpasswdDomainController
+    # domain_controller: wsgidav.dc.htdigest_dc.HtdigestDomainController
 
 
 # Additional options for SimpleDomainController only:
@@ -212,6 +213,10 @@ pam_dc:
 # Additional options for HtpasswdDomainController only:
 htpasswd_dc:
     htpasswd_file: '/path/to/wsgidav.htpasswd'
+
+# Additional options for HtdigestDomainController only:
+htdigest_dc:
+    htdigest_file: '/path/to/wsgidav.htdigest'
 
 
 # ----------------------------------------------------------------------------
