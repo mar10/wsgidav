@@ -2,8 +2,6 @@
 
 ## 4.4.0 / Unreleased
 
-- Test with Python 3.13
-- Use ruff instead of black/isort
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental middleware for impersonation (@leo9800)
 - [#348](https://github.com/mar10/wsgidav/issues/348) 
@@ -14,6 +12,10 @@
   New option `default_charset`, defaults to 'utf-8' (@leo9800)
 - [#355](https://github.com/mar10/wsgidav/pull/355)
   Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
+- [#356](https://github.com/mar10/wsgidav/pull/356)
+  Domain controller for apache .htdigest files (@leo9800)
+- Test with Python 3.13
+- Use ruff instead of black/isort
 
 ## 4.3.3 / 2024-05-04
 
