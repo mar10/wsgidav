@@ -1,18 +1,13 @@
+# Run WsgiDAV and expose a single WebDAV share with anonymous access.
 version: '2'
 
 services:
   wsgidav:
     build: .
     image: mar10/wsgidav
-    container_name: "wsgidav"
+    container_name: "wsgidav-single-root-anonymous"
     ports:
       - "8080:8080"
-    networks:
-      - local
     volumes:
-      - ./wsgidav_data:/var/wsgidav-root
-    restart: always
-
-networks:
-  local:
-    driver: bridge
+      - ./wsgidav_data:/srv/wsgidav-share
+    restart: unless-stopped
