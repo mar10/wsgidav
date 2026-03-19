@@ -372,7 +372,7 @@ dav_explorer:
     response_trailer: true
     #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
-    show_logout: true
+    show_login: true
     #: Generate `ms-word:ofe|u|" prefix for office URLs (Microsoft and LibreOffice)
     office_support: true
     #: The path to the directory that contains template.html and associated

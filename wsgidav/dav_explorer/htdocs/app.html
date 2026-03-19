@@ -33,7 +33,11 @@
       <h1>
         {%- if icon %}
         <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo.png" />
-        {% endif -%} <small>Wsgi</small>DAV-Explorer
+        {% endif -%}
+        <span class="title">
+          <span class="prefix">Wsgi</span>
+          <span class="name">DAV-Explorer</span>
+        </span>
         <!-- Index of {{ display_path }} -->
       </h1>
 
@@ -47,13 +51,13 @@
           {%- if js_config.show_user == true %}
           <i class="bi bi-person"></i>
           <span class="auth-user">
-            {%- if user_name %} Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. 
-              {%- if is_authenticated and js_config.show_logout %}
+            {%- if is_authenticated %} '{{user_name}}', realm: '{{realm}}', access: {{access}}. 
+              {%- if js_config.show_login %}
                 <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
               {% endif -%} 
               {%- if user_roles %} , roles: {{ user_roles }} {% endif -%} 
             {% else %}
-              Not authenticated. 
+              Anonymous. 
               {%- if js_config.show_login %} 
               <a title="Login" href="{{ url }}?login" target="_blank" rel="noopener noreferrer">Login</a>
               {% endif -%}

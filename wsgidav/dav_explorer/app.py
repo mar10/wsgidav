@@ -138,7 +138,7 @@ class WsgiDavExplorer(BaseMiddleware):
                 "open_info_pane",
                 "readonly",
                 "response_trailer",
-                "show_logout",
+                "show_login",
                 "show_user",
             ]
         }
@@ -179,6 +179,9 @@ class WsgiDavExplorer(BaseMiddleware):
             )
 
         jinja_context["trailer"] = trailer
+
+        if self.davex_config.get("icon"):
+            jinja_context["icon"] = self.mount_path + ASSET_SHARE + "/logo.png"
 
         if "wsgidav.auth.user_name" in environ:
             jinja_context.update(
