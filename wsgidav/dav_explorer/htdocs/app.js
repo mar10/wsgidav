@@ -113,7 +113,7 @@ const _tree = new Wunderbaum({
 		togglePreviewPane(true);
 	},
 	load: function (e) {
-		// Whe loading a lazy branch, apply current sort order if any
+		// When loading a lazy branch, apply current sort order if any
 		e.node.resort();
 	},
 	lazyLoad: function (e) {

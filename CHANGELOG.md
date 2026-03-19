@@ -2,7 +2,7 @@
 
 ## `feature/update-web-ui` / Unreleased
 
-- WsgiDavExplorer: new web frontent that replaces DirBrowser by default.
+- WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
 
 ## 4.4.0 / Unreleased
 
