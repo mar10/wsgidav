@@ -32,6 +32,7 @@ ignore = [
   "T201",  # `print()` statement found
   "T203",  # `pprint()` statement found
   "UP031", # Use format specifiers instead of percent format
+  "UP038", # Use `X | Y` in `isinstance` call instead of `(X, Y)`
 ]
 
 [tool.ruff.lint.isort]
