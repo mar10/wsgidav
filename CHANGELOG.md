@@ -4,8 +4,20 @@
 
 - WsgiDavExplorer: new web frontent that replaces DirBrowser by default.
 
-## 4.3.4 / Unreleased
+## 4.4.0 / Unreleased
 
+- [#343](https://github.com/mar10/wsgidav/issues/343)
+  Add experimental middleware for impersonation (@leo9800)
+- [#348](https://github.com/mar10/wsgidav/issues/348)
+  Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
+- [#352](https://github.com/mar10/wsgidav/pull/352)
+  Apache htpasswd based domain controller (@leo9800)
+- [#354](https://github.com/mar10/wsgidav/pull/354)
+  New option `default_charset`, defaults to 'utf-8' (@leo9800)
+- [#355](https://github.com/mar10/wsgidav/pull/355)
+  Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
+- [#356](https://github.com/mar10/wsgidav/pull/356)
+  Domain controller for apache .htdigest files (@leo9800)
 - Test with Python 3.13
 - Use ruff instead of black/isort
 

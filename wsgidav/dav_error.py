@@ -9,7 +9,7 @@ Implements a DAVError class that is used to signal WebDAV and HTTP errors.
 import datetime
 from html import escape as html_escape
 
-from wsgidav import util, xml_tools
+from wsgidav import xml_tools
 from wsgidav.xml_tools import etree
 
 __docformat__ = "reStructuredText"
@@ -128,6 +128,22 @@ PRECONDITION_CODE_LockConflict = "{DAV:}no-conflicting-lock"
 PRECONDITION_CODE_PropfindFiniteDepth = "{DAV:}propfind-finite-depth"
 
 
+def to_bytes(s, encoding="utf8"):
+    """Convert a text string (unicode) to bytestring (str on Py2 and bytes on Py3)."""
+    if type(s) is not bytes:
+        s = bytes(s, encoding)
+    return s
+
+
+def to_str(s, encoding="utf8"):
+    """Convert data to native str type (bytestring on Py2 and unicode on Py3)."""
+    if type(s) is bytes:
+        s = str(s, encoding)
+    elif type(s) is not str:
+        s = str(s)
+    return s
+
+
 class DAVErrorCondition:
     """May be embedded in :class:`DAVError` instances to store additional data."""
 
@@ -159,7 +175,7 @@ class DAVErrorCondition:
         return error_el
 
     def as_string(self):
-        return util.to_str(xml_tools.xml_to_bytes(self.as_xml(), pretty=True))
+        return to_str(xml_tools.xml_to_bytes(self.as_xml(), pretty=True))
 
 
 # ========================================================================
@@ -197,7 +213,7 @@ class DAVError(Exception):
         self.src_exception = src_exception
         self.err_condition = err_condition
         self.add_headers = add_headers
-        if util.is_str(err_condition):
+        if isinstance(err_condition, str):
             self.err_condition = DAVErrorCondition(err_condition)
         assert (
             self.err_condition is None or type(self.err_condition) is DAVErrorCondition
@@ -230,11 +246,13 @@ class DAVError(Exception):
 
     def get_response_page(self):
         """Return a tuple (content-type, response page)."""
+        from wsgidav.util import public_wsgidav_info
+
         # If it has pre- or post-condition: return as XML response
         if self.err_condition:
             return (
                 "application/xml; charset=utf-8",
-                util.to_bytes(self.err_condition.as_string()),
+                to_bytes(self.err_condition.as_string()),
             )
 
         # Else return as HTML
@@ -255,13 +273,13 @@ class DAVError(Exception):
         html.append("<hr/>")
         html.append(
             "<a href='https://github.com/mar10/wsgidav/'>{}</a> - {}".format(
-                util.public_wsgidav_info,
+                public_wsgidav_info,
                 html_escape(str(datetime.datetime.now()), "utf-8"),
             )
         )
         html.append("</body></html>")
         html = "\n".join(html)
-        return ("text/html; charset=utf-8", util.to_bytes(html))
+        return ("text/html; charset=utf-8", to_bytes(html))
 
 
 def get_http_status_code(v):

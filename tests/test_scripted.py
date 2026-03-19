@@ -117,6 +117,7 @@ class WsgiDAVServerThread(Thread):
             },
             "property_manager": True,  # True: use property_manager.PropertyManager
             "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
+            "honor_mtime_header": True,  # True: set mtime according to x-oc-mtime
         }
 
         if withAuthentication:
@@ -206,6 +207,42 @@ class ServerTest(unittest.TestCase):
         client.set_basic_auth("tester", "secret")
         client.put("/file_auth.txt", b"foo")
         client.check_response((201, 204))  # Created or No Content when file existed
+
+    def testMkcolWithMtime(self):
+        client = self.client
+        client.delete("/test/")
+        client.mkcol("/test/", headers={"x-oc-mtime": "1735660800"})
+        client.check_response(201)
+
+        stat = os.stat(os.path.join(gettempdir(), "wsgidav-test", "test"))
+        assert int(stat.st_mtime) == 1735660800
+
+    def testMkcolWithInvalidMtime(self):
+        client = self.client
+        client.delete("/test/")
+        client.mkcol("/test/", headers={"x-oc-mtime": "nonsense"})
+        client.check_response(400)
+
+    def testPutWithMtime(self):
+        client = self.client
+        data1 = b"this is a file\nwith two lines"
+        client.delete("/test/")
+        client.mkcol("/test/")
+        client.check_response(201)
+        client.put("/test/file1.txt", data1, headers={"x-oc-mtime": "1735660800"})
+        client.check_response(201)
+
+        stat = os.stat(os.path.join(gettempdir(), "wsgidav-test", "test", "file1.txt"))
+        assert int(stat.st_mtime) == 1735660800
+
+    def testPutWithInvalidMtime(self):
+        client = self.client
+        data1 = b"this is a file\nwith two lines"
+        client.delete("/test/")
+        client.mkcol("/test/")
+        client.check_response(201)
+        client.put("/test/file1.txt", data1, headers={"x-oc-mtime": "nonsense"})
+        client.check_response(400)
 
     def testGetPut(self):
         """Read and write file contents."""

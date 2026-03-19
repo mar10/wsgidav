@@ -21,7 +21,7 @@ from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Iterable, Optional, Tuple
+from typing import Dict, Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav import __version__
@@ -1216,7 +1216,7 @@ def send_redirect_response(environ, start_response, *, location):
         [
             ("Content-Length", "0"),
             ("Date", get_rfc1123_time()),
-            ("Location", location),
+            ("Location", quote(location)),
         ],
     )
     return [b""]
@@ -1763,16 +1763,19 @@ _MIME_TYPES = {
 }
 
 
-def guess_mime_type(url):
+def guess_mime_type(url: str, options: Optional[Dict] = None) -> str:
     """Use the mimetypes module to lookup the type for an extension.
 
     This function also adds some extensions required for HTML5
     """
     (mimetype, _mimeencoding) = mimetypes.guess_type(url)
+    default_charset = options.get("default_charset") if options else None
     if not mimetype:
         ext = os.path.splitext(url)[1]
         mimetype = _MIME_TYPES.get(ext)
         _logger.debug(f"mimetype({url}): {mimetype}")
     if not mimetype:
         mimetype = "application/octet-stream"
+    if mimetype.startswith("text/") and default_charset:
+        mimetype += f"; charset={default_charset}"
     return mimetype

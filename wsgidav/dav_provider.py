@@ -1248,7 +1248,8 @@ class DAVNonCollection(_DAVResource):
 
         This default implementation guesses the type from the filen name.
         """
-        return util.guess_mime_type(self.path)
+        config = self.environ["wsgidav.config"]
+        return util.guess_mime_type(self.path, config)
 
     @abstractmethod
     def get_content(self):

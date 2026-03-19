@@ -106,6 +106,7 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
         },
         "property_manager": True,  # True: use property_manager.PropertyManager
         "lock_storage": True,  # True: use LockManager(lock_storage.LockStorageDict)
+        "honor_mtime_header": True,  # True: set mtime according to x-oc-mtime
     }
 
     if with_auth:

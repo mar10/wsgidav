@@ -46,6 +46,10 @@ block_size: 8192
 #: with Microsoft Office (default: true)
 add_header_MS_Author_Via: true
 
+#: Default encoding for text files. #: If null (default), use system default encoding.
+#: Otherwise specify a string like "utf-8". Pass None to prevent '; charset=' header.
+default_charset: 'utf-8'
+
 hotfixes:
     #: Handle Microsoft's Win32LastModifiedTime property.
     #: This is useful only in the case when you copy files from a Windows
@@ -99,6 +103,7 @@ middleware_stack:
     - wsgidav.http_authenticator.HTTPAuthenticator
     # - wsgidav.dir_browser.WsgiDavDirBrowser
     - wsgidav.dav_explorer.WsgiDavExplorer
+    # - wsgidav.mw.impersonator.Impersonator
     - wsgidav.request_resolver.RequestResolver  # this must be the last middleware item
 
 # ==============================================================================
@@ -151,6 +156,9 @@ fs_dav_provider:
     #: Serve symbolic link files and folders (default: false)
     follow_symlinks: false
 
+#: Set last modification based on timestamp provided by `X-OC-Mtime` header
+honor_mtime_header: false
+
 # ==============================================================================
 # AUTHENTICATION
 http_authenticator:
@@ -172,6 +180,8 @@ http_authenticator:
     # domain_controller: wsgidav.dc.simple_dc.SimpleDomainController
     # domain_controller: wsgidav.dc.pam_dc.PAMDomainController
     # domain_controller: wsgidav.dc.nt_dc.NTDomainController
+    # domain_controller: wsgidav.dc.htpasswd_dc.HtpasswdDomainController
+    # domain_controller: wsgidav.dc.htdigest_dc.HtdigestDomainController
 
 
 # Additional options for SimpleDomainController only:
@@ -200,6 +210,30 @@ pam_dc:
     service: 'login'
     encoding: 'utf-8'
     resetcreds: true
+
+# Additional options for HtpasswdDomainController only:
+htpasswd_dc:
+    htpasswd_file: '/path/to/wsgidav.htpasswd'
+
+# Additional options for HtdigestDomainController only:
+htdigest_dc:
+    htdigest_file: '/path/to/wsgidav.htdigest'
+
+
+# ----------------------------------------------------------------------------
+# User/Group Impersonating
+# (Requires `wsgidav.mw.impersonator.Impersonator`, which is disabled by default.)
+impersonator:
+    # enabling impersonating
+    enable: false
+
+    # custom map WebDAV (HTTP) usernames to Unix usernames
+    # custom_user_mapping:
+    #     leonlee: leo
+    #     jenifer: jenny
+
+    # or, use WebDAV (HTTP) usernames as is
+    custom_user_mapping: null
 
 
 # ----------------------------------------------------------------------------
