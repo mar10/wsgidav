@@ -160,9 +160,23 @@ aside {
 }
 
 /* --- Wunderbaum --- */
+
 div.wunderbaum:focus-visible {
   /* Suppress system focus outline. */
   outline-style: none;
+}
+
+div.wunderbaum {
+  /* Adjust for parentPath. */
+  height: calc(100% - 20px);
+}
+
+
+output#parentPath {
+  font-size: 80%;
+  display: block;
+  padding: 1px 3px;
+  height: 18px;
 }
 
 /* --- Preview Pane --- */
@@ -221,7 +235,8 @@ span.command-palette {
   display: none;
 }
 
-.wb-row:hover span.command-palette,
+/* Show commands on hover or when active */
+/* .wb-row:hover span.command-palette, */
 .wb-row.wb-active span.command-palette {
   display: unset;
 }
@@ -248,8 +263,13 @@ span.command-palette {
   cursor: pointer;
 }
 
+span.command-palette .wb-button:not(.disabled):hover {
+  color: unset;
+  border-color: unset;
+}
+
 .wb-button.alert:not(.disabled):hover {
-  color: red;
+  color: red !important;
 }
 
 /* --- Notification toast --- */

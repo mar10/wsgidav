@@ -73,7 +73,14 @@
       <span id="notification" class="notification"></span>
     </header>
     <div class="main-container">
+        <!-- <main class="view">
+          <div id="demo-tree" class="wb-skeleton wb-initializing wb-no-select">
+            <h1>Wunderbaum Demo</h1>
+            <p>Loading&hellip;</p>
+          </div>
+        </main> -->
       <main>
+        <output id="parentPath"></output>
         <div id="tree"></div>
       </main>
       <aside id="rightPane" class="right collapse-horizontal">
@@ -106,11 +113,18 @@
                 <input type="checkbox" id="readonly" name="readonly" />
               </div>
               <div class="form-group">
-                <label for="dblclick_action">Double-click</label>
+                <label for="dblclick_action">Double-click files</label>
                 <select id="dblclick_action" name="dblclick_action">
-                  <option value="download">Download file</option>
-                  <option value="open">Open file</option>
+                  <option value="download">Download</option>
+                  <option value="open">Open in new tab</option>
                   <option value="nothing">Do nothing</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="dblclick_action_folders">Double-click folders</label>
+                <select id="dblclick_action_folders" name="dblclick_action_folders">
+                  <option value="expand">Expand/collapse</option>
+                  <option value="set_root">Open here</option>
                 </select>
               </div>
                 <button type="button" id="resetSettings" class="btn btn-secondary"  >
