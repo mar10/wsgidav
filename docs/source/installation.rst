@@ -20,7 +20,7 @@ WsgiDAV server was tested with these operating systems (among others):
 
 WsgiDAV requires
 
-  * `Python <https://www.python.org/downloads/>`_ 3.6 or later.
+  * `Python <https://www.python.org/downloads/>`_ 3.10 or later.
   * A WSGI compliant web server. |br|
     WsigDAV is a WSGI application, that must be served by a compliant web server.
     Among others, there are

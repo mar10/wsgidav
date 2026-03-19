@@ -1,7 +1,10 @@
 # Changelog
 
-## 4.4.0 / Unreleased
+## 5.0.0 / Unreleased
 
+- BREAKING:
+  - Drop support for Python 3.8/3.9
+- Support Python 3.13/3.14
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental middleware for impersonation (@leo9800)
 - [#348](https://github.com/mar10/wsgidav/issues/348) 
@@ -14,7 +17,6 @@
   Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
 - [#356](https://github.com/mar10/wsgidav/pull/356)
   Domain controller for apache .htdigest files (@leo9800)
-- Test with Python 3.13
 - Use ruff instead of black/isort
 
 ## 4.3.3 / 2024-05-04
