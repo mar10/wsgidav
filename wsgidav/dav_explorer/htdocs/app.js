@@ -254,7 +254,7 @@ registerCommandButtons("body", (e) => {
 			node = getTree().root;
 		// fall through
 		case "newFolder":
-			const newName = prompt(`Enter the name of the new subfolder of\n '${node.getPath() + "/"}'`);
+			const newName = prompt(`Enter the name of the new subfolder below\n '${node.getPath() + "/"}'`);
 			if (newName) {
 				createFolder(node, newName);
 			}

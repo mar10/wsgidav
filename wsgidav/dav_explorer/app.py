@@ -130,11 +130,16 @@ class WsgiDavExplorer(BaseMiddleware):
             for k, v in self.davex_config.items()
             if k
             in [
+                "directory_slash",
+                "icon",
                 # "ignore_list",
                 "max_preview_size_kb",
                 "office_support",
                 "open_info_pane",
                 "readonly",
+                "response_trailer",
+                "show_logout",
+                "show_user",
             ]
         }
         js_config.update(

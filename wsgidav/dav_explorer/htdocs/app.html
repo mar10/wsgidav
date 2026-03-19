@@ -44,11 +44,23 @@
           <i class="wb-button bi bi-folder-plus" title="Create topfolder..." data-command="newTopFolder"></i>
         </span>
         <span class="header-bar-right">
-          <span class="auth-user"
-            >'' {%- if user_name and show_user %} Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and show_logout %}
-            <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
-            {% endif -%} {%- if user_roles %} , roles: {{ user_roles }} {% endif -%} {% endif -%}
-          </span>
+          {%- if js_config.show_user == true %}
+          <i class="bi bi-person"></i>
+          <span class="auth-user">
+            {%- if user_name %} Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. 
+              {%- if is_authenticated and js_config.show_logout %}
+                <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
+              {% endif -%} 
+              {%- if user_roles %} , roles: {{ user_roles }} {% endif -%} 
+            {% else %}
+              Not authenticated. 
+              {%- if js_config.show_login %} 
+              <a title="Login" href="{{ url }}?login" target="_blank" rel="noopener noreferrer">Login</a>
+              {% endif -%}
+            {% endif -%}
+            </span>
+
+          {% endif -%}
           <i class="wb-button wb-button-toggle bi bi-window-split down" data-command="togglePreview" title="Toggle details pane"></i>
           <i class="wb-button bi bi-gear" data-command="showSettings" title="Settings"></i>
           <i class="wb-button bi bi-question-circle" data-command="showHelp" title="Help"></i>
