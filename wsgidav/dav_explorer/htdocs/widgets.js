@@ -298,7 +298,11 @@ export async function createFolder(node, newName, options = {}) {
       node.addChildren({ title: newName, type: "directory" });
     }
   } catch (err) {
-    showNotification(`Failed to create folder "${filePath}/": ${err.message}`, { type: "error" });
+    if (err.status === 405) {
+      showNotification(`Folder "${filePath}" already exists.`, { type: "warning" });
+    } else {
+      showNotification(`Failed to create folder "${filePath}/": ${err.message}`, { type: "error" });
+    }
     console.error("Failed to create folder: ", err);
   }
 }
