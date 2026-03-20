@@ -94,8 +94,8 @@ class ServerTest(unittest.TestCase):
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
         if (
-            "<!-- WebDAV UI:" in res.text
-            and "<!-- WebDAV UI: dir_browser -->" not in res.text
+            "<!-- WsgiDAV-UI:" in res.text
+            and "<!-- WsgiDAV-UI: dir_browser -->" not in res.text
         ):
             raise unittest.SkipTest("probably dav_explorer enabled")
 
@@ -116,8 +116,8 @@ class ServerTest(unittest.TestCase):
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
         if (
-            "<!-- WebDAV UI:" in res.text
-            and "<!-- WebDAV UI: dav_explorer -->" not in res.text
+            "<!-- WsgiDAV-UI:" in res.text
+            and "<!-- WsgiDAV-UI: dav_explorer -->" not in res.text
         ):
             raise unittest.SkipTest("probably dir_browser enabled")
 

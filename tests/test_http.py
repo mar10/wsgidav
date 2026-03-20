@@ -53,8 +53,8 @@ class DirbrowserTest(unittest.TestCase):
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
 
         if (
-            "<!-- WebDAV UI:" in res.text
-            and "<!-- WebDAV UI: dir_browser -->" not in res.text
+            "<!-- WsgiDAV-UI:" in res.text
+            and "<!-- WsgiDAV-UI: dir_browser -->" not in res.text
         ):
             raise unittest.SkipTest("probably dav_explorer enabled")
 
@@ -83,7 +83,7 @@ class DavExplorerTest(unittest.TestCase):
         assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
         if (
-            "<!-- WebDAV UI:" in res.text
-            and "<!-- WebDAV UI: dav_explorer -->" not in res.text
+            "<!-- WsgiDAV-UI:" in res.text
+            and "<!-- WsgiDAV-UI: dav_explorer -->" not in res.text
         ):
             raise unittest.SkipTest("probably dir_browser enabled")
