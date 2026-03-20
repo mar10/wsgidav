@@ -69,9 +69,7 @@ header h1 span.title span.prefix {
   line-height: 1;
   z-index: 1;
   color: var(--wdx-header-text-color-active);
-  background-color: var(--wdx-text-color-branding);
-  /* color: var(--wdx-header-bg-color); */
-  /* background-color: var(--wdx-header-text-color-active); */
+  /* background-color: var(--wdx-text-color-branding); */
   padding: 1px 2px;
   border-radius: 2px;
 }
