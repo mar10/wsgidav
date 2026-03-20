@@ -49,10 +49,11 @@ header {
   font-size: 90%;
 }
 
-header h1 span.title img.logo {
+header h1 img.logo {
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
   border-radius: 2px;
   border: #333 1px solid;
+  vertical-align: text-bottom;
 }
 
 header h1 span.title {
