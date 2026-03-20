@@ -15,8 +15,8 @@ Default configuration.
 """
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
-# from wsgidav.dir_browser import WsgiDavDirBrowser
-from wsgidav.dav_explorer import WsgiDavExplorer
+# from wsgidav.dav_explorer import WsgiDavExplorer
+from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 
@@ -62,8 +62,8 @@ DEFAULT_CONFIG = {
         Cors,
         ErrorPrinter,
         HTTPAuthenticator,
-        # WsgiDavDirBrowser,  # configured under dir_browser option (see below)
-        WsgiDavExplorer,  # configured under dav_explorer option (see below)
+        WsgiDavDirBrowser,  # configured under dir_browser option (see below)
+        # WsgiDavExplorer,  # configured under dav_explorer option (see below)
         # Impersonator,
         RequestResolver,  # this must be the last middleware item
     ],
