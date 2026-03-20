@@ -1,7 +1,7 @@
 "use strict";
 
 import { Wunderbaum } from "./wunderbaum.esm.js";
-import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode, isFile, isFolder } from "./util.js";
+import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode, isFile, isFolder, isRootFolder } from "./util.js";
 
 /**
  * Command Buttons & Palette
@@ -229,15 +229,16 @@ export async function addFileToDataTransfer(node, dragStartEvent) {
 /** Drop axternal file(s) into a directory (use node's parent if node is a file) */
 export async function uploadFiles(node, fileArray, options = {}) {
   const client = getDAVClient();
-  const uploadPath = node.getPath();
 
   // `node` should be the parent of the uploaded files.
   // We accept either the tree's system root or a directory. If the node is
   // a file, use its parent folder node
-  if (node.parent != null) {
-    if (isFile(node)) node = node.parent;
-    if (!isFolder(node)) throw new Error("No active directory.");
+  if (isFile(node)) {
+    node = node.parent;
+  } else if (!isFolder(node) && !isRootFolder(node)) {
+    throw new Error("No active directory.");
   }
+  const uploadPath = node.getPath();
 
   showNotification("Upload started.");
   for (const file of fileArray) {
