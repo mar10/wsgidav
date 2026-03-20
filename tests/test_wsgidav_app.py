@@ -90,10 +90,15 @@ class ServerTest(unittest.TestCase):
 
     def testDirBrowser(self):
         """Server must respond to GET on a collection."""
-        raise unittest.SkipTest("dir_browser is not enabled by default")
         app = self.app
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
+        if (
+            "<!-- WebDAV UI:" in res.text
+            and "<!-- WebDAV UI: dir_browser -->" not in res.text
+        ):
+            raise unittest.SkipTest("probably dav_explorer enabled")
+
         assert "WsgiDAV - Index of /" in res, "Could not list root share"
         assert "readme.txt" in res, "Fixture content"
         assert "Lotosblütenstengel (蓮花莖).docx" in res, "Encoded fixture content"
@@ -110,6 +115,12 @@ class ServerTest(unittest.TestCase):
         app = self.app
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
+        if (
+            "<!-- WebDAV UI:" in res.text
+            and "<!-- WebDAV UI: dav_explorer -->" not in res.text
+        ):
+            raise unittest.SkipTest("probably dir_browser enabled")
+
         assert "DAV-Explorer" in res, "Could not list root share"
         assert "WsgiDAV - Index of /" in res, "Could not list root share"
 

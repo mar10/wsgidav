@@ -45,15 +45,18 @@ class DirbrowserTest(unittest.TestCase):
         pass
 
     def testGet(self):
-        raise unittest.SkipTest("dir_browser is not enabled by default")
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
         assert '<meta name="generator" content="WsgiDAV/' in res.text
         assert res.encoding == "utf-8"
-        # assert res.encoding == "ISO-8859-1"
         assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
-        # assert res.headers["Content-Type"] == "text/html"
+
+        if (
+            "<!-- WebDAV UI:" in res.text
+            and "<!-- WebDAV UI: dir_browser -->" not in res.text
+        ):
+            raise unittest.SkipTest("probably dav_explorer enabled")
 
         res = requests.get(self.url + "?davmount", auth=self.auth)
         assert res.status_code == 200
@@ -79,3 +82,8 @@ class DavExplorerTest(unittest.TestCase):
         assert res.encoding == "utf-8"
         assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
+        if (
+            "<!-- WebDAV UI:" in res.text
+            and "<!-- WebDAV UI: dav_explorer -->" not in res.text
+        ):
+            raise unittest.SkipTest("probably dir_browser enabled")
