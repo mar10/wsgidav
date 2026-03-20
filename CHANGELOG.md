@@ -1,6 +1,6 @@
 # Changelog
 
-## 5.0.0 / Unreleased
+## 4.4.0 / Unreleased
 
 - BREAKING:
   - Drop support for Python 3.8/3.9
