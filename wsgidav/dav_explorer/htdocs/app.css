@@ -321,7 +321,8 @@ span.command-palette .wb-button:not(.disabled):hover {
 
 .notification {
   display: none;
-  padding: 10px;
+  padding: 10px 30px 10px 10px;
+  /* Extra padding on right for close button */
   margin-top: 10px;
   border-radius: 5px;
   position: fixed;
@@ -348,4 +349,21 @@ span.command-palette .wb-button:not(.disabled):hover {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
+}
+
+.notification-close {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.notification-close:hover {
+  opacity: 1;
 }

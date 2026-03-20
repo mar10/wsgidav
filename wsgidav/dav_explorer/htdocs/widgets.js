@@ -70,12 +70,26 @@ export async function showNotification(message, options = {}) {
   duration ??= durationMap[type];
 
   const notification = document.getElementById("notification");
-  notification.textContent = message;
+
+  // Set content with close button
+  notification.innerHTML = `${message}<span class="notification-close" title="Dismiss">&times;</span>`;
   notification.className = `notification ${type}`;
   notification.style.display = "inline";
+
+  // Add close button functionality
+  const closeBtn = notification.querySelector('.notification-close');
+  let timeoutId;
+
+  const hideNotification = () => {
+    notification.style.display = "none";
+    if (timeoutId) clearTimeout(timeoutId);
+  };
+
+  closeBtn.addEventListener('click', hideNotification);
+
   return new Promise((resolve) => {
-    setTimeout(() => {
-      notification.style.display = "none";
+    timeoutId = setTimeout(() => {
+      hideNotification();
       resolve();
     }, duration);
   });
