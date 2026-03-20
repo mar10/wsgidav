@@ -236,6 +236,7 @@ export function togglePreviewPane(flag = true) {
 	}
 	document.querySelector("aside.right").classList.toggle("show", !!flag);
 	setCommandButton("togglePreview", { pressed: !!flag });
+	settingsStore.set("showInfoPane", !!flag);
 	if (flag) {
 		const tree = getTree();
 		const activeNode = tree.getActiveNode();

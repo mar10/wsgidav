@@ -12,7 +12,6 @@ import {
 	getTree,
 	isFile,
 	isFolder,
-	isRootFolder,
 	parseDateToTimestamp,
 	settingsStore,
 } from "./util.js";
@@ -119,7 +118,7 @@ const _tree = new Wunderbaum({
 	init: function (e) {
 		e.tree.sort({ colId: "*", updateColInfo: true });
 		e.tree.setFocus();
-		togglePreviewPane(true);
+		togglePreviewPane(settingsStore.get("showInfoPane") ?? true);
 	},
 	load: function (e) {
 		// When loading a lazy branch, apply current sort order if any
