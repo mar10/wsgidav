@@ -24,7 +24,9 @@ RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml p
     && apk del .build-deps gcc musl-dev
 
 RUN pip install --no-cache-dir wsgidav cheroot lxml
-RUN mkdir -p /srv/wsgidav-share
+
+# This folder does not exist, so it must be mounted from the host using -v <ROOT_FOLDER>:/srv/wsgidav-share
+# RUN mkdir -p /srv/wsgidav-share
 
 # Create entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
