@@ -111,6 +111,7 @@ class ServerTest(unittest.TestCase):
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
         assert "DAV-Explorer" in res, "Could not list root share"
+        assert "WsgiDAV - Index of /" in res, "Could not list root share"
 
         # Access unmapped resource (expect '404 Not Found')
         res = app.get("/not-existing-124/", status=404)

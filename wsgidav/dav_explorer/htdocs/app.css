@@ -68,13 +68,58 @@ header h1 span.title span.prefix {
   left: 0;
   line-height: 1;
   z-index: 1;
-  color: var(--wdx-header-bg-color);
-  background-color: var(--wdx-header-text-color-active);
+  color: var(--wdx-header-text-color-active);
+  background-color: var(--wdx-text-color-branding);
+  /* color: var(--wdx-header-bg-color); */
+  /* background-color: var(--wdx-header-text-color-active); */
   padding: 1px 2px;
   border-radius: 2px;
-  opacity: 0.8;
 }
 
+.pulse-appear {
+  opacity: 0;
+  animation: pulseIn 3s ease-in-out forwards;
+}
+
+@keyframes pulseIn {
+
+  0%,
+  20% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  30% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+
+  40% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+
+  60% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  70% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+
+  80%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}
 
 .header-bar {
   display: flex;
