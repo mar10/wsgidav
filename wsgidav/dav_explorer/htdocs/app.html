@@ -92,13 +92,15 @@
           <pre id="preview-text" class="preview-pane hidden"></pre>
           <div id="preview-folder" class="preview-pane hidden">
             <div id="dropzone" class="dropzone">
-              <p>Drag and drop files here to upload, or click to select files.</p>
+              <p>Drag and drop files here to upload into current folder, or click to select files.</p>
               <input type="file" id="fileInput" multiple style="display: none" />
             </div>
+            <!-- <p class="folder-info">...</p> -->
           </div>
+          <p class="node-info hidden">...</p>
           <div id="preview-settings" class="preview-pane hidden">
             <h2>Settings</h2>
-            <!-- This form values are meintained by Persisto -->
+            <!-- This form values are maintained by Persisto -->
             <form id="settingsForm">
               <div class="form-group">
                 <label for="max_preview_size_kb">Max preview size (KB)</label>

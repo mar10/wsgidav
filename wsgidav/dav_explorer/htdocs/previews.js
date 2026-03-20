@@ -188,6 +188,8 @@ const folderElem = document.querySelector("aside.right div#preview-folder");
 const placeholderElem = document.querySelector("aside.right div#preview-unknown");
 const settingsElem = document.querySelector("aside.right div#preview-settings");
 const iframeElem = document.querySelector("aside.right iframe#preview-iframe");
+// const folderInfo = document.querySelector("aside.right div#preview-folder p.folder-info");
+const nodeInfo = document.querySelector("aside.right p.node-info");
 
 
 const imgPlaceholderEmpty = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -249,6 +251,27 @@ export function isPreviewPaneOpen() {
 	return !!document.querySelector("aside.right.show");
 }
 
+export function updateNodePreviewInfo(node) {
+	if (!node || !nodeInfo) {
+		return;
+	}
+
+	if (node.type === "directory") {
+		let itemCount;
+		if (node.isUnloaded()) {
+			itemCount = "children not yet loaded";
+		} else {
+			itemCount = node.children ? node.children.length : 0;
+			itemCount = `${itemCount} item${itemCount !== 1 ? 's' : ''}`;
+		}
+		nodeInfo.textContent = `${node.title} (${itemCount})`;
+	} else {
+		const sizeKB = node.data.size ? (node.data.size / 1024).toFixed(2) : "Unknown size";
+		nodeInfo.textContent = `${node.title} (${sizeKB} KB)`;
+		nodeInfo.textContent += node.data.mime ? `, ${node.data.mime}` : "";
+	}
+}
+
 export async function showPreview(urlOrNode, options = {}) {
 	let { autoOpen = false, iframe = false, maxSizeKB = settingsStore.get("max_preview_size_kb") } = options;
 
@@ -292,6 +315,7 @@ export async function showPreview(urlOrNode, options = {}) {
 	folderElem.classList.toggle("hidden", !isFolder);
 	placeholderElem.classList.toggle("hidden", isFolder || preview != null);
 	iframeElem.classList.toggle("hidden", preview !== "iframe");
+	nodeInfo.classList.toggle("hidden", !node);
 
 	switch (preview) {
 		case "text":
@@ -319,5 +343,8 @@ export async function showPreview(urlOrNode, options = {}) {
 			iframeElem.setAttribute("src", url);
 			break;
 	}
+
+	updateNodePreviewInfo(node);
+
 	return true;
 }

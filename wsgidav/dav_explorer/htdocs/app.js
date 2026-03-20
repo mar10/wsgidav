@@ -22,6 +22,7 @@ import {
 	getOfficeUrlPrefix,
 	showPreview,
 	togglePreviewPane,
+	updateNodePreviewInfo,
 } from "./previews.js";
 import {
 	addFileToDataTransfer,
@@ -99,7 +100,7 @@ const _tree = new Wunderbaum({
 		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
 		{ id: "lastmod", title: "Modified", width: "150px", classes: "wb-helper-end" },
 		// {id: "etag", title: "ETag", width: "80px" },
-		{ id: "mime", title: "Mime", width: 1 },
+		{ id: "mime", title: "Mime Type", width: 1 },
 	],
 	autoKeys: true,
 	columnsResizable: true,
@@ -127,6 +128,9 @@ const _tree = new Wunderbaum({
 	lazyLoad: function (e) {
 		const path = e.node.getPath();
 		return loadWbResources({ path: path });
+	},
+	expand: function (e) {
+		updateNodePreviewInfo(e.node);
 	},
 	buttonClick: (e) => {
 		if (e.command === "sort") {
