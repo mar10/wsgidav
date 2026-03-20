@@ -94,7 +94,7 @@ const _tree = new Wunderbaum({
 	types: {},
 	columns: [
 		{ id: "*", title: "Path", width: 2 },
-		{ id: "commands", title: "Commands", width: "180px", sortable: false },
+		{ id: "commands", title: "Commands", width: "190px", sortable: false },
 		{ id: "type", title: "Type", width: "100px" },
 		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
 		{ id: "lastmod", title: "Modified", width: "150px", classes: "wb-helper-end" },
