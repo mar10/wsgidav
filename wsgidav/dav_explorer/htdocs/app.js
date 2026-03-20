@@ -63,19 +63,25 @@ async function loadWbResources(options = {}) {
 	options = Object.assign({ path: "/", details: false }, options);
 	const client = getDAVClient();
 
-	const resList = await client.getDirectoryContents(options.path, options);
+	try {
+		const resList = await client.getDirectoryContents(options.path, options);
 
-	const nodeList = [];
-	for (let res of resList) {
-		res.title = res.basename;
-		delete res.basename;
-		if (res.type === "directory") res.lazy = true;
-		// Convert 'Mon, 07 Apr 2025 19:46:35 GMT' to a unix timestamp
-		res.lastmod = parseDateToTimestamp(res.lastmod);
-		nodeList.push(res);
+		const nodeList = [];
+		for (let res of resList) {
+			res.title = res.basename;
+			delete res.basename;
+			if (res.type === "directory") res.lazy = true;
+			// Convert 'Mon, 07 Apr 2025 19:46:35 GMT' to a unix timestamp
+			res.lastmod = parseDateToTimestamp(res.lastmod);
+			nodeList.push(res);
+		}
+		// console.info("getDirectoryContents", nodeList);
+		return nodeList;
+	} catch (err) {
+		console.error("Error loading resources:", err);
+		showNotification(`Failed to load resources: ${err.message}`, { type: "error" });
+		throw err;
 	}
-	// console.info("getDirectoryContents", nodeList);
-	return nodeList;
 }
 
 const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
@@ -138,7 +144,11 @@ const _tree = new Wunderbaum({
 			const oldValue = e.oldValue;
 			const newValue = e.newValue;
 			e.node.logInfo(`Move to ${newValue}`);
-			return getDAVClient().moveFile(oldValue, newValue);
+			return getDAVClient().moveFile(oldValue, newValue).catch((err) => {
+				showNotification(`Failed to rename "${oldValue}" to "${newValue}": ${err.message}`, { type: "error" });
+				console.error("Failed to rename: ", err);
+				throw err;
+			});
 		},
 	},
 	render: function (e) {
@@ -208,12 +218,17 @@ const _tree = new Wunderbaum({
 								{ title: `${e.sourceNodeData.title}` },
 								e.suggestedDropMode
 							);
+						}).catch((err) => {
+							showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
 						});
 						break;
 					default:
 						getDAVClient().moveFile(sourcePath, targetPath).then(() => {
 							e.sourceNode.moveTo(node, e.suggestedDropMode);
+						}).catch((err) => {
+							showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
 						});
+						break;
 				}
 			} else if (dataTransfer.items && dataTransfer.items.length) {
 				// drop an external file onto the tree
@@ -264,6 +279,9 @@ registerCommandButtons("body", (e) => {
 			if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
 				getDAVClient().deleteFile(node.getPath()).then(() => {
 					node.remove();
+				}).catch((err) => {
+					showNotification(`Failed to delete "${node.getPath()}": ${err.message}`, { type: "error" });
+					console.error("Failed to delete: ", err);
 				});
 			}
 			break;

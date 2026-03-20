@@ -263,8 +263,8 @@ export async function deleteResource(node, options = {}) {
     await getDAVClient().deleteFile(node.getPath());
     showNotification(`Deleted "/${node.getPath()}".`);
     node.remove();
-  } catch (e) {
-    showNotification("Failed to delete.", { type: "error" });
+  } catch (err) {
+    showNotification(`Failed to delete "/${node.getPath()}": ${err.message}`, { type: "error" });
     console.error("Failed to delete: ", err);
   }
 }
@@ -272,12 +272,17 @@ export async function deleteResource(node, options = {}) {
 export async function createFolder(node, newName, options = {}) {
   const client = getDAVClient();
   const path = node.getPath();
-
   const filePath = `${path}/${newName}`;
-  await client.createDirectory(filePath);
-  showNotification(`Created "${filePath}/".`);
-  if (!node.isUnloaded()) {
-    node.addChildren({ title: newName, type: "directory" });
+
+  try {
+    await client.createDirectory(filePath);
+    showNotification(`Created folder "${filePath}/".`);
+    if (!node.isUnloaded()) {
+      node.addChildren({ title: newName, type: "directory" });
+    }
+  } catch (err) {
+    showNotification(`Failed to create folder "${filePath}/": ${err.message}`, { type: "error" });
+    console.error("Failed to create folder: ", err);
   }
 }
 
