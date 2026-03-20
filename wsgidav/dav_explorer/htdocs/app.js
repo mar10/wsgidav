@@ -206,7 +206,7 @@ const _tree = new Wunderbaum({
 				// copy/move a node inside the tree
 				const sourcePath = e.sourceNode.getPath();
 				let targetPath;
-				if (node.type === "directory" && e.suggestedDropMode === "over") {
+				if (node.type === "directory" && e.region === "over") {
 					targetPath = node.getPath() + "/" + e.sourceNode.title;
 				} else {
 					targetPath = node.parent.getPath() + "/" + e.sourceNode.title;
