@@ -38,6 +38,10 @@ export function isFolder(node) {
     return node?.type === "directory";
 }
 
+export function isRootFolder(node) {
+    return node?.isRootNode();
+}
+
 export function isFile(node) {
     return !!(node && node.type !== "directory");
 }

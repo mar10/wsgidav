@@ -12,6 +12,7 @@ import {
 	getTree,
 	isFile,
 	isFolder,
+	isRootFolder,
 	parseDateToTimestamp,
 	settingsStore,
 } from "./util.js";
@@ -270,7 +271,8 @@ registerCommandButtons("body", (e) => {
 			node = getTree().root;
 		// fall through
 		case "newFolder":
-			const newName = prompt(`Enter the name of the new subfolder below\n '${node.getPath() + "/"}'`);
+			const promptText = node.isRootNode() ? "Name of the new toplevel folder" : `Name of the new subfolder of\n '${node.getPath() + "/"}'`;
+			const newName = prompt(promptText, "New Folder");
 			if (newName) {
 				createFolder(node, newName);
 			}
