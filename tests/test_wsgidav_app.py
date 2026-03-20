@@ -90,6 +90,7 @@ class ServerTest(unittest.TestCase):
 
     def testDirBrowser(self):
         """Server must respond to GET on a collection."""
+        raise unittest.SkipTest("dir_browser is not enabled by default")
         app = self.app
         # Access collection (expect '200 Ok' with HTML response)
         res = app.get("/", status=200)
@@ -102,6 +103,19 @@ class ServerTest(unittest.TestCase):
 
         res = app.get("/subfolder/", status=200)
         # res = app.get("/subfolder", status=301)
+        res = app.get("/subfolder")  # seems to follow redirects?
+
+    def testDavExplorer(self):
+        """Server must respond to GET on a collection."""
+        app = self.app
+        # Access collection (expect '200 Ok' with HTML response)
+        res = app.get("/", status=200)
+        assert "DAV-Explorer" in res, "Could not list root share"
+
+        # Access unmapped resource (expect '404 Not Found')
+        res = app.get("/not-existing-124/", status=404)
+
+        res = app.get("/subfolder/", status=200)
         res = app.get("/subfolder")  # seems to follow redirects?
 
     def testGetPut(self):

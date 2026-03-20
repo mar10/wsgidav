@@ -45,6 +45,7 @@ class DirbrowserTest(unittest.TestCase):
         pass
 
     def testGet(self):
+        raise unittest.SkipTest("dir_browser is not enabled by default")
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
         assert '<meta name="generator" content="WsgiDAV/' in res.text
@@ -59,3 +60,22 @@ class DirbrowserTest(unittest.TestCase):
         # dir_browser.davmount option is true by default:
         assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
         assert res.headers["Content-Type"] == "application/davmount+xml"
+
+
+class DavExplorerTest(unittest.TestCase):
+    """Test wsgidav_app using requests."""
+
+    def setUp(self):
+        self.url = "http://127.0.0.1:8080/"
+        self.auth = ("tester", "secret")
+
+    def tearDown(self):
+        pass
+
+    def testGet(self):
+        res = requests.get(self.url, auth=self.auth)
+        assert res.status_code == 200
+        assert '<meta name="generator" content="WsgiDAV/' in res.text
+        assert res.encoding == "utf-8"
+        assert "WsgiDAV" in res.headers["Server"]
+        assert res.headers["Content-Type"] == "text/html; charset=utf-8"
