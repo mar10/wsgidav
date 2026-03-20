@@ -304,8 +304,12 @@ export async function showPreview(urlOrNode, options = {}) {
 	placeholderElem.innerHTML = "<p>No preview available.</p>";
 	console.info(`showPreview(${urlOrNode}, { autoOpen: ${autoOpen}, iframe: ${iframe} })`, preview, node);
 	if (preview && node && node.data.size > 1024 * maxSizeKB) {
-		placeholderElem.innerHTML = `File is too large (> ${maxSizeKB} KB).<br>
-		<a href="${url}" target="_blank">Click here</a> to preview.`;
+		// Large files must be previewed explicitly to avoid performance issues
+		// NOTE: we set a.href by assignment not with a template string,
+		// to prevent XSS
+		placeholderElem.innerHTML = `File is too large (> ${maxSizeKB} KiB).<br>
+		<a href="" target="_blank">Click here</a> to preview.`;
+		placeholderElem.querySelector("a").href = url;
 		preview = null;
 	}
 

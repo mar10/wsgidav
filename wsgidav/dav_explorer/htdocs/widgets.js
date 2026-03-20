@@ -72,9 +72,11 @@ export async function showNotification(message, options = {}) {
   const notification = document.getElementById("notification");
 
   // Set content with close button
-  notification.innerHTML = `${message}<span class="notification-close" title="Dismiss">&times;</span>`;
+  notification.innerHTML = '<span class="notification-message"></span><span class="notification-close" title="Dismiss">&times;</span>';
   notification.className = `notification ${type}`;
   notification.style.display = "inline";
+  // Prevent XSS by setting textContent instead of innerHTML
+  notification.querySelector(".notification-message").textContent = message;
 
   // Add close button functionality
   const closeBtn = notification.querySelector('.notification-close');
