@@ -143,10 +143,10 @@ async function downloadFileToFolder(node, options = {}) {
   }
 }
 
-function supportsDownloadURL() {
-  // 'DownloadURL' is ignored by Safari and Firefox
-  return /Chrome|Chromium|Edg/.test(navigator.userAgent) && !/Firefox|Safari/.test(navigator.userAgent);
-}
+// function supportsDownloadURL() {
+//   // 'DownloadURL' is ignored by Safari and Firefox
+//   return /Chrome|Chromium|Edg/.test(navigator.userAgent) && !/Firefox|Safari/.test(navigator.userAgent);
+// }
 
 export async function addFileToDataTransfer(node, dragStartEvent) {
   if (!isFile(node)) {
@@ -157,11 +157,11 @@ export async function addFileToDataTransfer(node, dragStartEvent) {
   const name = node.title;
   const mime = node.data.mime || "text/plain";
 
-  if (supportsDownloadURL()) {
-    console.info("Drag file using DownloadURL");
+  try {
     dt.setData("DownloadURL", `${mime}:${name}:${fileUrl}`);
-  } else {
-    console.warn("Drag file using temporary fetch (DownloadURL not supported)");
+    console.info("Drag file using DownloadURL");
+  } catch (error) {
+    console.info("Drag file using temporary fetch (DownloadURL not supported)");
     const response = await fetch(fileUrl);
     const blob = await response.blob();
     const file = new File([blob], name, { type: mime });
