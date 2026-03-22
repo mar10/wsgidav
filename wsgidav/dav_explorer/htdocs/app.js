@@ -2,9 +2,7 @@
 
 // import { Wunderbaum } from "./wunderbaum.esm.js";
 import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
-// /** @type {import("https://cdn.jsdelivr.net/npm/wunderbaum@0.13.0/dist/wunderbaum.d.ts")} */
 
-// import {foo} from "https://www.jsdelivr.com/package/npm/pdfjs-dist";
 import {
 	config,
 	getDAVClient, util,

@@ -1,6 +1,7 @@
 "use strict";
 
-import { Wunderbaum } from "./wunderbaum.esm.js";
+// import { Wunderbaum } from "./wunderbaum.esm.js";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode, isFile, isFolder, isRootFolder } from "./util.js";
 
 /**

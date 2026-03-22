@@ -1,6 +1,7 @@
 "use strict";
 
-import { Wunderbaum } from "./wunderbaum.esm.js";
+// import { Wunderbaum } from "./wunderbaum.esm.js";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 import { util } from "./util.js";
 
 /**
@@ -11,7 +12,7 @@ class ActionButton {
     this.command = command;
     this.pressed = !!options.pressed;
     this.disabled = !!options.disabled;
-    this.hidden = !!options.hidden;  
+    this.hidden = !!options.hidden;
   }
 }
 
