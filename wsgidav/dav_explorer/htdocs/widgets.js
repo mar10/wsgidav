@@ -172,63 +172,9 @@ export async function addFileToDataTransfer(node, dragStartEvent) {
   return true;
 }
 
-/** */
-// export async function downloadFile(node, options = {}) {
-//     let { dialog = true, allowFolders = true } = options;
-//     if (dialog && !("showSaveFilePicker" in window)) {
-//         console.warn("Download dialog not available in this browser: using default folder.");
-//         dialog = false;
-//     }
-//     if (!dialog) {
-//         const link = document.createElement("a");
-//         link.href = getNodeResourceUrl(node);
-//         link.download = node.title;
-//         document.body.appendChild(link);
-//         link.click();
-//         document.body.removeChild(link);
-//         showNotification("Download started...");
-//         return;
-//     }
-//     // Create a hidden input element for folder selection
-//     const input = document.createElement("input");
-//     input.type = "file";
-//     input.webkitdirectory = allowFolders; // Allow folder selection
-//     input.style.display = "none";
-
-//     // Listen for folder selection
-//     input.addEventListener("change", async (event) => {
-//         const files = event.target.files;
-//         if (files.length === 0) {
-//             console.warn("No folder selected.");
-//             return;
-//         }
-//         // Get the selected folder path (browser restrictions apply)
-//         const folderPath = files[0].webkitRelativePath.split("/")[0];
-//         console.log(`Selected folder: ${folderPath}`);
-
-//         // Download the file to the selected folder
-//         const fileUrl = getNodeResourceUrl(node); // Get the file's URL
-//         const response = await fetch(fileUrl);
-//         const blob = await response.blob();
-//         showNotification("Download started...");
-
-//         const handle = await window.showSaveFilePicker({
-//             suggestedName: node.title,
-//         });
-//         const writable = await handle.createWritable();
-//         await writable.write(blob);
-//         await writable.close();
-//         console.log(`File downloaded to: ${handle.name}`);
-//     });
-
-//     // Trigger the folder selection dialog
-//     document.body.appendChild(input);
-//     input.click();
-//     document.body.removeChild(input);
-// }
-
 /** Drop axternal file(s) into a directory (use node's parent if node is a file) */
 export async function uploadFiles(node, fileArray, options = {}) {
+  const { overwrite = false, _isReplacing = false } = options;
   const client = getDAVClient();
 
   // `node` should be the parent of the uploaded files.
@@ -241,17 +187,39 @@ export async function uploadFiles(node, fileArray, options = {}) {
   }
   const uploadPath = node.getPath();
 
-  showNotification("Upload started.");
+  function _progressCallback(progress) {
+    console.info(`Uploading: ${progress.loaded} / ${progress.total} bytes`);
+  }
+
+  // showNotification("Upload started...");
   for (const file of fileArray) {
     try {
       const filePath = `${uploadPath}/${file.name}`;
       const data = await file.arrayBuffer();
-      // console.log("data", data);
-      // if(client.exists())
-      await client.putFileContents(filePath, data, { overwrite: false });
-      showNotification(`Uploaded '${file.name}' successfully.`);
-      if (!node.isUnloaded()) {
-        node.addChildren({ title: file.name, type: "file", size: file.size });
+      const res = await client.putFileContents(filePath, data, {
+        overwrite: overwrite,
+        onUploadProgress: _progressCallback,
+      });
+      if (res === true) {
+        if (_isReplacing) {
+          showNotification(`Replaced '${file.name}'.`);
+        } else {
+          showNotification(`Uploaded '${file.name}'.`);
+          if (!node.isUnloaded()) {
+            node.addChildren({ title: file.name, type: "file", size: file.size });
+          }
+        }
+      } else if (!overwrite && !_isReplacing) {
+        const retry = confirm(`File "${file.name}" already exists. Do you want to overwrite it?`);
+        if (retry) {
+          uploadFiles(node, [file], { overwrite: true, _isReplacing: true });
+        } else {
+          showNotification(`Skipped '${file.name}'.`, { type: "info" });
+        }
+        return;
+      } else {
+        showNotification(`Failed to upload '${file.name}'.`, { type: "error" });
+        console.error("Upload failed: ", res);
       }
     } catch (error) {
       showNotification(`Failed to upload '${file.name}'.`, { type: "error" });

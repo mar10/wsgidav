@@ -174,7 +174,7 @@ const _tree = new Wunderbaum({
 					col.elem.textContent = isDir ? "" : node.data.size.toLocaleString();
 					break;
 				case "lastmod":
-					col.elem.textContent = new Date(node.data.lastmod).toLocaleString();
+					col.elem.textContent = node.data.lastmod ? new Date(node.data.lastmod).toLocaleString() : "n.a.";
 					break;
 				default:
 					// Assumption: we named column.id === node.data.NAME
