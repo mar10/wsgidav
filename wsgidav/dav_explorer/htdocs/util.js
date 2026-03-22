@@ -6,7 +6,7 @@
 
 import { createClient } from "https://esm.run/webdav@5.8.0";
 import { PersistentObject } from "https://esm.run/persisto@2.0.2";
-import { Wunderbaum } from "./wunderbaum.esm.js";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 
 export const util = Wunderbaum.util;
 

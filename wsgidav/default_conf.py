@@ -135,6 +135,8 @@ DEFAULT_CONFIG = {
         "icon": True,
         "page_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
         "show_user": True,  # Show authenticated user and realm
+        "show_login": True,  # Show login/logout links
+        "show_info_pane": True,  # Show the info pane on the right side
         "max_preview_size_kb": 500,  # Maximum size of file to preview
         "office_support": True,  # Invoke MS- and Libre-Office documents for editing using WebDAV
         # The path to the directory that contains template.html and associated assets.

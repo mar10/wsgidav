@@ -1,6 +1,6 @@
 "use strict";
 
-import { Wunderbaum } from "./wunderbaum.esm.js";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode, isFile, isFolder, isRootFolder } from "./util.js";
 
 /**
@@ -54,7 +54,15 @@ export function registerCommandButtons(parent, handler) {
 
 export function setCommandButton(command, options = {}) {
   const { pressed = undefined, icon = undefined } = options;
-  const buttonElem = document.querySelector(`.wb-button[data-command=${command}]`);
+  const escapedCommand =
+    typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(String(command))
+      : String(command).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCommand}"]`);
+  if (!buttonElem) {
+    console.info("command:", command, "button element not found");
+    return;
+  }
   if (pressed !== undefined && buttonElem.classList.contains("wb-button-toggle")) {
     buttonElem.classList.toggle("wb-pressed", pressed);
   }

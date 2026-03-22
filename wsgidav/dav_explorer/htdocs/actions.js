@@ -1,6 +1,6 @@
 "use strict";
 
-import { Wunderbaum } from "./wunderbaum.esm.js";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 import { util } from "./util.js";
 
 /**
@@ -79,7 +79,15 @@ export function registerCommandButtons(parent, handler) {
 
 export function setCommandButton(command, options = {}) {
   const { pressed = undefined, icon = undefined, title = undefined, enabled = undefined } = options;
-  const buttonElem = document.querySelector(`.wb-button[data-command=${command}]`);
+  const escapedCommand =
+    typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(String(command))
+      : String(command).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCommand}"]`);
+  if (!buttonElem) {
+    console.info("command:", command, "button element not found");
+    return;
+  }
   if (pressed !== undefined && buttonElem.classList.contains("wb-button-toggle")) {
     buttonElem.classList.toggle("wb-pressed", pressed);
   }
@@ -96,13 +104,23 @@ export function setCommandButton(command, options = {}) {
 }
 
 export function pressCommandButtonGroup(groupCommands, command, options = {}) {
-  const { enabled = undefined } = options;
+  const { pressed = undefined, enabled = undefined } = options;
   groupCommands.forEach((cmd) => {
-    const buttonElem = document.querySelector(`.wb-button[data-command=${cmd}]`);
+    const escapedCmd =
+      typeof CSS !== "undefined" && typeof CSS.escape === "function"
+        ? CSS.escape(String(cmd))
+        : String(cmd).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCmd}"]`);
+    if (!buttonElem) {
+      return;
+    }
     if (pressed !== undefined && buttonElem.classList.contains("wb-button-toggle")) {
       buttonElem.classList.toggle("wb-pressed", pressed);
     }
+    if (enabled !== undefined) {
+      buttonElem.classList.toggle("disabled", !enabled);
+    }
+    console.info("command:", cmd, buttonElem);
   });
-  console.info("command:", command, buttonElem);
 }
 

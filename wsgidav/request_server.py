@@ -1488,9 +1488,9 @@ class RequestServer:
         elif res.is_collection:
             self._fail(
                 HTTP_FORBIDDEN,
-                "Directory browsing is not enabled."
+                "Directory browsing is not enabled. "
                 "(To enable it add WsgiDavExplorer to the middleware_stack "
-                "option and set dav_explorer.enabled = True option.)",
+                "option and set dav_explorer.enable = True option.)",
             )
 
         self._evaluate_if_headers(res, environ)

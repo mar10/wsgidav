@@ -311,7 +311,7 @@ def re_encode_wsgi(s: str, *, encoding="utf-8", fallback=False) -> str:
 # ========================================================================
 
 
-def get_current_year():
+def get_current_year() -> int:
     """Return the current year as integer."""
     return time.gmtime().tm_year
 

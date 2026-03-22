@@ -145,11 +145,15 @@ const _tree = new Wunderbaum({
 	edit: {
 		trigger: ["clickActive", "F2", "macEnter"],
 		apply: (e) => {
-			const oldValue = e.oldValue;
 			const newValue = e.newValue;
+			const sourcePath = e.node.getPath();
+			const parentPath = e.node.parent ? e.node.parent.getPath() : "/";
+			const targetPath = parentPath.endsWith("/")
+				? parentPath + newValue
+				: parentPath + "/" + newValue;
 			e.node.logInfo(`Move to ${newValue}`);
-			return getDAVClient().moveFile(oldValue, newValue).catch((err) => {
-				showNotification(`Failed to rename "${oldValue}" to "${newValue}": ${err.message}`, { type: "error" });
+			return getDAVClient().moveFile(sourcePath, targetPath).catch((err) => {
+				showNotification(`Failed to rename "${sourcePath}" to "${targetPath}": ${err.message}`, { type: "error" });
 				console.error("Failed to rename: ", err);
 				throw err;
 			});
@@ -259,7 +263,7 @@ registerCommandButtons("body", (e) => {
 			if (e.isPressed) { showPreview(node); } else { showPreview(null); }
 			break;
 		case "showHelp":
-			showPreview(":dir_browser/help.html", { autoOpen: true, iframe: true });
+			showPreview(config.htdocs + "/help.html", { autoOpen: true, iframe: true });
 			break;
 		case "showSettings":
 			showPreview("settings", { autoOpen: true });
