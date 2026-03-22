@@ -77,8 +77,12 @@ Main features:
   Its open architecture allows to extend the functionality and integrate
   WebDAV services into your project.<br>
   Typical use cases are:
-  - Expose data structures as virtual, editable file systems.
-  - Allow online editing of MS Office documents.
+  - Expose data structures as virtual, editable file systems, that can be mapped in 
+    _macoOS Finder_, _Windows File Explorer_, etc.
+  - Allow online editing of _MS Office_ and _LibreOffice_ documents.
+
+- _DAV Explorer_: A simple built-in web interface allows up- and download files, 
+  rename, move, copy, delete operations, and peviews.
 
 ## Status
 
