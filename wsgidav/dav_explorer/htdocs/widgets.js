@@ -296,7 +296,7 @@ export async function createFolder(node, newName, options = {}) {
     await client.createDirectory(filePath);
     showNotification(`Created folder "${filePath}/".`);
     if (!node.isUnloaded()) {
-      node.addChildren({ title: newName, type: "directory" });
+      node.addChildren({ title: newName, type: "directory", lazy: true, expanded: true, children: [] });
     }
   } catch (err) {
     if (err.status === 405) {
