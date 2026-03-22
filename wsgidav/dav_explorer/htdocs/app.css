@@ -333,21 +333,21 @@ span.command-palette .wb-button:not(.disabled):hover {
 }
 
 .notification.info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
+  background-color: #b8dfe8;
+  color: #0a4550;
+  border: 2px solid #5bb8cc;
 }
 
 .notification.warning {
-  background-color: var(--wdx-bg-color-content);
-  color: #856404;
-  border: 1px solid #ffeeba;
+  background-color: #fff0b3;
+  color: #6b4e00;
+  border: 2px solid #f0ad00;
 }
 
 .notification.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: #f5b0b7;
+  color: #5c1520;
+  border: 2px solid #e05060;
 }
 
 .notification-close {
