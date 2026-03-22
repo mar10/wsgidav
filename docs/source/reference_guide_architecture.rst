@@ -210,7 +210,7 @@ For every request:
 
 WsgiDavExplorer
 -----------------
-Middleware :class:`wsgidav.dav_explorer._dir_browser.WsgiDavExplorer`.
+Middleware :class:`wsgidav.dav_explorer.app.WsgiDavExplorer`.
 Handles GET requests on collections to display a HTML directory listing.
 
 On init:
@@ -225,9 +225,9 @@ For every request:
 
 WsgiDavDirBrowser
 -----------------
-Middleware :class:`wsgidav.dav_explorer._dir_browser.WsgiDavDirBrowser`.
+Middleware :class:`wsgidav.dir_browser._dir_browser.WsgiDavDirBrowser`.
 
-Deprecated: replaced by :class:`wsgidav.dav_explorer.WsgiDavExplorer`.
+Deprecated: replaced by :class:`wsgidav.dav_explorer.app.WsgiDavExplorer`.
 
 
 RequestResolver

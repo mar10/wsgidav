@@ -57,7 +57,7 @@ version = f"{major}.{minor}.{patch}.{alpha}"
 print(f"Version {org_version}, using {version}")
 
 try:
-    readme = open("README.md").read()
+    readme = open("README.md", encoding="utf-8").read()
 except OSError:
     readme = "(readme not found. Running from tox/setup.py test?)"
 

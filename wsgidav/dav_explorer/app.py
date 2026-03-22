@@ -20,7 +20,7 @@ __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
 
-ASSET_SHARE = "/:dir_browser"
+ASSET_SHARE = "/:dav_explorer"
 
 
 class WsgiDavExplorer(BaseMiddleware):
@@ -41,9 +41,9 @@ class WsgiDavExplorer(BaseMiddleware):
             self.htdocs_path = os.path.join(os.path.dirname(__file__), "htdocs")
 
         if not os.path.isdir(self.htdocs_path):
-            raise ValueError(f"Invalid dir_browser htdocs_path {self.htdocs_path!r}")
+            raise ValueError(f"Invalid dav_explorer htdocs_path {self.htdocs_path!r}")
 
-        # Add an additional read-only FS provider that serves the dir_browser assets
+        # Add an additional read-only FS provider that serves the dav_explorer assets
         self.wsgidav_app.add_provider(ASSET_SHARE, self.htdocs_path, readonly=True)
         # and make sure we have anonymous access there
         config.get("simple_dc", {}).get("user_mapping", {}).setdefault(
@@ -82,11 +82,17 @@ class WsgiDavExplorer(BaseMiddleware):
                 )
 
             directory_slash = self.davex_config.get("directory_slash")
-            requrest_uri = environ.get("REQUEST_URI")
-            if directory_slash and requrest_uri and not requrest_uri.endswith("/"):
-                _logger.info(f"Redirect {requrest_uri} to {requrest_uri}/")
+            query_string = environ.get("QUERY_STRING")
+            request_uri = path
+            if query_string:
+                request_uri = f"{path}?{query_string}"
+            if directory_slash and path and not path.endswith("/"):
+                redirect_location = path + "/"
+                if query_string:
+                    redirect_location = f"{redirect_location}?{query_string}"
+                _logger.info(f"Redirect {request_uri} to {redirect_location}")
                 return send_redirect_response(
-                    environ, start_response, location=requrest_uri + "/"
+                    environ, start_response, location=redirect_location
                 )
 
             context = self._get_jinja_context(environ, dav_res)
@@ -119,7 +125,7 @@ class WsgiDavExplorer(BaseMiddleware):
         assert dav_res.is_collection
 
         is_readonly = bool(
-            self.davex_config.get("force_readonly")
+            self.davex_config.get("readonly")
             or environ["wsgidav.provider"].is_readonly()
         )
 
@@ -135,9 +141,8 @@ class WsgiDavExplorer(BaseMiddleware):
                 # "ignore_list",
                 "max_preview_size_kb",
                 "office_support",
-                "open_info_pane",
+                "page_trailer",
                 "readonly",
-                "response_trailer",
                 "show_login",
                 "show_user",
             ]
@@ -145,6 +150,8 @@ class WsgiDavExplorer(BaseMiddleware):
         js_config.update(
             {
                 "readonly": is_readonly,
+                "showInfoPane": self.davex_config.get("show_info_pane", True),
+                "htdocs": self.mount_path + ASSET_SHARE,
             }
         )
 
@@ -169,7 +176,7 @@ class WsgiDavExplorer(BaseMiddleware):
             trailer = (
                 trailer.replace(
                     "${version}",
-                    f"<a href='https://github.com/mar10/wsgidav/' target=_blank>{util.public_wsgidav_info}</a>",
+                    f"<a href='https://github.com/mar10/wsgidav/' target=\"_blank\" rel=\"noopener noreferrer\">{util.public_wsgidav_info}</a>",
                 )
                 .replace("${time}", util.get_rfc1123_time())
                 .replace(
@@ -181,7 +188,7 @@ class WsgiDavExplorer(BaseMiddleware):
         jinja_context["trailer"] = trailer
 
         if self.davex_config.get("icon"):
-            jinja_context["icon"] = self.mount_path + ASSET_SHARE + "/logo.png"
+            jinja_context["icon"] = self.mount_path + ASSET_SHARE + "/logo_32x32.png"
 
         if "wsgidav.auth.user_name" in environ:
             jinja_context.update(
