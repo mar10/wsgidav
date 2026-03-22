@@ -24,7 +24,7 @@ print(f"on_rtd: {on_rtd}")
 # -- Project information -----------------------------------------------------
 
 project = "WsgiDAV"
-copyright = "2009-2024 Martin Wendt, 2005 Ho Chun Wei"
+copyright = "2009-2026 Martin Wendt, 2005 Ho Chun Wei"
 author = "Martin Wendt"
 
 # The full version, including alpha/beta/rc tags
@@ -67,8 +67,8 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
-    'sphinxcontrib.googleanalytics',
-    'sphinxcontrib.mermaid',
+    "sphinxcontrib.googleanalytics",
+    "sphinxcontrib.mermaid",
     # 'sphinx_automodapi.automodapi',
     # 'sphinx_search.extension',
 ]
@@ -145,7 +145,7 @@ html_theme_options = {
 # html_theme = 'bootstrap'
 # html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
-googleanalytics_id = 'G-NESEWWF02Y'
+googleanalytics_id = "G-NESEWWF02Y"
 # googleanalytics_enabled = False
 
 # MyST Markdown Support
