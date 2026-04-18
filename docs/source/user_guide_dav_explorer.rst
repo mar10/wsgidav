@@ -38,3 +38,8 @@ Known Limitations
 -----------------
 
 TODO: Add detailed instructions here.
+
+       Feature          |       macOS        |      Windows       |       Linux
+----------------------- | ------------------ | :----------------: | :---------------:
+Drag files to desktop   | :white_check_mark: | :white_check_mark: | :white_check_mark:
+Drag files from desktop | :white_check_mark: | :white_check_mark: | :white_check_mark:
