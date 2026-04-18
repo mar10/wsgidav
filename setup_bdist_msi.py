@@ -98,8 +98,8 @@ build_exe_options = {
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "cheroot",
         "dbm",
-        "wsgidav.dir_browser",
-        "wsgidav.dav_explorer",
+        "wsgidav.mw.dir_browser",
+        "wsgidav.mw.dav_explorer",
         "wsgidav.dc.nt_dc",
     ],
     "excludes": [
@@ -137,8 +137,8 @@ setup(
     package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
-        "wsgidav.dir_browser": ["htdocs/*.*"],
-        "wsgidav.dav_explorer": ["htdocs/*.*"],
+        "wsgidav.mw.dir_browser": ["htdocs/*.*"],
+        "wsgidav.mw.dav_explorer": ["htdocs/*.*"],
     },
     install_requires=install_requires,
     setup_requires=setup_requires,

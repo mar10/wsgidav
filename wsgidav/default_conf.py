@@ -15,8 +15,8 @@ Default configuration.
 """
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
-# from wsgidav.dav_explorer import WsgiDavExplorer
-from wsgidav.dir_browser import WsgiDavDirBrowser
+# from wsgidav.mw.dav_explorer import WsgiDavExplorer
+from wsgidav.mw.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 

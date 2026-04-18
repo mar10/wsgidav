@@ -2,7 +2,7 @@ from passlib.apache import HtdigestFile
 
 from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
-from wsgidav.dir_browser._dir_browser import ASSET_SHARE
+from wsgidav.mw.dir_browser._dir_browser import ASSET_SHARE
 
 
 class HtdigestDomainController(BaseDomainController):

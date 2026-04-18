@@ -124,7 +124,7 @@ pass the class instead of the instantiated object.
 The built-in middleware derives from :class:`~wsgidav.mw.base_mw.BaseMiddleware`,
 so we can simplify as::
 
-    from wsgidav.dav_explorer import WsgiDavExplorer
+    from wsgidav.mw.dav_explorer import WsgiDavExplorer
     from wsgidav.mw.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
@@ -147,7 +147,7 @@ removes the directory browser, and adds a third-party debugging tool::
 
     import dozer
 
-    # from wsgidav.dav_explorer import WsgiDavExplorer
+    # from wsgidav.mw.dav_explorer import WsgiDavExplorer
     from wsgidav.mw.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
@@ -191,7 +191,7 @@ should be explicitly listed::
         - wsgidav.mw.debug_filter.WsgiDavDebugFilter
         - wsgidav.error_printer.ErrorPrinter
         - wsgidav.http_authenticator.HTTPAuthenticator
-        - wsgidav.dav_explorer.WsgiDavExplorer
+        - wsgidav.mw.dav_explorer.WsgiDavExplorer
         - wsgidav.request_resolver.RequestResolver
 
 It is also possible to pass options as named args (i.e. 'kwargs')::

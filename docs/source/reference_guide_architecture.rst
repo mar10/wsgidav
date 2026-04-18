@@ -151,7 +151,7 @@ interface is implemented.
 Applications
 ============
 
-.. inheritance-diagram:: wsgidav.mw.base_mw wsgidav.dir_browser wsgidav.dav_explorer wsgidav.mw.cors wsgidav.mw.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
+.. inheritance-diagram:: wsgidav.mw.base_mw wsgidav.mw.dir_browser wsgidav.mw.dav_explorer wsgidav.mw.cors wsgidav.mw.debug_filter wsgidav.dav_error wsgidav.error_printer wsgidav.http_authenticator wsgidav.rw_lock wsgidav.wsgidav_app wsgidav.request_server wsgidav.request_resolver
    :parts: 2
    :private-bases:
 
@@ -210,7 +210,7 @@ For every request:
 
 WsgiDavExplorer
 -----------------
-Middleware :class:`wsgidav.dav_explorer.app.WsgiDavExplorer`.
+Middleware :class:`wsgidav.mw.dav_explorer.WsgiDavExplorer`.
 Handles GET requests on collections to display a HTML directory listing.
 
 On init:
@@ -225,9 +225,9 @@ For every request:
 
 WsgiDavDirBrowser
 -----------------
-Middleware :class:`wsgidav.dir_browser._dir_browser.WsgiDavDirBrowser`.
+Middleware :class:`wsgidav.mw.dir_browser.WsgiDavDirBrowser`.
 
-Deprecated: replaced by :class:`wsgidav.dav_explorer.app.WsgiDavExplorer`.
+Deprecated: replaced by :class:`wsgidav.mw.dav_explorer.WsgiDavExplorer`.
 
 
 RequestResolver
