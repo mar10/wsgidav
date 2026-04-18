@@ -71,8 +71,10 @@ jobs:
             type=ref,event=branch
             # tag with pr number for pull requests
             type=ref,event=pr
-            # tag with commit sha for all builds
-            type=sha,prefix={{branch}}-
+            # branch pushes: include branch name
+            type=sha,event=branch,prefix={{branch}}-
+            # everything else: safe prefix
+            type=sha,prefix=sha-
           labels: |
             org.opencontainers.image.title=WsgiDAV
             org.opencontainers.image.description=Generic and extendable WebDAV server written in Python
