@@ -24,6 +24,18 @@ on:
   release:
     types: [published]
 
+  push:
+    branches:
+      - master
+      - main
+      - 'release/**'
+      - 'hotfix/**'
+
+  pull_request:
+    branches:
+      - master
+      - main
+
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
@@ -48,6 +60,23 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.IMAGE_NAME }}
+          tags: |
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # tag with version for releases
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            # tag with branch name for pushes to branches
+            type=ref,event=branch
+            # tag with pr number for pull requests
+            type=ref,event=pr
+            # tag with commit sha for all builds
+            type=sha,prefix={{branch}}-
+          labels: |
+            org.opencontainers.image.title=WsgiDAV
+            org.opencontainers.image.description=Generic and extendable WebDAV server written in Python
+            org.opencontainers.image.vendor=Martin Wendt
 
       - name: Build and push Docker image
         id: push
@@ -55,12 +84,14 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: true
+          # Only push to registry for releases, default branch, and manual triggers
+          # PRs and feature branches just build for testing
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.event_name == 'release' || github.event_name == 'workflow_dispatch') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Generate artifact attestation
-        if: ${{ inputs.generateAttestation == 'true' }}
+        if: ${{ inputs.generateAttestation == 'true' && steps.push.outcome == 'success' && steps.push.outputs.digest != '' }}
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: index.docker.io/${{ env.IMAGE_NAME }}
