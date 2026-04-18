@@ -303,9 +303,9 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
     def stop_serve_forever(self):
         """Stop serve_forever_stoppable()."""
-        assert hasattr(
-            self, "stop_request"
-        ), "serve_forever_stoppable() must be called before"
+        assert hasattr(self, "stop_request"), (
+            "serve_forever_stoppable() must be called before"
+        )
         assert not self.stop_request, "stop_serve_forever() must only be called once"
 
         #        # Flag stop request

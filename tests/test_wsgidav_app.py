@@ -121,9 +121,9 @@ class ServerTest(unittest.TestCase):
         ):
             raise unittest.SkipTest("probably dir_browser enabled")
 
-        assert (
-            "<!-- WsgiDAV-UI: dav_explorer -->" in res.text
-        ), "DAV Explorer UI not rendered"
+        assert "<!-- WsgiDAV-UI: dav_explorer -->" in res.text, (
+            "DAV Explorer UI not rendered"
+        )
         assert "WsgiDAV - Index of /" in res, "Could not list root share"
 
         # Access unmapped resource (expect '404 Not Found')
