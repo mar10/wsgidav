@@ -176,7 +176,7 @@ class WsgiDavExplorer(BaseMiddleware):
             trailer = (
                 trailer.replace(
                     "${version}",
-                    f"<a href='https://github.com/mar10/wsgidav/' target=\"_blank\" rel=\"noopener noreferrer\">{util.public_wsgidav_info}</a>",
+                    f'<a href=\'https://github.com/mar10/wsgidav/\' target="_blank" rel="noopener noreferrer">{util.public_wsgidav_info}</a>',
                 )
                 .replace("${time}", util.get_rfc1123_time())
                 .replace(

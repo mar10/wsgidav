@@ -16,12 +16,12 @@ Default configuration.
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
 # from wsgidav.mw.dav_explorer import WsgiDavExplorer
-from wsgidav.mw.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 
 # from wsgidav.mw.impersonator import Impersonator
 from wsgidav.mw.cors import Cors
+from wsgidav.mw.dir_browser import WsgiDavDirBrowser
 from wsgidav.request_resolver import RequestResolver
 
 __docformat__ = "reStructuredText"
