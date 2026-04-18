@@ -72,7 +72,7 @@ jobs:
             # tag with pr number for pull requests
             type=ref,event=pr
             # branch pushes: include branch name
-            type=sha,event=branch,prefix={{branch}}-
+            # type=sha,event=branch,prefix={{branch}}-
             # everything else: safe prefix
             type=sha,prefix=sha-
           labels: |
