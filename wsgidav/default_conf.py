@@ -15,12 +15,12 @@ Default configuration.
 """
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
-# from wsgidav.mw.dav_explorer import WsgiDavExplorer
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 
 # from wsgidav.mw.impersonator import Impersonator
 from wsgidav.mw.cors import Cors
+from wsgidav.mw.dav_explorer import WsgiDavExplorer
 from wsgidav.mw.dir_browser import WsgiDavDirBrowser
 from wsgidav.request_resolver import RequestResolver
 
@@ -63,7 +63,7 @@ DEFAULT_CONFIG = {
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)
-        # WsgiDavExplorer,  # configured under dav_explorer option (see below)
+        WsgiDavExplorer,  # configured under dav_explorer option (see below)
         # Impersonator,
         RequestResolver,  # this must be the last middleware item
     ],
@@ -100,7 +100,7 @@ DEFAULT_CONFIG = {
     },
     #: Options for `WsgiDavDirBrowser`
     "dir_browser": {
-        "enable": True,  # Render HTML listing for GET requests on collections
+        "enable": False,  # Render HTML listing for GET requests on collections
         # Add a trailing slash to directory URLs (by generating a 301 redirect):
         "directory_slash": True,
         # List of fnmatch patterns:
