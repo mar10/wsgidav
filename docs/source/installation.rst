@@ -107,11 +107,11 @@ https://hub.docker.com/r/mar10/wsgidav/
 ::
 
     $ docker pull mar10/wsgidav
-    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/srv/wsgidav-share mar10/wsgidav
+    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
 
 for example::
 
-    $ docker run --rm -it -p 8080:8080 -v c:/temp:/srv/wsgidav-share mar10/wsgidav
+    $ docker run --rm -it -p 8080:8080 -v c:/temp:/public/wsgidav-share mar10/wsgidav
 
 Then open (or enter this URL in Windows File Explorer or any other WebDAV client)
 http://localhost:8080/

@@ -57,13 +57,13 @@ Main features:
 
   ```bash
   $ docker pull mar10/wsgidav
-  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/srv/wsgidav-share mar10/wsgidav
+  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
   ```
 
   for example publish the content of `/tmp` as `http://0.0.0.0/` for anonymous access::
 
   ```bash
-  $ docker run --rm -it -p 8080:8080 -v /tmp:/srv/wsgidav-share mar10/wsgidav
+  $ docker run --rm -it -p 8080:8080 -v /tmp:/public/wsgidav-share mar10/wsgidav
   ```
 
 - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded

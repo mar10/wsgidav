@@ -19,7 +19,7 @@ services:
       # Expose ~/wsgidav_share for public WebDAV data storage. 
       # You can change this to any folder on your host system.
       # Note: the folders will be created if they do not exist.
-      - ~/wsgidav_share:/srv/wsgidav-share
+      - ~/wsgidav_share:/public/wsgidav-share
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/"]
