@@ -516,6 +516,29 @@ See the :doc:`./sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)
 
 
+Run with docker-compose and a custom configuration file
+-------------------------------------------------------
+
+The Docker image can be used with a custom configuration file, for example
+to set up multiple mount points, authentication, etc.::
+
+    $ docker-compose up
+
+For this to work, we need a docker-compose.yml file that mounts the custom 
+configuration file and the root folders for the WebDAV shares into the container.
+It must also mount any additional paths that are required by the configuration 
+file, for example for authentication, etc.
+
+The following is an example docker-compose.yml file uses a custom configuration file named 
+``wsgidav.yaml`` and mounts two folders for WebDAV shares as well as an optional 
+htdigest file for authentication.:
+
+:download:`Download Sample Configuration<../../tests/custom_docker/docker-compose.yml>`.
+
+.. literalinclude:: ../../tests/custom_docker/docker-compose.yml
+    :linenos:
+
+
 Configuration Tips
 ------------------
 

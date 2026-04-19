@@ -107,11 +107,19 @@ https://hub.docker.com/r/mar10/wsgidav/
 ::
 
     $ docker pull mar10/wsgidav
-    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/srv/wsgidav-share mar10/wsgidav
 
 for example::
 
-    $ docker run --rm -it -p 8080:8080 -v c:/temp:/var/wsgidav-root mar10/wsgidav
+    $ docker run --rm -it -p 8080:8080 -v c:/temp:/srv/wsgidav-share mar10/wsgidav
 
 Then open (or enter this URL in Windows File Explorer or any other WebDAV client)
 http://localhost:8080/
+
+
+It is also possible to use Docker-compose and a custom configuration file
+to set up multiple mount points, authentication, etc.::
+
+    $ docker-compose up 
+
+See :doc:`user_guide_configure` for details.

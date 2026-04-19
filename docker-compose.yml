@@ -1,5 +1,6 @@
 # This docker-compose file is used to build and run the wsgidav application in
 # a container.
+# Run WsgiDAV and expose a single WebDAV share with anonymous access.
 # Use like
 #   docker-compose up
 # or if you want to run it in detached mode and wait for the container to be 
@@ -11,15 +12,15 @@ services:
   wsgidav:
     build: .
     image: docker.io/mar10/wsgidav:latest
-    container_name: "wsgidav"
+    container_name: "wsgidav-single-root-anonymous"
     ports:
       - "8080:8080"
     volumes:
       # Expose ~/wsgidav_share for public WebDAV data storage. 
       # You can change this to any folder on your host system.
       # Note: the folders will be created if they do not exist.
-      - ~/wsgidav_share:/var/wsgidav-root
-    restart: always
+      - ~/wsgidav_share:/srv/wsgidav-share
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/"]
       interval: 30s
