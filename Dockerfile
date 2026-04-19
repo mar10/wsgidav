@@ -7,13 +7,15 @@
 #   docker run --rm -it -p 8080:8080 -v c:/temp:/var/wsgidav-root mar10/wsgidav
 # Then open (or enter this URL in Windows File Explorer or any other WebDAV client)
 #   http://localhost:8080/
-
-# NOTE 2018-07-28: alpine does not compile lxml
-# NOTE 2019-11-27: smallest image generated at the end
+#
+# CHANGES
+# - 2019-11-27: smallest image generated at the end
+# - 2018-07-28: alpine does not compile lxml
 FROM python:3-alpine
 
 #dependencies
 RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml py3-pip \
+    && apk --no-cache add curl \
     && pip install wsgidav cheroot lxml \
     && apk del .build-deps gcc musl-dev
 

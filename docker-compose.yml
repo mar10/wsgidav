@@ -1,18 +1,27 @@
+# This docker-compose file is used to build and run the wsgidav application in
+# a container.
+# Use like
+#   docker-compose up
+# or if you want to run it in detached mode and wait for the container to be 
+# healthy before proceeding with other commands, use:
+#   docker-compose up -d --wait
 version: '2'
 
 services:
   wsgidav:
     build: .
-    image: mar10/wsgidav
+    image: docker.io/mar10/wsgidav:latest
     container_name: "wsgidav"
     ports:
       - "8080:8080"
-    networks:
-      - local
     volumes:
-      - ./wsgidav_data:/var/wsgidav-root
+      # Expose ~/wsgidav_share for public WebDAV data storage. 
+      # You can change this to any folder on your host system.
+      # Note: the folders will be created if they do not exist.
+      - ~/wsgidav_share:/var/wsgidav-root
     restart: always
-
-networks:
-  local:
-    driver: bridge
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
