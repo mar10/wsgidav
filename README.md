@@ -6,8 +6,9 @@
 [![Documentation Status](https://readthedocs.org/projects/wsgidav/badge/?version=latest)](http://wsgidav.readthedocs.io/)
 [![codecov](https://codecov.io/gh/mar10/wsgidav/graph/badge.svg?token=0hNADSIxDz)](https://codecov.io/gh/mar10/wsgidav)
 [![Released with: Yabs](https://img.shields.io/badge/released%20with-yabs-yellowgreen)](https://github.com/mar10/yabs)
-[![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV)
+[![Downloads](https://img.shields.io/pypi/dm/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 
+<!-- [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV) -->
 <!-- [![Edit online in vscode.dev](https://img.shields.io/static/v1?logo=visualstudiocode&label=&message=Open%20in%20Visual%20Studio%20Code&labelColor=2c2c32&color=007acc&logoColor=007acc) ](https://vscode.dev/github/mar10/wsgidav) -->
 
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
