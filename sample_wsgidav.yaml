@@ -181,6 +181,7 @@ http_authenticator:
     # domain_controller: wsgidav.dc.nt_dc.NTDomainController
     # domain_controller: wsgidav.dc.htpasswd_dc.HtpasswdDomainController
     # domain_controller: wsgidav.dc.htdigest_dc.HtdigestDomainController
+    # domain_controller: wsgidav.dc.kerberos_dc.KerberosDomainController
 
 
 # Additional options for SimpleDomainController only:
@@ -218,6 +219,26 @@ htpasswd_dc:
 htdigest_dc:
     htdigest_file: '/path/to/wsgidav.htdigest'
 
+# Additional options for KerberosDomainController only:
+kerberos_dc:
+    keytab: '/etc/krb5.keytab'
+    realm: 'FOOBAR.INVALID.TEST'
+    spn: 'http/dav.foobar.invalid.test'
+    upn_allowlist: null
+    # upn_allowlist: ['alice', 'bob']
+    cache: null
+    # cache:
+    #     class: wsgidav.dc.kerberos_dc.MemoryKerberosAuthCache
+    #     kwargs:
+    #         ttl: 600
+    # cache:
+    #     class: wsgidav.dc.kerberos_dc.RedisKerberosAuthCache
+    #     kwargs:
+    #         ttl: 600
+    #         host: '127.0.0.1'
+    #         port: 6379
+    #         db: 1
+    #         password: null
 
 # ----------------------------------------------------------------------------
 # User/Group Impersonating
