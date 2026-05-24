@@ -2,6 +2,6 @@
 from setuptools import setup
 
 setup(
-    name="WsgiDAV",  # GitHub dependants needs it here?
+    name="wsgidav",  # GitHub dependants needs it here?
     # See setup.cfg
 )

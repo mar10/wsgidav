@@ -21,6 +21,10 @@
 - Test with Python 3.13
 - Use ruff instead of black/isort
 
+## 4.3.4 / 2026-05-24
+
+- Resolve security advisory [CVE-2026-48099](https://github.com/mar10/wsgidav/security/advisories/GHSA-wxq4-cc2q-338q)
+
 ## 4.3.3 / 2024-05-04
 
 - Deprecate Python 3.8 (EOL: 2024-10-14)
