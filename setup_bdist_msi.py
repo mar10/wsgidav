@@ -69,12 +69,10 @@ except IOError:
 #    https://github.com/marcelotduarte/cx_Freeze/issues/1541
 install_requires = []
 # ... The Windows MSI Setup should include lxml and CherryPy
-install_requires.extend(
-    [
-        "cheroot",
-        "lxml",
-    ]
-)
+install_requires.extend([
+    "cheroot",
+    "lxml",
+])
 setup_requires = install_requires
 tests_require = []
 
@@ -120,7 +118,7 @@ bdist_msi_options = {
 }
 
 setup(
-    name="WsgiDAV",
+    name="wsgidav",
     version=version,
     author="Martin Wendt",
     author_email="wsgidav@wwwendt.de",
