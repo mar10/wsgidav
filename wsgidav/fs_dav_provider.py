@@ -457,9 +457,14 @@ class FilesystemProvider(DAVProvider):
         # Try alternative URL if not found (or even override target):
         is_shadow, file_path = self._resolve_shadow_path(path, environ, file_path)
 
-        if not file_path.startswith(root_path) and not is_shadow:
+        # Ensure the containment check is path-boundary-aware: append os.sep so
+        # that a sibling directory (e.g. /tmp/share_evil) whose name *starts with*
+        # root_path (/tmp/share) is correctly rejected.
+        root_path_with_sep = root_path.rstrip(os.sep) + os.sep
+        file_path_with_sep = file_path.rstrip(os.sep) + os.sep
+        if not file_path_with_sep.startswith(root_path_with_sep) and not is_shadow:
             raise RuntimeError(
-                f"Security exception: tried to access file outside root: {file_path}"
+                f"Security exception: tried to access file outside root {root_path}: {file_path}"
             )
 
         # Convert to unicode
