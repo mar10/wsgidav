@@ -8,16 +8,16 @@
 # Then open (or enter this URL in Windows File Explorer or any other WebDAV client)
 #   http://localhost:8080/
 
-# NOTE 2018-07-28: alpine does not compile lxml
-# NOTE 2019-11-27: smallest image generated at the end
 FROM python:3-alpine
 
-#dependencies
-RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml py3-pip \
-    && pip install wsgidav cheroot lxml \
+# Copy uv binary from the official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Install dependencies
+RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml \
+    && uv pip install --system wsgidav cheroot lxml \
     && apk del .build-deps gcc musl-dev
 
-RUN pip install --no-cache-dir wsgidav cheroot lxml
 RUN mkdir -p /var/wsgidav-root
 
 EXPOSE 8080

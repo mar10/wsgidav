@@ -1,3 +1,118 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "wsgidav"
+dynamic = ["version"]
+description = "Generic and extendable WebDAV server based on WSGI"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Martin Wendt", email = "wsgidav@wwwendt.de" }]
+maintainers = [{ name = "Martin Wendt", email = "wsgidav@wwwendt.de" }]
+keywords = ["web", "wsgi", "webdav", "application", "server"]
+classifiers = [
+    # "Development Status :: 3 - Alpha",
+    # "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    # NOTE: See also wsgidav_app.MIN_PYTHON_VERSION_INFO
+    # "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Internet :: WWW/HTTP :: WSGI",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "defusedxml",
+    "Jinja2",
+    "json5",
+    "PyYAML",
+    "passlib",
+    "bcrypt>=4.0,<5",
+]
+
+
+[project.optional-dependencies]
+pam = ["python-pam"]
+
+
+[project.urls]
+Homepage = "https://github.com/mar10/wsgidav"
+"Bug Tracker" = "https://github.com/mar10/wsgidav/issues"
+"Source Code" = "https://github.com/mar10/wsgidav"
+Documentation = "https://wsgidav.readthedocs.io"
+Download = "https://github.com/mar10/wsgidav/releases/latest"
+Discussions = "https://github.com/mar10/wsgidav/discussions"
+
+
+[project.scripts]
+wsgidav = "wsgidav.server.server_cli:run"
+
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests"]
+
+[tool.setuptools.package-data]
+wsgidav = ["dir_browser/htdocs/*.*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "wsgidav.__version__" }
+
+
+# --- Dev Dependency Groups (PEP 735, managed by uv) ---------------------------
+
+[dependency-groups]
+dev = [
+    # "cx_Freeze; sys_platform == 'win32'",
+    "cheroot",
+    "mypy",
+    "Paste",
+    "pylint",
+    "pytest",
+    "pytest-cov",
+    "pytest-html",
+    # "python-pam; sys_platform != 'win32'",
+    # "pywin32; sys_platform == 'win32'",
+    "requests",
+    "ruff",
+    "setuptools",
+    "stressor",
+    "tox",
+    "tox-uv",
+    "twine",
+    "WebTest",
+    "wheel",
+    "safety",
+    "yabs>=0.6",
+]
+
+
+# ------------------------------------------------------------------------------
+
 [tool.ruff]
 # Decrease the maximum line length to 79 characters.
 # line-length = 79

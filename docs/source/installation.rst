@@ -20,7 +20,7 @@ WsgiDAV server was tested with these operating systems (among others):
 
 WsgiDAV requires
 
-  * `Python <https://www.python.org/downloads/>`_ 3.6 or later.
+  * `Python <https://www.python.org/downloads/>`_ 3.8 or later.
   * A WSGI compliant web server. |br|
     WsigDAV is a WSGI application, that must be served by a compliant web server.
     Among others, there are
@@ -43,16 +43,22 @@ Linux / macOS
 -------------
 
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_ and can
-be installed using `pip <http://www.pip-installer.org/>`_.
-Using a virtual environment is recommend::
+be installed using `pip <http://www.pip-installer.org/>`_ or
+`uv <https://docs.astral.sh/uv/>`_.
+
+Using ``pip`` with a virtual environment::
 
   $ mkdir wsgidav_test
   $ cd wsgidav_test
-  $ wsgidav_test % python -m venv .venv
-  $ wsgidav_test % source .venv/bin/activate
-  $ (.venv) wsgidav_test % python -m pip install -U pip
-  $ (.venv) wsgidav_test % python -m pip install wsgidav cheroot lxml
-  $ (.venv) wsgidav_test % wsgidav --root . --auth anonymous --browse
+  $ python -m venv .venv
+  $ source .venv/bin/activate
+  $ pip install wsgidav cheroot lxml
+  $ wsgidav --root . --auth anonymous --browse
+
+Or using ``uv`` (recommended — no manual venv management needed)::
+
+  $ uv tool install wsgidav
+  $ wsgidav --root . --auth anonymous --browse
 
 
 Or install the latest (potentially unstable) development version directly
