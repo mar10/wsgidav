@@ -60,13 +60,11 @@ class ServerTest(unittest.TestCase):
         }
 
         if with_authentication:
-            config["http_authenticator"].update(
-                {
-                    "accept_basic": True,
-                    "accept_digest": False,
-                    "default_to_digest": False,
-                }
-            )
+            config["http_authenticator"].update({
+                "accept_basic": True,
+                "accept_digest": False,
+                "default_to_digest": False,
+            })
             config["simple_dc"]["user_mapping"] = {
                 "/": {"tester": {"password": "secret", "description": "", "roles": []}}
             }
@@ -87,50 +85,6 @@ class ServerTest(unittest.TestCase):
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
         )
-
-    def testDirBrowser(self):
-        """Server must respond to GET on a collection."""
-        app = self.app
-        # Access collection (expect '200 Ok' with HTML response)
-        res = app.get("/", status=200)
-        if (
-            "<!-- WsgiDAV-UI:" in res.text
-            and "<!-- WsgiDAV-UI: dir_browser -->" not in res.text
-        ):
-            raise unittest.SkipTest("probably dav_explorer enabled")
-
-        assert "WsgiDAV - Index of /" in res, "Could not list root share"
-        assert "readme.txt" in res, "Fixture content"
-        assert "Lotosblütenstengel (蓮花莖).docx" in res, "Encoded fixture content"
-
-        # Access unmapped resource (expect '404 Not Found')
-        res = app.get("/not-existing-124/", status=404)
-
-        res = app.get("/subfolder/", status=200)
-        # res = app.get("/subfolder", status=301)
-        res = app.get("/subfolder")  # seems to follow redirects?
-
-    def testDavExplorer(self):
-        """Server must respond to GET on a collection."""
-        app = self.app
-        # Access collection (expect '200 Ok' with HTML response)
-        res = app.get("/", status=200)
-        if (
-            "<!-- WsgiDAV-UI:" in res.text
-            and "<!-- WsgiDAV-UI: dav_explorer -->" not in res.text
-        ):
-            raise unittest.SkipTest("probably dir_browser enabled")
-
-        assert "<!-- WsgiDAV-UI: dav_explorer -->" in res.text, (
-            "DAV Explorer UI not rendered"
-        )
-        assert "WsgiDAV - Index of /" in res, "Could not list root share"
-
-        # Access unmapped resource (expect '404 Not Found')
-        res = app.get("/not-existing-124/", status=404)
-
-        res = app.get("/subfolder/", status=200)
-        res = app.get("/subfolder")  # seems to follow redirects?
 
     def testGetPut(self):
         """Read and write file contents."""

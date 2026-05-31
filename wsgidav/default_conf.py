@@ -100,7 +100,7 @@ DEFAULT_CONFIG = {
     },
     #: Options for `WsgiDavDirBrowser`
     "dir_browser": {
-        "enable": False,  # Render HTML listing for GET requests on collections
+        "enable": True,  # Render HTML listing for GET requests on collections
         # Add a trailing slash to directory URLs (by generating a 301 redirect):
         "directory_slash": True,
         # List of fnmatch patterns:
@@ -124,7 +124,7 @@ DEFAULT_CONFIG = {
     },
     #: Options for `WsgiDavExplorer`
     "dav_explorer": {
-        "enable": True,  # Render HTML listing for GET requests on collections
+        "enable": False,  # Render HTML listing for GET requests on collections
         "readonly": False,  # Force readonly mode for the directory browser
         # List of fnmatch patterns:
         "ignore_list": [

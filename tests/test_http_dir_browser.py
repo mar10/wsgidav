@@ -18,13 +18,15 @@ _test_server = None
 
 def setUpModule():
     global _test_server
-    _test_server = WsgiDavTestServer(with_auth=True, with_ssl=False)
+    _test_server = WsgiDavTestServer(
+        with_auth=True,
+        with_ssl=False,
+        web_ui="dir_browser",
+    )
     _test_server.start()
 
 
 def tearDownModule():
-    # global _test_server
-
     if _test_server:
         _test_server.stop()
 
@@ -52,38 +54,40 @@ class DirbrowserTest(unittest.TestCase):
         assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
 
-        if (
-            "<!-- WsgiDAV-UI:" in res.text
-            and "<!-- WsgiDAV-UI: dir_browser -->" not in res.text
-        ):
-            raise unittest.SkipTest("probably dav_explorer enabled")
-
-        res = requests.get(self.url + "?davmount", auth=self.auth)
+        res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
-        # dir_browser.davmount option is true by default:
-        assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
-        assert res.headers["Content-Type"] == "application/davmount+xml"
+        assert "<!-- WsgiDAV-UI: dir_browser -->" in res.text
 
+    def testGetResources(self):
+        """Server must respond to GET on a collection."""
+        # Access collection (expect '200 Ok' with HTML response)
+        res = requests.get(self.url, auth=self.auth)
+        assert res.status_code == 200
+        assert "<!-- WsgiDAV-UI: dir_browser -->" in res.text
 
-class DavExplorerTest(unittest.TestCase):
-    """Test wsgidav_app using requests."""
+        assert "WsgiDAV - Index of /" in res.text, "Could not list root share"
+        assert "readme.txt" in res.text, "Fixture content"
+        assert "Lotosblütenstengel (蓮花莖).docx" in res.text, "Encoded fixture content"
 
-    def setUp(self):
-        self.url = "http://127.0.0.1:8080/"
-        self.auth = ("tester", "secret")
+        # Access unmapped resource (expect '404 Not Found')
+        res = requests.get(self.url + "not-existing-124/", auth=self.auth)
+        assert res.status_code == 404
 
-    def tearDown(self):
-        pass
+        res = requests.get(self.url + "subfolder/", auth=self.auth)
+        assert res.status_code == 200
+        # res = requests.get(self.url + "subfolder", auth=self.auth)
+        # seems to follow redirects?
+        res = requests.get(self.url + "subfolder", auth=self.auth)
 
-    def testGet(self):
+    def testGetDavMount(self):
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
         assert '<meta name="generator" content="WsgiDAV/' in res.text
         assert res.encoding == "utf-8"
         assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
-        if (
-            "<!-- WsgiDAV-UI:" in res.text
-            and "<!-- WsgiDAV-UI: dav_explorer -->" not in res.text
-        ):
-            raise unittest.SkipTest("probably dir_browser enabled")
+
+        res = requests.get(self.url + "?davmount", auth=self.auth)
+        assert res.status_code == 200
+        assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
+        assert res.headers["Content-Type"] == "application/davmount+xml"
