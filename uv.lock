@@ -2152,7 +2152,7 @@ wheels = [
 
 [[package]]
 name = "wsgidav"
-version = "4.3.5a1"
+version = "4.4.0a1"
 source = { editable = "." }
 dependencies = [
     { name = "defusedxml" },
