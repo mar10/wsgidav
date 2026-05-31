@@ -26,10 +26,17 @@ jobs:
         # Python 3.11 # EOL 2027-10
         # Python 3.12 # EOL 2028-10
         # Python 3.13 # EOL 2029-10
+        # Python 3.14 # EOL 2030-10
+        # Python 3.15 # EOL 2031-10
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-dev libxslt1-dev
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
