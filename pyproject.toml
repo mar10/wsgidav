@@ -44,12 +44,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 requires-python = ">=3.10"
-dependencies = [
-    "defusedxml",
-    "Jinja2",
-    "json5",
-    "PyYAML",
-]
+dependencies = ["defusedxml", "Jinja2", "json5", "PyYAML"]
 
 
 [project.optional-dependencies]
@@ -91,9 +86,7 @@ version = { attr = "wsgidav.__version__" }
 dev = [
     # "cx_Freeze; sys_platform == 'win32'",
     "cheroot",
-    "mypy",
     "Paste",
-    "pylint",
     "pytest",
     "pytest-cov",
     "pytest-html",
@@ -105,10 +98,8 @@ dev = [
     "stressor",
     "tox",
     "tox-uv",
-    "twine",
     "WebTest",
     "wheel",
-    "safety",
     "yabs>=0.6",
 ]
 
@@ -125,30 +116,30 @@ src = ["wsgidav", "tests"]
 
 [tool.ruff.lint]
 select = [
-  "B",  # bugbear
-  "E",  # pycodestyle
-  "F",  # pyflakes
-  "G",  # flake8-logging-format
-  "UP", # pyupgrade
-  "T",  # print, ...
-  # "D",   # pydocstyle
-  "I", # isort
-# "C",  # codespell
-  "W191", # Indentation contains tabs
-  "W292", # Trailing whitespace
-  "W293", # Blank line contains whitespace
-  # "SIM",  # 
+    "B",  # bugbear
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "G",  # flake8-logging-format
+    "UP", # pyupgrade
+    "T",  # print, ...
+    # "D",   # pydocstyle
+    "I", # isort
+    # "C",  # codespell
+    "W191", # Indentation contains tabs
+    "W292", # Trailing whitespace
+    "W293", # Blank line contains whitespace
+    # "SIM",  # 
 ]
 
 ignore = [
-  "E721",  #  Do not compare types, use `isinstance()`
-  "E501",  # Line too long
-  "G001",  # Logging statement uses str.format
-  "G002",  # Logging statement uses % formatting
-  "G004",  # Logging format string does not contain any variables
-  "T201",  # `print()` statement found
-  "T203",  # `pprint()` statement found
-  "UP031", # Use format specifiers instead of percent format
+    "E721",  #  Do not compare types, use `isinstance()`
+    "E501",  # Line too long
+    "G001",  # Logging statement uses str.format
+    "G002",  # Logging statement uses % formatting
+    "G004",  # Logging format string does not contain any variables
+    "T201",  # `print()` statement found
+    "T203",  # `pprint()` statement found
+    "UP031", # Use format specifiers instead of percent format
 ]
 
 [tool.ruff.lint.isort]
@@ -168,7 +159,7 @@ check-hidden = true
 
 testpaths = [
     # ".",
-    "tests/*.py"
+    "tests/*.py",
 ]
 
 markers = [
@@ -209,7 +200,7 @@ exclude_also = [
     # 3. A pragma comment that excludes an entire file:
     # "\\A(?s:.*# pragma: exclude file.*)\\Z",
     "\\A(?s:.*# pragma: exclude-file-from-coverage.*)\\Z",
-    ]
+]
 
 [tool.coverage.html]
 directory = "build/coverage"
