@@ -18,13 +18,23 @@
 # - 2018-07-28: alpine does not compile lxml
 FROM python:3-alpine
 
+# Copy uv binary from the official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 #dependencies
-RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml py3-pip \
-    && apk --no-cache add curl \
-    && pip install wsgidav cheroot lxml \
+# RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml py3-pip \
+#     && apk --no-cache add curl \
+#     && pip install wsgidav cheroot lxml \
+#     && apk del .build-deps gcc musl-dev
+
+# RUN pip install --no-cache-dir wsgidav cheroot lxml
+
+# Install dependencies
+RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml \
+    && uv pip install --system wsgidav cheroot lxml \
     && apk del .build-deps gcc musl-dev
 
-RUN pip install --no-cache-dir wsgidav cheroot lxml
+RUN mkdir -p /var/wsgidav-root
 
 # This folder does not exist, so it must be mounted from the host using -v <ROOT_FOLDER>:/public/wsgidav-share
 # RUN mkdir -p /public/wsgidav-share
@@ -39,6 +49,7 @@ RUN echo '#!/bin/sh' > /entrypoint.sh && \
     echo '  exec wsgidav --host=0.0.0.0 --port=8080 --root=/public/wsgidav-share --auth=anonymous --no-config' >> /entrypoint.sh && \
     echo 'fi' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
+
 
 EXPOSE 8080
 

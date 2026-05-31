@@ -31,37 +31,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          python -V
-          python -m pip install --upgrade pip
-          python -m pip install cheroot defusedxml Jinja2 json5 PyYAML pytest pytest-cov pytest-html redis requests ruff webtest
-          # python -m pip install pytest pytest-cov pytest-html requests ruff
-          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          uv python install ${{ matrix.python-version }}
+          uv sync --no-dev
+          uv pip install cheroot defusedxml Jinja2 json5 PyYAML pytest pytest-cov pytest-html redis requests ruff webtest
 
       - name: Lint with ruff
         run: |
-          ruff -V
-          ruff check wsgidav tests setup.py
-
-      # - name: Lint with flake8
-      #   run: |
-      #     # stop the build if there are Python syntax errors or undefined names
-      #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-      #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-      #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          uv run ruff -V
+          uv run ruff check wsgidav tests
 
       - name: Test with pytest
         run: |
-          pytest -V
-          pytest -ra -v -x --durations=10 --cov=wsgidav
-          # pytest -ra -v -x --durations=10 --cov=wsgidav --html=build/pytest/report-${{ matrix.python-version }}.html --self-contained-html
-          # pytest -ra -v -x --durations=10 --cov=wsgidav --html=build/pytest/report-{envname}.html --self-contained-html {posargs}
+          uv run pytest -V
+          uv run pytest -ra -v -x --durations=10 --cov=wsgidav
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
