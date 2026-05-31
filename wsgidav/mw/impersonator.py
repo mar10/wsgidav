@@ -18,7 +18,6 @@ restored.
 import os
 import pwd
 from contextlib import AbstractContextManager
-from typing import Tuple
 
 from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware
@@ -30,7 +29,7 @@ _logger.debug(f"impersonator: initial uid:gid = {_init_euid}:{_init_egid}")
 
 
 class ImpersonateContext(AbstractContextManager):
-    def __init__(self, ids: Tuple[int, int] | None) -> None:
+    def __init__(self, ids: tuple[int, int] | None) -> None:
         if ids is None:
             self._enabled = False
             return
@@ -77,7 +76,7 @@ class Impersonator(BaseMiddleware):
     def is_disabled(self):  # type: ignore
         return not self.get_config("impersonator.enable", False)  # type: ignore
 
-    def _map_id(self, username: str) -> Tuple[int, int] | None:
+    def _map_id(self, username: str) -> tuple[int, int] | None:
         if self.is_disabled():
             return None
 
