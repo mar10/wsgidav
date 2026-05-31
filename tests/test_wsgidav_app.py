@@ -60,11 +60,13 @@ class ServerTest(unittest.TestCase):
         }
 
         if with_authentication:
-            config["http_authenticator"].update({
-                "accept_basic": True,
-                "accept_digest": False,
-                "default_to_digest": False,
-            })
+            config["http_authenticator"].update(
+                {
+                    "accept_basic": True,
+                    "accept_digest": False,
+                    "default_to_digest": False,
+                }
+            )
             config["simple_dc"]["user_mapping"] = {
                 "/": {"tester": {"password": "secret", "description": "", "roles": []}}
             }

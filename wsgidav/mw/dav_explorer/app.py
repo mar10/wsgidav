@@ -149,11 +149,13 @@ class WsgiDavExplorer(BaseMiddleware):
                 "show_user",
             ]
         }
-        js_config.update({
-            "readonly": is_readonly,
-            "showInfoPane": self.davex_config.get("show_info_pane", True),
-            "htdocs": self.mount_path + ASSET_SHARE,
-        })
+        js_config.update(
+            {
+                "readonly": is_readonly,
+                "showInfoPane": self.davex_config.get("show_info_pane", True),
+                "htdocs": self.mount_path + ASSET_SHARE,
+            }
+        )
 
         jinja_context = {
             "htdocs": self.mount_path + ASSET_SHARE,
@@ -174,8 +176,7 @@ class WsgiDavExplorer(BaseMiddleware):
 
         if trailer:
             trailer = (
-                trailer
-                .replace(
+                trailer.replace(
                     "${version}",
                     f'<a href=\'https://github.com/mar10/wsgidav/\' target="_blank" rel="noopener noreferrer">{util.public_wsgidav_info}</a>',
                 )
@@ -192,14 +193,16 @@ class WsgiDavExplorer(BaseMiddleware):
             jinja_context["icon"] = self.mount_path + ASSET_SHARE + "/logo_32x32.png"
 
         if "wsgidav.auth.user_name" in environ:
-            jinja_context.update({
-                "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
-                "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
-                "realm": environ.get("wsgidav.auth.realm"),
-                "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
-                "user_permissions": ", ".join(
-                    environ.get("wsgidav.auth.permissions") or []
-                ),
-            })
+            jinja_context.update(
+                {
+                    "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
+                    "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
+                    "realm": environ.get("wsgidav.auth.realm"),
+                    "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
+                    "user_permissions": ", ".join(
+                        environ.get("wsgidav.auth.permissions") or []
+                    ),
+                }
+            )
 
         return jinja_context

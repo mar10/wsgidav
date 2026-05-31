@@ -112,40 +112,46 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, web_ui=None, **kwargs
     }
 
     if with_auth:
-        config["http_authenticator"].update({
-            "accept_basic": True,
-            "accept_digest": False,
-            "default_to_digest": False,
-        })
-        config["simple_dc"].update({
-            "user_mapping": {
-                "*": {
-                    "tester": {
-                        "password": "secret",
-                        "description": "",
-                        "roles": [],
-                    },
-                    "tester2": {
-                        "password": "secret2",
-                        "description": "",
-                        "roles": [],
-                    },
+        config["http_authenticator"].update(
+            {
+                "accept_basic": True,
+                "accept_digest": False,
+                "default_to_digest": False,
+            }
+        )
+        config["simple_dc"].update(
+            {
+                "user_mapping": {
+                    "*": {
+                        "tester": {
+                            "password": "secret",
+                            "description": "",
+                            "roles": [],
+                        },
+                        "tester2": {
+                            "password": "secret2",
+                            "description": "",
+                            "roles": [],
+                        },
+                    }
                 }
             }
-        })
+        )
 
     if with_ssl:
-        config.update({
-            "ssl_certificate": os.path.join(
-                package_path, "wsgidav/server/sample_bogo_server.crt"
-            ),
-            "ssl_private_key": os.path.join(
-                package_path, "wsgidav/server/sample_bogo_server.key"
-            ),
-            "ssl_certificate_chain": None,
-            # "accept_digest": True,
-            # "default_to_digest": True,
-        })
+        config.update(
+            {
+                "ssl_certificate": os.path.join(
+                    package_path, "wsgidav/server/sample_bogo_server.crt"
+                ),
+                "ssl_private_key": os.path.join(
+                    package_path, "wsgidav/server/sample_bogo_server.key"
+                ),
+                "ssl_certificate_chain": None,
+                # "accept_digest": True,
+                # "default_to_digest": True,
+            }
+        )
 
     # We want output captured for tests
     util.init_logging(config)
