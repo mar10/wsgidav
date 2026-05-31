@@ -26,6 +26,10 @@ class BaseMiddleware(ABC):
         wsgidav.request_resolver.RequestResolver
     """
 
+    #: Optional string to identify the middleware type, e.g. "web_interface".
+    #: If set, the framework will prevent loading multiple middlewares with the same type.
+    singleton_middleware_type: str = None
+
     def __init__(self, wsgidav_app, next_app, config):
         self.wsgidav_app = wsgidav_app
         self.next_app = next_app

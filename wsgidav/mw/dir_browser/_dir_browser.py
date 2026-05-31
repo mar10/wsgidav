@@ -45,6 +45,8 @@ OPEN_OFFICE_EXTENSIONS = {"odt", "odp", "odx"}
 class WsgiDavDirBrowser(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
+    singleton_middleware_type: str = "web_interface"
+
     def __init__(self, wsgidav_app, next_app, config):
         super().__init__(wsgidav_app, next_app, config)
 
@@ -305,16 +307,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
             )
 
         if "wsgidav.auth.user_name" in environ:
-            context.update(
-                {
-                    "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
-                    "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
-                    "realm": environ.get("wsgidav.auth.realm"),
-                    "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
-                    "user_permissions": ", ".join(
-                        environ.get("wsgidav.auth.permissions") or []
-                    ),
-                }
-            )
+            context.update({
+                "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
+                "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
+                "realm": environ.get("wsgidav.auth.realm"),
+                "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
+                "user_permissions": ", ".join(
+                    environ.get("wsgidav.auth.permissions") or []
+                ),
+            })
 
         return context
