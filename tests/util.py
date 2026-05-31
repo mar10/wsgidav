@@ -68,10 +68,8 @@ def write_test_file(name, size):
 
 def create_test_folder(name):
     path = os.path.join(gettempdir(), name)
-    # copytree fails if dir exists. Since Py3.8 we could add `dirs_exist_ok=True`
-    # but this would break tests on 3.6/3.7.
     shutil.rmtree(util.to_str(path), ignore_errors=True)
-    shutil.copytree(os.path.join(FIXTURE_PATH, "share"), path)
+    shutil.copytree(os.path.join(FIXTURE_PATH, "share"), path, dirs_exist_ok=True)
     return path
 
 

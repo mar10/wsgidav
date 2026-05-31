@@ -17,11 +17,11 @@ import stat
 import sys
 import time
 import warnings
+from collections.abc import Iterable
 from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Dict, Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav import __version__
@@ -63,7 +63,7 @@ class NO_DEFAULT:
     """"""
 
 
-def check_python_version(min_version: Tuple[str]) -> bool:
+def check_python_version(min_version: tuple[str]) -> bool:
     """Check for deprecated Python version."""
     if sys.version_info < min_version:
         min_ver = ".".join([str(s) for s in min_version[:3]])
@@ -1025,7 +1025,7 @@ def get_uri_name(uri: str) -> str:
     return uri.strip("/").split("/")[-1]
 
 
-def get_uri_parent(uri: str) -> Optional[str]:
+def get_uri_parent(uri: str) -> str | None:
     """Return URI of parent collection with trailing '/', or None, if URI is top-level.
 
     This function simply strips the last segment. It does not test, if the
@@ -1763,7 +1763,7 @@ _MIME_TYPES = {
 }
 
 
-def guess_mime_type(url: str, options: Optional[Dict] = None) -> str:
+def guess_mime_type(url: str, options: dict | None = None) -> str:
     """Use the mimetypes module to lookup the type for an extension.
 
     This function also adds some extensions required for HTML5
