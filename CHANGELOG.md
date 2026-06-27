@@ -17,6 +17,14 @@
 - Test with Python 3.13
 - Use ruff instead of black/isort
 
+## 4.3.5 / 2026-06-27
+
+- Fix Blind SQL injection in WsgiDAV MySQL provider [CVE-2026-55509](https://github.com/mar10/wsgidav/security/advisories/GHSA-p6gw-4frg-j7jw)
+  Note: The MySQLBrowserProvider module is only provided as an example for WsgiDAV and not enabled by default.
+  Installations that do not explicitly activate the module in their configuration are not affected by this vulnerability.  
+- Harden 'follow_symlinks=false' [CVE-2026-55560](https://github.com/mar10/wsgidav/security/advisories/GHSA-wm65-64rq-rh8r)
+
+
 ## 4.3.4 / 2026-05-24
 
 - Resolve security advisory [CVE-2026-48099](https://github.com/mar10/wsgidav/security/advisories/GHSA-wxq4-cc2q-338q)
