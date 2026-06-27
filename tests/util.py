@@ -68,10 +68,8 @@ def write_test_file(name, size):
 
 def create_test_folder(name):
     path = os.path.join(gettempdir(), name)
-    # copytree fails if dir exists. Since Py3.8 we could add `dirs_exist_ok=True`
-    # but this would break tests on 3.6/3.7.
     shutil.rmtree(util.to_str(path), ignore_errors=True)
-    shutil.copytree(os.path.join(FIXTURE_PATH, "share"), path)
+    shutil.copytree(os.path.join(FIXTURE_PATH, "share"), path, dirs_exist_ok=True)
     return path
 
 
@@ -80,14 +78,18 @@ def create_test_folder(name):
 # ==============================================================================
 
 
-def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
-    """Start blocking WsgiDAV server (called as a separate process)."""
+def run_wsgidav_server(with_auth, with_ssl, provider=None, web_ui=None, **kwargs):
+    """Start blocking WsgiDAV server.
 
+    This method is called as a separate process.
+    """
+    print("run_wsgidav_server: starting...", kwargs)
     package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-    share_path = os.path.join(gettempdir(), "wsgidav-test")
-    if not os.path.exists(share_path):
-        os.mkdir(share_path)
+    # share_path = os.path.join(gettempdir(), "wsgidav-test")
+    # if not os.path.exists(share_path):
+    #         os.mkdir(share_path)
+    share_path = create_test_folder("wsgidav-test")
 
     if provider is None:
         provider = FilesystemProvider(share_path)
@@ -111,7 +113,11 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
 
     if with_auth:
         config["http_authenticator"].update(
-            {"accept_basic": True, "accept_digest": False, "default_to_digest": False}
+            {
+                "accept_basic": True,
+                "accept_digest": False,
+                "default_to_digest": False,
+            }
         )
         config["simple_dc"].update(
             {
@@ -154,6 +160,10 @@ def run_wsgidav_server(with_auth, with_ssl, provider=None, **kwargs):
     if kwargs.get("startup_event"):
         config["startup_event"] = kwargs["startup_event"]
 
+    if web_ui:
+        config["dir_browser"] = {"enable": web_ui == "dir_browser"}
+        config["dav_explorer"] = {"enable": web_ui == "dav_explorer"}
+
     app = WsgiDAVApp(config)
 
     # from wsgidav.server.server_cli import _runBuiltIn
@@ -173,12 +183,20 @@ class WsgiDavTestServer:
     """Run wsgidav in a separate process."""
 
     def __init__(
-        self, config=None, with_auth=False, with_ssl=False, provider=None, profile=False
+        self,
+        *,
+        config: dict | None = None,
+        with_auth: bool = False,
+        with_ssl: bool = False,
+        provider=None,
+        profile: bool = False,
+        web_ui: str | None = None,
     ):
         self.config = config
         self.with_auth = with_auth
         self.with_ssl = with_ssl
         self.provider = provider
+        self.web_ui = web_ui
         # self.start_delay = 2
         self.startup_event = multiprocessing.Event()
         self.startup_timeout = 5
@@ -205,8 +223,12 @@ class WsgiDavTestServer:
             "provider": self.provider,
             "startup_event": self.startup_event,
             "startup_timeout": self.startup_timeout,
+            "web_ui": self.web_ui,
         }
         print("Starting WsgiDavTestServer...")
+        assert self.web_ui in (None, "dir_browser", "dav_explorer"), (
+            f"Invalid web_ui {self.web_ui!r}"
+        )
         self.proc = multiprocessing.Process(target=run_wsgidav_server, kwargs=kwargs)
         self.proc.daemon = True
         self.proc.start()
@@ -222,7 +244,7 @@ class WsgiDavTestServer:
 
     def stop(self):
         if self.proc:
-            print("Stopping WsgiDAVAppTestServer...")
+            print("Stopping WsgiDavTestServer...")
             self.proc.terminate()
             self.proc.join()
             self.proc = None

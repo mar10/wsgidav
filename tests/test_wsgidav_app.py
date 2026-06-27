@@ -94,22 +94,6 @@ class ServerTest(unittest.TestCase):
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
         )
 
-    def testDirBrowser(self):
-        """Server must respond to GET on a collection."""
-        app = self.app
-        # Access collection (expect '200 Ok' with HTML response)
-        res = app.get("/", status=200)
-        assert "WsgiDAV - Index of /" in res, "Could not list root share"
-        assert "readme.txt" in res, "Fixture content"
-        assert "Lotosblütenstengel (蓮花莖).docx" in res, "Encoded fixture content"
-
-        # Access unmapped resource (expect '404 Not Found')
-        res = app.get("/not-existing-124/", status=404)
-
-        res = app.get("/subfolder/", status=200)
-        # res = app.get("/subfolder", status=301)
-        res = app.get("/subfolder")  # seems to follow redirects?
-
     def testGetPut(self):
         """Read and write file contents."""
         app = self.app

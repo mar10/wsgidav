@@ -133,7 +133,7 @@ def _check_config(config):
 
 
 #: Minimal Python version that is supported by WsgiDAV
-MIN_PYTHON_VERSION_INFO = (3, 9)
+MIN_PYTHON_VERSION_INFO = (3, 10)
 
 check_python_version(MIN_PYTHON_VERSION_INFO)
 
@@ -228,6 +228,7 @@ class WsgiDAVApp:
         domain_controller = None
 
         # Define WSGI application stack
+        singleton_mw_types = set()
         middleware_stack = config.get("middleware_stack", [])
         mw_list = []
 
@@ -267,9 +268,15 @@ class WsgiDAVApp:
 
             # Add middleware to the stack
             if app:
+                singleton_type = getattr(app, "singleton_middleware_type", None)
                 if callable(getattr(app, "is_disabled", None)) and app.is_disabled():
                     _logger.warning(f"App {app}.is_disabled() returned True: skipping.")
                 else:
+                    if singleton_type and singleton_type in singleton_mw_types:
+                        raise ValueError(
+                            f"Duplicate middleware type {singleton_type!r}: {app}"
+                        )
+                    singleton_mw_types.add(singleton_type)
                     mw_list.append(app)
                     self.application = app
             else:

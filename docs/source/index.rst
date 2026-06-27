@@ -29,7 +29,7 @@ Main Features
 - Comes bundled with a server and a file system provider, so we can share a
   directory right away from the command line.
 - Designed to run behind any WSGI compliant server.
-- Tested with different clients on different platforms (Windows, Linux, Mac).
+- Tested with different clients on different platforms (Windows, Linux, macOS).
 - Supports online editing of MS Office documents.
 - Contains a simple web browser interface.
 - SSL support
@@ -37,14 +37,39 @@ Main Features
 - Passes the `litmus test suite <http://www.webdav.org/neon/litmus/>`_.
 - Open architecture allows to :doc:`user_guide_custom_providers`
   (i.e. storage, locking, authentication, virtual file systems, ...).
-- WsgiDAV is a `refactored version of PyFileServer <https://github.com/mar10/wsgidav/blob/master/docs/source/changelog04.md>`_
-  written by Ho Chun Wei.
 
+
+DAV Explorer
+------------
+WsgiDAV comes with a slick web interface that allows to explore the DAV share and 
+perform basic operations (create, delete, move, copy, rename, ...) directly
+in the browser, without the need for additional software or drive mapping. |br|
+Up- and downloading of files is supported using drag-and-drop or file dialogs. |br|
+Also inline editing of office documents is supported when MS Office or LibreOffice is 
+installed on the client machine.
+
+.. image:: DAV_Explorer.png
+  :name: WsgiDAV explorer
 
 .. note::
 
-  Release 4.0 introduces some refactorings and breaking changes. |br|
-  See :doc:`changes` for details.
+  DAV Explorer is available since version 4.4. |br|
+  It has beta status and is not enabled by default, but must be explicitly enabled 
+  in the configuration file ``wsgidav.yaml``.
+
+
+Supported Clients
+-----------------
+
+WsgiDAV comes with a web interface and was tested with different clients
+(Windows File Explorer, macOS Finder, MS Office, LibreOffice, ...).
+
+.. image:: teaser.png
+  :name: WsgiDAV clients
+
+..
+  .. seealso::
+  	:doc:`run-access`
 
 
 Quickstart
@@ -76,7 +101,7 @@ WebDAV-aware client, such as MS Word, macOS Finder, Windows File Explorer, ...
   $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=pam-login
 
 **On Windows** we can enforce authentication against known users (e.g.
-Windows NT Domain Controller) like so::
+Windows Domain Controller) like so::
 
   > wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=nt
 
@@ -89,25 +114,16 @@ is available here: https://hub.docker.com/r/mar10/wsgidav/
 ::
 
     $ docker pull mar10/wsgidav
-    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
 
 for example::
 
-    $ docker run --rm -it -p 8080:8080 -v c:/temp:/var/wsgidav-root mar10/wsgidav
+    $ docker run --rm -it -p 8080:8080 -v c:/temp:/public/wsgidav-share mar10/wsgidav
 
+If you want to use a custom configuration file, mount it like this::
 
-Supported Clients
-=================
+     $ docker run --rm -it -v c:/path/to/wsgidav.yaml:/path/to/wsgidav.yaml mar10/wsgidav
 
-WsgiDAV comes with a web interface and was tested with different clients
-(Windows File Explorer and drive mapping, MS Office, Ubuntu, Mac OS X, ...).
-
-.. image:: teaser.png
-  :name: WsgiDAV clients
-
-..
-  .. seealso::
-  	:doc:`run-access`
 
 
 .. |logo| image:: logo.png

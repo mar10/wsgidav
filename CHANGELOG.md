@@ -1,10 +1,14 @@
 # Changelog
 
+## `feature/update-web-ui` / Unreleased
+
+- WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
+
 ## 4.4.0 / Unreleased
 
-- [#343](https://github.com/mar10/wsgidav/issues/343) 
+- [#343](https://github.com/mar10/wsgidav/issues/343)
   Add experimental middleware for impersonation (@leo9800)
-- [#348](https://github.com/mar10/wsgidav/issues/348) 
+- [#348](https://github.com/mar10/wsgidav/issues/348)
   Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
 - [#352](https://github.com/mar10/wsgidav/pull/352)
   Apache htpasswd based domain controller (@leo9800)
@@ -14,8 +18,10 @@
   Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
 - [#356](https://github.com/mar10/wsgidav/pull/356)
   Domain controller for apache .htdigest files (@leo9800)
-- Test with Python 3.13
+- Drop Python 3.8, 3.9
+- Add support for Python 3.14, 3.15
 - Use ruff instead of black/isort
+- Use uv instead of pip/pipenv
 
 ## 4.3.4 / 2026-05-24
 

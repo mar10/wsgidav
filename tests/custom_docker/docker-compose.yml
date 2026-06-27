@@ -1,0 +1,29 @@
+# Run WsgiDAV in a Docker container with a custom configuration file and multiple mount points for WebDAV shares.
+# Note that the file paths in the configuration file must still be mounted into the container.
+# For example, if the configuration file specifies two shares with root folders /public/wsgidav-share-1 and /public/wsgidav-share-2, these folders must be mounted
+# into the container as well, e.g. from ~/test/webdav and ~/test/ftp_local on the host:
+#   docker run --rm -it -v ./wsgidav_docker_ubuntu.yaml:/custom/wsgidav.yaml -p 8080:8080 -v ~/test/webdav:/public/wsgidav-share-1 -v ~/test/ftp_local:/public/wsg
+version: '2'
+
+services:
+  wsgidav:
+    # build: .
+    image: mar10/wsgidav
+    container_name: "wsgidav-custom-config"
+    ports:
+      - "8080:8080"
+    volumes:
+      # Custom WsgiDAVconfiguration file 
+      - ./wsgidav.yaml:/config/wsgidav.yaml
+      # Mount the root folder(s) for WebDAV shares (must match the paths in the 
+      # configuration file)
+      - ~/test/webdav:/public/wsgidav-share-1
+      # - /path/to/folder2:/public/wsgidav-share-2
+      # SSL
+      # - /path/to/cert.crt:/etc/ssl/certs/server.crt:ro
+      # - /path/to/key.key:/etc/ssl/private/server.key:ro
+      # - /path/to/cert_chain.pem:/etc/ssl/certs/server.pem:ro
+      # HtpasswdDomainController
+      # - /path/to/htdigest:/public/wsgidav-htdigest:ro
+
+    # restart: unless-stopped

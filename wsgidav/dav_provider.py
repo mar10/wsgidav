@@ -84,7 +84,6 @@ import sys
 import time
 import traceback
 from abc import ABC, abstractmethod
-from typing import Optional
 from urllib.parse import quote, unquote
 
 from wsgidav import util, xml_tools
@@ -192,7 +191,7 @@ class _DAVResource(ABC):
     #        raise NotImplementedError
 
     @abstractmethod
-    def get_content_length(self) -> Optional[int]:
+    def get_content_length(self) -> int | None:
         """Contains the Content-Length header returned by a GET without accept
         headers.
 
@@ -205,7 +204,7 @@ class _DAVResource(ABC):
             return None
         raise NotImplementedError
 
-    def get_content_type(self) -> Optional[str]:
+    def get_content_type(self) -> str | None:
         """Contains the Content-Type header returned by a GET without accept
         headers.
 
@@ -219,7 +218,7 @@ class _DAVResource(ABC):
             return None
         raise NotImplementedError
 
-    def get_creation_date(self) -> Optional[float]:
+    def get_creation_date(self) -> float | None:
         """Records the time and date the resource was created.
 
         The creationdate property should be defined on all DAV compliant
@@ -279,7 +278,7 @@ class _DAVResource(ABC):
         """
         return None
 
-    def get_used_bytes(self) -> Optional[int]:
+    def get_used_bytes(self) -> int | None:
         """Return used bytes of the DAV collection.
         See http://www.webdav.org/specs/rfc4331.html#quota-used-bytes
 
@@ -287,7 +286,7 @@ class _DAVResource(ABC):
         """
         return None
 
-    def get_available_bytes(self) -> Optional[int]:
+    def get_available_bytes(self) -> int | None:
         """Return available bytes of the DAV collection.
         See http://www.webdav.org/specs/rfc4331.html#quota-available-bytes
 
@@ -1367,10 +1366,10 @@ class DAVCollection(_DAVResource):
     #    def getContentLanguage(self):
     #        return None
 
-    def get_content_length(self) -> Optional[int]:
+    def get_content_length(self) -> int | None:
         return None
 
-    def get_content_type(self) -> Optional[str]:
+    def get_content_type(self) -> str | None:
         return None
 
     def create_empty_resource(self, name: str) -> _DAVResource:
@@ -1572,7 +1571,7 @@ class DAVProvider(ABC):
         return "/" + unquote(util.removeprefix(ref_url, self.share_path)).lstrip("/")
 
     @abstractmethod
-    def get_resource_inst(self, path: str, environ: dict):
+    def get_resource_inst(self, path: str, environ: dict) -> _DAVResource:
         """Return a _DAVResource object for path.
 
         Should be called only once per request and resource::

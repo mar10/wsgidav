@@ -58,13 +58,13 @@ Main features:
 
   ```bash
   $ docker pull mar10/wsgidav
-  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
   ```
 
-  for example::
+  for example publish the content of `/tmp` as `http://0.0.0.0/` for anonymous access::
 
   ```bash
-  $ docker run --rm -it -p 8080:8080 -v /tmp:/var/wsgidav-root mar10/wsgidav
+  $ docker run --rm -it -p 8080:8080 -v /tmp:/public/wsgidav-share mar10/wsgidav
   ```
 
 - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
@@ -78,8 +78,12 @@ Main features:
   Its open architecture allows to extend the functionality and integrate
   WebDAV services into your project.<br>
   Typical use cases are:
-  - Expose data structures as virtual, editable file systems.
-  - Allow online editing of MS Office documents.
+  - Expose data structures as virtual, editable file systems, that can be mapped in 
+    _macoOS Finder_, _Windows File Explorer_, etc.
+  - Allow online editing of _MS Office_ and _LibreOffice_ documents.
+
+- _DAV Explorer_: A simple built-in web interface allows up- and download files, 
+  rename, move, copy, delete operations, and peviews.
 
 ## Status
 

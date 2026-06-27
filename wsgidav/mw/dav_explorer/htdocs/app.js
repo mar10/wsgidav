@@ -1,0 +1,318 @@
+"use strict";
+
+// import { Wunderbaum } from "./wunderbaum.esm.js";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
+
+import {
+	config,
+	getDAVClient, util,
+	getNodeResourceUrl,
+	getTree,
+	isFile,
+	isFolder,
+	parseDateToTimestamp,
+	settingsStore,
+} from "./util.js";
+import {
+	getFileIcon,
+	getFileInfo,
+	getOfficeUrlPrefix,
+	showPreview,
+	togglePreviewPane,
+	updateNodePreviewInfo,
+} from "./previews.js";
+import {
+	addFileToDataTransfer,
+	commandHtmlTemplateFile,
+	commandHtmlTemplateFolder,
+	createFolder,
+	downloadFile,
+	registerCommandButtons,
+	showNotification,
+	uploadFiles,
+	uploadFilesDialog,
+} from "./widgets.js";
+
+
+
+/**
+ * Open an MS Office/LibreOffice document the 'ms-' protocol scheme.
+ *
+ * @param {object} opts
+ * @returns {boolean} true if the URL could be opened
+ */;
+function openDocument(node, options = {}) {
+	const { readonly = config.readonly, officeSupport = settingsStore.get("office_support") } = options;
+	const info = node ? getFileInfo(node.title) : null;
+	if (!info || !isFile(node)) {
+		return false;
+	}
+	let url = getOfficeUrlPrefix(node, { readonly: readonly });
+	console.log("Open %s...", url);
+	if (officeSupport && url) {
+		showNotification(`Opening ${node.title} in Office`, { type: "info" });
+		return window.open(url, "_self");
+	} else {
+		url = getNodeResourceUrl(node);
+		return window.open(url, "_blank");
+	}
+}
+
+async function loadWbResources(options = {}) {
+	options = Object.assign({ path: "/", details: false }, options);
+	const client = getDAVClient();
+
+	try {
+		const resList = await client.getDirectoryContents(options.path, options);
+
+		const nodeList = [];
+		for (let res of resList) {
+			res.title = res.basename;
+			delete res.basename;
+			if (res.type === "directory") res.lazy = true;
+			// Convert 'Mon, 07 Apr 2025 19:46:35 GMT' to a unix timestamp
+			res.lastmod = parseDateToTimestamp(res.lastmod);
+			nodeList.push(res);
+		}
+		// console.info("getDirectoryContents", nodeList);
+		return nodeList;
+	} catch (err) {
+		console.error("Error loading resources:", err);
+		showNotification(`Failed to load resources: ${err.message}`, { type: "error" });
+		throw err;
+	}
+}
+
+const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
+const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
+
+const _tree = new Wunderbaum({
+	element: "div#tree",
+	debugLevel: 5,
+	types: {},
+	columns: [
+		{ id: "*", title: "Path", width: 2 },
+		{ id: "commands", title: "Commands", width: "190px", sortable: false },
+		{ id: "type", title: "Type", width: "100px" },
+		{ id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
+		{ id: "lastmod", title: "Modified", width: "150px", classes: "wb-helper-end" },
+		// {id: "etag", title: "ETag", width: "80px" },
+		{ id: "mime", title: "Mime Type", width: 1 },
+	],
+	autoKeys: true,
+	columnsResizable: true,
+	columnsSortable: true,
+	sortFoldersFirst: true,
+	navigationModeOption: "row",
+	emptyChildListExpandable: true,
+	connectTopBreadcrumb: "output#parentPath",
+
+	icon: (e) => {
+		return getFileIcon(e.node.title);
+	},
+
+	source: loadWbResources(),
+
+	init: function (e) {
+		e.tree.sort({ colId: "*", updateColInfo: true });
+		e.tree.setFocus();
+		togglePreviewPane(settingsStore.get("showInfoPane") ?? true);
+	},
+	load: function (e) {
+		// When loading a lazy branch, apply current sort order if any
+		e.node.resort();
+	},
+	lazyLoad: function (e) {
+		const path = e.node.getPath();
+		return loadWbResources({ path: path });
+	},
+	expand: function (e) {
+		updateNodePreviewInfo(e.node);
+	},
+	buttonClick: (e) => {
+		if (e.command === "sort") {
+			e.tree.sort({ colId: e.info.colId, updateColInfo: true });
+		}
+	},
+	activate: (e) => {
+		showPreview(e.node);
+	},
+	dblclick: (e) => {
+		if (isFile(e.node)) { openDocument(e.node); }
+	},
+	edit: {
+		trigger: ["clickActive", "F2", "macEnter"],
+		apply: (e) => {
+			const newValue = e.newValue;
+			const sourcePath = e.node.getPath();
+			const parentPath = e.node.parent ? e.node.parent.getPath() : "/";
+			const targetPath = parentPath.endsWith("/")
+				? parentPath + newValue
+				: parentPath + "/" + newValue;
+			e.node.logInfo(`Move to ${newValue}`);
+			return getDAVClient().moveFile(sourcePath, targetPath).catch((err) => {
+				showNotification(`Failed to rename "${sourcePath}" to "${targetPath}": ${err.message}`, { type: "error" });
+				console.error("Failed to rename: ", err);
+				throw err;
+			});
+		},
+	},
+	render: function (e) {
+		const node = e.node;
+		const isDir = node.type === "directory";
+
+		for (const col of Object.values(e.renderColInfosById)) {
+			switch (col.id) {
+				case "type":
+					col.elem.textContent = node.type;
+					break;
+				case "commands":
+					// <a href="ms-word:ofe|u|http://some_WebDav_enabled_address.com/some_Word_document.docx">Open Document in Word</a>
+					// https://stackoverflow.com/a/25765784/19166
+					if (e.isNew) {
+						const cmdBar = isDir ? commandBarFolder : commandBarFile;
+						col.elem.appendChild(cmdBar.cloneNode(true));
+					}
+					break;
+				case "size":
+					col.elem.textContent = isDir ? "" : node.data.size.toLocaleString();
+					break;
+				case "lastmod":
+					col.elem.textContent = node.data.lastmod ? new Date(node.data.lastmod).toLocaleString() : "n.a.";
+					break;
+				default:
+					// Assumption: we named column.id === node.data.NAME
+					col.elem.textContent = node.data[col.id];
+					break;
+			}
+		}
+	},
+	dnd: {
+		dragStart: (e) => {
+			console.log(e.type, e);
+			addFileToDataTransfer(e.node, e.event);
+			return true;
+		},
+		dragEnter: (e) => {
+			// console.log(e.type, e);
+			if (e.node.parent === e.sourceNode?.parent) {
+				return isFolder(e.node) ? "over" : false;
+			}
+			if (isFolder(e.node)) {
+				return true;
+			}
+			return ["before", "after"];
+		},
+		drop: (e) => {
+			const node = e.node;
+			const dataTransfer = e.event.dataTransfer;
+			console.log(e.type, e, dataTransfer.items?.length);
+			if (e.sourceNode) {
+				// copy/move a node inside the tree
+				const sourcePath = e.sourceNode.getPath();
+				let targetPath;
+				if (node.type === "directory" && e.region === "over") {
+					targetPath = node.getPath() + "/" + e.sourceNode.title;
+				} else {
+					targetPath = node.parent.getPath() + "/" + e.sourceNode.title;
+				}
+				console.log(e.type, `${e.suggestedDropEffect} ${sourcePath} -> ${targetPath} `, e);
+				switch (e.suggestedDropEffect) {
+					case "copy":
+						getDAVClient().copyFile(sourcePath, targetPath).then(() => {
+							node.addNode(
+								{ title: `${e.sourceNodeData.title}` },
+								e.suggestedDropMode
+							);
+						}).catch((err) => {
+							showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+						});
+						break;
+					default:
+						getDAVClient().moveFile(sourcePath, targetPath).then(() => {
+							e.sourceNode.moveTo(node, e.suggestedDropMode);
+						}).catch((err) => {
+							showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+						});
+						break;
+				}
+			} else if (dataTransfer.items && dataTransfer.items.length) {
+				// drop an external file onto the tree
+				const fileArray = [];
+				[...dataTransfer.items].forEach((item, i) => {
+					if (item.kind === "file") {
+						const file = item.getAsFile();
+						// console.log(`  - file[${i}].name = ${file.name} `);
+						fileArray.push(file);
+					}
+				});
+				uploadFiles(e.node, fileArray);
+			}
+		},
+	},
+});
+
+registerCommandButtons("body", (e) => {
+	let node = e.node;
+	console.info("got", `${node}`, e.command, e);
+	switch (e.command) {
+		case "togglePreview":
+			togglePreviewPane(e.isPressed);
+			if (e.isPressed) { showPreview(node); } else { showPreview(null); }
+			break;
+		case "showHelp":
+			showPreview(config.htdocs + "/help.html", { autoOpen: true, iframe: true });
+			break;
+		case "showSettings":
+			showPreview("settings", { autoOpen: true });
+			break;
+		case "rename":
+			node.startEditTitle();
+			break;
+		case "reloadTree":
+			getTree().reload({ source: loadWbResources() });
+			break;
+		case "newTopFolder":
+			node = getTree().root;
+		// fall through
+		case "newFolder":
+			const promptText = node.isRootNode() ? "Name of the new toplevel folder" : `Name of the new subfolder of\n '${node.getPath() + "/"}'`;
+			const newName = prompt(promptText, "New Folder");
+			if (newName) {
+				createFolder(node, newName);
+			}
+			break;
+		case "delete":
+			if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
+				getDAVClient().deleteFile(node.getPath()).then(() => {
+					node.remove();
+				}).catch((err) => {
+					showNotification(`Failed to delete "${node.getPath()}": ${err.message}`, { type: "error" });
+					console.error("Failed to delete: ", err);
+				});
+			}
+			break;
+		case "uploadTop":
+			node = getTree().root;
+		// fall through
+		case "upload":
+			uploadFilesDialog(node);
+			break;
+		case "startOffice":
+			openDocument(node);
+			break;
+		case "download":
+			downloadFile(node);
+			break;
+		case "copyUrl":
+			navigator.clipboard.writeText(getNodeResourceUrl(node))
+				.then(() => {
+					showNotification("URL copied to clipboard.", { type: "info" });
+				})
+				.catch((err) => {
+					showNotification("Failed to copy URL.", { type: "error" });
+					console.error("Failed to copy URL: ", err);
+				});
+			break;
+	}
+});

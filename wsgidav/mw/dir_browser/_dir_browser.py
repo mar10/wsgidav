@@ -45,6 +45,8 @@ OPEN_OFFICE_EXTENSIONS = {"odt", "odp", "odx"}
 class WsgiDavDirBrowser(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
 
+    singleton_middleware_type: str = "web_interface"
+
     def __init__(self, wsgidav_app, next_app, config):
         super().__init__(wsgidav_app, next_app, config)
 
