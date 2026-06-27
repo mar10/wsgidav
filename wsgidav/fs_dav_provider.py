@@ -241,9 +241,9 @@ class FolderResource(DAVCollection):
             assert util.is_str(name)
             # Skip non files (links and mount points)
             fp = os.path.join(self._file_path, name)
-            # if not self.provider.fs_opts.get("follow_symlinks") and os.path.islink(fp):
-            #     _logger.info(f"Skipping symlink {fp!r}")
-            #     continue
+            if not self.provider.fs_opts.get("follow_symlinks") and os.path.islink(fp):
+                _logger.info(f"Skipping symlink {fp!r}")
+                continue
             if not os.path.isdir(fp) and not os.path.isfile(fp):
                 _logger.info(f"Skipping non-file {fp!r}")
                 continue
@@ -258,20 +258,9 @@ class FolderResource(DAVCollection):
         See DAVCollection.get_member()
         """
         assert util.is_str(name), f"{name!r}"
-        fp = os.path.join(self._file_path, util.to_str(name))
-        # name = name.encode("utf8")
-        path = util.join_uri(self.path, name)
-        res = None
-        # if not self.provider.fs_opts.get("follow_symlinks") and os.path.islink(fp):
-        #     _logger.info(f"Skipping symlink {path}")
-        # elif
-        if os.path.isdir(fp):
-            res = FolderResource(path, self.environ, fp)
-        elif os.path.isfile(fp):
-            res = FileResource(path, self.environ, fp)
-        else:
-            _logger.debug(f"Skipping non-file {path}")
-        return res
+        return self.provider.get_resource_inst(
+            util.join_uri(self.path, name), self.environ
+        )
 
     # --- Read / write -------------------------------------------------------
 
@@ -405,6 +394,7 @@ class FilesystemProvider(DAVProvider):
         super().__init__()
 
         self.root_folder_path = root_folder
+        self.root_folder_path_real = os.path.realpath(root_folder)
         self.readonly = readonly
         if fs_opts is None:
             _logger.warning(f"{self}: no `fs_opts` parameter passed to constructor.")
@@ -418,6 +408,13 @@ class FilesystemProvider(DAVProvider):
     def __repr__(self):
         rw = "Read-Only" if self.readonly else "Read-Write"
         return f"{self.__class__.__name__} for path {self.root_folder_path!r} ({rw})"
+
+    @staticmethod
+    def _is_equal_or_child_path(root_path, file_path):
+        try:
+            return os.path.commonpath([root_path, file_path]) == root_path
+        except ValueError:
+            return False
 
     def _resolve_shadow_path(self, path: str, environ: dict, file_path):
         """File not found: See if there is a shadow configured."""
@@ -457,15 +454,18 @@ class FilesystemProvider(DAVProvider):
         # Try alternative URL if not found (or even override target):
         is_shadow, file_path = self._resolve_shadow_path(path, environ, file_path)
 
-        # Ensure the containment check is path-boundary-aware: append os.sep so
-        # that a sibling directory (e.g. /tmp/share_evil) whose name *starts with*
-        # root_path (/tmp/share) is correctly rejected.
-        root_path_with_sep = root_path.rstrip(os.sep) + os.sep
-        file_path_with_sep = file_path.rstrip(os.sep) + os.sep
-        if not file_path_with_sep.startswith(root_path_with_sep) and not is_shadow:
-            raise RuntimeError(
-                f"Security exception: tried to access file outside root {root_path}: {file_path}"
-            )
+        if not is_shadow:
+            if self.fs_opts.get("follow_symlinks"):
+                is_in_root = self._is_equal_or_child_path(root_path, file_path)
+            else:
+                is_in_root = self._is_equal_or_child_path(
+                    self.root_folder_path_real, os.path.realpath(file_path)
+                )
+            if not is_in_root:
+                raise DAVError(
+                    HTTP_FORBIDDEN,
+                    f"Access outside root is not allowed: {file_path!r}",
+                )
 
         # Convert to unicode
         file_path = util.to_unicode_safe(file_path)

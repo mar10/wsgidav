@@ -11,9 +11,12 @@ See http://webtest.readthedocs.org/en/latest/
     (successor of http://pythonpaste.org/testing-applications.html)
 """
 
+import os
 import shutil
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 from urllib.parse import quote
 
 import pytest
@@ -45,8 +48,8 @@ except ImportError:
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using paste.fixture."""
 
-    def _makeWsgiDAVApp(self, share_path, with_authentication):
-        provider = FilesystemProvider(share_path)
+    def _makeWsgiDAVApp(self, share_path, with_authentication, fs_opts=None):
+        provider = FilesystemProvider(share_path, fs_opts=fs_opts or {})
 
         config = {
             "provider_mapping": {"/": provider},
@@ -74,6 +77,7 @@ class ServerTest(unittest.TestCase):
         return WsgiDAVApp(config)
 
     def setUp(self):
+        self.temp_paths = []
         self.root_path = create_test_folder("wsgidav-test")
         wsgi_app = self._makeWsgiDAVApp(self.root_path, False)
         self.app = webtest.TestApp(wsgi_app)
@@ -81,6 +85,8 @@ class ServerTest(unittest.TestCase):
     def tearDown(self):
         del self.app
         shutil.rmtree(self.root_path, ignore_errors=True)
+        for path in self.temp_paths:
+            shutil.rmtree(path, ignore_errors=True)
 
     def testPreconditions(self):
         """Environment must be set."""
@@ -242,6 +248,51 @@ class ServerTest(unittest.TestCase):
         app.get("/file1.txt", headers=headers, status=200)
         # Non-existing resource (expect 404 NotFound)
         app.get("/not_existing_file.txt", headers=headers, status=404)
+
+    def testFollowSymlinksRejectsTraversalWithoutSymlink(self):
+        """Traversal outside root must fail, even when follow_symlinks is enabled."""
+        outside_data = b"outside-root-secret"
+        outside_path = self.root_path + "-outside.txt"
+        with open(outside_path, "wb") as f:
+            f.write(outside_data)
+        self.addCleanup(
+            lambda: os.path.exists(outside_path) and os.remove(outside_path)
+        )
+
+        wsgi_app = self._makeWsgiDAVApp(
+            self.root_path, False, fs_opts={"follow_symlinks": True}
+        )
+        app = webtest.TestApp(wsgi_app)
+
+        # ../ resolves outside the root and must not be exposed unless explicitly
+        # mounted through a symlink inside the share.
+        res = app.get(f"/../{os.path.basename(outside_path)}", expect_errors=True)
+        assert res.status_int != 200, "Traversal outside root must be rejected"
+        assert outside_data not in res.body, "Outside file content must not leak"
+
+    def testRejectsSymlinkedParentTraversal(self):
+        """`follow_symlinks=False` must block access below symlinked folders."""
+        outside_path = tempfile.mkdtemp(prefix="wsgidav-outside-")
+        self.temp_paths.append(outside_path)
+        Path(outside_path, "secret.txt").write_bytes(b"top secret")
+
+        try:
+            os.symlink(outside_path, os.path.join(self.root_path, "linkdir"))
+        except (AttributeError, NotImplementedError, OSError) as e:
+            self.skipTest(f"Symlinks are not supported in this test environment: {e}")
+
+        res = self.app.get("/", status=200)
+        assert "linkdir" not in res.text, "Symlinked folders should not be listed"
+        self.app.get("/linkdir", status=403)
+        self.app.get("/linkdir/secret.txt", status=403)
+
+        app = webtest.TestApp(
+            self._makeWsgiDAVApp(
+                self.root_path, False, fs_opts={"follow_symlinks": True}
+            )
+        )
+        res = app.get("/linkdir/secret.txt", status=200)
+        assert res.body == b"top secret"
 
 
 # ========================================================================
