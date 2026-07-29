@@ -7,7 +7,6 @@ Unit tests for the CORS middleware (wsgidav.mw.cors).
 Uses webtest.TestApp to send fake requests through the WSGI stack.
 """
 import shutil
-import sys
 import unittest
 
 import pytest

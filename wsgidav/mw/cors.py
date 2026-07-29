@@ -50,10 +50,6 @@ class Cors(BaseMiddleware):
 
         add_non_preflight = add_always[:]
         if expose_headers:
-            # `Access-Control-Expose-Headers` only has an effect on the actual
-            # (non-preflight) response: it defines which response headers the
-            # browser exposes to cross-origin script. It is ignored on the
-            # preflight response, so add it to the non-preflight bucket only.
             add_non_preflight.append(
                 ("Access-Control-Expose-Headers", expose_headers)
             )
