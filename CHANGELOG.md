@@ -3,7 +3,7 @@
 ## 4.4.0 / Unreleased
 
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
-  Add experimental middleware for impersonation (@leo9800)
+  Add experimental sample middleware for impersonation (@leo9800)
 - [#348](https://github.com/mar10/wsgidav/issues/348) 
   Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
 - [#352](https://github.com/mar10/wsgidav/pull/352)

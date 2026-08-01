@@ -13,6 +13,23 @@ This middleware is not thread-safe and should not be used in a
 multithreaded environment. It is designed to be used in a single-threaded
 context where the effective user ID and group ID can be safely changed and
 restored.
+
+----------------------------------------------------------------------------
+Sample configuration for wsgidav.yaml::
+
+    # User/Group Impersonating
+    # (Requires `wsgidav.samples.impersonator.Impersonator`, which is disabled by default.)
+    impersonator:
+        # enabling impersonating
+        enable: false
+
+        # custom map WebDAV (HTTP) usernames to Unix usernames
+        # custom_user_mapping:
+        #     leonlee: leo
+        #     jenifer: jenny
+
+        # or, use WebDAV (HTTP) usernames as is
+        custom_user_mapping: null
 """
 
 import os
