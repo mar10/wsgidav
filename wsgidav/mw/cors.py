@@ -50,7 +50,9 @@ class Cors(BaseMiddleware):
 
         add_non_preflight = add_always[:]
         if expose_headers:
-            add_always.append(("Access-Control-Expose-Headers", expose_headers))
+            add_non_preflight.append(
+                ("Access-Control-Expose-Headers", expose_headers)
+            )
 
         add_preflight = add_always[:]
         if allow_headers:

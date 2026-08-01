@@ -229,6 +229,8 @@ class LoggerTest(unittest.TestCase):
         """By default, there should be no logging."""
         _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
 
+        assert _baseLogger.getEffectiveLevel() == logging.INFO
+
         _baseLogger.debug("_baseLogger.debug")
         _baseLogger.info("_baseLogger.info")
         _baseLogger.warning("_baseLogger.warning")
