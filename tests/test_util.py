@@ -229,7 +229,10 @@ class LoggerTest(unittest.TestCase):
         """By default, there should be no logging."""
         _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
 
-        assert _baseLogger.getEffectiveLevel() == logging.INFO
+        # If this fails, some previous test probably changed the default logging level.
+        assert _baseLogger.getEffectiveLevel() == logging.INFO, (
+            "Default base logger level should be INFO"
+        )
 
         _baseLogger.debug("_baseLogger.debug")
         _baseLogger.info("_baseLogger.info")

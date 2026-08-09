@@ -6,7 +6,7 @@ Unit tests for the CORS middleware (wsgidav.mw.cors).
 
 Uses webtest.TestApp to send fake requests through the WSGI stack.
 """
-import shutil
+
 import unittest
 
 import pytest
@@ -35,7 +35,7 @@ class CorsTest(unittest.TestCase):
             "provider_mapping": {"/": provider},
             "http_authenticator": {"domain_controller": None},
             "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
-            "verbose": 1,
+            # "verbose": 1,  # changing the log level may break subsequent logger tests
             "logging": {"enable_loggers": []},
             "property_manager": None,
             "lock_storage": True,
@@ -51,7 +51,6 @@ class CorsTest(unittest.TestCase):
 
     def tearDown(self):
         del self.app
-        shutil.rmtree(self.root_path, ignore_errors=True)
 
     def test_expose_headers_on_actual_response(self):
         """`Access-Control-Expose-Headers` must be sent on the actual response.
@@ -86,7 +85,3 @@ class CorsTest(unittest.TestCase):
             res.headers.get("Access-Control-Expose-Headers"),
             "Access-Control-Expose-Headers must not be sent on the preflight",
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
