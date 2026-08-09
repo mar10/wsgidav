@@ -17,6 +17,11 @@
 - Test with Python 3.13
 - Use ruff instead of black/isort
 
+## 4.3.6 / Unreleased
+
+- [#365](https://github.com/mar10/wsgidav/pull/366)
+  CORS: Access-Control-Expose-Headers is sent on the preflight response instead of the actual response (@padawan)
+
 ## 4.3.5 / 2026-06-27
 
 - Fix Blind SQL injection in WsgiDAV MySQL provider [CVE-2026-55509](https://github.com/mar10/wsgidav/security/advisories/GHSA-p6gw-4frg-j7jw)
