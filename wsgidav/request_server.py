@@ -55,9 +55,15 @@ class RequestServer:
         # if self._davProvider.prop_manager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.is_readonly():
-            self._possible_methods.extend(
-                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"]
-            )
+            self._possible_methods.extend([
+                "PUT",
+                "DELETE",
+                "COPY",
+                "MOVE",
+                "MKCOL",
+                "PROPPATCH",
+                "POST",
+            ])
             # if self._davProvider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lock_manager is not None:
@@ -206,6 +212,38 @@ class RequestServer:
             token_list=environ["wsgidav.ifLockTokenList"],
             principal=environ["wsgidav.user_name"],
         )
+
+    def _begin_write_transaction(self, res, environ):
+        """Atomically check write permission and mark res as being written.
+
+        Unlike _check_write_permission(), the lock stays effective (i.e. new
+        conflicting locks are rejected) until _end_write_transaction() is
+        called. This must bracket the whole read-body-and-write sequence, so
+        that a lock cannot be acquired by another principal in the window
+        between the permission check and the completion of the (potentially
+        slow) write (TOCTOU, CWE-367).
+        """
+        lock_man = self._davProvider.lock_manager
+        if lock_man is None or res is None:
+            return
+
+        ref_url = res.get_ref_url()
+
+        if "wsgidav.conditions.if" not in environ:
+            util.parse_if_header_dict(environ)
+
+        lock_man.begin_write_transaction(
+            url=ref_url,
+            token_list=environ["wsgidav.ifLockTokenList"],
+            principal=environ["wsgidav.user_name"],
+        )
+
+    def _end_write_transaction(self, res, environ):
+        """Release the marker set by _begin_write_transaction()."""
+        lock_man = self._davProvider.lock_manager
+        if lock_man is None or res is None:
+            return
+        lock_man.end_write_transaction(res.get_ref_url())
 
     def _evaluate_if_headers(self, res, environ):
         """Apply HTTP headers on <path>, raising DAVError if conditions fail.
@@ -729,32 +767,40 @@ class RequestServer:
         else:
             self._check_write_permission(res, "0", environ)
 
-        hasErrors = False
+        # Keep the resource marked as "being written" for the whole
+        # read-body-and-write sequence below, so a lock cannot be acquired
+        # by another principal while the (potentially slow) request body is
+        # still being received (TOCTOU, CWE-367).
+        self._begin_write_transaction(res, environ)
         try:
-            data_stream = self._stream_data(environ, self.block_size)
+            hasErrors = False
+            try:
+                data_stream = self._stream_data(environ, self.block_size)
 
-            fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
+                fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
 
-            # Process the data in the body.
+                # Process the data in the body.
 
-            # If the fileobj has a writelines() method, give it the data stream.
-            # If it doesn't, itearate the stream and call write() for each
-            # iteration. This gives providers more flexibility in how they
-            # consume the data.
-            if getattr(fileobj, "writelines", None):
-                fileobj.writelines(data_stream)
-            else:
-                for data in data_stream:
-                    fileobj.write(data)
+                # If the fileobj has a writelines() method, give it the data stream.
+                # If it doesn't, itearate the stream and call write() for each
+                # iteration. This gives providers more flexibility in how they
+                # consume the data.
+                if getattr(fileobj, "writelines", None):
+                    fileobj.writelines(data_stream)
+                else:
+                    for data in data_stream:
+                        fileobj.write(data)
 
-            fileobj.close()
+                fileobj.close()
 
-        except Exception as e:
-            res.end_write(with_errors=True)
-            _logger.exception("PUT: byte copy failed")
-            util.fail(e)
+            except Exception as e:
+                res.end_write(with_errors=True)
+                _logger.exception("PUT: byte copy failed")
+                util.fail(e)
 
-        res.end_write(with_errors=hasErrors)
+            res.end_write(with_errors=hasErrors)
+        finally:
+            self._end_write_transaction(res, environ)
 
         headers = None
         if res.support_etag():
@@ -1557,9 +1603,10 @@ class RequestServer:
             # Content-length must be of type string
             response_headers.append(("Content-Length", str(range_length)))
         if res.support_modified():
-            response_headers.append(
-                ("Last-Modified", util.get_rfc1123_time(last_modified))
-            )
+            response_headers.append((
+                "Last-Modified",
+                util.get_rfc1123_time(last_modified),
+            ))
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
@@ -1576,12 +1623,10 @@ class RequestServer:
         res.finalize_headers(environ, response_headers)
 
         if is_partial_ranges:
-            response_headers.append(
-                (
-                    "Content-Range",
-                    f"bytes {range_start}-{range_end}/{filesize}",
-                )
-            )
+            response_headers.append((
+                "Content-Range",
+                f"bytes {range_start}-{range_end}/{filesize}",
+            ))
             start_response("206 Partial Content", response_headers)
         else:
             start_response("200 OK", response_headers)

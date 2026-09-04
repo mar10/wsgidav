@@ -19,6 +19,9 @@
 
 ## 4.3.6 / Unreleased
 
+- Fix TOCTOU race in `PUT` handling that allowed a resource to be overwritten
+  after another principal acquired an exclusive write lock, without holding
+  the lock token ([CWE-367](https://cwe.mitre.org/data/definitions/367.html))
 - [#369](https://github.com/mar10/wsgidav/pull/369)
   do_LOCK sends invalid Content-Type and Lock header
 - [#365](https://github.com/mar10/wsgidav/pull/365)
