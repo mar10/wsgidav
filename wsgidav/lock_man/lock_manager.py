@@ -443,7 +443,7 @@ class LockManager:
             # window between a write-permission check and the completion
             # of the (potentially slow) write (CWE-367).
             if self._active_writes.get(url):
-                _logger.debug(f" -> DENIED due to active write transaction on {url}")
+                _logger.warning(f" -> DENIED due to active write transaction on {url}")
                 errcond.add_href(url)
 
             if lock_depth == "infinity":
@@ -460,7 +460,7 @@ class LockManager:
 
                 for w_url, count in self._active_writes.items():
                     if count and util.is_child_uri(url, w_url):
-                        _logger.debug(
+                        _logger.warning(
                             f" -> DENIED due to active write transaction on {w_url}"
                         )
                         errcond.add_href(w_url)
