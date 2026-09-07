@@ -78,9 +78,10 @@ from previous middleware or server config (if required).
 """
 
 import base64
+import hmac
 import inspect
-import random
 import re
+import secrets
 import time
 from hashlib import md5
 from textwrap import dedent
@@ -305,8 +306,9 @@ class HTTPAuthenticator(BaseMiddleware):
 
     def send_digest_auth_response(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
-        random.seed()
-        serverkey = hex(random.getrandbits(32))[2:]
+        # Use a cryptographically secure random nonce (128-bit) instead of
+        # `random.getrandbits(32)` which is not a CSPRNG (CWE-338).
+        serverkey = secrets.token_hex(16)
         etagkey = calc_hexdigest(environ["PATH_INFO"])
         timekey = str(time.time())
         nonce_source = timekey + calc_hexdigest(
@@ -488,8 +490,10 @@ class HTTPAuthenticator(BaseMiddleware):
                 invalid_req_reasons.append(
                     f"Rejected by DC.digest_auth_user({realm!r}, {req_username!r})"
                 )
-            elif required_digest != req_response:
-                warning_msg = f"_compute_digest_response({realm!r}, {req_username!r}, ...): {required_digest} != {req_response}"
+            elif not hmac.compare_digest(required_digest, req_response):
+                # Use hmac.compare_digest() for constant-time comparison to
+                # prevent timing side-channel attacks (CWE-208).
+                warning_msg = f"_compute_digest_response({realm!r}, {req_username!r}, ...): digest mismatch"
                 if self.winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest
@@ -504,7 +508,7 @@ class HTTPAuthenticator(BaseMiddleware):
                         req_nc,
                         environ,
                     )
-                    if root_digest == req_response:
+                    if hmac.compare_digest(root_digest, req_response):
                         _logger.warning(
                             f"handle_digest_auth_request: HOTFIX: accepting '/' login for {realm!r}."
                         )
