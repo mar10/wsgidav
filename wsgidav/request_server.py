@@ -55,15 +55,17 @@ class RequestServer:
         # if self._davProvider.prop_manager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.is_readonly():
-            self._possible_methods.extend([
-                "PUT",
-                "DELETE",
-                "COPY",
-                "MOVE",
-                "MKCOL",
-                "PROPPATCH",
-                "POST",
-            ])
+            self._possible_methods.extend(
+                [
+                    "PUT",
+                    "DELETE",
+                    "COPY",
+                    "MOVE",
+                    "MKCOL",
+                    "PROPPATCH",
+                    "POST",
+                ]
+            )
             # if self._davProvider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lock_manager is not None:
@@ -1603,10 +1605,12 @@ class RequestServer:
             # Content-length must be of type string
             response_headers.append(("Content-Length", str(range_length)))
         if res.support_modified():
-            response_headers.append((
-                "Last-Modified",
-                util.get_rfc1123_time(last_modified),
-            ))
+            response_headers.append(
+                (
+                    "Last-Modified",
+                    util.get_rfc1123_time(last_modified),
+                )
+            )
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
@@ -1623,10 +1627,12 @@ class RequestServer:
         res.finalize_headers(environ, response_headers)
 
         if is_partial_ranges:
-            response_headers.append((
-                "Content-Range",
-                f"bytes {range_start}-{range_end}/{filesize}",
-            ))
+            response_headers.append(
+                (
+                    "Content-Range",
+                    f"bytes {range_start}-{range_end}/{filesize}",
+                )
+            )
             start_response("206 Partial Content", response_headers)
         else:
             start_response("200 OK", response_headers)
