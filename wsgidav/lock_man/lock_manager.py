@@ -38,6 +38,7 @@ The lock data model is a dictionary with these fields:
 
 import random
 import time
+from contextlib import contextmanager
 from pprint import pformat
 
 from wsgidav import util
@@ -242,7 +243,7 @@ class LockManager:
         finally:
             self._lock.release()
 
-    def begin_write_transaction(self, *, url, token_list, principal, depth="0"):
+    def _begin_write_transaction(self, *, url, token_list, principal, depth="0"):
         """Atomically check write permission and mark <url> as being written.
 
         Must be paired with a call to end_write_transaction(), typically in
@@ -264,8 +265,8 @@ class LockManager:
         finally:
             self._lock.release()
 
-    def end_write_transaction(self, url):
-        """Clear the marker set by begin_write_transaction()."""
+    def _end_write_transaction(self, url):
+        """Clear the marker set by _begin_write_transaction()."""
         url = normalize_lock_root(url)
         self._lock.acquire_write()
         try:
@@ -276,6 +277,20 @@ class LockManager:
                 self._active_writes[url] = count
         finally:
             self._lock.release()
+
+    @contextmanager
+    def write_transaction(self, *, url, token_list, principal, depth="0"):
+        """Check write permission and clear the marker when the block exits."""
+        self._begin_write_transaction(
+            url=url,
+            token_list=token_list,
+            principal=principal,
+            depth=depth,
+        )
+        try:
+            yield
+        finally:
+            self._end_write_transaction(url)
 
     def refresh(self, token, *, timeout=None):
         """Set new timeout for lock, if existing and valid."""

@@ -377,7 +377,7 @@ class BasicTest(unittest.TestCase):
         lm = self.lm
         url = "/dav/res"
 
-        lm.begin_write_transaction(url=url, token_list=[], principal=self.principal)
+        lm._begin_write_transaction(url=url, token_list=[], principal=self.principal)
         try:
             self.assertRaises(
                 DAVError,
@@ -392,7 +392,7 @@ class BasicTest(unittest.TestCase):
                 token_list=[],
             )
         finally:
-            lm.end_write_transaction(url)
+            lm._end_write_transaction(url)
 
         # Once the write transaction ends, locking succeeds again.
         lock = self._acquire(
@@ -427,11 +427,32 @@ class BasicTest(unittest.TestCase):
 
         self.assertRaises(
             DAVError,
-            lm.begin_write_transaction,
+            lm._begin_write_transaction,
             url=url,
             token_list=[],
             principal="another principal",
         )
+
+    def testWriteTransactionContextReleasesMarker(self):
+        """A write transaction context must release its marker on failure."""
+        lm = self.lm
+        url = "/dav/res"
+
+        with self.assertRaises(RuntimeError):
+            with lm.write_transaction(url=url, token_list=[], principal=self.principal):
+                raise RuntimeError("write failed")
+
+        lock = self._acquire(
+            url,
+            "write",
+            "exclusive",
+            "0",
+            self.owner,
+            self.timeout,
+            "another principal",
+            [],
+        )
+        assert lock is not None, "Lock should succeed after context exits"
 
 
 # ========================================================================

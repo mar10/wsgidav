@@ -6,6 +6,7 @@
 WSGI application that handles one single WebDAV request.
 """
 
+from contextlib import contextmanager
 from urllib.parse import unquote, urlparse
 
 from wsgidav import util, xml_tools
@@ -215,18 +216,17 @@ class RequestServer:
             principal=environ["wsgidav.user_name"],
         )
 
-    def _begin_write_transaction(self, res, environ):
-        """Atomically check write permission and mark res as being written.
+    @contextmanager
+    def _write_transaction(self, res, environ):
+        """Atomically check write permission for the enclosed write.
 
-        Unlike _check_write_permission(), the lock stays effective (i.e. new
-        conflicting locks are rejected) until _end_write_transaction() is
-        called. This must bracket the whole read-body-and-write sequence, so
-        that a lock cannot be acquired by another principal in the window
-        between the permission check and the completion of the (potentially
-        slow) write (TOCTOU, CWE-367).
+        The transaction must bracket the whole read-body-and-write sequence,
+        so a lock cannot be acquired by another principal while the request
+        body is being received (TOCTOU, CWE-367).
         """
         lock_man = self._davProvider.lock_manager
         if lock_man is None or res is None:
+            yield
             return
 
         ref_url = res.get_ref_url()
@@ -234,18 +234,12 @@ class RequestServer:
         if "wsgidav.conditions.if" not in environ:
             util.parse_if_header_dict(environ)
 
-        lock_man.begin_write_transaction(
+        with lock_man.write_transaction(
             url=ref_url,
             token_list=environ["wsgidav.ifLockTokenList"],
             principal=environ["wsgidav.user_name"],
-        )
-
-    def _end_write_transaction(self, res, environ):
-        """Release the marker set by _begin_write_transaction()."""
-        lock_man = self._davProvider.lock_manager
-        if lock_man is None or res is None:
-            return
-        lock_man.end_write_transaction(res.get_ref_url())
+        ):
+            yield
 
     def _evaluate_if_headers(self, res, environ):
         """Apply HTTP headers on <path>, raising DAVError if conditions fail.
@@ -773,8 +767,7 @@ class RequestServer:
         # read-body-and-write sequence below, so a lock cannot be acquired
         # by another principal while the (potentially slow) request body is
         # still being received (TOCTOU, CWE-367).
-        self._begin_write_transaction(res, environ)
-        try:
+        with self._write_transaction(res, environ):
             hasErrors = False
             try:
                 data_stream = self._stream_data(environ, self.block_size)
@@ -801,8 +794,6 @@ class RequestServer:
                 util.fail(e)
 
             res.end_write(with_errors=hasErrors)
-        finally:
-            self._end_write_transaction(res, environ)
 
         headers = None
         if res.support_etag():
