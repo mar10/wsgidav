@@ -23,6 +23,7 @@
   do_LOCK sends invalid Content-Type and Lock header
 - [#365](https://github.com/mar10/wsgidav/pull/365)
   CORS: Access-Control-Expose-Headers is sent on the preflight response instead of the actual response (@padawan)
+- Fix unauthenticated access to protected shares via share-route / path-normalization mismatch (@gh0stsh3ll56)
 
 ## 4.3.5 / 2026-06-27
 

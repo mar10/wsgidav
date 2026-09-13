@@ -12,6 +12,7 @@ import collections.abc
 import logging
 import mimetypes
 import os
+import posixpath
 import re
 import stat
 import sys
@@ -701,6 +702,28 @@ def pop_path(path):
     return (first, "/" + rest)
 
 
+def normalize_path(path):
+    """Return the canonical URL path used for routing and authorization."""
+    parts = []
+    for part in path.split("/"):
+        if part in ("", "."):
+            continue
+        if part == "..":
+            if parts:
+                parts.pop()
+            else:
+                raise DAVError(
+                    HTTP_BAD_REQUEST, f"Path escapes application root: {path}"
+                )
+        else:
+            parts.append(part)
+
+    normalized = posixpath.join("/", *parts)
+    if path.endswith("/") and normalized != "/":
+        normalized += "/"
+    return normalized
+
+
 def pop_path2(path):
     """Return '/a/b/c' -> ('a', 'b', '/c')."""
     if path in ("", "/"):
@@ -1241,7 +1264,7 @@ def send_status_response(
 
     if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
-    assert isinstance(e, DAVError)
+    assert isinstance(e, DAVError), e
 
     content_type, body = e.get_response_page()
     if is_head:
@@ -1684,13 +1707,17 @@ def parse_if_header_dict(environ):
             for listitem in reIfTagListContents.findall(contentVar):
                 if listitem.upper() != "NOT":
                     if listitem.startswith("["):
-                        listTagContents.append(
-                            (testflag, "entity", listitem.strip('"[]'))
-                        )
+                        listTagContents.append((
+                            testflag,
+                            "entity",
+                            listitem.strip('"[]'),
+                        ))
                     else:
-                        listTagContents.append(
-                            (testflag, "locktoken", listitem.strip("<>"))
-                        )
+                        listTagContents.append((
+                            testflag,
+                            "locktoken",
+                            listitem.strip("<>"),
+                        ))
                         ifLockList.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"
 
