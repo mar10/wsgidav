@@ -36,7 +36,7 @@ The lock data model is a dictionary with these fields:
 
 """
 
-import random
+import secrets
 import time
 from pprint import pformat
 
@@ -60,7 +60,7 @@ _logger = util.get_module_logger("wsgidav.lock_man")
 
 
 def generate_lock_token():
-    return "opaquelocktoken:" + util.to_str(hex(random.getrandbits(256)))
+    return "opaquelocktoken:" + util.to_str(hex(secrets.randbits(256)))
 
 
 def normalize_lock_root(path):
