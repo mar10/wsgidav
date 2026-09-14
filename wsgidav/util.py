@@ -1707,17 +1707,21 @@ def parse_if_header_dict(environ):
             for listitem in reIfTagListContents.findall(contentVar):
                 if listitem.upper() != "NOT":
                     if listitem.startswith("["):
-                        listTagContents.append((
-                            testflag,
-                            "entity",
-                            listitem.strip('"[]'),
-                        ))
+                        listTagContents.append(
+                            (
+                                testflag,
+                                "entity",
+                                listitem.strip('"[]'),
+                            )
+                        )
                     else:
-                        listTagContents.append((
-                            testflag,
-                            "locktoken",
-                            listitem.strip("<>"),
-                        ))
+                        listTagContents.append(
+                            (
+                                testflag,
+                                "locktoken",
+                                listitem.strip("<>"),
+                            )
+                        )
                         ifLockList.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"
 
