@@ -19,14 +19,16 @@
 
 ## 4.3.6 / Unreleased
 
-- Fix TOCTOU race in `PUT` handling that allowed a resource to be overwritten
-  after another principal acquired an exclusive write lock, without holding
-  the lock token ([CWE-367](https://cwe.mitre.org/data/definitions/367.html))
 - [#369](https://github.com/mar10/wsgidav/pull/369)
   do_LOCK sends invalid Content-Type and Lock header
 - [#365](https://github.com/mar10/wsgidav/pull/365)
   CORS: Access-Control-Expose-Headers is sent on the preflight response instead of the actual response (@padawan)
+- Fix TOCTOU race in `PUT` handling that allowed a resource to be overwritten
+  after another principal acquired an exclusive write lock, without holding
+  the lock token ([CWE-367](https://cwe.mitre.org/data/definitions/367.html)) (@q1yZh)
 - Fix unauthenticated access to protected shares via share-route / path-normalization mismatch (@gh0stsh3ll56)
+- Use secrets module for generating lock tokens instead of random
+- Fix digest authentication nonce generation and comparison (@jankesec)
 
 ## 4.3.5 / 2026-06-27
 
