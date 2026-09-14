@@ -55,6 +55,7 @@ import time
 from urllib.parse import unquote
 
 from wsgidav import __version__, util
+from wsgidav.dav_error import DAVError
 from wsgidav.dav_provider import DAVProvider
 from wsgidav.default_conf import DEFAULT_CONFIG
 from wsgidav.fs_dav_provider import FilesystemProvider
@@ -442,6 +443,12 @@ class WsgiDAVApp:
             # path = path.encode("utf8")
             path = util.to_str(path)
 
+        if path != "*":
+            try:
+                path = environ["PATH_INFO"] = util.normalize_path(path)
+            except DAVError as e:
+                return util.send_status_response(environ, start_response, e)
+
         # Always adding these values to environ:
         environ["wsgidav.config"] = self.config
         environ["wsgidav.provider"] = None
@@ -456,8 +463,6 @@ class WsgiDAVApp:
         environ["wsgidav.provider"] = provider
 
         # TODO: test with multi-level realms: 'aa/bb'
-        # TODO: test security: url contains '..'
-
         # Transform SCRIPT_NAME and PATH_INFO
         # (Since path and share are unquoted, this also fixes quoted values.)
         if share == "/" or not share:
