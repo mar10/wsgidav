@@ -38,6 +38,7 @@ The lock data model is a dictionary with these fields:
 
 import secrets
 import time
+from contextlib import contextmanager
 from pprint import pformat
 
 from wsgidav import util
@@ -134,6 +135,12 @@ class LockManager:
         self._lock = ReadWriteLock()
         self.storage = storage
         self.storage.open()
+        # {url: count} of PUT (or similar) requests that are currently
+        # writing to url, i.e. between the write-permission check and the
+        # completion of the write. Used to prevent a TOCTOU race, where a
+        # LOCK is acquired *after* the check but *before* the (potentially
+        # slow) write completes (CWE-367).
+        self._active_writes = {}
 
     def __del__(self):
         self.storage.close()
@@ -235,6 +242,55 @@ class LockManager:
             )
         finally:
             self._lock.release()
+
+    def _begin_write_transaction(self, *, url, token_list, principal, depth="0"):
+        """Atomically check write permission and mark <url> as being written.
+
+        Must be paired with a call to end_write_transaction(), typically in
+        a try/finally block. This closes the TOCTOU race where a LOCK is
+        granted to another principal after the write-permission check but
+        before the (potentially slow) request body has been written
+        (CWE-367): as long as the transaction is active, acquire() will
+        deny new locks on <url>.
+
+        On error (conflicting lock) raise a DAVError(HTTP_LOCKED).
+        """
+        url = normalize_lock_root(url)
+        self._lock.acquire_write()
+        try:
+            errcond = self._get_write_conflicts(url, depth, token_list, principal)
+            if len(errcond.hrefs) > 0:
+                raise DAVError(HTTP_LOCKED, err_condition=errcond)
+            self._active_writes[url] = self._active_writes.get(url, 0) + 1
+        finally:
+            self._lock.release()
+
+    def _end_write_transaction(self, url):
+        """Clear the marker set by _begin_write_transaction()."""
+        url = normalize_lock_root(url)
+        self._lock.acquire_write()
+        try:
+            count = self._active_writes.get(url, 0) - 1
+            if count <= 0:
+                self._active_writes.pop(url, None)
+            else:
+                self._active_writes[url] = count
+        finally:
+            self._lock.release()
+
+    @contextmanager
+    def write_transaction(self, *, url, token_list, principal, depth="0"):
+        """Check write permission and clear the marker when the block exits."""
+        self._begin_write_transaction(
+            url=url,
+            token_list=token_list,
+            principal=principal,
+            depth=depth,
+        )
+        try:
+            yield
+        finally:
+            self._end_write_transaction(url)
 
     def refresh(self, token, *, timeout=None):
         """Set new timeout for lock, if existing and valid."""
@@ -397,6 +453,14 @@ class LockManager:
                     errcond.add_href(lock["root"])
                 u = util.get_uri_parent(u)
 
+            # Deny locking, if a PUT (or similar) write is currently in
+            # progress for this exact resource: this closes the TOCTOU
+            # window between a write-permission check and the completion
+            # of the (potentially slow) write (CWE-367).
+            if self._active_writes.get(url):
+                _logger.warning(f" -> DENIED due to active write transaction on {url}")
+                errcond.add_href(url)
+
             if lock_depth == "infinity":
                 # Check child URLs for conflicting locks
                 child_ocks = self.storage.get_lock_list(
@@ -408,6 +472,13 @@ class LockManager:
                     #                    if util.is_child_uri(url, lock["root"]):
                     _logger.debug(f" -> DENIED due to locked child {lock_string(lock)}")
                     errcond.add_href(lock["root"])
+
+                for w_url, count in self._active_writes.items():
+                    if count and util.is_child_uri(url, w_url):
+                        _logger.warning(
+                            f" -> DENIED due to active write transaction on {w_url}"
+                        )
+                        errcond.add_href(w_url)
         finally:
             self._lock.release()
 
@@ -451,43 +522,9 @@ class LockManager:
             f"check_write_permission({url}, {depth}, {token_list}, {principal})"
         )
 
-        # Error precondition to collect conflicting URLs
-        errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
-
         self._lock.acquire_read()
         try:
-            # Check url and all parents for conflicting locks
-            u = url
-            while u:
-                lock_list = self.get_url_lock_list(u)
-                _logger.debug(f"  checking {u}")
-                for lock in lock_list:
-                    _logger.debug(f"     lock={lock_string(lock)}")
-                    if u != url and lock["depth"] != "infinity":
-                        # We only consider parents with Depth: infinity
-                        continue
-                    elif principal == lock["principal"] and lock["token"] in token_list:
-                        # User owns this lock
-                        continue
-                    else:
-                        # Token is owned by principal, but not passed with lock list
-                        _logger.debug(
-                            f" -> DENIED due to locked parent {lock_string(lock)}"
-                        )
-                        errcond.add_href(lock["root"])
-                u = util.get_uri_parent(u)
-
-            if depth == "infinity":
-                # Check child URLs for conflicting locks
-                child_ocks = self.storage.get_lock_list(
-                    url, include_root=False, include_children=True, token_only=False
-                )
-
-                for lock in child_ocks:
-                    assert util.is_child_uri(url, lock["root"])
-                    #                    if util.is_child_uri(url, lock["root"]):
-                    _logger.debug(f" -> DENIED due to locked child {lock_string(lock)}")
-                    errcond.add_href(lock["root"])
+            errcond = self._get_write_conflicts(url, depth, token_list, principal)
         finally:
             self._lock.release()
 
@@ -496,3 +533,46 @@ class LockManager:
         if len(errcond.hrefs) > 0:
             raise DAVError(HTTP_LOCKED, err_condition=errcond)
         return
+
+    def _get_write_conflicts(self, url, depth, token_list, principal):
+        """Return a DAVErrorCondition listing locks that conflict with a write to <url>.
+
+        Caller must hold self._lock (read or write).
+        """
+        # Error precondition to collect conflicting URLs
+        errcond = DAVErrorCondition(PRECONDITION_CODE_LockConflict)
+
+        # Check url and all parents for conflicting locks
+        u = url
+        while u:
+            lock_list = self.get_url_lock_list(u)
+            _logger.debug(f"  checking {u}")
+            for lock in lock_list:
+                _logger.debug(f"     lock={lock_string(lock)}")
+                if u != url and lock["depth"] != "infinity":
+                    # We only consider parents with Depth: infinity
+                    continue
+                elif principal == lock["principal"] and lock["token"] in token_list:
+                    # User owns this lock
+                    continue
+                else:
+                    # Token is owned by principal, but not passed with lock list
+                    _logger.debug(
+                        f" -> DENIED due to locked parent {lock_string(lock)}"
+                    )
+                    errcond.add_href(lock["root"])
+            u = util.get_uri_parent(u)
+
+        if depth == "infinity":
+            # Check child URLs for conflicting locks
+            child_ocks = self.storage.get_lock_list(
+                url, include_root=False, include_children=True, token_only=False
+            )
+
+            for lock in child_ocks:
+                assert util.is_child_uri(url, lock["root"])
+                #                    if util.is_child_uri(url, lock["root"]):
+                _logger.debug(f" -> DENIED due to locked child {lock_string(lock)}")
+                errcond.add_href(lock["root"])
+
+        return errcond

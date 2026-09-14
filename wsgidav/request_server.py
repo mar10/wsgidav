@@ -6,6 +6,7 @@
 WSGI application that handles one single WebDAV request.
 """
 
+from contextlib import contextmanager
 from urllib.parse import unquote, urlparse
 
 from wsgidav import util, xml_tools
@@ -56,7 +57,15 @@ class RequestServer:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.is_readonly():
             self._possible_methods.extend(
-                ["PUT", "DELETE", "COPY", "MOVE", "MKCOL", "PROPPATCH", "POST"]
+                [
+                    "PUT",
+                    "DELETE",
+                    "COPY",
+                    "MOVE",
+                    "MKCOL",
+                    "PROPPATCH",
+                    "POST",
+                ]
             )
             # if self._davProvider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
@@ -206,6 +215,31 @@ class RequestServer:
             token_list=environ["wsgidav.ifLockTokenList"],
             principal=environ["wsgidav.user_name"],
         )
+
+    @contextmanager
+    def _write_transaction(self, res, environ):
+        """Atomically check write permission for the enclosed write.
+
+        The transaction must bracket the whole read-body-and-write sequence,
+        so a lock cannot be acquired by another principal while the request
+        body is being received (TOCTOU, CWE-367).
+        """
+        lock_man = self._davProvider.lock_manager
+        if lock_man is None or res is None:
+            yield
+            return
+
+        ref_url = res.get_ref_url()
+
+        if "wsgidav.conditions.if" not in environ:
+            util.parse_if_header_dict(environ)
+
+        with lock_man.write_transaction(
+            url=ref_url,
+            token_list=environ["wsgidav.ifLockTokenList"],
+            principal=environ["wsgidav.user_name"],
+        ):
+            yield
 
     def _evaluate_if_headers(self, res, environ):
         """Apply HTTP headers on <path>, raising DAVError if conditions fail.
@@ -729,32 +763,37 @@ class RequestServer:
         else:
             self._check_write_permission(res, "0", environ)
 
-        hasErrors = False
-        try:
-            data_stream = self._stream_data(environ, self.block_size)
+        # Keep the resource marked as "being written" for the whole
+        # read-body-and-write sequence below, so a lock cannot be acquired
+        # by another principal while the (potentially slow) request body is
+        # still being received (TOCTOU, CWE-367).
+        with self._write_transaction(res, environ):
+            hasErrors = False
+            try:
+                data_stream = self._stream_data(environ, self.block_size)
 
-            fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
+                fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
 
-            # Process the data in the body.
+                # Process the data in the body.
 
-            # If the fileobj has a writelines() method, give it the data stream.
-            # If it doesn't, itearate the stream and call write() for each
-            # iteration. This gives providers more flexibility in how they
-            # consume the data.
-            if getattr(fileobj, "writelines", None):
-                fileobj.writelines(data_stream)
-            else:
-                for data in data_stream:
-                    fileobj.write(data)
+                # If the fileobj has a writelines() method, give it the data stream.
+                # If it doesn't, itearate the stream and call write() for each
+                # iteration. This gives providers more flexibility in how they
+                # consume the data.
+                if getattr(fileobj, "writelines", None):
+                    fileobj.writelines(data_stream)
+                else:
+                    for data in data_stream:
+                        fileobj.write(data)
 
-            fileobj.close()
+                fileobj.close()
 
-        except Exception as e:
-            res.end_write(with_errors=True)
-            _logger.exception("PUT: byte copy failed")
-            util.fail(e)
+            except Exception as e:
+                res.end_write(with_errors=True)
+                _logger.exception("PUT: byte copy failed")
+                util.fail(e)
 
-        res.end_write(with_errors=hasErrors)
+            res.end_write(with_errors=hasErrors)
 
         headers = None
         if res.support_etag():
@@ -1558,7 +1597,10 @@ class RequestServer:
             response_headers.append(("Content-Length", str(range_length)))
         if res.support_modified():
             response_headers.append(
-                ("Last-Modified", util.get_rfc1123_time(last_modified))
+                (
+                    "Last-Modified",
+                    util.get_rfc1123_time(last_modified),
+                )
             )
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
