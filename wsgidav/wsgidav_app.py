@@ -450,6 +450,7 @@ class WsgiDAVApp:
                 return util.send_status_response(environ, start_response, e)
 
         # Always adding these values to environ:
+        environ["wsgidav.app"] = self
         environ["wsgidav.config"] = self.config
         environ["wsgidav.provider"] = None
         environ["wsgidav.verbose"] = self.verbose

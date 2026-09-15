@@ -823,6 +823,7 @@ class RequestServer:
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_COPY
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_MOVE
         """
+        wsgidav_app = environ["wsgidav.app"]
         src_path = environ["PATH_INFO"]
         provider = self._davProvider
         src_res = provider.get_resource_inst(src_path, environ)
@@ -925,6 +926,11 @@ class RequestServer:
             self._fail(
                 HTTP_BAD_GATEWAY, "Source and destination must have the same host name."
             )
+
+        dest_path = util.normalize_path(dest_path)
+        _dest_share, dest_provider = wsgidav_app.resolve_provider(dest_path)
+        if dest_provider is not provider:
+            self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
 
         if dest_path.startswith(provider.mount_path + provider.share_path + "/"):
             dest_path = dest_path[len(provider.mount_path + provider.share_path) :]
