@@ -151,11 +151,11 @@ class RequestServer:
                 app_iter.close()
         return
 
-    def _fail(self, value, context_info=None, src_exception=None, err_condition=None):
+    def _fail(self, value, context_info_text=None, src_exception=None, err_condition=None, is_head_method=False):
         """Wrapper to raise (and log) DAVError."""
         util.fail(
             value,
-            context_info,
+            context_info={"text": context_info_text, "is_head_method": is_head_method},
             src_exception=src_exception,
             err_condition=err_condition,
         )
@@ -1529,7 +1529,7 @@ class RequestServer:
         elif environ.setdefault("HTTP_DEPTH", "0") != "0":
             self._fail(HTTP_BAD_REQUEST, "Only Depth: 0 supported.")
         elif res is None:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, path, is_head_method=is_head_method)
         elif res.is_collection:
             self._fail(
                 HTTP_FORBIDDEN,

@@ -339,7 +339,7 @@ class HTTPAuthenticator(BaseMiddleware):
         if not realm:
             raise DAVError(
                 HTTP_NOT_FOUND,
-                context_info=f"Could not resolve realm for {environ['PATH_INFO']}",
+                context_info={"text": f"Could not resolve realm for {environ['PATH_INFO']}"},
             )
 
         is_invalid_req = False
