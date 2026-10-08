@@ -56,17 +56,15 @@ class RequestServer:
         # if self._davProvider.prop_manager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.is_readonly():
-            self._possible_methods.extend(
-                [
-                    "PUT",
-                    "DELETE",
-                    "COPY",
-                    "MOVE",
-                    "MKCOL",
-                    "PROPPATCH",
-                    "POST",
-                ]
-            )
+            self._possible_methods.extend([
+                "PUT",
+                "DELETE",
+                "COPY",
+                "MOVE",
+                "MKCOL",
+                "PROPPATCH",
+                "POST",
+            ])
             # if self._davProvider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lock_manager is not None:
@@ -423,61 +421,67 @@ class RequestServer:
         self._evaluate_if_headers(res, environ)
         self._check_write_permission(res, "0", environ)
 
-        # Parse request
-        requestEL = util.parse_xml_body(environ)
+        # Keep the resource marked as "being written" for the whole
+        # read-body-and-write sequence below, so a lock cannot be acquired
+        # by another principal while the (potentially slow) request body is
+        # still being received (TOCTOU, CWE-367).
+        with self._write_transaction(res, environ):
+            # Parse request
+            requestEL = util.parse_xml_body(environ)
 
-        if requestEL.tag != "{DAV:}propertyupdate":
-            self._fail(HTTP_BAD_REQUEST)
+            if requestEL.tag != "{DAV:}propertyupdate":
+                self._fail(HTTP_BAD_REQUEST)
 
-        # Create a list of update request tuples: (name, value)
-        propupdatelist = []
+            # Create a list of update request tuples: (name, value)
+            propupdatelist = []
 
-        for ppnode in requestEL:
-            propupdatemethod = None
-            if ppnode.tag == "{DAV:}remove":
-                propupdatemethod = "remove"
-            elif ppnode.tag == "{DAV:}set":
-                propupdatemethod = "set"
-            else:
-                self._fail(
-                    HTTP_BAD_REQUEST, "Unknown tag (expected 'set' or 'remove')."
-                )
+            for ppnode in requestEL:
+                propupdatemethod = None
+                if ppnode.tag == "{DAV:}remove":
+                    propupdatemethod = "remove"
+                elif ppnode.tag == "{DAV:}set":
+                    propupdatemethod = "set"
+                else:
+                    self._fail(
+                        HTTP_BAD_REQUEST, "Unknown tag (expected 'set' or 'remove')."
+                    )
 
-            for propnode in ppnode:
-                if propnode.tag != "{DAV:}prop":
-                    self._fail(HTTP_BAD_REQUEST, "Unknown tag (expected 'prop').")
+                for propnode in ppnode:
+                    if propnode.tag != "{DAV:}prop":
+                        self._fail(HTTP_BAD_REQUEST, "Unknown tag (expected 'prop').")
 
-                for propertynode in propnode:
-                    propvalue = None
-                    if propupdatemethod == "remove":
-                        propvalue = None  # Mark as 'remove'
-                        if len(propertynode) > 0:
-                            # 14.23: All the XML elements in a 'prop' XML
-                            # element inside of a 'remove' XML element MUST be
-                            # empty
-                            self._fail(
-                                HTTP_BAD_REQUEST,
-                                "prop element must be empty for 'remove'.",
-                            )
-                    else:
-                        propvalue = propertynode
+                    for propertynode in propnode:
+                        propvalue = None
+                        if propupdatemethod == "remove":
+                            propvalue = None  # Mark as 'remove'
+                            if len(propertynode) > 0:
+                                # 14.23: All the XML elements in a 'prop' XML
+                                # element inside of a 'remove' XML element MUST be
+                                # empty
+                                self._fail(
+                                    HTTP_BAD_REQUEST,
+                                    "prop element must be empty for 'remove'.",
+                                )
+                        else:
+                            propvalue = propertynode
 
-                    propupdatelist.append((propertynode.tag, propvalue))
+                        propupdatelist.append((propertynode.tag, propvalue))
 
-        # Apply updates in SIMULATION MODE and create a result list (name,
-        # result)
-        successflag = True
-        writeresultlist = []
+            # Apply updates in SIMULATION MODE and create a result list (name,
+            # result)
+            successflag = True
+            writeresultlist = []
 
-        for name, propvalue in propupdatelist:
-            try:
-                res.set_property_value(name, propvalue, dry_run=True)
-            except Exception as e:
-                writeresult = as_DAVError(e)
-            else:
-                writeresult = "200 OK"
-            writeresultlist.append((name, writeresult))
-            successflag = successflag and writeresult == "200 OK"
+            for name, propvalue in propupdatelist:
+                try:
+                    res.set_property_value(name, propvalue, dry_run=True)
+                except Exception as e:
+                    writeresult = as_DAVError(e)
+                else:
+                    writeresult = "200 OK"
+                writeresultlist.append((name, writeresult))
+                successflag = successflag and writeresult == "200 OK"
+        # <<< end of `with self._write_transaction()`
 
         # Generate response list of 2-tuples (name, value)
         # <value> is None on success, or an instance of DAVError
@@ -526,7 +530,6 @@ class RequestServer:
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        #        res = provider.get_resource_inst(path, environ)
         mtime = None
 
         # Do not understand ANY request body entities
@@ -1602,12 +1605,10 @@ class RequestServer:
             # Content-length must be of type string
             response_headers.append(("Content-Length", str(range_length)))
         if res.support_modified():
-            response_headers.append(
-                (
-                    "Last-Modified",
-                    util.get_rfc1123_time(last_modified),
-                )
-            )
+            response_headers.append((
+                "Last-Modified",
+                util.get_rfc1123_time(last_modified),
+            ))
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
@@ -1624,12 +1625,10 @@ class RequestServer:
         res.finalize_headers(environ, response_headers)
 
         if is_partial_ranges:
-            response_headers.append(
-                (
-                    "Content-Range",
-                    f"bytes {range_start}-{range_end}/{filesize}",
-                )
-            )
+            response_headers.append((
+                "Content-Range",
+                f"bytes {range_start}-{range_end}/{filesize}",
+            ))
             start_response("206 Partial Content", response_headers)
         else:
             start_response("200 OK", response_headers)

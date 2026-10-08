@@ -26,6 +26,7 @@
 - Fix TOCTOU race in `PUT` handling that allowed a resource to be overwritten
   after another principal acquired an exclusive write lock, without holding
   the lock token ([CWE-367](https://cwe.mitre.org/data/definitions/367.html)) (@q1yZh)
+- Fix TOCTOU race in `PROPPATCH` (jasiek92)
 - Fix unauthenticated access to protected shares via share-route / path-normalization mismatch (@gh0stsh3ll56)
 - Use secrets module for generating lock tokens instead of random (@Un-Locksmith)
 - Fix digest authentication nonce generation and comparison (@jankesec)
