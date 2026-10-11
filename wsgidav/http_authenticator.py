@@ -85,6 +85,7 @@ import secrets
 import time
 from hashlib import md5
 from textwrap import dedent
+from urllib.parse import unquote, urlsplit
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
@@ -157,6 +158,12 @@ class HTTPAuthenticator(BaseMiddleware):
         self.win_accept_anonymous_options = hotfixes.get(
             "win_accept_anonymous_options", False
         )
+
+        # RFC 7616, section 3.4.6 requires that the `uri` of the Authorization
+        # header designates the same resource as the Request-Line. Turning this
+        # off restores the previous (unsafe) behavior for clients that send a
+        # non-conforming `uri`.
+        self.digest_skip_uri_check = hotfixes.get("digest_skip_uri_check", False)
 
         auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
 
@@ -429,6 +436,12 @@ class HTTPAuthenticator(BaseMiddleware):
 
         req_uri = auth_header_dict.get("uri")
 
+        if not self._is_digest_uri_valid(req_uri, environ):
+            is_invalid_req = True
+            invalid_req_reasons.append(
+                f"Digest 'uri' {req_uri!r} does not match the request target"
+            )
+
         if "nonce" in auth_header_dict:
             req_nonce = auth_header_dict["nonce"]
         else:
@@ -542,6 +555,58 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["wsgidav.auth.realm"] = realm
         environ["wsgidav.auth.user_name"] = req_username
         return self.next_app(environ, start_response)
+
+    @staticmethod
+    def _canonical_path(path):
+        """Return a comparable form of `path`, or None if it is not valid."""
+        try:
+            return util.normalize_path(path)
+        except DAVError:
+            # e.g. '..' segments that escape the application root
+            return None
+
+    def _is_digest_uri_valid(self, req_uri, environ):
+        """Return True if the Authorization header's `uri` matches the request.
+
+        RFC 7616, section 3.4.6:
+
+            The authenticating server MUST verify that the resource
+            designated by the "uri" parameter is the same as the resource
+            specified in the Request-Line.
+
+        The digest is computed over the `uri` taken from the header, while the
+        request is served for ``PATH_INFO``. Without this check, an
+        ``Authorization: Digest ...`` header that was captured for one resource
+        authenticates requests for *any other* resource in the same realm,
+        using the captured method (CWE-294).
+        """
+        if self.digest_skip_uri_check:
+            return True
+        if not req_uri:
+            return False
+
+        # The request target may be sent in absolute form (RFC 9112, section
+        # 3.2.2), so compare the path and query components only.
+        parts = urlsplit(req_uri)
+
+        # 'OPTIONS *' (asterisk-form, RFC 9112, section 3.2.4) does not address
+        # a resource, and clients disagree on what to put in `uri` (curl sends
+        # '/', others send '*'). Accept both, but only for a request that
+        # really used the asterisk-form.
+        if environ.get("REQUEST_METHOD") == "OPTIONS" and (
+            (environ.get("REQUEST_URI") or environ.get("RAW_URI")) == "*"
+            or environ.get("PATH_INFO") in ("*", "/*")
+        ):
+            return parts.path in ("*", "/*", "/")
+
+        if parts.query != environ.get("QUERY_STRING", ""):
+            return False
+
+        req_path = self._canonical_path(unquote(parts.path))
+        if req_path is None:
+            return False
+        target_path = environ.get("SCRIPT_NAME", "") + environ.get("PATH_INFO", "")
+        return req_path == self._canonical_path(target_path)
 
     def _compute_digest_response(
         self, realm, user_name, method, uri, nonce, cnonce, qop, nc, environ
