@@ -476,10 +476,10 @@ class DAVClient:
                 buf = sk.read(1)
                 if buf:
                     raise AppError(
-                        f"Bad reponse: HEAD method response has body: {buf}"
+                        f"Bad response: HEAD method response has body: {buf}"
                     )
                 return
-            except OSError as e:
+            except OSError:
                 pass
             finally:
                 res.close()
