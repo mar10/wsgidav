@@ -16,6 +16,8 @@
   Domain controller for apache .htdigest files (@leo9800)
 - Test with Python 3.13
 - Use ruff instead of black/isort
+- [#372](https://github.com/mar10/wsgidav/pull/372)
+  Fix HEAD requests returning body on error (@ribarroetavena)
 
 ## 4.3.6 / Unreleased
 

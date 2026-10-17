@@ -977,6 +977,7 @@ def fail(
     src_exception=None,
     err_condition=None,
     add_headers=None,
+    add_body=True,
 ):
     """Wrapper to raise (and log) DAVError."""
     if isinstance(value, Exception):
@@ -988,6 +989,7 @@ def fail(
             src_exception=src_exception,
             err_condition=err_condition,
             add_headers=add_headers,
+            add_body=add_body,
         )
     _logger.debug(f"Raising DAVError {e.get_user_info()}")
     raise e
