@@ -121,9 +121,7 @@ class ErrorPrinter(BaseMiddleware):
                 + headers,
             )
 
-            if (
-                not e.add_body
-            ):
+            if not e.add_body:
                 yield b""
                 return
 
