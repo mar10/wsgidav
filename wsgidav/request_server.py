@@ -149,13 +149,22 @@ class RequestServer:
                 app_iter.close()
         return
 
-    def _fail(self, value, context_info=None, src_exception=None, err_condition=None):
+    def _fail(
+        self,
+        value,
+        *,
+        context_info=None,
+        src_exception=None,
+        err_condition=None,
+        is_head_method=False,
+    ):
         """Wrapper to raise (and log) DAVError."""
         util.fail(
             value,
             context_info,
             src_exception=src_exception,
             err_condition=err_condition,
+            add_body=not is_head_method,
         )
 
     def _send_response(
@@ -300,7 +309,9 @@ class RequestServer:
                 locktoken_list.append(lock["token"])
 
         if not util.test_if_header_dict(res, if_dict, ref_url, locktoken_list, etag):
-            self._fail(HTTP_PRECONDITION_FAILED, "'If' header condition failed.")
+            self._fail(
+                HTTP_PRECONDITION_FAILED, context_info="'If' header condition failed."
+            )
 
         return
 
@@ -318,18 +329,20 @@ class RequestServer:
         if environ["HTTP_DEPTH"] not in ("0", "1", "infinity"):
             self._fail(
                 HTTP_BAD_REQUEST,
-                "Invalid Depth header: {!r}.".format(environ["HTTP_DEPTH"]),
+                context_info="Invalid Depth header: {!r}.".format(
+                    environ["HTTP_DEPTH"]
+                ),
             )
 
         if environ["HTTP_DEPTH"] == "infinity" and not self.allow_propfind_infinite:
             self._fail(
                 HTTP_FORBIDDEN,
-                "PROPFIND 'infinite' was disabled for security reasons.",
+                context_info="PROPFIND 'infinite' was disabled for security reasons.",
                 err_condition=PRECONDITION_CODE_PropfindFiniteDepth,
             )
 
         if res is None:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, context_info=path)
 
         if environ.get("wsgidav.debug_break"):
             pass  # break point
@@ -360,7 +373,7 @@ class RequestServer:
             #            elif pfnode.tag == "{DAV:}include":
             #                if not propFindMode in (None, "allprop"):
             #                    self._fail(HTTP_BAD_REQUEST,
-            #                        "<include> element is only valid with 'allprop'.")
+            #                        context_info="<include> element is only valid with 'allprop'.")
             #                for pfpnode in pfnode:
             #                    propNameList.append(pfpnode.tag)
             elif pfnode.tag == "{DAV:}name":
@@ -413,10 +426,10 @@ class RequestServer:
         # Only accept Depth: 0 (but assume this, if omitted)
         environ.setdefault("HTTP_DEPTH", "0")
         if environ["HTTP_DEPTH"] != "0":
-            self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
+            self._fail(HTTP_BAD_REQUEST, context_info="Depth must be '0'.")
 
         if res is None:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, context_info=path)
 
         self._evaluate_if_headers(res, environ)
         self._check_write_permission(res, "0", environ)
@@ -443,12 +456,16 @@ class RequestServer:
                     propupdatemethod = "set"
                 else:
                     self._fail(
-                        HTTP_BAD_REQUEST, "Unknown tag (expected 'set' or 'remove')."
+                        HTTP_BAD_REQUEST,
+                        context_info="Unknown tag (expected 'set' or 'remove').",
                     )
 
                 for propnode in ppnode:
                     if propnode.tag != "{DAV:}prop":
-                        self._fail(HTTP_BAD_REQUEST, "Unknown tag (expected 'prop').")
+                        self._fail(
+                            HTTP_BAD_REQUEST,
+                            context_info="Unknown tag (expected 'prop').",
+                        )
 
                     for propertynode in propnode:
                         propvalue = None
@@ -460,7 +477,7 @@ class RequestServer:
                                 # empty
                                 self._fail(
                                     HTTP_BAD_REQUEST,
-                                    "prop element must be empty for 'remove'.",
+                                    context_info="prop element must be empty for 'remove'.",
                                 )
                         else:
                             propvalue = propertynode
@@ -536,17 +553,17 @@ class RequestServer:
         if util.get_content_length(environ) != 0:
             self._fail(
                 HTTP_MEDIATYPE_NOT_SUPPORTED,
-                "The server does not handle any body content.",
+                context_info="The server does not handle any body content.",
             )
 
         # Only accept Depth: 0 (but assume this, if omitted)
         if environ.setdefault("HTTP_DEPTH", "0") != "0":
-            self._fail(HTTP_BAD_REQUEST, "Depth must be '0'.")
+            self._fail(HTTP_BAD_REQUEST, context_info="Depth must be '0'.")
 
         if provider.exists(path, environ):
             self._fail(
                 HTTP_METHOD_NOT_ALLOWED,
-                "MKCOL can only be executed on an unmapped URL.",
+                context_info="MKCOL can only be executed on an unmapped URL.",
             )
 
         # In case of honor_mtime_header is enabled, try parse mtime,
@@ -561,7 +578,9 @@ class RequestServer:
 
         parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
         if not parentRes or not parentRes.is_collection:
-            self._fail(HTTP_CONFLICT, "Parent must be an existing collection.")
+            self._fail(
+                HTTP_CONFLICT, context_info="Parent must be an existing collection."
+            )
 
         # TODO: should we check If headers here?
         #        self._evaluate_if_headers(res, environ)
@@ -595,10 +614,10 @@ class RequestServer:
         if util.get_content_length(environ) != 0:
             self._fail(
                 HTTP_MEDIATYPE_NOT_SUPPORTED,
-                "The server does not handle any body content.",
+                context_info="The server does not handle any body content.",
             )
         if res is None:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, context_info=path)
 
         if res.is_collection:
             # Delete over collection
@@ -609,13 +628,13 @@ class RequestServer:
             if environ.setdefault("HTTP_DEPTH", "infinity") != "infinity":
                 self._fail(
                     HTTP_BAD_REQUEST,
-                    "Only Depth: infinity is supported for collections.",
+                    context_info="Only Depth: infinity is supported for collections.",
                 )
         else:
             if environ.setdefault("HTTP_DEPTH", "0") not in ("0", "infinity"):
                 self._fail(
                     HTTP_BAD_REQUEST,
-                    "Only Depth: 0 or infinity are supported for non-collections.",
+                    context_info="Only Depth: 0 or infinity are supported for non-collections.",
                 )
 
         self._evaluate_if_headers(res, environ)
@@ -752,11 +771,13 @@ class RequestServer:
                     mtime = int(mtime_header)
 
         if res and res.is_collection:
-            self._fail(HTTP_METHOD_NOT_ALLOWED, "Cannot PUT to a collection")
+            self._fail(
+                HTTP_METHOD_NOT_ALLOWED, context_info="Cannot PUT to a collection"
+            )
         elif (
             parentRes is None or not parentRes.is_collection
         ):  # TODO: allow parentRes==None?
-            self._fail(HTTP_CONFLICT, "PUT parent must be a collection")
+            self._fail(HTTP_CONFLICT, context_info="PUT parent must be a collection")
 
         self._evaluate_if_headers(res, environ)
 
@@ -847,12 +868,14 @@ class RequestServer:
         # --- Check source ----------------------------------------------------
 
         if src_res is None:
-            self._fail(HTTP_NOT_FOUND, src_path)
+            self._fail(HTTP_NOT_FOUND, context_info=src_path)
         if "HTTP_DESTINATION" not in environ:
-            self._fail(HTTP_BAD_REQUEST, "Missing required Destination header.")
+            self._fail(
+                HTTP_BAD_REQUEST, context_info="Missing required Destination header."
+            )
         if environ.setdefault("HTTP_OVERWRITE", "T") not in ("T", "F"):
             # Overwrite defaults to 'T'
-            self._fail(HTTP_BAD_REQUEST, "Invalid Overwrite header.")
+            self._fail(HTTP_BAD_REQUEST, context_info="Invalid Overwrite header.")
         if util.get_content_length(environ) != 0:
             # RFC 2518 defined support for <propertybehavior>.
             # This was dropped with RFC 4918.
@@ -869,11 +892,11 @@ class RequestServer:
             # a value of "0" or "infinity".
             environ.setdefault("HTTP_DEPTH", "infinity")
             if environ["HTTP_DEPTH"] not in ("0", "infinity"):
-                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header.")
+                self._fail(HTTP_BAD_REQUEST, context_info="Invalid Depth header.")
             if is_move and environ["HTTP_DEPTH"] != "infinity":
                 self._fail(
                     HTTP_BAD_REQUEST,
-                    "Depth header for MOVE collection must be 'infinity'.",
+                    context_info="Depth header for MOVE collection must be 'infinity'.",
                 )
         else:
             # It's an existing non-collection: assume Depth 0
@@ -881,7 +904,7 @@ class RequestServer:
             # non-collection resource, so we accept that too
             environ.setdefault("HTTP_DEPTH", "0")
             if environ["HTTP_DEPTH"] not in ("0", "infinity"):
-                self._fail(HTTP_BAD_REQUEST, "Invalid Depth header.")
+                self._fail(HTTP_BAD_REQUEST, context_info="Invalid Depth header.")
             environ["HTTP_DEPTH"] = "0"
 
         # --- Get destination path and check for cross-realm access -----------
@@ -919,7 +942,7 @@ class RequestServer:
         if dest_scheme and dest_scheme not in (url_scheme, fwd_scheme):
             self._fail(
                 HTTP_BAD_GATEWAY,
-                "Source and destination must have the same scheme.\n"
+                context_info="Source and destination must have the same scheme.\n"
                 "If you are running behind a reverse proxy, you may have to "
                 "rewrite the 'Destination' header.\n"
                 "(See https://github.com/mar10/wsgidav/issues/183)",
@@ -927,13 +950,16 @@ class RequestServer:
         elif dest_netloc and dest_netloc not in (url_host, fwd_host):
             # TODO: this should consider environ["SERVER_PORT"] also
             self._fail(
-                HTTP_BAD_GATEWAY, "Source and destination must have the same host name."
+                HTTP_BAD_GATEWAY,
+                context_info="Source and destination must have the same host name.",
             )
 
         dest_path = util.normalize_path(dest_path)
         _dest_share, dest_provider = wsgidav_app.resolve_provider(dest_path)
         if dest_provider is not provider:
-            self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
+            self._fail(
+                HTTP_BAD_GATEWAY, context_info="Inter-realm copy/move is not supported."
+            )
 
         if dest_path.startswith(provider.mount_path + provider.share_path + "/"):
             dest_path = dest_path[len(provider.mount_path + provider.share_path) :]
@@ -950,7 +976,10 @@ class RequestServer:
                 # dest_path = provider.share_path + dest_path
                 _logger.info(f"Rewrite DESTINATION path {_prev} -> {dest_path}")
             else:
-                self._fail(HTTP_BAD_GATEWAY, "Inter-realm copy/move is not supported.")
+                self._fail(
+                    HTTP_BAD_GATEWAY,
+                    context_info="Inter-realm copy/move is not supported.",
+                )
 
         assert dest_path.startswith("/")
 
@@ -964,7 +993,9 @@ class RequestServer:
         )
 
         if not dest_parent_res or not dest_parent_res.is_collection:
-            self._fail(HTTP_CONFLICT, "Destination parent must be a collection.")
+            self._fail(
+                HTTP_CONFLICT, context_info="Destination parent must be a collection."
+            )
 
         self._evaluate_if_headers(src_res, environ)
         self._evaluate_if_headers(dest_res, environ)
@@ -983,14 +1014,18 @@ class RequestServer:
         self._check_write_permission(dest_res, "infinity", environ)
 
         if src_path == dest_path:
-            self._fail(HTTP_FORBIDDEN, "Cannot copy/move source onto itself")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="Cannot copy/move source onto itself"
+            )
         elif util.is_equal_or_child_uri(src_path, dest_path):
-            self._fail(HTTP_FORBIDDEN, "Cannot copy/move source below itself")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="Cannot copy/move source below itself"
+            )
 
         if dest_exists and environ["HTTP_OVERWRITE"] != "T":
             self._fail(
                 HTTP_PRECONDITION_FAILED,
-                "Destination already exists and Overwrite is set to false",
+                context_info="Destination already exists and Overwrite is set to false",
             )
 
         # --- Let provider handle the request natively ------------------------
@@ -1183,12 +1218,19 @@ class RequestServer:
 
         if lock_man is None:
             # http://www.webdav.org/specs/rfc4918.html#rfc.section.6.3
-            self._fail(HTTP_NOT_IMPLEMENTED, "This realm does not support locking.")
+            self._fail(
+                HTTP_NOT_IMPLEMENTED,
+                context_info="This realm does not support locking.",
+            )
         if res and res.prevent_locking():
-            self._fail(HTTP_FORBIDDEN, "This resource does not support locking.")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="This resource does not support locking."
+            )
 
         if environ.setdefault("HTTP_DEPTH", "infinity") not in ("0", "infinity"):
-            self._fail(HTTP_BAD_REQUEST, "Expected Depth: 'infinity' or '0'.")
+            self._fail(
+                HTTP_BAD_REQUEST, context_info="Expected Depth: 'infinity' or '0'."
+            )
 
         self._evaluate_if_headers(res, environ)
 
@@ -1209,19 +1251,20 @@ class RequestServer:
 
             if res is None:
                 self._fail(
-                    HTTP_BAD_REQUEST, "LOCK refresh must specify an existing resource."
+                    HTTP_BAD_REQUEST,
+                    context_info="LOCK refresh must specify an existing resource.",
                 )
             if len(submitted_token_list) != 1:
                 self._fail(
                     HTTP_BAD_REQUEST,
-                    "Expected a lock token (only one lock may be refreshed at a time).",
+                    context_info="Expected a lock token (only one lock may be refreshed at a time).",
                 )
             elif not lock_man.is_url_locked_by_token(
                 res.get_ref_url(), submitted_token_list[0]
             ):
                 self._fail(
                     HTTP_PRECONDITION_FAILED,
-                    "Lock token does not match URL.",
+                    context_info="Lock token does not match URL.",
                     err_condition=PRECONDITION_CODE_LockTokenMismatch,
                 )
             # TODO: test, if token is owned by user
@@ -1278,12 +1321,14 @@ class RequestServer:
                 lock_owner = xml_tools.xml_to_bytes(linode, pretty=False)
 
             else:
-                self._fail(HTTP_BAD_REQUEST, f"Invalid node {linode.tag!r}.")
+                self._fail(
+                    HTTP_BAD_REQUEST, context_info=f"Invalid node {linode.tag!r}."
+                )
 
         if not lock_scope:
-            self._fail(HTTP_BAD_REQUEST, "Missing or invalid lockscope.")
+            self._fail(HTTP_BAD_REQUEST, context_info="Missing or invalid lockscope.")
         if not lock_type:
-            self._fail(HTTP_BAD_REQUEST, "Missing or invalid locktype.")
+            self._fail(HTTP_BAD_REQUEST, context_info="Missing or invalid locktype.")
 
         if environ.get("wsgidav.debug_break"):
             pass  # break point
@@ -1296,7 +1341,9 @@ class RequestServer:
         if res is None:
             parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
             if not parentRes or not parentRes.is_collection:
-                self._fail(HTTP_CONFLICT, "LOCK-0 parent must be a collection")
+                self._fail(
+                    HTTP_CONFLICT, context_info="LOCK-0 parent must be a collection"
+                )
             res = parentRes.create_empty_resource(util.get_uri_name(path))
             createdNewResource = True
 
@@ -1384,16 +1431,19 @@ class RequestServer:
 
         lock_man = provider.lock_manager
         if lock_man is None:
-            self._fail(HTTP_NOT_IMPLEMENTED, "This share does not support locking.")
+            self._fail(
+                HTTP_NOT_IMPLEMENTED,
+                context_info="This share does not support locking.",
+            )
         elif util.get_content_length(environ) != 0:
             self._fail(
                 HTTP_MEDIATYPE_NOT_SUPPORTED,
-                "The server does not handle any body content.",
+                context_info="The server does not handle any body content.",
             )
         elif res is None:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, context_info=path)
         elif "HTTP_LOCK_TOKEN" not in environ:
-            self._fail(HTTP_BAD_REQUEST, "Missing lock token.")
+            self._fail(HTTP_BAD_REQUEST, context_info="Missing lock token.")
 
         self._evaluate_if_headers(res, environ)
 
@@ -1403,7 +1453,7 @@ class RequestServer:
         if not lock_man.is_url_locked_by_token(ref_url, lock_token):
             self._fail(
                 HTTP_CONFLICT,
-                "Resource is not locked by token.",
+                context_info="Resource is not locked by token.",
                 err_condition=PRECONDITION_CODE_LockTokenMismatch,
             )
 
@@ -1412,7 +1462,9 @@ class RequestServer:
         ):
             # TODO: there must be a way to allow this for admins.
             #       Maybe test for "remove_locks" in environ["wsgidav.roles"]
-            self._fail(HTTP_FORBIDDEN, "Token was created by another user.")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="Token was created by another user."
+            )
 
         # TODO: Is this correct?: unlock(a/b/c) will remove Lock for 'a/b'
         lock_man.release(lock_token)
@@ -1496,7 +1548,7 @@ class RequestServer:
             if not provider.is_readonly():
                 allow.extend(["PUT", "MKCOL"])
         else:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, context_info=path)
 
         headers.append(("Allow", ", ".join(allow)))
 
@@ -1507,12 +1559,12 @@ class RequestServer:
         return [b""]
 
     def do_GET(self, environ, start_response):
-        return self._send_resource(environ, start_response, is_head_method=False)
+        return self._send_resource(environ, start_response)
 
     def do_HEAD(self, environ, start_response):
         return self._send_resource(environ, start_response, is_head_method=True)
 
-    def _send_resource(self, environ, start_response, is_head_method):
+    def _send_resource(self, environ, start_response, *, is_head_method=False):
         """
         If-Range
             If the entity is unchanged, send me the part(s) that I am missing;
@@ -1527,18 +1579,24 @@ class RequestServer:
         if util.get_content_length(environ) != 0:
             self._fail(
                 HTTP_MEDIATYPE_NOT_SUPPORTED,
-                "The server does not handle any body content.",
+                context_info="The server does not handle any body content.",
+                is_head_method=is_head_method,
             )
         elif environ.setdefault("HTTP_DEPTH", "0") != "0":
-            self._fail(HTTP_BAD_REQUEST, "Only Depth: 0 supported.")
+            self._fail(
+                HTTP_BAD_REQUEST,
+                context_info="Only Depth: 0 supported.",
+                is_head_method=is_head_method,
+            )
         elif res is None:
-            self._fail(HTTP_NOT_FOUND, path)
+            self._fail(HTTP_NOT_FOUND, context_info=path, is_head_method=is_head_method)
         elif res.is_collection:
             self._fail(
                 HTTP_FORBIDDEN,
-                "Directory browsing is not enabled."
+                context_info="Directory browsing is not enabled."
                 "(to enable it add WsgiDavDirBrowser to the middleware_stack "
                 "option and set dir_browser.enabled = True option.)",
+                is_head_method=is_head_method,
             )
 
         self._evaluate_if_headers(res, environ)
@@ -1587,7 +1645,11 @@ class RequestServer:
             )
             if len(list_ranges) == 0:
                 # No valid ranges present
-                self._fail(HTTP_RANGE_NOT_SATISFIABLE, "No valid ranges present")
+                self._fail(
+                    HTTP_RANGE_NOT_SATISFIABLE,
+                    context_info="No valid ranges present",
+                    is_head_method=is_head_method,
+                )
 
             # More than one range present -> take only the first range, since
             # multiple range returns require multipart, which is not supported

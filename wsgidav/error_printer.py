@@ -120,5 +120,10 @@ class ErrorPrinter(BaseMiddleware):
                 ]
                 + headers,
             )
+
+            if not e.add_body:
+                yield b""
+                return
+
             yield body
             return

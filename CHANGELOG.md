@@ -19,6 +19,14 @@
 
 ## 4.3.6 / Unreleased
 
+- HTTP Digest authentication now verifies that the `uri` of the
+  `Authorization` header designates the resource of the Request-Line
+  (RFC 7616, section 3.4.6). Previously a captured `Authorization: Digest ...`
+  header authenticated requests for other resources in the same realm, using
+  the captured method (CWE-294). The previous behavior is available as
+  `hotfixes.digest_skip_uri_check`. (@moovingGun)
+- [#372](https://github.com/mar10/wsgidav/pull/372)
+  Fix HEAD requests returning body on error (@ribarroetavena)
 - [#369](https://github.com/mar10/wsgidav/pull/369)
   do_LOCK sends invalid Content-Type and Lock header
 - [#365](https://github.com/mar10/wsgidav/pull/365)

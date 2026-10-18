@@ -573,6 +573,15 @@ class ServerTest(unittest.TestCase):
         #        print client2.response.body
         client2.check_multi_status_response(423)
 
+    def testHEADReturnsNoBody(self):
+        client = self.client
+        client.head("nonexistent.txt", check_body=True)
+        client.check_response(404)
+
+        data1 = b"this is a file\nwith two lines"
+        client.put("file1.txt", data1)
+        client.head("file1.txt", check_body=True)
+        client.check_response(200)
 
 # ========================================================================
 # suite
