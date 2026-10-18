@@ -122,11 +122,13 @@ class DAVClient:
         self.response = None
         self.clear_basic_auth()
 
+        self._stream = False
+
     def log(self, msg):
         if self.logger:
             print(f"{self.logger_prefix}: {msg}")
 
-    def _request(self, method, path="", body=None, headers=None):
+    def _request(self, method, path="", body=None, headers=None, stream=False):
         """Internal request method"""
         self.response = None
 
@@ -140,18 +142,23 @@ class DAVClient:
             new_headers.update(headers)
             headers = new_headers
 
+        xargs = {}
+        if stream:
+            xargs = {"stream": stream, "timeout": 1.0}
+
         # keep request info for later checks
         self.request = {"method": method, "path": path, "headers": headers}
         url = self._url.geturl()
         url = urljoin(url, path)
-        res = requests.request(method, url, data=body, headers=headers)
+        res = requests.request(method, url, data=body, headers=headers, **xargs)
         self.response = res
-        assert is_bytes(self.response.content)
-        # Try to parse and get an etree
-        try:
-            self._get_response_tree()
-        except Exception as e:
-            self.log(f"Could not parse response XML: {e}\n{res.text}")
+        if self.request["method"] != "HEAD":
+            assert is_bytes(self.response.content)
+            # Try to parse and get an etree
+            try:
+                self._get_response_tree()
+            except Exception as e:
+                self.log(f"Could not parse response XML: {e}\n{res.text}")
 
     def _get_response_tree(self):
         """Parse the response body into an elementree object"""
@@ -194,9 +201,10 @@ class DAVClient:
         self._request("GET", path, headers=headers)
         return self.response.content
 
-    def head(self, path, headers=None):
+    def head(self, path, headers=None, check_body=False):
         """Basic HEAD request"""
-        self._request("HEAD", path, headers=headers)
+        self._stream = check_body
+        self._request("HEAD", path, headers=headers, stream=check_body)
 
     def put(self, path, body=None, f=None, headers=None):
         """Put resource with body"""
@@ -460,13 +468,29 @@ class DAVClient:
         res = self.response
         full_status = f"{res.status_code} {res.reason}"
 
-        # Check response Content_Length
-        content_length = int(res.headers.get("content-length", 0))
-        if content_length and len(res.content) != content_length:
-            raise AppError(
-                "Mismatch: Content_Length(%s) != len(content)(%s)"
-                % (content_length, len(res.content))
-            )
+        # check no body was returned if HEAD method
+        # need to access raw socket under requests/urllib3
+        if self.request["method"] == "HEAD" and self._stream:
+            try:
+                sk = res.raw._fp.fp
+                buf = sk.read(1)
+                if buf:
+                    raise AppError(
+                        f"Bad response: HEAD method response has body: {buf}"
+                    )
+                return
+            except OSError:
+                pass
+            finally:
+                res.close()
+        else:
+            # Check response Content_Length
+            content_length = int(res.headers.get("content-length", 0))
+            if content_length and len(res.content) != content_length:
+                raise AppError(
+                    "Mismatch: Content_Length(%s) != len(content)(%s)"
+                    % (content_length, len(res.content))
+                )
 
         # From paste.fixture:
         if status == "*":
