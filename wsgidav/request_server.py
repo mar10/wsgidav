@@ -56,17 +56,15 @@ class RequestServer:
         # if self._davProvider.prop_manager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
         if not self._davProvider.is_readonly():
-            self._possible_methods.extend(
-                [
-                    "PUT",
-                    "DELETE",
-                    "COPY",
-                    "MOVE",
-                    "MKCOL",
-                    "PROPPATCH",
-                    "POST",
-                ]
-            )
+            self._possible_methods.extend([
+                "PUT",
+                "DELETE",
+                "COPY",
+                "MOVE",
+                "MKCOL",
+                "PROPPATCH",
+                "POST",
+            ])
             # if self._davProvider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
             if self._davProvider.lock_manager is not None:
@@ -151,7 +149,15 @@ class RequestServer:
                 app_iter.close()
         return
 
-    def _fail(self, value, *, context_info=None, src_exception=None, err_condition=None, is_head_method=False):
+    def _fail(
+        self,
+        value,
+        *,
+        context_info=None,
+        src_exception=None,
+        err_condition=None,
+        is_head_method=False,
+    ):
         """Wrapper to raise (and log) DAVError."""
         util.fail(
             value,
@@ -303,7 +309,9 @@ class RequestServer:
                 locktoken_list.append(lock["token"])
 
         if not util.test_if_header_dict(res, if_dict, ref_url, locktoken_list, etag):
-            self._fail(HTTP_PRECONDITION_FAILED, context_info="'If' header condition failed.")
+            self._fail(
+                HTTP_PRECONDITION_FAILED, context_info="'If' header condition failed."
+            )
 
         return
 
@@ -321,7 +329,9 @@ class RequestServer:
         if environ["HTTP_DEPTH"] not in ("0", "1", "infinity"):
             self._fail(
                 HTTP_BAD_REQUEST,
-                context_info="Invalid Depth header: {!r}.".format(environ["HTTP_DEPTH"]),
+                context_info="Invalid Depth header: {!r}.".format(
+                    environ["HTTP_DEPTH"]
+                ),
             )
 
         if environ["HTTP_DEPTH"] == "infinity" and not self.allow_propfind_infinite:
@@ -424,61 +434,71 @@ class RequestServer:
         self._evaluate_if_headers(res, environ)
         self._check_write_permission(res, "0", environ)
 
-        # Parse request
-        requestEL = util.parse_xml_body(environ)
+        # Keep the resource marked as "being written" for the whole
+        # read-body-and-write sequence below, so a lock cannot be acquired
+        # by another principal while the (potentially slow) request body is
+        # still being received (TOCTOU, CWE-367).
+        with self._write_transaction(res, environ):
+            # Parse request
+            requestEL = util.parse_xml_body(environ)
 
-        if requestEL.tag != "{DAV:}propertyupdate":
-            self._fail(HTTP_BAD_REQUEST)
+            if requestEL.tag != "{DAV:}propertyupdate":
+                self._fail(HTTP_BAD_REQUEST)
 
-        # Create a list of update request tuples: (name, value)
-        propupdatelist = []
+            # Create a list of update request tuples: (name, value)
+            propupdatelist = []
 
-        for ppnode in requestEL:
-            propupdatemethod = None
-            if ppnode.tag == "{DAV:}remove":
-                propupdatemethod = "remove"
-            elif ppnode.tag == "{DAV:}set":
-                propupdatemethod = "set"
-            else:
-                self._fail(
-                    HTTP_BAD_REQUEST, context_info="Unknown tag (expected 'set' or 'remove')."
-                )
+            for ppnode in requestEL:
+                propupdatemethod = None
+                if ppnode.tag == "{DAV:}remove":
+                    propupdatemethod = "remove"
+                elif ppnode.tag == "{DAV:}set":
+                    propupdatemethod = "set"
+                else:
+                    self._fail(
+                        HTTP_BAD_REQUEST,
+                        context_info="Unknown tag (expected 'set' or 'remove').",
+                    )
 
-            for propnode in ppnode:
-                if propnode.tag != "{DAV:}prop":
-                    self._fail(HTTP_BAD_REQUEST, context_info="Unknown tag (expected 'prop').")
+                for propnode in ppnode:
+                    if propnode.tag != "{DAV:}prop":
+                        self._fail(
+                            HTTP_BAD_REQUEST,
+                            context_info="Unknown tag (expected 'prop').",
+                        )
 
-                for propertynode in propnode:
-                    propvalue = None
-                    if propupdatemethod == "remove":
-                        propvalue = None  # Mark as 'remove'
-                        if len(propertynode) > 0:
-                            # 14.23: All the XML elements in a 'prop' XML
-                            # element inside of a 'remove' XML element MUST be
-                            # empty
-                            self._fail(
-                                HTTP_BAD_REQUEST,
-                                context_info="prop element must be empty for 'remove'.",
-                            )
-                    else:
-                        propvalue = propertynode
+                    for propertynode in propnode:
+                        propvalue = None
+                        if propupdatemethod == "remove":
+                            propvalue = None  # Mark as 'remove'
+                            if len(propertynode) > 0:
+                                # 14.23: All the XML elements in a 'prop' XML
+                                # element inside of a 'remove' XML element MUST be
+                                # empty
+                                self._fail(
+                                    HTTP_BAD_REQUEST,
+                                    context_info="prop element must be empty for 'remove'.",
+                                )
+                        else:
+                            propvalue = propertynode
 
-                    propupdatelist.append((propertynode.tag, propvalue))
+                        propupdatelist.append((propertynode.tag, propvalue))
 
-        # Apply updates in SIMULATION MODE and create a result list (name,
-        # result)
-        successflag = True
-        writeresultlist = []
+            # Apply updates in SIMULATION MODE and create a result list (name,
+            # result)
+            successflag = True
+            writeresultlist = []
 
-        for name, propvalue in propupdatelist:
-            try:
-                res.set_property_value(name, propvalue, dry_run=True)
-            except Exception as e:
-                writeresult = as_DAVError(e)
-            else:
-                writeresult = "200 OK"
-            writeresultlist.append((name, writeresult))
-            successflag = successflag and writeresult == "200 OK"
+            for name, propvalue in propupdatelist:
+                try:
+                    res.set_property_value(name, propvalue, dry_run=True)
+                except Exception as e:
+                    writeresult = as_DAVError(e)
+                else:
+                    writeresult = "200 OK"
+                writeresultlist.append((name, writeresult))
+                successflag = successflag and writeresult == "200 OK"
+        # <<< end of `with self._write_transaction()`
 
         # Generate response list of 2-tuples (name, value)
         # <value> is None on success, or an instance of DAVError
@@ -527,7 +547,6 @@ class RequestServer:
         """
         path = environ["PATH_INFO"]
         provider = self._davProvider
-        #        res = provider.get_resource_inst(path, environ)
         mtime = None
 
         # Do not understand ANY request body entities
@@ -559,7 +578,9 @@ class RequestServer:
 
         parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
         if not parentRes or not parentRes.is_collection:
-            self._fail(HTTP_CONFLICT, context_info="Parent must be an existing collection.")
+            self._fail(
+                HTTP_CONFLICT, context_info="Parent must be an existing collection."
+            )
 
         # TODO: should we check If headers here?
         #        self._evaluate_if_headers(res, environ)
@@ -750,7 +771,9 @@ class RequestServer:
                     mtime = int(mtime_header)
 
         if res and res.is_collection:
-            self._fail(HTTP_METHOD_NOT_ALLOWED, context_info="Cannot PUT to a collection")
+            self._fail(
+                HTTP_METHOD_NOT_ALLOWED, context_info="Cannot PUT to a collection"
+            )
         elif (
             parentRes is None or not parentRes.is_collection
         ):  # TODO: allow parentRes==None?
@@ -847,7 +870,9 @@ class RequestServer:
         if src_res is None:
             self._fail(HTTP_NOT_FOUND, context_info=src_path)
         if "HTTP_DESTINATION" not in environ:
-            self._fail(HTTP_BAD_REQUEST, context_info="Missing required Destination header.")
+            self._fail(
+                HTTP_BAD_REQUEST, context_info="Missing required Destination header."
+            )
         if environ.setdefault("HTTP_OVERWRITE", "T") not in ("T", "F"):
             # Overwrite defaults to 'T'
             self._fail(HTTP_BAD_REQUEST, context_info="Invalid Overwrite header.")
@@ -925,13 +950,16 @@ class RequestServer:
         elif dest_netloc and dest_netloc not in (url_host, fwd_host):
             # TODO: this should consider environ["SERVER_PORT"] also
             self._fail(
-                HTTP_BAD_GATEWAY, context_info="Source and destination must have the same host name."
+                HTTP_BAD_GATEWAY,
+                context_info="Source and destination must have the same host name.",
             )
 
         dest_path = util.normalize_path(dest_path)
         _dest_share, dest_provider = wsgidav_app.resolve_provider(dest_path)
         if dest_provider is not provider:
-            self._fail(HTTP_BAD_GATEWAY, context_info="Inter-realm copy/move is not supported.")
+            self._fail(
+                HTTP_BAD_GATEWAY, context_info="Inter-realm copy/move is not supported."
+            )
 
         if dest_path.startswith(provider.mount_path + provider.share_path + "/"):
             dest_path = dest_path[len(provider.mount_path + provider.share_path) :]
@@ -948,7 +976,10 @@ class RequestServer:
                 # dest_path = provider.share_path + dest_path
                 _logger.info(f"Rewrite DESTINATION path {_prev} -> {dest_path}")
             else:
-                self._fail(HTTP_BAD_GATEWAY, context_info="Inter-realm copy/move is not supported.")
+                self._fail(
+                    HTTP_BAD_GATEWAY,
+                    context_info="Inter-realm copy/move is not supported.",
+                )
 
         assert dest_path.startswith("/")
 
@@ -962,7 +993,9 @@ class RequestServer:
         )
 
         if not dest_parent_res or not dest_parent_res.is_collection:
-            self._fail(HTTP_CONFLICT, context_info="Destination parent must be a collection.")
+            self._fail(
+                HTTP_CONFLICT, context_info="Destination parent must be a collection."
+            )
 
         self._evaluate_if_headers(src_res, environ)
         self._evaluate_if_headers(dest_res, environ)
@@ -981,9 +1014,13 @@ class RequestServer:
         self._check_write_permission(dest_res, "infinity", environ)
 
         if src_path == dest_path:
-            self._fail(HTTP_FORBIDDEN, context_info="Cannot copy/move source onto itself")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="Cannot copy/move source onto itself"
+            )
         elif util.is_equal_or_child_uri(src_path, dest_path):
-            self._fail(HTTP_FORBIDDEN, context_info="Cannot copy/move source below itself")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="Cannot copy/move source below itself"
+            )
 
         if dest_exists and environ["HTTP_OVERWRITE"] != "T":
             self._fail(
@@ -1181,12 +1218,19 @@ class RequestServer:
 
         if lock_man is None:
             # http://www.webdav.org/specs/rfc4918.html#rfc.section.6.3
-            self._fail(HTTP_NOT_IMPLEMENTED, context_info="This realm does not support locking.")
+            self._fail(
+                HTTP_NOT_IMPLEMENTED,
+                context_info="This realm does not support locking.",
+            )
         if res and res.prevent_locking():
-            self._fail(HTTP_FORBIDDEN, context_info="This resource does not support locking.")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="This resource does not support locking."
+            )
 
         if environ.setdefault("HTTP_DEPTH", "infinity") not in ("0", "infinity"):
-            self._fail(HTTP_BAD_REQUEST, context_info="Expected Depth: 'infinity' or '0'.")
+            self._fail(
+                HTTP_BAD_REQUEST, context_info="Expected Depth: 'infinity' or '0'."
+            )
 
         self._evaluate_if_headers(res, environ)
 
@@ -1207,7 +1251,8 @@ class RequestServer:
 
             if res is None:
                 self._fail(
-                    HTTP_BAD_REQUEST, context_info="LOCK refresh must specify an existing resource."
+                    HTTP_BAD_REQUEST,
+                    context_info="LOCK refresh must specify an existing resource.",
                 )
             if len(submitted_token_list) != 1:
                 self._fail(
@@ -1276,7 +1321,9 @@ class RequestServer:
                 lock_owner = xml_tools.xml_to_bytes(linode, pretty=False)
 
             else:
-                self._fail(HTTP_BAD_REQUEST, context_info=f"Invalid node {linode.tag!r}.")
+                self._fail(
+                    HTTP_BAD_REQUEST, context_info=f"Invalid node {linode.tag!r}."
+                )
 
         if not lock_scope:
             self._fail(HTTP_BAD_REQUEST, context_info="Missing or invalid lockscope.")
@@ -1294,7 +1341,9 @@ class RequestServer:
         if res is None:
             parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
             if not parentRes or not parentRes.is_collection:
-                self._fail(HTTP_CONFLICT, context_info="LOCK-0 parent must be a collection")
+                self._fail(
+                    HTTP_CONFLICT, context_info="LOCK-0 parent must be a collection"
+                )
             res = parentRes.create_empty_resource(util.get_uri_name(path))
             createdNewResource = True
 
@@ -1382,7 +1431,10 @@ class RequestServer:
 
         lock_man = provider.lock_manager
         if lock_man is None:
-            self._fail(HTTP_NOT_IMPLEMENTED, context_info="This share does not support locking.")
+            self._fail(
+                HTTP_NOT_IMPLEMENTED,
+                context_info="This share does not support locking.",
+            )
         elif util.get_content_length(environ) != 0:
             self._fail(
                 HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -1410,7 +1462,9 @@ class RequestServer:
         ):
             # TODO: there must be a way to allow this for admins.
             #       Maybe test for "remove_locks" in environ["wsgidav.roles"]
-            self._fail(HTTP_FORBIDDEN, context_info="Token was created by another user.")
+            self._fail(
+                HTTP_FORBIDDEN, context_info="Token was created by another user."
+            )
 
         # TODO: Is this correct?: unlock(a/b/c) will remove Lock for 'a/b'
         lock_man.release(lock_token)
@@ -1530,9 +1584,9 @@ class RequestServer:
             )
         elif environ.setdefault("HTTP_DEPTH", "0") != "0":
             self._fail(
-                HTTP_BAD_REQUEST, 
-                context_info="Only Depth: 0 supported.", 
-                is_head_method=is_head_method
+                HTTP_BAD_REQUEST,
+                context_info="Only Depth: 0 supported.",
+                is_head_method=is_head_method,
             )
         elif res is None:
             self._fail(HTTP_NOT_FOUND, context_info=path, is_head_method=is_head_method)
@@ -1593,8 +1647,8 @@ class RequestServer:
                 # No valid ranges present
                 self._fail(
                     HTTP_RANGE_NOT_SATISFIABLE,
-                    context_info="No valid ranges present", 
-                    is_head_method=is_head_method
+                    context_info="No valid ranges present",
+                    is_head_method=is_head_method,
                 )
 
             # More than one range present -> take only the first range, since
@@ -1613,12 +1667,10 @@ class RequestServer:
             # Content-length must be of type string
             response_headers.append(("Content-Length", str(range_length)))
         if res.support_modified():
-            response_headers.append(
-                (
-                    "Last-Modified",
-                    util.get_rfc1123_time(last_modified),
-                )
-            )
+            response_headers.append((
+                "Last-Modified",
+                util.get_rfc1123_time(last_modified),
+            ))
         response_headers.append(("Content-Type", mimetype))
         response_headers.append(("Date", util.get_rfc1123_time()))
         if res.support_etag():
@@ -1635,12 +1687,10 @@ class RequestServer:
         res.finalize_headers(environ, response_headers)
 
         if is_partial_ranges:
-            response_headers.append(
-                (
-                    "Content-Range",
-                    f"bytes {range_start}-{range_end}/{filesize}",
-                )
-            )
+            response_headers.append((
+                "Content-Range",
+                f"bytes {range_start}-{range_end}/{filesize}",
+            ))
             start_response("206 Partial Content", response_headers)
         else:
             start_response("200 OK", response_headers)
