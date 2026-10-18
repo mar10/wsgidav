@@ -182,10 +182,16 @@ class HTTPAuthenticator(BaseMiddleware):
 
         self._nonce_dict = dict([])
 
-        self._header_parser = re.compile(r"([\w]+)=([^,]*),")
+        # Note: the leading \b is required. Without it every interior position
+        # of a run of word characters starts a match attempt that consumes the
+        # rest of the run before failing to find the "=", which makes parsing
+        # an Authorization header quadratic in its length. A name can only
+        # begin at a word boundary, so the guard removes no real match.
+        self._header_parser = re.compile(r"\b([\w]+)=([^,]*),")
+
         # Note: extra parser to handle digest auth requests from certain
         # clients, that leave commas un-encoded to interfere with the above.
-        self._header_fix_parser = re.compile(r'([\w]+)=("[^"]*,[^"]*"),')
+        self._header_fix_parser = re.compile(r'\b([\w]+)=("[^"]*,[^"]*"),')
         self._header_method = re.compile(r"^([\w]+)")
 
     def get_domain_controller(self):
