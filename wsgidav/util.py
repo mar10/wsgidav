@@ -38,7 +38,13 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
-from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
+from wsgidav.xml_tools import (
+    etree,
+    is_etree_element,
+    make_sub_element,
+    use_lxml,
+    xml_to_bytes,
+)
 
 __docformat__ = "reStructuredText"
 
@@ -1198,7 +1204,12 @@ def parse_xml_body(environ, *, allow_empty=False):
             raise DAVError(HTTP_BAD_REQUEST, "Body must not be empty.")
 
     try:
-        rootEL = etree.fromstring(requestbody)
+        if use_lxml:
+            rootEL = etree.XML(
+                requestbody, parser=etree.XMLParser(resolve_entities=False)
+            )
+        else:
+            rootEL = etree.fromstring(requestbody)
     except Exception as e:
         raise DAVError(
             HTTP_BAD_REQUEST, "Invalid XML format.", src_exception=e
