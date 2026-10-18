@@ -44,6 +44,8 @@ def is_etree_element(obj):
 def string_to_xml(text):
     """Convert XML string into etree.Element."""
     try:
+        if use_lxml:
+            return etree.XML(text, parser=etree.XMLParser(resolve_entities=False))
         return etree.XML(text)
     except Exception:
         # TODO:
