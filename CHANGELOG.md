@@ -39,6 +39,7 @@
 - Use secrets module for generating lock tokens instead of random (@Un-Locksmith)
 - Fix digest authentication nonce generation and comparison (@jankesec)
 - [#375] harden xml parsing with older lxml libraries (@ydnmu)
+- [#376] Fix potentially slow header parsing (@BrianWillows)
 
 ## 4.3.5 / 2026-06-27
 
