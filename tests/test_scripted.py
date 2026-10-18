@@ -583,6 +583,7 @@ class ServerTest(unittest.TestCase):
         client.head("file1.txt", check_body=True)
         client.check_response(200)
 
+
 # ========================================================================
 # suite
 # ========================================================================

@@ -35,7 +35,7 @@ class XmlEntityResolutionTest(TestCase):
             request_body = (
                 f'<!DOCTYPE root [<!ENTITY xxe SYSTEM "{secret_file.as_uri()}">]>'
                 "<root>&xxe;</root>"
-            ).encode("utf-8")
+            ).encode()
             environ = {
                 "CONTENT_LENGTH": str(len(request_body)),
                 "wsgi.input": BytesIO(request_body),
