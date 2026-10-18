@@ -50,6 +50,7 @@ DEFAULT_CONFIG = {
         # "treat_root_options_as_asterisk": False, # Hotfix for WinXP / Vista: accept 'OPTIONS /' for a 'OPTIONS *'
         # "win_accept_anonymous_options": False,
         # "winxp_accept_root_share_login": False,
+        # "digest_skip_uri_check": False,  # True: do not bind the digest `uri` to the request target (unsafe)
     },
     "property_manager": None,  # True: use property_manager.PropertyManager
     "mutable_live_props": [],
