@@ -54,6 +54,16 @@ Using a virtual environment is recommend::
   $ (.venv) wsgidav_test % python -m pip install wsgidav cheroot lxml
   $ (.venv) wsgidav_test % wsgidav --root . --auth anonymous --browse
 
+The ``htpasswd`` and ``htdigest`` domain controllers require the optional
+``passlib`` dependency. Install it with::
+
+  $ python -m pip install "wsgidav[htpasswd]"
+
+If your password file uses bcrypt hashes, install the optional bcrypt backend
+as well::
+
+  $ python -m pip install "wsgidav[htpasswd,bcrypt]"
+
 
 Or install the latest (potentially unstable) development version directly
 from GitHub::
