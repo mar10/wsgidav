@@ -2,14 +2,13 @@
 
 -r requirements.txt
 
-cheroot~=10.0
+cheroot~=11.1
 Paste~=3.0
 pytest~=8.2
 pytest-cov~=5.0
-# recommonmark
 requests
 ruff
-setuptools~=69.5
+setuptools~=84.0
 stressor
 tox~=4.15
 twine~=5.0

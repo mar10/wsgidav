@@ -1,0 +1,6 @@
+# NOTE: Keep in sync with Pipfile!
+
+-r requirements-dev.txt
+
+cx_Freeze~=8.7
+
