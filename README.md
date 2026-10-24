@@ -44,6 +44,15 @@ Main features:
   $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=pam-login
   ```
 
+- The ``htpasswd`` and ``htdigest`` domain controllers require the optional
+  ``passlib`` dependency. 
+    If your password file uses bcrypt hashes, install the optional bcrypt 
+    backend, e.g.:
+  ```bash
+  $ ython -m pip install "wsgidav[htpasswd]"
+  $ python -m pip install "wsgidav[htpasswd,bcrypt]"
+  ```
+
 - Windows users may prefer the
   [MSI Installer](https://github.com/mar10/wsgidav/releases/latest)
   (see <kbd>Assets</kbd> section), or use _winget_:
