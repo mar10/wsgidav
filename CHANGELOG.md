@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.4.0 / Unreleased
+## 4.5.0 / Unreleased
 
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental sample middleware for impersonation (@leo9800)
@@ -18,7 +18,7 @@
 - Use ruff instead of black/isort
 
 
-## 4.3.6 / Unreleased
+## 4.4.0 / 2026-10-24
 
 - [#363](https://github.com/mar10/wsgidav/issues/363) 
   Relax dependencies on bcrypt and others and make password-auth dependencies optional.
