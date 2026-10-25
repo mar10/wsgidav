@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -32,6 +32,7 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
+from wsgidav.dav_provider import DAVProvider
 from wsgidav.util import checked_etag, etree
 
 __docformat__ = "reStructuredText"
@@ -45,7 +46,7 @@ DEFAULT_BLOCK_SIZE = 8192
 # RequestServer
 # ========================================================================
 class RequestServer:
-    def __init__(self, dav_provider):
+    def __init__(self, dav_provider: DAVProvider):
         self._davProvider = dav_provider
         self.allow_propfind_infinite = True
         self._verbose = 3
@@ -1595,9 +1596,9 @@ class RequestServer:
         elif res.is_collection:
             self._fail(
                 HTTP_FORBIDDEN,
-                context_info="Directory browsing is not enabled."
-                "(to enable it add WsgiDavDirBrowser to the middleware_stack "
-                "option and set dir_browser.enabled = True option.)",
+                context_info="Directory browsing is not enabled. "
+                "(To enable it, add WsgiDavExplorer to the middleware_stack "
+                "option and set dav_explorer.enable = True option.)",
                 is_head_method=is_head_method,
             )
 

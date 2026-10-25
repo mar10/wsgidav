@@ -117,7 +117,7 @@ executables = [
         target_name="wsgidav.exe",
         icon="docs/source/logo.ico",
         shortcut_name="WsgiDAV",
-        copyright="(c) 2009-2024 Martin Wendt",
+        copyright="(c) 2009-2026 Martin Wendt",
     )
 ]
 
@@ -129,14 +129,15 @@ build_exe_options = {
         "asyncio",  # https://stackoverflow.com/a/41881598/19166
         "cheroot",
         "dbm",
-        "wsgidav.dir_browser",
+        "wsgidav.mw.dir_browser",
+        "wsgidav.mw.dav_explorer",
         "wsgidav.dc.nt_dc",
         *freeze_packages,
     ],
     "excludes": [
         "tkinter",
     ],
-    "constants": "BUILD_COPYRIGHT='(c) 2009-2024 Martin Wendt'",
+    "constants": "BUILD_COPYRIGHT='(c) 2009-2026 Martin Wendt'",
     # "init_script": "Console",
     "include_msvcr": True,
 }
@@ -168,7 +169,8 @@ setup(
     package_data={
         # If any package contains *.txt files, include them:
         # "": ["*.css", "*.html", "*.ico", "*.js"],
-        "wsgidav.dir_browser": ["htdocs/*.*"]
+        "wsgidav.mw.dir_browser": ["htdocs/*.*"],
+        "wsgidav.mw.dav_explorer": ["htdocs/*.*"],
     },
     install_requires=install_requires,
     setup_requires=setup_requires,

@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """Unit test for lock_manager.py"""
@@ -493,9 +493,14 @@ class RedisTest(BasicTest):
         try:
             import redis  # type: ignore
 
-            r = redis.Redis()
+            # Fail fast if no server is running (default connect is slow on Windows)
+            r = redis.Redis(
+                host="127.0.0.1",
+                socket_connect_timeout=0.2,
+                socket_timeout=0.5,
+            )
             r.ping()
-        except redis.exceptions.ConnectionError as e:
+        except (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError) as e:
             RedisTest._redis_connect_failed = True
             raise unittest.SkipTest("Test requires a running redis instance") from e
         storage = LockStorageRedis()

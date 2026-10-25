@@ -5,8 +5,8 @@ Command Line Interface
 
 The WsgiDAV server was tested with these platforms
 
-  * Mac OS X
-  * Ubuntu
+  * macOS
+  * Linux
   * Windows
 
 To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::

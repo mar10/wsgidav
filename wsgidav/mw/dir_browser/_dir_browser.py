@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -23,12 +23,6 @@ _logger = util.get_module_logger(__name__)
 
 ASSET_SHARE = "/:dir_browser"
 
-DAVMOUNT_TEMPLATE = """
-<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
-  <dm:url>{}</dm:url>
-</dm:mount>
-""".strip()
-
 MS_OFFICE_TYPE_TO_EXT_MAP = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
@@ -44,6 +38,8 @@ OPEN_OFFICE_EXTENSIONS = {"odt", "odp", "odx"}
 
 class WsgiDavDirBrowser(BaseMiddleware):
     """WSGI middleware that handles GET requests on collections to display directories."""
+
+    singleton_middleware_type: str = "web_interface"
 
     def __init__(self, wsgidav_app, next_app, config):
         super().__init__(wsgidav_app, next_app, config)
@@ -100,26 +96,6 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     environ, start_response, HTTP_OK, is_head=True
                 )
 
-            # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
-            if self.dir_config.get("davmount") and "davmount" in environ.get(
-                "QUERY_STRING", ""
-            ):
-                collectionUrl = util.make_complete_url(environ)
-                collectionUrl = collectionUrl.split("?", 1)[0]
-                res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
-                # TODO: support <dm:open>%s</dm:open>
-
-                start_response(
-                    "200 OK",
-                    [
-                        ("Content-Type", "application/davmount+xml"),
-                        ("Content-Length", str(len(res))),
-                        ("Cache-Control", "private"),
-                        ("Date", util.get_rfc1123_time()),
-                    ],
-                )
-                return [res]
-
             directory_slash = self.dir_config.get("directory_slash")
             if directory_slash and not path.endswith("/"):
                 _logger.info(f"Redirect {path} to {path}/")
@@ -146,7 +122,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
     def _fail(self, value, context_info=None, src_exception=None, err_condition=None):
         """Wrapper to raise (and log) DAVError."""
-        e = DAVError(value, context_info, src_exception, err_condition)
+        e = DAVError(
+            value,
+            context_info,
+            src_exception=src_exception,
+            err_condition=err_condition,
+        )
         if self.verbose >= 4:
             _logger.warning(
                 f"Raising DAVError {safe_re_encode(e.get_user_info(), sys.stdout.encoding)}"

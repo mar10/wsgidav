@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -15,10 +15,11 @@ Default configuration.
 """
 
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
-from wsgidav.dir_browser import WsgiDavDirBrowser
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
 from wsgidav.mw.cors import Cors
+from wsgidav.mw.dav_explorer import WsgiDavExplorer
+from wsgidav.mw.dir_browser import WsgiDavDirBrowser
 from wsgidav.request_resolver import RequestResolver
 
 __docformat__ = "reStructuredText"
@@ -61,6 +62,8 @@ DEFAULT_CONFIG = {
         ErrorPrinter,
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)
+        WsgiDavExplorer,  # configured under dav_explorer option (see below)
+        # Impersonator,
         RequestResolver,  # this must be the last middleware item
     ],
     # HTTP Authentication Options
@@ -107,15 +110,32 @@ DEFAULT_CONFIG = {
         ],
         "icon": True,
         "response_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
-        "show_user": True,  # Show authenticated user an realm
-        # Send <dm:mount> response if request URL contains '?davmount' (rfc4709)
-        "davmount": True,
-        # Add 'Mount' link at the top
-        "davmount_links": False,
+        "show_user": True,  # Show authenticated user and realm
         "ms_sharepoint_support": True,  # Invoke MS Office documents for editing using WebDAV
         "libre_office_support": True,  # Invoke Libre Office documents for editing using WebDAV
         # The path to the directory that contains template.html and associated assets.
         # The default is the htdocs directory within the dir_browser directory.
+        "htdocs_path": None,
+    },
+    #: Options for `WsgiDavExplorer`
+    "dav_explorer": {
+        "enable": False,  # Render HTML listing for GET requests on collections
+        "readonly": False,  # Force readonly mode for the directory browser
+        # List of fnmatch patterns:
+        "ignore_list": [
+            ".DS_Store",  # macOS folder meta data
+            "._*",  # macOS hidden data files
+            "Thumbs.db",  # Windows image previews
+        ],
+        "icon": True,
+        "page_trailer": True,  # Raw HTML code, appended as footer (True: use a default)
+        "show_user": True,  # Show authenticated user and realm
+        "show_login": True,  # Show login/logout links
+        "show_info_pane": True,  # Show the info pane on the right side
+        "max_preview_size_kb": 500,  # Maximum size of file to preview
+        "office_support": True,  # Invoke MS- and Libre-Office documents for editing using WebDAV
+        # The path to the directory that contains template.html and associated assets.
+        # The default is the htdocs directory within the dav_explorer directory.
         "htdocs_path": None,
     },
 }

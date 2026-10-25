@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content="WsgiDAV/{{ version }}" />
+    <title>WsgiDAV - Index of {{ display_path }}</title>
+
+    <link rel="shortcut icon" href="{{ htdocs }}/favicon.ico" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-reboot@4.5.6/reboot.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" /> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wunderbaum@0.14.0/dist/wunderbaum.css" />
+    <link rel="stylesheet" href="{{ htdocs }}/app.css" />
+
+    <!-- <script type="importmap">
+      {
+        "imports": {
+          "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
+          "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.esm.min.js"
+        }
+      }
+    </script> -->
+
+    <script id="context-data" type="application/json">
+        {{ js_config | tojson }}
+    </script>
+    <script defer type="module" src="{{ htdocs }}/app.js"></script>
+      <!-- WsgiDAV-UI: dav_explorer -->
+  </head>
+  <body>
+    <header>
+      <h1>
+        {%- if icon %}
+        <img class="logo" alt="WsgiDAV" title="WsgiDAV" src="{{ htdocs }}/logo_32x32.png" />
+        {% endif -%}
+        <span class="title">
+          <span class="prefix pulse-appear">Wsgi</span>
+          <span class="name">DAV Explorer</span>
+        </span>
+        <!-- Index of {{ display_path }} -->
+      </h1>
+
+      <div class="header-bar">
+        <span class="header-bar-left">
+          <i class="wb-button bi bi-arrow-clockwise" title="Reload" data-command="reloadTree"></i>
+          <i class="wb-button bi bi-cloud-plus" title="Upload file to root folder..." data-command="uploadTop"></i>
+          <i class="wb-button bi bi-folder-plus" title="Create topfolder..." data-command="newTopFolder"></i>
+        </span>
+        <span class="header-bar-right">
+          {%- if js_config.show_user == true %}
+          <i class="bi bi-person"></i>
+          <span class="auth-user">
+            {%- if is_authenticated %} '{{user_name}}', realm: '{{realm}}', access: {{access}}. 
+              {%- if js_config.show_login %}
+                <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>
+              {% endif -%} 
+              {%- if user_roles %} , roles: {{ user_roles }} {% endif -%} 
+            {% else %}
+              Anonymous. 
+              {%- if js_config.show_login %} 
+              <a title="Login" href="{{ url }}?login" target="_blank" rel="noopener noreferrer">Login</a>
+              {% endif -%}
+            {% endif -%}
+            </span>
+
+          {% endif -%}
+          <i class="wb-button wb-button-toggle bi bi-window-split down" data-command="togglePreview" title="Toggle details pane"></i>
+          <i class="wb-button bi bi-gear" data-command="showSettings" title="Settings"></i>
+          <i class="wb-button bi bi-question-circle" data-command="showHelp" title="Help"></i>
+        </span>
+      </div>
+      <span id="notification" class="notification"></span>
+    </header>
+    <div class="main-container">
+        <!-- <main class="view">
+          <div id="demo-tree" class="wb-skeleton wb-initializing wb-no-select">
+            <h1>Wunderbaum Demo</h1>
+            <p>Loading&hellip;</p>
+          </div>
+        </main> -->
+      <main>
+        <output id="parentPath"></output>
+        <div id="tree"></div>
+      </main>
+      <aside id="rightPane" class="right collapse-horizontal">
+        <div id="preview">
+          <div id="preview-unknown" class="preview-pane">
+            <p>Please select a file or folder.</p>
+          </div>
+          <img id="preview-img" src="" alt="Image Preview" class="preview-pane hidden" />
+          <pre id="preview-text" class="preview-pane hidden"></pre>
+          <div id="preview-folder" class="preview-pane hidden">
+            <div id="dropzone" class="dropzone">
+              <p>Drag and drop files here to upload into current folder, or click to select files.</p>
+              <input type="file" id="fileInput" multiple style="display: none" />
+            </div>
+            <!-- <p class="folder-info">...</p> -->
+          </div>
+          <p class="node-info hidden">...</p>
+          <div id="preview-settings" class="preview-pane hidden">
+            <h2>Settings</h2>
+            <!-- This form values are maintained by Persisto -->
+            <form id="settingsForm">
+              <div class="form-group">
+                <label for="max_preview_size_kb">Max preview size (KB)</label>
+                <input type="number" id="max_preview_size_kb" name="max_preview_size_kb" min="0" style="width: 5em;"/>
+              </div>
+              <div class="form-group">
+                <label for="office_support">Support Office</label>
+                <input type="checkbox" id="office_support" name="office_support" />
+              </div>
+              <div class="form-group">
+                <label for="readonly">Open Office documents in readonly mode</label>
+                <input type="checkbox" id="readonly" name="readonly" />
+              </div>
+              <div class="form-group">
+                <label for="dblclick_action">Double-click files</label>
+                <select id="dblclick_action" name="dblclick_action">
+                  <option value="download">Download</option>
+                  <option value="open">Open in new tab</option>
+                  <option value="nothing">Do nothing</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="dblclick_action_folders">Double-click folders</label>
+                <select id="dblclick_action_folders" name="dblclick_action_folders">
+                  <option value="expand">Expand/collapse</option>
+                  <option value="set_root">Open here</option>
+                </select>
+              </div>
+                <button type="button" id="resetSettings" class="btn btn-secondary">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset to defaults
+                </button>
+            </form>
+          </div>
+          <iframe id="preview-iframe" class="preview-pane hidden" src="" frameborder="0" title="Preview" style="width: 100%; height: 100%"></iframe>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      {% if trailer %}
+      <p class="trailer">{{ trailer | safe }}</p>
+      {% endif %}
+    </footer>
+  </body>
+</html>

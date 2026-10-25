@@ -18,12 +18,17 @@ class BaseMiddleware(ABC):
 
     Derived classes in WsgiDAV include::
 
-        wsgidav.dir_browser.WsgiDavDirBrowser
+        wsgidav.mw.dir_browser.WsgiDavDirBrowser
+        wsgidav.mw.dav_explorer.WsgiDavExplorer
         wsgidav.mw.debug_filter.WsgiDavDebugFilter
         wsgidav.error_printer.ErrorPrinter
         wsgidav.http_authenticator.HTTPAuthenticator
         wsgidav.request_resolver.RequestResolver
     """
+
+    #: Optional string to identify the middleware type, e.g. "web_interface".
+    #: If set, the framework will prevent loading multiple middlewares with the same type.
+    singleton_middleware_type: str = None
 
     def __init__(self, wsgidav_app, next_app, config):
         self.wsgidav_app = wsgidav_app
