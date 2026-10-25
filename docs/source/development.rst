@@ -121,11 +121,12 @@ Create and Activate a Virtual Environment
 
 Virtual environments allow us to develop and test in a sandbox, without affecting our
 system otherwise. |br|
-We need `Python 3.8+ <https://www.python.org/downloads/>`_ and
-`uv <https://docs.astral.sh/uv/>`_ on our system.
+We need `Python 3.10+ <https://www.python.org/downloads/>`_,
+and `pip <https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip>`_ 
+on our system.
 
-If you want to run tests on *all supported* platforms, install Python
-3.9, 3.10, 3.11, 3.12, and 3.13.
+If you want to run tests on *all supported* platforms, install Python 
+3.10, 3.11, 3.12, 3.13 and 3.14.
 
 We use `uv <https://docs.astral.sh/uv/>`_ for dependency management. Install it with::
 
