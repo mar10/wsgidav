@@ -1,15 +1,17 @@
 # Changelog
 
-## `feature/update-web-ui` / Unreleased
-
-- WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
-- Remove davmount support
-
 ## 5.0.0 / Unreleased
 
 - BREAKING:
-  - Drop support for Python 3.8/3.9
-- Support Python 3.13/3.14/3.15
+  - Drop support for Python 3.8, 3.9
+  - Remove davmount support
+- Support Python 3.10 .. 3.15
+- WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
+- Use ruff instead of black/isort
+- Use uv instead of pip/pipenv
+
+## 4.4.0 / 2026-10-24
+
 - [#343](https://github.com/mar10/wsgidav/issues/343)
   Add experimental sample middleware for impersonation (@leo9800)
 - [#348](https://github.com/mar10/wsgidav/issues/348)
@@ -22,11 +24,6 @@
   Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
 - [#356](https://github.com/mar10/wsgidav/pull/356)
   Domain controller for apache .htdigest files (@leo9800)
-- Use ruff instead of black/isort
-- Use uv instead of pip/pipenv
-
-## 4.4.0 / 2026-10-24
-
 - [#363](https://github.com/mar10/wsgidav/issues/363)
   Relax dependencies on bcrypt and others and make password-auth dependencies optional.
 - [#365](https://github.com/mar10/wsgidav/pull/365)
@@ -49,6 +46,7 @@
 - Fix unauthenticated access to protected shares via share-route / path-normalization mismatch (@gh0stsh3ll56)
 - Use secrets module for generating lock tokens instead of random (@Un-Locksmith)
 - Fix digest authentication nonce generation and comparison (@jankesec)
+- Test with Python 3.13
 
 ## 4.3.5 / 2026-06-27
 
