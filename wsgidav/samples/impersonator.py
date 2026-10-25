@@ -13,11 +13,29 @@ This middleware is not thread-safe and should not be used in a
 multithreaded environment. It is designed to be used in a single-threaded
 context where the effective user ID and group ID can be safely changed and
 restored.
+
+----------------------------------------------------------------------------
+Sample configuration for wsgidav.yaml::
+
+    # User/Group Impersonating
+    # (Requires `wsgidav.samples.impersonator.Impersonator`, which is disabled by default.)
+    impersonator:
+        # enabling impersonating
+        enable: false
+
+        # custom map WebDAV (HTTP) usernames to Unix usernames
+        # custom_user_mapping:
+        #     leonlee: leo
+        #     jenifer: jenny
+
+        # or, use WebDAV (HTTP) usernames as is
+        custom_user_mapping: null
 """
 
 import os
 import pwd
 from contextlib import AbstractContextManager
+from typing import Optional, Tuple
 
 from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware
@@ -29,7 +47,7 @@ _logger.debug(f"impersonator: initial uid:gid = {_init_euid}:{_init_egid}")
 
 
 class ImpersonateContext(AbstractContextManager):
-    def __init__(self, ids: tuple[int, int] | None) -> None:
+    def __init__(self, ids: Optional[Tuple[int, int]]) -> None:
         if ids is None:
             self._enabled = False
             return
@@ -76,7 +94,7 @@ class Impersonator(BaseMiddleware):
     def is_disabled(self):  # type: ignore
         return not self.get_config("impersonator.enable", False)  # type: ignore
 
-    def _map_id(self, username: str) -> tuple[int, int] | None:
+    def _map_id(self, username: str) -> Optional[Tuple[int, int]]:
         if self.is_disabled():
             return None
 

@@ -12,6 +12,7 @@ import collections.abc
 import logging
 import mimetypes
 import os
+import posixpath
 import re
 import stat
 import sys
@@ -37,7 +38,13 @@ from wsgidav.dav_error import (
     as_DAVError,
     get_http_status_string,
 )
-from wsgidav.xml_tools import etree, is_etree_element, make_sub_element, xml_to_bytes
+from wsgidav.xml_tools import (
+    etree,
+    is_etree_element,
+    make_sub_element,
+    use_lxml,
+    xml_to_bytes,
+)
 
 __docformat__ = "reStructuredText"
 
@@ -706,6 +713,28 @@ def pop_path(path):
     return (first, "/" + rest)
 
 
+def normalize_path(path):
+    """Return the canonical URL path used for routing and authorization."""
+    parts = []
+    for part in path.split("/"):
+        if part in ("", "."):
+            continue
+        if part == "..":
+            if parts:
+                parts.pop()
+            else:
+                raise DAVError(
+                    HTTP_BAD_REQUEST, f"Path escapes application root: {path}"
+                )
+        else:
+            parts.append(part)
+
+    normalized = posixpath.join("/", *parts)
+    if path.endswith("/") and normalized != "/":
+        normalized += "/"
+    return normalized
+
+
 def pop_path2(path):
     """Return '/a/b/c' -> ('a', 'b', '/c')."""
     if path in ("", "/"):
@@ -959,6 +988,7 @@ def fail(
     src_exception=None,
     err_condition=None,
     add_headers=None,
+    add_body=True,
 ):
     """Wrapper to raise (and log) DAVError."""
     if isinstance(value, Exception):
@@ -970,6 +1000,7 @@ def fail(
             src_exception=src_exception,
             err_condition=err_condition,
             add_headers=add_headers,
+            add_body=add_body,
         )
     _logger.debug(f"Raising DAVError {e.get_user_info()}")
     raise e
@@ -1178,7 +1209,12 @@ def parse_xml_body(environ, *, allow_empty=False):
             raise DAVError(HTTP_BAD_REQUEST, "Body must not be empty.")
 
     try:
-        rootEL = etree.fromstring(requestbody)
+        if use_lxml:
+            rootEL = etree.XML(
+                requestbody, parser=etree.XMLParser(resolve_entities=False)
+            )
+        else:
+            rootEL = etree.fromstring(requestbody)
     except Exception as e:
         raise DAVError(
             HTTP_BAD_REQUEST, "Invalid XML format.", src_exception=e
@@ -1246,7 +1282,7 @@ def send_status_response(
 
     if e in (HTTP_OK, HTTP_CREATED):
         e = DAVError(e)
-    assert isinstance(e, DAVError)
+    assert isinstance(e, DAVError), e
 
     content_type, body = e.get_response_page()
     if is_head:
@@ -1690,11 +1726,19 @@ def parse_if_header_dict(environ):
                 if listitem.upper() != "NOT":
                     if listitem.startswith("["):
                         listTagContents.append(
-                            (testflag, "entity", listitem.strip('"[]'))
+                            (
+                                testflag,
+                                "entity",
+                                listitem.strip('"[]'),
+                            )
                         )
                     else:
                         listTagContents.append(
-                            (testflag, "locktoken", listitem.strip("<>"))
+                            (
+                                testflag,
+                                "locktoken",
+                                listitem.strip("<>"),
+                            )
                         )
                         ifLockList.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"

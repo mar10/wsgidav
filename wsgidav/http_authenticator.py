@@ -78,12 +78,14 @@ from previous middleware or server config (if required).
 """
 
 import base64
+import hmac
 import inspect
-import random
 import re
+import secrets
 import time
 from hashlib import md5
 from textwrap import dedent
+from urllib.parse import unquote, urlsplit
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
@@ -157,6 +159,12 @@ class HTTPAuthenticator(BaseMiddleware):
             "win_accept_anonymous_options", False
         )
 
+        # RFC 7616, section 3.4.6 requires that the `uri` of the Authorization
+        # header designates the same resource as the Request-Line. Turning this
+        # off restores the previous (unsafe) behavior for clients that send a
+        # non-conforming `uri`.
+        self.digest_skip_uri_check = hotfixes.get("digest_skip_uri_check", False)
+
         auth_conf = util.get_dict_value(config, "http_authenticator", as_dict=True)
 
         self.accept_basic = auth_conf.get("accept_basic", True)
@@ -174,10 +182,16 @@ class HTTPAuthenticator(BaseMiddleware):
 
         self._nonce_dict = dict([])
 
-        self._header_parser = re.compile(r"([\w]+)=([^,]*),")
+        # Note: the leading \b is required. Without it every interior position
+        # of a run of word characters starts a match attempt that consumes the
+        # rest of the run before failing to find the "=", which makes parsing
+        # an Authorization header quadratic in its length. A name can only
+        # begin at a word boundary, so the guard removes no real match.
+        self._header_parser = re.compile(r"\b([\w]+)=([^,]*),")
+
         # Note: extra parser to handle digest auth requests from certain
         # clients, that leave commas un-encoded to interfere with the above.
-        self._header_fix_parser = re.compile(r'([\w]+)=("[^"]*,[^"]*"),')
+        self._header_fix_parser = re.compile(r'\b([\w]+)=("[^"]*,[^"]*"),')
         self._header_method = re.compile(r"^([\w]+)")
 
     def get_domain_controller(self):
@@ -305,8 +319,9 @@ class HTTPAuthenticator(BaseMiddleware):
 
     def send_digest_auth_response(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
-        random.seed()
-        serverkey = hex(random.getrandbits(32))[2:]
+        # Use a cryptographically secure random nonce (128-bit) instead of
+        # `random.getrandbits(32)` which is not a CSPRNG (CWE-338).
+        serverkey = secrets.token_hex(16)
         etagkey = calc_hexdigest(environ["PATH_INFO"])
         timekey = str(time.time())
         nonce_source = timekey + calc_hexdigest(
@@ -427,6 +442,12 @@ class HTTPAuthenticator(BaseMiddleware):
 
         req_uri = auth_header_dict.get("uri")
 
+        if not self._is_digest_uri_valid(req_uri, environ):
+            is_invalid_req = True
+            invalid_req_reasons.append(
+                f"Digest 'uri' {req_uri!r} does not match the request target"
+            )
+
         if "nonce" in auth_header_dict:
             req_nonce = auth_header_dict["nonce"]
         else:
@@ -488,8 +509,10 @@ class HTTPAuthenticator(BaseMiddleware):
                 invalid_req_reasons.append(
                     f"Rejected by DC.digest_auth_user({realm!r}, {req_username!r})"
                 )
-            elif required_digest != req_response:
-                warning_msg = f"_compute_digest_response({realm!r}, {req_username!r}, ...): {required_digest} != {req_response}"
+            elif not hmac.compare_digest(required_digest, req_response):
+                # Use hmac.compare_digest() for constant-time comparison to
+                # prevent timing side-channel attacks (CWE-208).
+                warning_msg = f"_compute_digest_response({realm!r}, {req_username!r}, ...): digest mismatch"
                 if self.winxp_accept_root_share_login and realm != "/":
                     # _logger.warning(warning_msg + " => trying '/' realm")
                     # Hotfix: also accept '/' digest
@@ -504,7 +527,7 @@ class HTTPAuthenticator(BaseMiddleware):
                         req_nc,
                         environ,
                     )
-                    if root_digest == req_response:
+                    if root_digest and hmac.compare_digest(root_digest, req_response):
                         _logger.warning(
                             f"handle_digest_auth_request: HOTFIX: accepting '/' login for {realm!r}."
                         )
@@ -538,6 +561,58 @@ class HTTPAuthenticator(BaseMiddleware):
         environ["wsgidav.auth.realm"] = realm
         environ["wsgidav.auth.user_name"] = req_username
         return self.next_app(environ, start_response)
+
+    @staticmethod
+    def _canonical_path(path):
+        """Return a comparable form of `path`, or None if it is not valid."""
+        try:
+            return util.normalize_path(path)
+        except DAVError:
+            # e.g. '..' segments that escape the application root
+            return None
+
+    def _is_digest_uri_valid(self, req_uri, environ):
+        """Return True if the Authorization header's `uri` matches the request.
+
+        RFC 7616, section 3.4.6:
+
+            The authenticating server MUST verify that the resource
+            designated by the "uri" parameter is the same as the resource
+            specified in the Request-Line.
+
+        The digest is computed over the `uri` taken from the header, while the
+        request is served for ``PATH_INFO``. Without this check, an
+        ``Authorization: Digest ...`` header that was captured for one resource
+        authenticates requests for *any other* resource in the same realm,
+        using the captured method (CWE-294).
+        """
+        if self.digest_skip_uri_check:
+            return True
+        if not req_uri:
+            return False
+
+        # The request target may be sent in absolute form (RFC 9112, section
+        # 3.2.2), so compare the path and query components only.
+        parts = urlsplit(req_uri)
+
+        # 'OPTIONS *' (asterisk-form, RFC 9112, section 3.2.4) does not address
+        # a resource, and clients disagree on what to put in `uri` (curl sends
+        # '/', others send '*'). Accept both, but only for a request that
+        # really used the asterisk-form.
+        if environ.get("REQUEST_METHOD") == "OPTIONS" and (
+            (environ.get("REQUEST_URI") or environ.get("RAW_URI")) == "*"
+            or environ.get("PATH_INFO") in ("*", "/*")
+        ):
+            return parts.path in ("*", "/*", "/")
+
+        if parts.query != environ.get("QUERY_STRING", ""):
+            return False
+
+        req_path = self._canonical_path(unquote(parts.path))
+        if req_path is None:
+            return False
+        target_path = environ.get("SCRIPT_NAME", "") + environ.get("PATH_INFO", "")
+        return req_path == self._canonical_path(target_path)
 
     def _compute_digest_response(
         self, realm, user_name, method, uri, nonce, cnonce, qop, nc, environ

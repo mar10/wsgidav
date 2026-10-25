@@ -17,8 +17,6 @@ Default configuration.
 # from wsgidav.mw.debug_filter import WsgiDavDebugFilter
 from wsgidav.error_printer import ErrorPrinter
 from wsgidav.http_authenticator import HTTPAuthenticator
-
-# from wsgidav.mw.impersonator import Impersonator
 from wsgidav.mw.cors import Cors
 from wsgidav.mw.dav_explorer import WsgiDavExplorer
 from wsgidav.mw.dir_browser import WsgiDavDirBrowser
@@ -53,6 +51,7 @@ DEFAULT_CONFIG = {
         # "treat_root_options_as_asterisk": False, # Hotfix for WinXP / Vista: accept 'OPTIONS /' for a 'OPTIONS *'
         # "win_accept_anonymous_options": False,
         # "winxp_accept_root_share_login": False,
+        # "digest_skip_uri_check": False,  # True: do not bind the digest `uri` to the request target (unsafe)
     },
     "property_manager": None,  # True: use property_manager.PropertyManager
     "mutable_live_props": [],

@@ -56,6 +56,8 @@ its limitations:
       unnecessary queries to the database.
 
 """
+# Allow "".format(), don't require f-strings
+# ruff: noqa: UP032
 
 import csv
 import hashlib
@@ -75,6 +77,11 @@ from wsgidav.dav_provider import DAVProvider, _DAVResource
 __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
+
+
+def _escape_id(identifier):
+    """Escape MySQL identifier (table, column, database name)."""
+    return identifier.replace("`", "``")
 
 
 class MySQLBrowserResource(_DAVResource):
@@ -227,7 +234,11 @@ class MySQLBrowserResource(_DAVResource):
 
             if primKey == "_ENTIRE_CONTENTS":
                 cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute("SELECT * from " + self.provider._db + "." + tableName)
+                sql = ("SELECT * FROM `{db}`.`{table}`").format(
+                    db=_escape_id(self.provider._db),
+                    table=_escape_id(tableName),
+                )
+                cursor.execute(sql)
                 result_set = cursor.fetchall()
                 for row in result_set:
                     csvwriter.writerow(row)
@@ -336,7 +347,7 @@ class MySQLBrowserProvider(DAVProvider):
     def _get_field_list(self, conn, table_name):
         retlist = []
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("DESCRIBE " + table_name)
+        cursor.execute("DESCRIBE `%s`" % _escape_id(table_name))
         result_set = cursor.fetchall()
         for row in result_set:
             retlist.append(row["Field"])
@@ -371,49 +382,26 @@ class MySQLBrowserProvider(DAVProvider):
 
     def _exists_record_by_primary_key(self, conn, table_name, pri_key_value):
         pri_key = None
-        pri_field_type = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("DESCRIBE " + table_name)
+        cursor.execute("DESCRIBE `%s`" % _escape_id(table_name))
         result_set = cursor.fetchall()
         for row in result_set:
             if row["Key"] == "PRI":
                 if pri_key is None:
                     pri_key = row["Field"]
-                    pri_field_type = row["Type"]
                 else:
                     return False  # more than one primary key - multipart key?
         cursor.close()
 
-        isNumType = self._is_data_type_numeric(pri_field_type)
-
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        if isNumType:
-            cursor.execute(
-                "SELECT "
-                + pri_key
-                + " FROM "
-                + self._db
-                + "."
-                + table_name
-                + " WHERE "
-                + pri_key
-                + " = "
-                + pri_key_value
-            )
-        else:
-            cursor.execute(
-                "SELECT "
-                + pri_key
-                + " FROM "
-                + self._db
-                + "."
-                + table_name
-                + " WHERE "
-                + pri_key
-                + " = '"
-                + pri_key_value
-                + "'"
-            )
+        sql = (
+            "SELECT `{pri_key}` FROM `{db}`.`{table}` WHERE `{pri_key}` = %s"
+        ).format(
+            pri_key=_escape_id(pri_key),
+            db=_escape_id(self._db),
+            table=_escape_id(table_name),
+        )
+        cursor.execute(sql, (pri_key_value,))
         row = cursor.fetchone()
         if row is None:
             cursor.close()
@@ -423,49 +411,25 @@ class MySQLBrowserProvider(DAVProvider):
 
     def _get_field_by_primary_key(self, conn, table_name, pri_key_value, field_name):
         pri_key = None
-        pri_field_type = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("DESCRIBE " + table_name)
+        cursor.execute("DESCRIBE `%s`" % _escape_id(table_name))
         result_set = cursor.fetchall()
         for row in result_set:
             if row["Key"] == "PRI":
                 if pri_key is None:
                     pri_key = row["Field"]
-                    pri_field_type = row["Type"]
                 else:
                     return None  # more than one primary key - multipart key?
         cursor.close()
 
-        isNumType = self._is_data_type_numeric(pri_field_type)
-
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        if isNumType:
-            cursor.execute(
-                "SELECT "
-                + field_name
-                + " FROM "
-                + self._db
-                + "."
-                + table_name
-                + " WHERE "
-                + pri_key
-                + " = "
-                + pri_key_value
-            )
-        else:
-            cursor.execute(
-                "SELECT "
-                + field_name
-                + " FROM "
-                + self._db
-                + "."
-                + table_name
-                + " WHERE "
-                + pri_key
-                + " = '"
-                + pri_key_value
-                + "'"
-            )
+        sql = ("SELECT `{field}` FROM `{db}`.`{table}` WHERE `{pri_key}` = %s").format(
+            field=_escape_id(field_name),
+            db=_escape_id(self._db),
+            table=_escape_id(table_name),
+            pri_key=_escape_id(pri_key),
+        )
+        cursor.execute(sql, (pri_key_value,))
         row = cursor.fetchone()
         if row is None:
             cursor.close()
@@ -477,45 +441,24 @@ class MySQLBrowserProvider(DAVProvider):
     def _get_record_by_primary_key(self, conn, table_name, pri_key_value):
         dictRet = {}
         pri_key = None
-        pri_field_type = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("DESCRIBE " + table_name)
+        cursor.execute("DESCRIBE `%s`" % _escape_id(table_name))
         result_set = cursor.fetchall()
         for row in result_set:
             if row["Key"] == "PRI":
                 if pri_key is None:
                     pri_key = row["Field"]
-                    pri_field_type = row["Type"]
                 else:
                     return None  # more than one primary key - multipart key?
         cursor.close()
 
-        isNumType = self._is_data_type_numeric(pri_field_type)
-
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        if isNumType:
-            cursor.execute(
-                "SELECT * FROM "
-                + self._db
-                + "."
-                + table_name
-                + " WHERE "
-                + pri_key
-                + " = "
-                + pri_key_value
-            )
-        else:
-            cursor.execute(
-                "SELECT * FROM "
-                + self._db
-                + "."
-                + table_name
-                + " WHERE "
-                + pri_key
-                + " = '"
-                + pri_key_value
-                + "'"
-            )
+        sql = ("SELECT * FROM `{db}`.`{table}` WHERE `{pri_key}` = %s").format(
+            db=_escape_id(self._db),
+            table=_escape_id(table_name),
+            pri_key=_escape_id(pri_key),
+        )
+        cursor.execute(sql, (pri_key_value,))
         row = cursor.fetchone()
         if row is None:
             cursor.close()
@@ -528,7 +471,7 @@ class MySQLBrowserProvider(DAVProvider):
     def _find_primary_key(self, conn, table_name):
         pri_key = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("DESCRIBE " + table_name)
+        cursor.execute("DESCRIBE `%s`" % _escape_id(table_name))
         result_set = cursor.fetchall()
         for row in result_set:
             fieldname = row["Field"]
@@ -544,7 +487,12 @@ class MySQLBrowserProvider(DAVProvider):
     def _list_fields(self, conn, table_name, field_name):
         retlist = []
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("SELECT " + field_name + " FROM " + self._db + "." + table_name)
+        sql = ("SELECT `{field}` FROM `{db}`.`{table}`").format(
+            field=_escape_id(field_name),
+            db=_escape_id(self._db),
+            table=_escape_id(table_name),
+        )
+        cursor.execute(sql)
         result_set = cursor.fetchall()
         for row in result_set:
             retlist.append(util.to_str(row[field_name]))

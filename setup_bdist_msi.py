@@ -57,7 +57,7 @@ version = f"{major}.{minor}.{patch}.{alpha}"
 print(f"Version {org_version}, using {version}")
 
 try:
-    readme = open("README.md", encoding="utf-8").read()
+    readme = open("README.md").read()
 except OSError:
     readme = "(readme not found. Running from tox/setup.py test?)"
 
@@ -69,22 +69,55 @@ except OSError:
 install_requires = []
 # ... The Windows MSI Setup should include lxml and CherryPy
 install_requires.extend([
+    "bcrypt",
     "cheroot",
     "lxml",
+    "passlib",
 ])
-setup_requires = install_requires
+# Do NOT set setup_requires: it makes setuptools download eggs into `.eggs/`,
+# and cx_Freeze would then freeze from there (missing namespace packages).
+setup_requires = []
+
+
+def _check_build_environment(modules):
+    """Fail early if frozen dependencies are missing or come from `.eggs/`."""
+    import importlib
+
+    problems = []
+    for name in modules:
+        try:
+            mod = importlib.import_module(name)
+        except ImportError as e:
+            problems.append(f"{name}: not importable ({e})")
+            continue
+        path = getattr(mod, "__file__", None) or ""
+        if ".egg" in path:
+            problems.append(f"{name}: imported from an egg ({path})")
+    if problems:
+        raise RuntimeError(
+            "Build environment is incomplete. `pip install` the missing packages "
+            "into the active Python and delete the `.eggs/` folder:\n  "
+            + "\n  ".join(problems)
+        )
+
+
+# cheroot's dependencies. `jaraco` is a namespace package, so it must be listed
+# as packages (not includes):
+freeze_packages = [
+    # "jaraco.functools",
+    # "more_itertools",
+]
+_check_build_environment(install_requires + freeze_packages)
 tests_require = []
 
 executables = [
     Executable(
         script="wsgidav/server/server_cli.py",
         base=None,
-        # base="Win32GUI",
         target_name="wsgidav.exe",
         icon="docs/source/logo.ico",
         shortcut_name="WsgiDAV",
         copyright="(c) 2009-2024 Martin Wendt",
-        # trademarks="...",
     )
 ]
 
@@ -99,6 +132,7 @@ build_exe_options = {
         "wsgidav.mw.dir_browser",
         "wsgidav.mw.dav_explorer",
         "wsgidav.dc.nt_dc",
+        *freeze_packages,
     ],
     "excludes": [
         "tkinter",

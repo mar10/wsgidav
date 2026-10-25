@@ -221,22 +221,6 @@ htdigest_dc:
 
 
 # ----------------------------------------------------------------------------
-# User/Group Impersonating
-# (Requires `wsgidav.mw.impersonator.Impersonator`, which is disabled by default.)
-impersonator:
-    # enabling impersonating
-    enable: false
-
-    # custom map WebDAV (HTTP) usernames to Unix usernames
-    # custom_user_mapping:
-    #     leonlee: leo
-    #     jenifer: jenny
-
-    # or, use WebDAV (HTTP) usernames as is
-    custom_user_mapping: null
-
-
-# ----------------------------------------------------------------------------
 # CORS
 # (Requires `wsgidav.mw.cors.Cors`, which is enabled by default.)
 cors:
