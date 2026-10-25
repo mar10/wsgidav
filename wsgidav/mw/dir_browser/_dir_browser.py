@@ -23,12 +23,6 @@ _logger = util.get_module_logger(__name__)
 
 ASSET_SHARE = "/:dir_browser"
 
-DAVMOUNT_TEMPLATE = """
-<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">
-  <dm:url>{}</dm:url>
-</dm:mount>
-""".strip()
-
 MS_OFFICE_TYPE_TO_EXT_MAP = {
     "excel": ("xls", "xlt", "xlm", "xlsm", "xlsx", "xltm", "xltx"),
     "powerpoint": ("pps", "ppt", "pptm", "pptx", "potm", "potx", "ppsm", "ppsx"),
@@ -102,26 +96,6 @@ class WsgiDavDirBrowser(BaseMiddleware):
                     environ, start_response, HTTP_OK, is_head=True
                 )
 
-            # Support DAV mount (http://www.ietf.org/rfc/rfc4709.txt)
-            if self.dir_config.get("davmount") and "davmount" in environ.get(
-                "QUERY_STRING", ""
-            ):
-                collectionUrl = util.make_complete_url(environ)
-                collectionUrl = collectionUrl.split("?", 1)[0]
-                res = util.to_bytes(DAVMOUNT_TEMPLATE.format(collectionUrl))
-                # TODO: support <dm:open>%s</dm:open>
-
-                start_response(
-                    "200 OK",
-                    [
-                        ("Content-Type", "application/davmount+xml"),
-                        ("Content-Length", str(len(res))),
-                        ("Cache-Control", "private"),
-                        ("Date", util.get_rfc1123_time()),
-                    ],
-                )
-                return [res]
-
             directory_slash = self.dir_config.get("directory_slash")
             if directory_slash and not path.endswith("/"):
                 _logger.info(f"Redirect {path} to {path}/")
@@ -148,7 +122,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
 
     def _fail(self, value, context_info=None, src_exception=None, err_condition=None):
         """Wrapper to raise (and log) DAVError."""
-        e = DAVError(value, context_info, src_exception, err_condition)
+        e = DAVError(
+            value,
+            context_info,
+            src_exception=src_exception,
+            err_condition=err_condition,
+        )
         if self.verbose >= 4:
             _logger.warning(
                 f"Raising DAVError {safe_re_encode(e.get_user_info(), sys.stdout.encoding)}"
@@ -307,16 +286,14 @@ class WsgiDavDirBrowser(BaseMiddleware):
             )
 
         if "wsgidav.auth.user_name" in environ:
-            context.update(
-                {
-                    "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
-                    "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
-                    "realm": environ.get("wsgidav.auth.realm"),
-                    "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
-                    "user_permissions": ", ".join(
-                        environ.get("wsgidav.auth.permissions") or []
-                    ),
-                }
-            )
+            context.update({
+                "is_authenticated": bool(environ.get("wsgidav.auth.user_name")),
+                "user_name": (environ.get("wsgidav.auth.user_name") or "anonymous"),
+                "realm": environ.get("wsgidav.auth.realm"),
+                "user_roles": ", ".join(environ.get("wsgidav.auth.roles") or []),
+                "user_permissions": ", ".join(
+                    environ.get("wsgidav.auth.permissions") or []
+                ),
+            })
 
         return context

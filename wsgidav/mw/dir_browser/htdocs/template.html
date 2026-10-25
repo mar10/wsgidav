@@ -22,11 +22,7 @@
       {% endif -%} Index of {{ display_path }}
     </h1>
 
-    {% if config.davmount_links %}
-    <p class="links">
-      <a title="Open this folder in a registered WebDAV client." href="{{ url }}?davmount">Mount</a>
-    </p>
-    {% endif %} {%- if user_name and config.show_user %}
+    {%- if user_name and config.show_user %}
     <p class="auth-user">
       Authenticated user: "{{user_name}}", realm: "{{realm}}", access: {{access}}. {%- if is_authenticated and config.show_logout %}
       <a title="Logout current user" href="{{ url }}?logout" target="_blank" rel="noopener noreferrer">Logout</a>

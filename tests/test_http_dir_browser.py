@@ -78,16 +78,3 @@ class DirbrowserTest(unittest.TestCase):
         # res = requests.get(self.url + "subfolder", auth=self.auth)
         # seems to follow redirects?
         res = requests.get(self.url + "subfolder", auth=self.auth)
-
-    def testGetDavMount(self):
-        res = requests.get(self.url, auth=self.auth)
-        assert res.status_code == 200
-        assert '<meta name="generator" content="WsgiDAV/' in res.text
-        assert res.encoding == "utf-8"
-        assert "WsgiDAV" in res.headers["Server"]
-        assert res.headers["Content-Type"] == "text/html; charset=utf-8"
-
-        res = requests.get(self.url + "?davmount", auth=self.auth)
-        assert res.status_code == 200
-        assert '<dm:mount xmlns:dm="http://purl.org/NET/webdav/mount">' in res.text
-        assert res.headers["Content-Type"] == "application/davmount+xml"

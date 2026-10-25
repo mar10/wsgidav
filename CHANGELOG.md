@@ -3,6 +3,7 @@
 ## `feature/update-web-ui` / Unreleased
 
 - WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
+- Remove davmount support
 
 ## 4.5.0 / Unreleased
 
