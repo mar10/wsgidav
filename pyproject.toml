@@ -13,8 +13,6 @@ authors = [{ name = "Martin Wendt", email = "wsgidav@wwwendt.de" }]
 maintainers = [{ name = "Martin Wendt", email = "wsgidav@wwwendt.de" }]
 keywords = ["web", "wsgi", "webdav", "application", "server"]
 classifiers = [
-    # "Development Status :: 3 - Alpha",
-    # "Development Status :: 4 - Beta",
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
@@ -26,9 +24,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     # NOTE: See also wsgidav_app.MIN_PYTHON_VERSION_INFO
-    # "Programming Language :: Python :: 3.7",
-    # "Programming Language :: Python :: 3.8",
-    # "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -84,7 +79,7 @@ version = { attr = "wsgidav.__version__" }
 
 [dependency-groups]
 dev = [
-    # "cx_Freeze; sys_platform == 'win32'",
+    "cx_Freeze~=8.7; sys_platform == 'win32'",
     "cheroot",
     "Paste",
     "pytest",
@@ -140,7 +135,6 @@ ignore = [
     "T201",  # `print()` statement found
     "T203",  # `pprint()` statement found
     "UP031", # Use format specifiers instead of percent format
-    "UP038", # Use `X | Y` in `isinstance` call instead of `(X, Y)`
 ]
 
 [tool.ruff.lint.isort]
