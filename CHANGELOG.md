@@ -1,5 +1,8 @@
 # Changelog
 
+> Note: Dropping support for Python versions that have reached their end-of-life (EOL)
+> is **not** considered breaking change for the purposes of semantic versioning.
+
 ## 5.0.0 / Unreleased
 
 - BREAKING:
