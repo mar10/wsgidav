@@ -957,31 +957,35 @@ class RequestServer:
             )
 
         dest_path = util.normalize_path(dest_path)
-        _dest_share, dest_provider = wsgidav_app.resolve_provider(dest_path)
-        if dest_provider is not provider:
-            self._fail(
-                HTTP_BAD_GATEWAY, context_info="Inter-realm copy/move is not supported."
-            )
 
-        if dest_path.startswith(provider.mount_path + provider.share_path + "/"):
-            dest_path = dest_path[len(provider.mount_path + provider.share_path) :]
-        else:
-            # Inter-realm copying not supported, since its not possible to
-            # authentication-wise
-
-            # We might be running behind a reverse proxy.
-            # If a mountpoint is defined, try to strip it, assuming the proxy
-            # redirects  HOST/MOUNT/PATH -> SHARE/PATH
-            if provider.mount_path and dest_path.startswith(provider.mount_path + "/"):
-                _prev = dest_path
-                dest_path = dest_path[len(provider.mount_path) :]
-                # dest_path = provider.share_path + dest_path
-                _logger.info(f"Rewrite DESTINATION path {_prev} -> {dest_path}")
-            else:
+        # Destination is an external URL path. When a mount path is configured,
+        # it must be removed before resolving the share, just as it is for the
+        # request path. Otherwise a mount-prefixed destination can resolve to
+        # the root provider and later be rewritten into a nested share.
+        if provider.mount_path:
+            if not (
+                dest_path == provider.mount_path
+                or dest_path.startswith(provider.mount_path + "/")
+            ):
                 self._fail(
                     HTTP_BAD_GATEWAY,
                     context_info="Inter-realm copy/move is not supported.",
                 )
+            dest_path = dest_path[len(provider.mount_path) :] or "/"
+
+        dest_share, dest_provider = wsgidav_app.resolve_provider(dest_path)
+        # Check the selected share as well as provider identity. A nested share
+        # is a separate authorization realm even if a provider instance happens
+        # to be registered at more than one URL.
+        src_share = provider.share_path or "/"
+        if dest_provider is not provider or dest_share != src_share:
+            self._fail(
+                HTTP_BAD_GATEWAY, context_info="Inter-realm copy/move is not supported."
+            )
+
+        # Convert the external share URL into a provider-relative path.
+        if dest_share != "/":
+            dest_path = dest_path[len(dest_share) :] or "/"
 
         assert dest_path.startswith("/")
 
