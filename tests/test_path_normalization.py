@@ -34,7 +34,6 @@ def test_normalized_path_selects_nested_share(tmp_path):
             "/private": str(tmp_path / "private"),
         },
         "middleware_stack": [],
-        "logging": {"enable_loggers": []},
     })
 
     share, _provider = app.resolve_provider(util.normalize_path("/./private/file"))
@@ -62,7 +61,6 @@ def test_copy_move_cannot_write_into_nested_share(
             "/private": {"root": str(private), "readonly": True},
         },
         "mount_path": mount_path,
-        "logging": {"enable_loggers": []},
     })
     client = webtest.TestApp(app)
 
@@ -76,3 +74,34 @@ def test_copy_move_cannot_write_into_nested_share(
     assert response.status_int == 502
     assert (private / "target.txt").read_text() == "protected"
     assert not (private / "source.txt").exists()
+
+
+@pytest.mark.parametrize("mount_path", [None, "/dav"])
+def test_copy_within_nested_share_succeeds(tmp_path, mount_path):
+    root = tmp_path / "root"
+    share = root / "share"
+    share.mkdir(parents=True)
+    (share / "source.txt").write_text("source")
+    app = WsgiDAVApp({
+        "simple_dc": {"user_mapping": {"*": True}},
+        "provider_mapping": {"/": str(root), "/share": str(share)},
+        "mount_path": mount_path,
+    })
+    client = webtest.TestApp(app)
+    prefix = mount_path or ""
+
+    client.request(
+        "/share/source.txt",
+        headers={"Destination": f"{prefix}/share/copy.txt"},
+        method="COPY",
+        status=201,
+    )
+    assert (share / "copy.txt").read_text() == "source"
+
+    # Different share (root) than the source: still a cross-realm copy
+    client.request(
+        "/share/source.txt",
+        headers={"Destination": f"{prefix}/copy2.txt"},
+        method="COPY",
+        status=502,
+    )
