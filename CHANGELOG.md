@@ -15,7 +15,8 @@
 
 ## 4.4.0 / 2026-10-24
 
-- [#343](https://github.com/mar10/wsgidav/issues/343)
+- Support Python 3.8 .. 3.13
+- [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental sample middleware for impersonation (@leo9800)
 - [#348](https://github.com/mar10/wsgidav/issues/348)
   Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
@@ -49,7 +50,6 @@
 - Fix unauthenticated access to protected shares via share-route / path-normalization mismatch (@gh0stsh3ll56)
 - Use secrets module for generating lock tokens instead of random (@Un-Locksmith)
 - Fix digest authentication nonce generation and comparison (@jankesec)
-- Test with Python 3.13
 
 ## 4.3.5 / 2026-06-27
 
