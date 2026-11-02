@@ -4,6 +4,9 @@
 
 - Use ruff instead of black/isort
 
+## 4.4.1 / Unreleased
+
+- Fix cross realm COPY/MOVE (@janmrow)
 
 ## 4.4.0 / 2026-10-24
 
