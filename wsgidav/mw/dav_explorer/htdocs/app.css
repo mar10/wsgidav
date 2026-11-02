@@ -18,6 +18,36 @@
   --wdx-statbar-text-color-disabled: var(--wdx-header-text-color-disabled);
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --wdx-text-color: #e2e8f0;
+  --wdx-text-color-branding: #60a5fa;
+  --wdx-bg-color: #1a202c;
+  --wdx-bg-color-content: #232b3a;
+  --wdx-header-bg-color: #2d3748;
+
+  --wb-background-color: #1a202c;
+  --wb-node-text-color: #e2e8f0;
+  --wb-alternate-row-color: #1f2735;
+  --wb-alternate-row-color-hover: #2a3446;
+  --wb-hover-color: #2a3446;
+  --wb-hover-border-color: #2a3446;
+  --wb-active-color: #2c4a6b;
+  --wb-active-cell-color: #355a82;
+  --wb-active-hover-color: #345479;
+  --wb-active-column-color: #243a54;
+  --wb-grid-color: #3a4558;
+  --wb-header-color: #2d3748;
+  --wb-border-color: #a0aec0;
+  --wb-dim-color: #8a94a6;
+  --wb-drop-target-color: #2c4a6b;
+  --wb-drop-source-color: #3a4558;
+}
+
+:root[data-theme="dark"] .dropzone.dragover {
+  background-color: #2c4a6b;
+}
+
 body {
   font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
   background: var(--wdx-bg-color);

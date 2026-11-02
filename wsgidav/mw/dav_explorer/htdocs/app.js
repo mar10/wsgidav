@@ -252,6 +252,30 @@ const _tree = new Wunderbaum({
 	},
 });
 
+const THEME_MODES = ["auto", "light", "dark"];
+const THEME_ICONS = { auto: "bi-circle-half", light: "bi-sun", dark: "bi-moon-stars" };
+const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+function applyTheme(mode) {
+	const dark = mode === "dark" || (mode === "auto" && darkQuery.matches);
+	document.documentElement.dataset.theme = dark ? "dark" : "light";
+	const btn = document.querySelector('.wb-button[data-command="toggleTheme"]');
+	if (btn) {
+		btn.classList.remove(...Object.values(THEME_ICONS));
+		btn.classList.add(THEME_ICONS[mode]);
+		btn.dataset.themeMode = mode;
+		btn.title = `Theme: ${mode} (click to change)`;
+	}
+}
+
+function getThemeMode() {
+	const mode = localStorage.getItem("dav-explorer-theme");
+	return THEME_MODES.includes(mode) ? mode : "auto";
+}
+
+applyTheme(getThemeMode());
+darkQuery.addEventListener("change", () => applyTheme(getThemeMode()));
+
 registerCommandButtons("body", (e) => {
 	let node = e.node;
 	console.info("got", `${node}`, e.command, e);
@@ -260,6 +284,12 @@ registerCommandButtons("body", (e) => {
 			togglePreviewPane(e.isPressed);
 			if (e.isPressed) { showPreview(node); } else { showPreview(null); }
 			break;
+		case "toggleTheme": {
+			const next = THEME_MODES[(THEME_MODES.indexOf(getThemeMode()) + 1) % THEME_MODES.length];
+			localStorage.setItem("dav-explorer-theme", next);
+			applyTheme(next);
+			break;
+		}
 		case "showHelp":
 			showPreview(config.htdocs + "/help.html", { autoOpen: true, iframe: true });
 			break;
