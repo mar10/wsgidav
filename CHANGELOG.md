@@ -13,6 +13,10 @@
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 
+## 4.4.1 / Unreleased
+
+- Fix cross realm COPY/MOVE (@janmrow)
+
 ## 4.4.0 / 2026-10-24
 
 - Support Python 3.8 .. 3.13
