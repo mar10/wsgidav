@@ -273,6 +273,19 @@ export function updateNodePreviewInfo(node) {
 	}
 }
 
+/** Return a normalized http(s) URL, or null for anything else (javascript:, data:, ...). */
+function sanitizeUrl(rawUrl) {
+	try {
+		const parsed = new URL(rawUrl, window.location.href);
+		if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+			return parsed.href;
+		}
+	} catch (e) {
+		// invalid URL
+	}
+	return null;
+}
+
 export async function showPreview(urlOrNode, options = {}) {
 	let { autoOpen = false, iframe = false, maxSizeKB = settingsStore.get("max_preview_size_kb") } = options;
 
@@ -289,7 +302,12 @@ export async function showPreview(urlOrNode, options = {}) {
 		}
 	}
 	const node = (!urlOrNode || typeof urlOrNode === "string") ? null : urlOrNode;
-	const url = node ? getNodeResourceUrl(urlOrNode) : urlOrNode;
+	const rawUrl = node ? getNodeResourceUrl(urlOrNode) : urlOrNode;
+	const url = urlOrNode === "settings" ? rawUrl : sanitizeUrl(rawUrl);
+	if (!url) {
+		console.warn("Refusing to preview unsafe URL", rawUrl);
+		return false;
+	}
 	const isFolder = node?.type === "directory";
 	let preview = null;
 
