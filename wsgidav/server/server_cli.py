@@ -175,8 +175,8 @@ See https://github.com/mar10/wsgidav for additional information.
     parser.add_argument(
         "--web-ui",
         choices=("none", "dav-explorer", "dir-browser"),
-        default="dav-explorer",
-        help="web frontend for directory browsing (default: dav-explorer).",
+        default="dir-browser",
+        help="web frontend for directory browsing (default: dir-browser).",
     )
 
     qv_group = parser.add_mutually_exclusive_group()
