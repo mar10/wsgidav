@@ -4,7 +4,7 @@
  */
 "use strict";
 
-import { createClient } from "https://esm.run/webdav@5.8.0";
+import { createClient } from "https://esm.run/webdav@5.11.0";
 import { PersistentObject } from "https://esm.run/persisto@2.0.2";
 // import { Wunderbaum } from "./wunderbaum.esm.js";
 import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
@@ -69,33 +69,6 @@ export function getDAVClient(options = {}) {
     _dav_client = createClient(options.remoteURL);
   }
   return _dav_client;
-}
-
-async function _checkOverwrite(targetPath) {
-  const client = getDAVClient();
-  let exists = await client.exists(targetPath);
-  if (exists && !window.confirm(`Overwrite ${targetPath}?`)) return false;
-  return true;
-}
-
-export async function copyChecked(sourcePath, targetPath) {
-  const client = getDAVClient();
-  return client.exists(targetPath).then((exists) => {
-    if (exists && !window.confirm(`Overwrite ${targetPath}?`)) throw new Error("User cancelled");
-    return client.copyFile(sourcePath, targetPath).catch((err) => {
-      showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
-    });
-  });
-}
-
-export async function moveChecked(sourcePath, targetPath) {
-  const client = getDAVClient();
-  return client.exists(targetPath).then((exists) => {
-    if (exists && !window.confirm(`Overwrite ${targetPath}?`)) throw new Error("User cancelled");
-    return client.moveFile(sourcePath, targetPath).catch((err) => {
-      showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
-    });
-  });
 }
 
 /**

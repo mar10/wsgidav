@@ -3,9 +3,12 @@
 // import { Wunderbaum } from "./wunderbaum.esm.js";
 import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
 
-import { config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, moveChecked, parseDateToTimestamp, settingsStore } from "./util.js";
+import { config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, parseDateToTimestamp, settingsStore } from "./util.js";
 import { getFileIcon, getFileInfo, getOfficeUrlPrefix, showPreview, togglePreviewPane, updateNodePreviewInfo } from "./previews.js";
 import { addFileToDataTransfer, commandHtmlTemplateFile, commandHtmlTemplateFolder, createFolder, downloadFile, registerCommandButtons, showNotification, uploadFiles, uploadFilesDialog } from "./widgets.js";
+
+let _wb_clipboard_node = null;
+let _wb_clipboard_is_cut = null;
 
 /**
  * Open an MS Office/LibreOffice document the 'ms-' protocol scheme.
@@ -56,6 +59,83 @@ async function loadWbResources(options = {}) {
 
 const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
 const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
+
+async function deleteNode(node) {
+  if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
+    getDAVClient()
+      .deleteFile(node.getPath())
+      .then(() => {
+        node.remove();
+      })
+      .catch((err) => {
+        showNotification(`Failed to delete "${node.getPath()}": ${err.message}`, { type: "error" });
+        console.error("Failed to delete: ", err);
+      });
+  }
+}
+
+async function copyMoveNode(sourceNode, targetNode, isCopy, asChild, rename) {
+  const client = getDAVClient();
+  if (!isCopy && targetNode.isDescendantOf(sourceNode)) {
+    showNotification(`Cannot move a node into its own descendant.`, { type: "warning" });
+    return false;
+  }
+  const sourcePath = sourceNode.getPath();
+  const targetParent = asChild ? targetNode : targetNode.parent;
+  let targetPath = targetParent.getPath() + "/" + sourceNode.title;
+  const targetExists = await client.exists(targetPath);
+  let newTitle = sourceNode.title;
+  if (targetExists) {
+    debugger;
+    if (isCopy && !asChild && rename) {
+      newTitle = `Copy of ${sourceNode.title}`;
+      let exists = true;
+      let i = 1;
+      while (exists) {
+        exists = targetParent.children.some((sibling) => sibling.title === newTitle);
+        if (exists) {
+          i++;
+          newTitle = `Copy of ${sourceNode.title} ${i}`;
+        }
+      }
+      targetPath = targetParent.getPath() + "/" + newTitle;
+    } else {
+      if (!window.confirm(`Overwrite ${targetPath}?`)) {
+        showNotification(`Operation cancelled.`, { type: "warning" });
+        return false;
+      }
+      // overwrite the existing target
+    }
+  }
+  if (isCopy) {
+    await client
+      .copyFile(sourcePath, targetPath)
+      .then(() => {
+        targetNode.addNode({ title: newTitle, type: sourceNode.type, size: sourceNode.size }, asChild ? "appendChild" : "after");
+        showNotification(`Copied ${sourcePath} to ${targetPath}.`, { type: "info" });
+      })
+      .catch((err) => {
+        showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+        return false;
+      });
+  } else {
+    await client
+      .moveFile(sourcePath, targetPath)
+      .then(() => {
+        sourceNode.moveTo(targetNode, asChild ? "appendChild" : "after");
+        showNotification(`Moved ${sourcePath} to ${targetPath}.`, { type: "info" });
+      })
+      .catch((err) => {
+        showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+        return false;
+      });
+  }
+
+  if (targetExists) {
+    targetNode.loadLazy(true);
+  }
+  return true;
+}
 
 const _tree = new Wunderbaum({
   element: "div#tree",
@@ -130,6 +210,38 @@ const _tree = new Wunderbaum({
         });
     },
   },
+  keydown: (e) => {
+    console.log(`Keydown event: ${e.eventName}`);
+    switch (e.eventName) {
+      case "Meta+Backspace":
+      case "Delete":
+        deleteNode(e.tree.getActiveNode());
+        break;
+      case "Escape":
+        _wb_clipboard_node = _wb_clipboard_is_cut = null;
+        break;
+      case "Command+c":
+      case "Control+c":
+        _wb_clipboard_node = e.tree.getActiveNode();
+        _wb_clipboard_is_cut = false;
+        break;
+      case "Control+x":
+        _wb_clipboard_node = e.tree.getActiveNode();
+        _wb_clipboard_is_cut = true;
+        break;
+      case "Alt+Command+v":
+      case "Command+v":
+        _wb_clipboard_is_cut = !!e.event.altKey;
+      // fall through to handle the paste operation
+      case "Control+v":
+        if (_wb_clipboard_node) {
+          const targetNode = e.tree.getActiveNode();
+          const asChild = targetNode.type === "directory";
+          copyMoveNode(_wb_clipboard_node, targetNode, !_wb_clipboard_is_cut, asChild, true);
+        }
+        break;
+    }
+  },
   render: function (e) {
     const node = e.node;
     const isDir = node.type === "directory";
@@ -182,33 +294,13 @@ const _tree = new Wunderbaum({
       console.log(e.type, e, dataTransfer.items?.length);
       if (e.sourceNode) {
         // copy/move a node inside the tree
-        const sourcePath = e.sourceNode.getPath();
-        let targetPath;
-        if (node.type === "directory" && e.region === "over") {
-          targetPath = node.getPath() + "/" + e.sourceNode.title;
-        } else {
-          targetPath = node.parent.getPath() + "/" + e.sourceNode.title;
-        }
-        console.log(e.type, `${e.suggestedDropEffect} ${sourcePath} -> ${targetPath} `, e);
+        const asChild = node.type === "directory" && e.region === "over";
         switch (e.suggestedDropEffect) {
           case "copy":
-            getDAVClient()
-              .copyFile(sourcePath, targetPath)
-              .then(() => {
-                node.addNode({ title: `${e.sourceNodeData.title}` }, e.suggestedDropMode);
-              })
-              .catch((err) => {
-                showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
-              });
+            copyMoveNode(e.sourceNode, node, true, e.suggestedDropMode, asChild);
             break;
           default:
-            moveChecked(sourcePath, targetPath)
-              .then(() => {
-                e.sourceNode.moveTo(node, e.suggestedDropMode);
-              })
-              .catch((err) => {
-                showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
-              });
+            copyMoveNode(e.sourceNode, node, false, e.suggestedDropMode, asChild);
             break;
         }
       } else if (dataTransfer.items && dataTransfer.items.length) {
@@ -217,7 +309,6 @@ const _tree = new Wunderbaum({
         [...dataTransfer.items].forEach((item, i) => {
           if (item.kind === "file") {
             const file = item.getAsFile();
-            // console.log(`  - file[${i}].name = ${file.name} `);
             fileArray.push(file);
           }
         });
@@ -292,17 +383,7 @@ registerCommandButtons("body", (e) => {
       }
       break;
     case "delete":
-      if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
-        getDAVClient()
-          .deleteFile(node.getPath())
-          .then(() => {
-            node.remove();
-          })
-          .catch((err) => {
-            showNotification(`Failed to delete "${node.getPath()}": ${err.message}`, { type: "error" });
-            console.error("Failed to delete: ", err);
-          });
-      }
+      deleteNode(node);
       break;
     case "uploadTop":
       node = getTree().root;
