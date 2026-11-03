@@ -124,7 +124,7 @@ pass the class instead of the instantiated object.
 The built-in middleware derives from :class:`~wsgidav.mw.base_mw.BaseMiddleware`,
 so we can simplify as::
 
-    from wsgidav.dir_browser import WsgiDavDirBrowser
+    from wsgidav.mw.dav_explorer import WsgiDavExplorer
     from wsgidav.mw.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
@@ -136,7 +136,7 @@ so we can simplify as::
             WsgiDavDebugFilter,
             ErrorPrinter,
             HTTPAuthenticator,
-            WsgiDavDirBrowser,
+            WsgiDavExplorer,
             RequestResolver,  # this must be the last middleware item
             ],
         ...
@@ -147,7 +147,7 @@ removes the directory browser, and adds a third-party debugging tool::
 
     import dozer
 
-    # from wsgidav.dir_browser import WsgiDavDirBrowser
+    # from wsgidav.mw.dav_explorer import WsgiDavExplorer
     from wsgidav.mw.debug_filter import WsgiDavDebugFilter
     from wsgidav.error_printer import ErrorPrinter
     from wsgidav.http_authenticator import HTTPAuthenticator
@@ -166,7 +166,7 @@ removes the directory browser, and adds a third-party debugging tool::
             WsgiDavDebugFilter,
             ErrorPrinter,
             HTTPAuthenticator,
-            # WsgiDavDirBrowser,
+            # WsgiDavExplorer,
             RequestResolver,  # this must be the last middleware item
             ],
         ...
@@ -191,7 +191,7 @@ should be explicitly listed::
         - wsgidav.mw.debug_filter.WsgiDavDebugFilter
         - wsgidav.error_printer.ErrorPrinter
         - wsgidav.http_authenticator.HTTPAuthenticator
-        - wsgidav.dir_browser.WsgiDavDirBrowser
+        - wsgidav.mw.dav_explorer.WsgiDavExplorer
         - wsgidav.request_resolver.RequestResolver
 
 It is also possible to pass options as named args (i.e. 'kwargs')::
@@ -514,6 +514,29 @@ The structure is identical to the YAML format.
 
 See the :doc:`./sample_wsgidav.json` example.
 (Note that the parser allows JavaScript-style comments)
+
+
+Run with docker-compose and a custom configuration file
+-------------------------------------------------------
+
+The Docker image can be used with a custom configuration file, for example
+to set up multiple mount points, authentication, etc.::
+
+    $ docker-compose up
+
+For this to work, we need a docker-compose.yml file that mounts the custom 
+configuration file and the root folders for the WebDAV shares into the container.
+It must also mount any additional paths that are required by the configuration 
+file, for example for authentication, etc.
+
+The following is an example docker-compose.yml file uses a custom configuration file named 
+``wsgidav.yaml`` and mounts two folders for WebDAV shares as well as an optional 
+htdigest file for authentication.:
+
+:download:`Download Sample Configuration<../../tests/custom_docker/docker-compose.yml>`.
+
+.. literalinclude:: ../../tests/custom_docker/docker-compose.yml
+    :linenos:
 
 
 Configuration Tips

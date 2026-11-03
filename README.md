@@ -8,9 +8,6 @@
 [![Released with: Yabs](https://img.shields.io/badge/released%20with-yabs-yellowgreen)](https://github.com/mar10/yabs)
 [![Downloads](https://img.shields.io/pypi/dm/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
 
-<!-- [![StackOverflow: WsgiDAV](https://img.shields.io/badge/StackOverflow-WsgiDAV-blue.svg)](https://stackoverflow.com/questions/tagged/WsgiDAV) -->
-<!-- [![Edit online in vscode.dev](https://img.shields.io/static/v1?logo=visualstudiocode&label=&message=Open%20in%20Visual%20Studio%20Code&labelColor=2c2c32&color=007acc&logoColor=007acc) ](https://vscode.dev/github/mar10/wsgidav) -->
-
 A generic and extendable [WebDAV](http://www.ietf.org/rfc/rfc4918.txt) server
 written in Python and based on [WSGI](http://www.python.org/dev/peps/pep-3333/).
 
@@ -44,10 +41,11 @@ Main features:
   $ wsgidav --host=0.0.0.0 --port=8080 --root=/tmp --auth=pam-login
   ```
 
-- The ``htpasswd`` and ``htdigest`` domain controllers require the optional
-  ``passlib`` dependency. 
-    If your password file uses bcrypt hashes, install the optional bcrypt 
-    backend, e.g.:
+- The `htpasswd` and `htdigest` domain controllers require the optional
+  `passlib` dependency.
+  If your password file uses bcrypt hashes, install the optional bcrypt
+  backend, e.g.:
+
   ```bash
   $ ython -m pip install "wsgidav[htpasswd]"
   $ python -m pip install "wsgidav[htpasswd,bcrypt]"
@@ -67,13 +65,13 @@ Main features:
 
   ```bash
   $ docker pull mar10/wsgidav
-  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+  $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
   ```
 
-  for example::
+  for example publish the content of `/tmp` as `http://0.0.0.0/` for anonymous access::
 
   ```bash
-  $ docker run --rm -it -p 8080:8080 -v /tmp:/var/wsgidav-root mar10/wsgidav
+  $ docker run --rm -it -p 8080:8080 -v /tmp:/public/wsgidav-share mar10/wsgidav
   ```
 
 - WebDAV is a superset of HTTP, so WsgiDAV is also a performant, multi-threaded
@@ -87,15 +85,16 @@ Main features:
   Its open architecture allows to extend the functionality and integrate
   WebDAV services into your project.<br>
   Typical use cases are:
-  - Expose data structures as virtual, editable file systems.
-  - Allow online editing of MS Office documents.
+  - Expose data structures as virtual, editable file systems, that can be mapped in
+    _macoOS Finder_, _Windows File Explorer_, etc.
+  - Allow online editing of _MS Office_ and _LibreOffice_ documents.
+
+- _DAV Explorer_: A simple built-in web interface allows up- and download files,
+  rename, move, copy, delete operations, and peviews.
 
 ## Status
 
 [![Latest Version](https://img.shields.io/pypi/v/wsgidav.svg)](https://pypi.python.org/pypi/WsgiDAV/)
-See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
-
-**Note:** Release 4.0 introduces some refactorings and breaking changes.<br>
 See the ([change log](https://github.com/mar10/wsgidav/blob/master/CHANGELOG.md)) for details.
 
 ## More info

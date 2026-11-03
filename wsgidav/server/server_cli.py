@@ -43,19 +43,13 @@ from pprint import pformat
 from threading import Timer
 
 import yaml
+from json5 import load as json_load
 
 from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 from wsgidav.xml_tools import use_lxml
-
-try:
-    # Try pyjson5 first because it's faster than json5
-    from pyjson5 import load as json_load
-except ImportError:
-    from json5 import load as json_load
-
 
 __docformat__ = "reStructuredText"
 
@@ -177,6 +171,12 @@ See https://github.com/mar10/wsgidav for additional information.
         # default="builtin",
         help="used by 'cheroot' server if SSL certificates are configured "
         "(default: builtin).",
+    )
+    parser.add_argument(
+        "--web-ui",
+        choices=("none", "dav-explorer", "dir-browser"),
+        default="dir-browser",
+        help="web frontend for directory browsing (default: dir-browser).",
     )
 
     qv_group = parser.add_mutually_exclusive_group()
@@ -338,6 +338,13 @@ def _init_config():
         config["server"] = cli_opts.get("server")
     if cli_opts.get("ssl_adapter") is not None:
         config["ssl_adapter"] = cli_opts.get("ssl_adapter")
+
+    web_ui = cli_opts.get("web_ui")
+    if web_ui is not None:
+        ui_dir_browser = config.get("dir_browser", {})
+        ui_dav_explorer = config.get("dav_explorer", {})
+        ui_dir_browser["enable"] = web_ui == "dir-browser"
+        ui_dav_explorer["enable"] = web_ui == "dav-explorer"
 
     # Command line overrides file only if -v or -q where passed:
     if cli_opts.get("verbose") != DEFAULT_VERBOSE:

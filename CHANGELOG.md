@@ -1,8 +1,17 @@
 # Changelog
 
+> Note: Dropping support for Python versions that have reached their end-of-life (EOL)
+> is **not** considered breaking change for the purposes of semantic versioning.
+
 ## 5.0.0 / Unreleased
 
+- BREAKING:
+  - Drop support for Python 3.8, 3.9
+  - Remove davmount support
+- Support Python 3.10 .. 3.15
+- WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
 - Use ruff instead of black/isort
+- Use uv instead of pip/pipenv
 
 ## 4.4.1 / Unreleased
 
@@ -13,7 +22,7 @@
 - Support Python 3.8 .. 3.13
 - [#343](https://github.com/mar10/wsgidav/issues/343) 
   Add experimental sample middleware for impersonation (@leo9800)
-- [#348](https://github.com/mar10/wsgidav/issues/348) 
+- [#348](https://github.com/mar10/wsgidav/issues/348)
   Optionally set file/directory modification time when x-oc-mtime header presence (@leo9800)
 - [#352](https://github.com/mar10/wsgidav/pull/352)
   Apache htpasswd based domain controller (@leo9800)
@@ -23,10 +32,10 @@
   Fix `directory_slash` functionality by correctly retrieving current path (@leo9800)
 - [#356](https://github.com/mar10/wsgidav/pull/356)
   Domain controller for apache .htdigest files (@leo9800)
-- [#363](https://github.com/mar10/wsgidav/issues/363) 
+- [#363](https://github.com/mar10/wsgidav/issues/363)
   Relax dependencies on bcrypt and others and make password-auth dependencies optional.
 - [#365](https://github.com/mar10/wsgidav/pull/365)
-  CORS: Access-Control-Expose-Headers is sent on the preflight response instead 
+  CORS: Access-Control-Expose-Headers is sent on the preflight response instead
   of the actual response. (@padawan)
 - [#369](https://github.com/mar10/wsgidav/pull/369)
   do_LOCK sends invalid Content-Type and Lock header
@@ -36,7 +45,7 @@
   Fix HEAD requests returning body on error. (@ribarroetavena)
 - [#375](https://github.com/mar10/wsgidav/pull/375)
   Harden xml parsing with older lxml libraries. (@ydnmu)
-- [#376](https://github.com/mar10/wsgidav/pull/376) 
+- [#376](https://github.com/mar10/wsgidav/pull/376)
   Fix potentially slow header parsing. (@BrianWillows)
 - Fix TOCTOU race in `PUT` handling that allowed a resource to be overwritten
   after another principal acquired an exclusive write lock, without holding
@@ -46,16 +55,14 @@
 - Use secrets module for generating lock tokens instead of random (@Un-Locksmith)
 - Fix digest authentication nonce generation and comparison (@jankesec)
 
-
 ## 4.3.5 / 2026-06-27
 
-- Fix Blind SQL injection in WsgiDAV MySQL provider 
+- Fix Blind SQL injection in WsgiDAV MySQL provider
   [CVE-2026-55509](https://github.com/mar10/wsgidav/security/advisories/GHSA-p6gw-4frg-j7jw)
   Note: The MySQLBrowserProvider module is only provided as an example for WsgiDAV and not enabled by default.
-  Installations that do not explicitly activate the module in their configuration are not affected by this vulnerability.  
-- Harden 'follow_symlinks=false' 
+  Installations that do not explicitly activate the module in their configuration are not affected by this vulnerability.
+- Harden 'follow_symlinks=false'
   [CVE-2026-55560](https://github.com/mar10/wsgidav/security/advisories/GHSA-wm65-64rq-rh8r)
-
 
 ## 4.3.4 / 2026-05-24
 

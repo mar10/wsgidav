@@ -28,13 +28,15 @@ def test_normalize_path_rejects_escape():
 
 def test_normalized_path_selects_nested_share(tmp_path):
     (tmp_path / "private").mkdir()
-    app = WsgiDAVApp({
-        "provider_mapping": {
-            "/": str(tmp_path),
-            "/private": str(tmp_path / "private"),
-        },
-        "middleware_stack": [],
-    })
+    app = WsgiDAVApp(
+        {
+            "provider_mapping": {
+                "/": str(tmp_path),
+                "/private": str(tmp_path / "private"),
+            },
+            "middleware_stack": [],
+        }
+    )
 
     share, _provider = app.resolve_provider(util.normalize_path("/./private/file"))
 
@@ -54,14 +56,16 @@ def test_copy_move_cannot_write_into_nested_share(
     private.mkdir(parents=True)
     (root / "source.txt").write_text("source")
     (private / "target.txt").write_text("protected")
-    app = WsgiDAVApp({
-        "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
-        "provider_mapping": {
-            "/": str(root),
-            "/private": {"root": str(private), "readonly": True},
-        },
-        "mount_path": mount_path,
-    })
+    app = WsgiDAVApp(
+        {
+            "simple_dc": {"user_mapping": {"*": True}},  # anonymous access
+            "provider_mapping": {
+                "/": str(root),
+                "/private": {"root": str(private), "readonly": True},
+            },
+            "mount_path": mount_path,
+        }
+    )
     client = webtest.TestApp(app)
 
     response = client.request(
@@ -82,11 +86,13 @@ def test_copy_within_nested_share_succeeds(tmp_path, mount_path):
     share = root / "share"
     share.mkdir(parents=True)
     (share / "source.txt").write_text("source")
-    app = WsgiDAVApp({
-        "simple_dc": {"user_mapping": {"*": True}},
-        "provider_mapping": {"/": str(root), "/share": str(share)},
-        "mount_path": mount_path,
-    })
+    app = WsgiDAVApp(
+        {
+            "simple_dc": {"user_mapping": {"*": True}},
+            "provider_mapping": {"/": str(root), "/share": str(share)},
+            "mount_path": mount_path,
+        }
+    )
     client = webtest.TestApp(app)
     prefix = mount_path or ""
 

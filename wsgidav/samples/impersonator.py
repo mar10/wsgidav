@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -35,7 +35,6 @@ Sample configuration for wsgidav.yaml::
 import os
 import pwd
 from contextlib import AbstractContextManager
-from typing import Optional, Tuple
 
 from wsgidav import util
 from wsgidav.mw.base_mw import BaseMiddleware
@@ -47,7 +46,7 @@ _logger.debug(f"impersonator: initial uid:gid = {_init_euid}:{_init_egid}")
 
 
 class ImpersonateContext(AbstractContextManager):
-    def __init__(self, ids: Optional[Tuple[int, int]]) -> None:
+    def __init__(self, ids: tuple[int, int] | None) -> None:
         if ids is None:
             self._enabled = False
             return
@@ -94,7 +93,7 @@ class Impersonator(BaseMiddleware):
     def is_disabled(self):  # type: ignore
         return not self.get_config("impersonator.enable", False)  # type: ignore
 
-    def _map_id(self, username: str) -> Optional[Tuple[int, int]]:
+    def _map_id(self, username: str) -> tuple[int, int] | None:
         if self.is_disabled():
             return None
 

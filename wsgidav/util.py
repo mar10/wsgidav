@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/m ar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -18,11 +18,11 @@ import stat
 import sys
 import time
 import warnings
+from collections.abc import Iterable
 from copy import deepcopy
 from email.utils import formatdate, parsedate
 from hashlib import md5
 from pprint import pformat
-from typing import Dict, Iterable, Optional, Tuple
 from urllib.parse import quote
 
 from wsgidav import __version__
@@ -70,7 +70,7 @@ class NO_DEFAULT:
     """"""
 
 
-def check_python_version(min_version: Tuple[str]) -> bool:
+def check_python_version(min_version: tuple[str]) -> bool:
     """Check for deprecated Python version."""
     if sys.version_info < min_version:
         min_ver = ".".join([str(s) for s in min_version[:3]])
@@ -316,6 +316,11 @@ def re_encode_wsgi(s: str, *, encoding="utf-8", fallback=False) -> str:
 # ========================================================================
 # Time tools
 # ========================================================================
+
+
+def get_current_year() -> int:
+    """Return the current year as integer."""
+    return time.gmtime().tm_year
 
 
 def get_rfc1123_time(secs=None):
@@ -1051,7 +1056,7 @@ def get_uri_name(uri: str) -> str:
     return uri.strip("/").split("/")[-1]
 
 
-def get_uri_parent(uri: str) -> Optional[str]:
+def get_uri_parent(uri: str) -> str | None:
     """Return URI of parent collection with trailing '/', or None, if URI is top-level.
 
     This function simply strips the last segment. It does not test, if the
@@ -1802,7 +1807,7 @@ _MIME_TYPES = {
 }
 
 
-def guess_mime_type(url: str, options: Optional[Dict] = None) -> str:
+def guess_mime_type(url: str, options: dict | None = None) -> str:
     """Use the mimetypes module to lookup the type for an extension.
 
     This function also adds some extensions required for HTML5

@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -43,7 +43,7 @@ class Cors(BaseMiddleware):
         if always_headers:
             if type(always_headers) is not dict:
                 raise ValueError(
-                    f"cors.add_always must be a list a dict: {always_headers}"
+                    f"cors.add_always must be a `name: value` dict: {always_headers}"
                 )
             for n, v in always_headers.items():
                 add_always.append((n, v))
