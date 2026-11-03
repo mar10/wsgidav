@@ -55,10 +55,7 @@ export function registerCommandButtons(parent, handler) {
 
 export function setCommandButton(command, options = {}) {
   const { pressed = undefined, icon = undefined } = options;
-  const escapedCommand =
-    typeof CSS !== "undefined" && typeof CSS.escape === "function"
-      ? CSS.escape(String(command))
-      : String(command).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const escapedCommand = typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(String(command)) : String(command).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCommand}"]`);
   if (!buttonElem) {
     console.info("command:", command, "button element not found");
@@ -88,7 +85,7 @@ export async function showNotification(message, options = {}) {
   notification.querySelector(".notification-message").textContent = message;
 
   // Add close button functionality
-  const closeBtn = notification.querySelector('.notification-close');
+  const closeBtn = notification.querySelector(".notification-close");
   let timeoutId;
 
   const hideNotification = () => {
@@ -96,7 +93,7 @@ export async function showNotification(message, options = {}) {
     if (timeoutId) clearTimeout(timeoutId);
   };
 
-  closeBtn.addEventListener('click', hideNotification);
+  closeBtn.addEventListener("click", hideNotification);
 
   return new Promise((resolve) => {
     timeoutId = setTimeout(() => {
@@ -180,7 +177,7 @@ export async function addFileToDataTransfer(node, dragStartEvent) {
   return true;
 }
 
-/** Drop axternal file(s) into a directory (use node's parent if node is a file) */
+/** Drop external file(s) into a directory (use node's parent if node is a file) */
 export async function uploadFiles(node, fileArray, options = {}) {
   const { overwrite = false, _isReplacing = false } = options;
   const client = getDAVClient();

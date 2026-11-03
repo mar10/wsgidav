@@ -1,14 +1,14 @@
 :root {
   --wdx-text-color: #222;
   --wdx-text-color-branding: #2563eb;
-  --wdx-bg-color: #F7FAFC;
-  --wdx-bg-color-content: #F7FAFC;
+  --wdx-bg-color: #f7fafc;
+  --wdx-bg-color-content: #f7fafc;
 
-  --wdx-header-bg-color: #4A5568;
+  --wdx-header-bg-color: #4a5568;
   /* --wdx-header-bg-color: #2563eb; */
   --wdx-header-bg-color-active: color-mix(in srgb, var(--wdx-header-bg-color) 80%, white 30%);
-  --wdx-header-text-color: #FFFEF7;
-  --wdx-header-text-color-active: #F7FAFC;
+  --wdx-header-text-color: #fffef7;
+  --wdx-header-text-color-active: #f7fafc;
   --wdx-header-text-color-disabled: #ccc;
 
   --wdx-statbar-bg-color: var(--wdx-header-bg-color);
@@ -49,7 +49,7 @@
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", "Roboto", Arial, sans-serif;
   background: var(--wdx-bg-color);
   color: var(--wdx-text-color);
   margin: 0;
@@ -62,7 +62,6 @@ body {
 p {
   margin-bottom: 4px;
 }
-
 
 /* --- Basic Layout --- */
 
@@ -111,7 +110,6 @@ header h1 span.title span.prefix {
 }
 
 @keyframes pulseIn {
-
   0%,
   20% {
     opacity: 0;
@@ -224,12 +222,12 @@ aside {
 }
 
 .gutter.gutter-horizontal {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==");
   cursor: col-resize;
 }
 
 .gutter.gutter-vertical {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=");
   cursor: row-resize;
 }
 
@@ -244,7 +242,6 @@ div.wunderbaum {
   /* Adjust for parentPath. */
   height: calc(100% - 20px);
 }
-
 
 output#parentPath {
   font-size: 80%;
@@ -268,20 +265,20 @@ div#preview {
   height: calc(100% - 10px);
 }
 
-div#preview>img,
-div#preview>div.preview-unknown,
-div#preview>pre {
+div#preview > img,
+div#preview > div.preview-unknown,
+div#preview > pre {
   max-width: 100%;
   background-color: var(--wdx-bg-color-content);
   border-radius: 4px;
   border: 2px solid gray;
 }
 
-div#preview>div#preview-unknown {
+div#preview > div#preview-unknown {
   color: gray;
 }
 
-div#preview>pre {
+div#preview > pre {
   overflow: auto;
   text-align: left;
   font-size: 70%;

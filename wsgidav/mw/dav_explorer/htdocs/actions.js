@@ -80,10 +80,7 @@ export function registerCommandButtons(parent, handler) {
 
 export function setCommandButton(command, options = {}) {
   const { pressed = undefined, icon = undefined, title = undefined, enabled = undefined } = options;
-  const escapedCommand =
-    typeof CSS !== "undefined" && typeof CSS.escape === "function"
-      ? CSS.escape(String(command))
-      : String(command).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const escapedCommand = typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(String(command)) : String(command).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCommand}"]`);
   if (!buttonElem) {
     console.info("command:", command, "button element not found");
@@ -107,10 +104,7 @@ export function setCommandButton(command, options = {}) {
 export function pressCommandButtonGroup(groupCommands, command, options = {}) {
   const { pressed = undefined, enabled = undefined } = options;
   groupCommands.forEach((cmd) => {
-    const escapedCmd =
-      typeof CSS !== "undefined" && typeof CSS.escape === "function"
-        ? CSS.escape(String(cmd))
-        : String(cmd).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const escapedCmd = typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(String(cmd)) : String(cmd).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
     const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCmd}"]`);
     if (!buttonElem) {
       return;
@@ -124,4 +118,3 @@ export function pressCommandButtonGroup(groupCommands, command, options = {}) {
     console.info("command:", cmd, buttonElem);
   });
 }
-

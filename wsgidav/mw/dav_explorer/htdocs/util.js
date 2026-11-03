@@ -14,62 +14,88 @@ export const util = Wunderbaum.util;
 export const config = JSON.parse(document.getElementById("context-data").textContent);
 
 export const settingsStore = new PersistentObject("dav-explorer", {
-    // debug: 2,
-    store: localStorage,
-    attachForm: "#settingsForm",
-    // Init default settings from jinja context
-    defaults: {
-        showInfoPane: config.showInfoPane, // Show the info pane on the right side
-        max_preview_size_kb: config.max_preview_size_kb, // 500 KiB;
-        office_support: config.office_support, // Assume that clients have MS/LibreOffice installed
-        readonly: config.readonly, // Open Office documents in readonly mode by default
-    }
+  // debug: 2,
+  store: localStorage,
+  attachForm: "#settingsForm",
+  // Init default settings from jinja context
+  defaults: {
+    showInfoPane: config.showInfoPane, // Show the info pane on the right side
+    max_preview_size_kb: config.max_preview_size_kb, // 500 KiB;
+    office_support: config.office_support, // Assume that clients have MS/LibreOffice installed
+    readonly: config.readonly, // Open Office documents in readonly mode by default
+  },
 });
 
-
 export function getTree() {
-    return Wunderbaum.getTree();
+  return Wunderbaum.getTree();
 }
 
 export function getActiveNode() {
-    return getTree().getActiveNode();
+  return getTree().getActiveNode();
 }
 
 export function isFolder(node) {
-    return node?.type === "directory";
+  return node?.type === "directory";
 }
 
 export function isRootFolder(node) {
-    return node?.isRootNode();
+  return node?.isRootNode();
 }
 
 export function isFile(node) {
-    return !!(node && node.type !== "directory");
+  return !!(node && node.type !== "directory");
 }
 
 export function getNodeOrActive(node) {
-    return node == null ? getActiveNode() : node;
+  return node == null ? getActiveNode() : node;
 }
 
 export function getNodeOrTop(node) {
-    return node == null ? getTree().root : node;
+  return node == null ? getTree().root : node;
 }
 
 export function getNodeResourceUrl(node) {
-    let url = node.getPath();
-    url = url.startsWith("/") ? url.slice(1) : url;
-    url = window.location.href + url;
-    return url;
+  let url = node.getPath();
+  url = url.startsWith("/") ? url.slice(1) : url;
+  url = window.location.href + url;
+  return url;
 }
 
 let _dav_client = null;
 
 export function getDAVClient(options = {}) {
-    options = Object.assign({ remoteURL: window.location.href }, options);
-    if (_dav_client === null) {
-        _dav_client = createClient(options.remoteURL);
-    }
-    return _dav_client;
+  options = Object.assign({ remoteURL: window.location.href }, options);
+  if (_dav_client === null) {
+    _dav_client = createClient(options.remoteURL);
+  }
+  return _dav_client;
+}
+
+async function _checkOverwrite(targetPath) {
+  const client = getDAVClient();
+  let exists = await client.exists(targetPath);
+  if (exists && !window.confirm(`Overwrite ${targetPath}?`)) return false;
+  return true;
+}
+
+export async function copyChecked(sourcePath, targetPath) {
+  const client = getDAVClient();
+  return client.exists(targetPath).then((exists) => {
+    if (exists && !window.confirm(`Overwrite ${targetPath}?`)) throw new Error("User cancelled");
+    return client.copyFile(sourcePath, targetPath).catch((err) => {
+      showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+    });
+  });
+}
+
+export async function moveChecked(sourcePath, targetPath) {
+  const client = getDAVClient();
+  return client.exists(targetPath).then((exists) => {
+    if (exists && !window.confirm(`Overwrite ${targetPath}?`)) throw new Error("User cancelled");
+    return client.moveFile(sourcePath, targetPath).catch((err) => {
+      showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+    });
+  });
 }
 
 /**
@@ -79,7 +105,6 @@ export function getDAVClient(options = {}) {
  * @returns {number}
  */
 export function parseDateToTimestamp(dateStr) {
-    // Date.parse handles both RFC1123 and ISO 8601 in modern browsers
-    return Date.parse(dateStr);
+  // Date.parse handles both RFC1123 and ISO 8601 in modern browsers
+  return Date.parse(dateStr);
 }
-
