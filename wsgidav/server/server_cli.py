@@ -173,7 +173,7 @@ See https://github.com/mar10/wsgidav for additional information.
         "(default: builtin).",
     )
     parser.add_argument(
-        "--ui",
+        "--web-ui",
         choices=("none", "dav-explorer", "dir-browser"),
         default="dav-explorer",
         help="web frontend for directory browsing (default: dav-explorer).",
@@ -339,12 +339,12 @@ def _init_config():
     if cli_opts.get("ssl_adapter") is not None:
         config["ssl_adapter"] = cli_opts.get("ssl_adapter")
 
-    ui = cli_opts.get("ui")
-    if ui is not None:
+    web_ui = cli_opts.get("web_ui")
+    if web_ui is not None:
         ui_dir_browser = config.get("dir_browser", {})
         ui_dav_explorer = config.get("dav_explorer", {})
-        ui_dir_browser["enable"] = ui == "dir-browser"
-        ui_dav_explorer["enable"] = ui == "dav-explorer"
+        ui_dir_browser["enable"] = web_ui == "dir-browser"
+        ui_dav_explorer["enable"] = web_ui == "dav-explorer"
 
     # Command line overrides file only if -v or -q where passed:
     if cli_opts.get("verbose") != DEFAULT_VERBOSE:

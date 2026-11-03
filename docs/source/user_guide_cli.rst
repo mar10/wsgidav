@@ -39,7 +39,7 @@ Use the ``--help`` or ``-h`` argument to get help::
 
   $ wsgidav --help
 usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH] [--auth {anonymous,nt,pam-login}] [--server {cheroot,ext-wsgiutils,gevent,gunicorn,paste,uvicorn,wsgiref}]
-               [--ssl-adapter {builtin,pyopenssl}] [--ui {none,dav-explorer,dir-browser}] [-v | -q] [-c CONFIG_FILE | --no-config] [--browse] [-V]
+               [--ssl-adapter {builtin,pyopenssl}] [--web-ui {none,dav-explorer,dir-browser}] [-v | -q] [-c CONFIG_FILE | --no-config] [--browse] [-V]
 
   Run a WEBDAV server to share file system folders.
 
@@ -70,7 +70,7 @@ usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH] [--auth {anonymous,nt,pam
                           type of pre-installed WSGI server to use (default: cheroot).
     --ssl-adapter {builtin,pyopenssl}
                           used by 'cheroot' server if SSL certificates are configured (default: builtin).
-    --ui {none,dav-explorer,dir-browser}
+    --web-ui {none,dav-explorer,dir-browser}
                           web frontend for directory browsing (default: dav-explorer).
     -v, --verbose         increment verbosity by one (default: 3, range: 0..5)
     -q, --quiet           decrement verbosity by one
