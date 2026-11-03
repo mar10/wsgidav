@@ -33,6 +33,8 @@
   --wb-hover-color: #2a3446;
   --wb-hover-border-color: #2a3446;
   --wb-active-color: #2c4a6b;
+  --wb-active-color-grayscale: #2a3446;
+  --wb-grid-color-grayscale: #a0aec0;
   --wb-active-cell-color: #355a82;
   --wb-active-hover-color: #345479;
   --wb-active-column-color: #243a54;

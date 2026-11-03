@@ -1,7 +1,7 @@
 "use strict";
 
 // import { Wunderbaum } from "./wunderbaum.esm.js";
-import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
+import { Wunderbaum } from "https://esm.run/wunderbaum@0.15";
 
 import { config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, parseDateToTimestamp, settingsStore } from "./util.js";
 import { getFileIcon, getFileInfo, getOfficeUrlPrefix, showPreview, togglePreviewPane, updateNodePreviewInfo } from "./previews.js";
@@ -298,10 +298,10 @@ const _tree = new Wunderbaum({
         const asChild = node.type === "directory" && e.region === "over";
         switch (e.suggestedDropEffect) {
           case "copy":
-            copyMoveNode(e.sourceNode, node, true, e.suggestedDropMode, asChild);
+            copyMoveNode(e.sourceNode, node, true, asChild);
             break;
           default:
-            copyMoveNode(e.sourceNode, node, false, e.suggestedDropMode, asChild);
+            copyMoveNode(e.sourceNode, node, false, asChild);
             break;
         }
       } else if (dataTransfer.items && dataTransfer.items.length) {
