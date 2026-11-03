@@ -86,16 +86,17 @@ async function copyMoveNode(sourceNode, targetNode, isCopy, asChild, rename) {
   const targetExists = await client.exists(targetPath);
   let newTitle = sourceNode.title;
   if (targetExists) {
-    debugger;
+    const [title, ext] = sourceNode.title.split(/\.(?=[^\.]+$)/);
     if (isCopy && !asChild && rename) {
       newTitle = `Copy of ${sourceNode.title}`;
+
       let exists = true;
       let i = 1;
       while (exists) {
         exists = targetParent.children.some((sibling) => sibling.title === newTitle);
         if (exists) {
           i++;
-          newTitle = `Copy of ${sourceNode.title} ${i}`;
+          newTitle = `Copy of ${title} ${i}${ext ? "." + ext : ""}`;
         }
       }
       targetPath = targetParent.getPath() + "/" + newTitle;
