@@ -69,9 +69,28 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinxcontrib.googleanalytics",
     "sphinxcontrib.mermaid",
+    "sphinx_llms_txt",
     # 'sphinx_automodapi.automodapi',
     # 'sphinx_search.extension',
 ]
+
+# -- sphinx-llms-txt: generate llms.txt and llms-full.txt -----------------
+# See https://llmstxt.org/ and https://sphinx-llms-txt.readthedocs.io/
+# Absolute links in llms.txt (and canonical URLs) need a base URL.
+# Read the Docs provides the version-specific one, e.g. .../en/latest/
+html_baseurl = os.environ.get(
+    "READTHEDOCS_CANONICAL_URL", "https://wsgidav.readthedocs.io/en/latest/"
+)
+llms_txt_summary = (
+    "WsgiDAV is a generic and extendable WebDAV server written in Python and "
+    "based on WSGI. It ships a standalone server (``wsgidav`` CLI) and can be "
+    "embedded as WSGI middleware. Start with the user guide for installation "
+    "and YAML configuration; see the reference guide for the architecture, "
+    "custom DAV providers, domain controllers (authentication), lock and "
+    "property managers."
+)
+# Generated API pages are bulky and add little; keep llms-full.txt focused.
+llms_txt_exclude = ["_autosummary/*", "genindex"]
 
 # Included at the beginning of every file:
 # rst_prolog = """

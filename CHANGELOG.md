@@ -13,6 +13,7 @@
   Honors `dav_explorer.ignore_list` and hides write controls in readonly mode.
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
+- Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)
 
 ## 4.4.1 / Unreleased
 
