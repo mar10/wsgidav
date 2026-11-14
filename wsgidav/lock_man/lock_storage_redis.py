@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -211,7 +211,7 @@ class LockStorageRedis:
         assert path and path.startswith("/")
         assert include_root or include_children
 
-        def __appendLocks(toklist):
+        def __append_locks(toklist):
             # Since we can do this quickly, we use self.get() even if
             # token_only is set, so expired locks are purged.
             for token in map(lambda x: x.decode("utf-8"), toklist):
@@ -219,20 +219,20 @@ class LockStorageRedis:
                 if lock:
                     lock = pickle.loads(lock)
                     if token_only:
-                        lockList.append(lock["token"])
+                        lock_list.append(lock["token"])
                     else:
-                        lockList.append(lock)
+                        lock_list.append(lock)
 
         path = normalize_lock_root(path)
         key = self._redis_url2token_prefix.format(path)
 
-        tokList = self._redis.lrange(key, 0, -1)
-        lockList = []
+        tok_list = self._redis.lrange(key, 0, -1)
+        lock_list = []
         if include_root:
-            __appendLocks(tokList)
+            __append_locks(tok_list)
 
         if include_children:
             for u in map(lambda x: x.decode("utf-8"), self._redis.keys(key + "/*")):
                 if util.is_child_uri(key, u):
-                    __appendLocks(self._redis.lrange(u, 0, -1))
-        return lockList
+                    __append_locks(self._redis.lrange(u, 0, -1))
+        return lock_list

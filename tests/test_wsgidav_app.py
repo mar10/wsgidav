@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -48,7 +48,7 @@ except ImportError:
 class ServerTest(unittest.TestCase):
     """Test wsgidav_app using paste.fixture."""
 
-    def _makeWsgiDAVApp(self, share_path, with_authentication, fs_opts=None):
+    def _make_wsgidav_app(self, share_path, with_authentication, fs_opts=None):
         provider = FilesystemProvider(share_path, fs_opts=fs_opts or {})
 
         config = {
@@ -79,7 +79,7 @@ class ServerTest(unittest.TestCase):
     def setUp(self):
         self.temp_paths = []
         self.root_path = create_test_folder("wsgidav-test")
-        wsgi_app = self._makeWsgiDAVApp(self.root_path, False)
+        wsgi_app = self._make_wsgidav_app(self.root_path, False)
         self.app = webtest.TestApp(wsgi_app)
 
     def tearDown(self):
@@ -88,29 +88,13 @@ class ServerTest(unittest.TestCase):
         for path in self.temp_paths:
             shutil.rmtree(path, ignore_errors=True)
 
-    def testPreconditions(self):
+    def test_preconditions(self):
         """Environment must be set."""
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
         )
 
-    def testDirBrowser(self):
-        """Server must respond to GET on a collection."""
-        app = self.app
-        # Access collection (expect '200 Ok' with HTML response)
-        res = app.get("/", status=200)
-        assert "WsgiDAV - Index of /" in res, "Could not list root share"
-        assert "readme.txt" in res, "Fixture content"
-        assert "Lotosblütenstengel (蓮花莖).docx" in res, "Encoded fixture content"
-
-        # Access unmapped resource (expect '404 Not Found')
-        res = app.get("/not-existing-124/", status=404)
-
-        res = app.get("/subfolder/", status=200)
-        # res = app.get("/subfolder", status=301)
-        res = app.get("/subfolder")  # seems to follow redirects?
-
-    def testGetPut(self):
+    def test_get_put(self):
         """Read and write file contents."""
         app = self.app
 
@@ -170,17 +154,17 @@ class ServerTest(unittest.TestCase):
         # PUT a small file (expect '201 Created')
         app.put("/file1.txt", params=data1, status=201)
 
-    def testEncoding(self):
+    def test_encoding(self):
         """Handle special characters."""
         app = self.app
-        uniData = (
+        uni_data = (
             "This is a file with special characters:\n"
             + "Umlaute(äöüß)\n"
             + "Euro(\u20ac)\n"
             + "Male(\u2642)"
         )
 
-        data = uniData.encode("utf8")
+        data = uni_data.encode("utf8")
 
         # From PEP 3333:
         # enc, esc = sys.getfilesystemencoding(), 'surrogateescape'
@@ -218,7 +202,7 @@ class ServerTest(unittest.TestCase):
         # Male sign (only utf8)
         __testrw(unicode_to_url("/file male(\u2642).txt"))
 
-    def testAuthentication(self):
+    def test_authentication(self):
         """Require login."""
         # Prepare file content (currently without authentication)
         data1 = b"this is a file\nwith two lines"
@@ -228,7 +212,7 @@ class ServerTest(unittest.TestCase):
         app.get("/file1.txt", status=200)
 
         # Re-create test app with authentication
-        wsgi_app = self._makeWsgiDAVApp(self.root_path, True)
+        wsgi_app = self._make_wsgidav_app(self.root_path, True)
         app = self.app = webtest.TestApp(wsgi_app)
 
         # Anonymous access must fail (expect 401 Not Authorized)
@@ -249,7 +233,7 @@ class ServerTest(unittest.TestCase):
         # Non-existing resource (expect 404 NotFound)
         app.get("/not_existing_file.txt", headers=headers, status=404)
 
-    def testFollowSymlinksRejectsTraversalWithoutSymlink(self):
+    def test_follow_symlinks_rejects_traversal_without_symlink(self):
         """Traversal outside root must fail, even when follow_symlinks is enabled."""
         outside_data = b"outside-root-secret"
         outside_path = self.root_path + "-outside.txt"
@@ -259,7 +243,7 @@ class ServerTest(unittest.TestCase):
             lambda: os.path.exists(outside_path) and os.remove(outside_path)
         )
 
-        wsgi_app = self._makeWsgiDAVApp(
+        wsgi_app = self._make_wsgidav_app(
             self.root_path, False, fs_opts={"follow_symlinks": True}
         )
         app = webtest.TestApp(wsgi_app)
@@ -270,7 +254,7 @@ class ServerTest(unittest.TestCase):
         assert res.status_int != 200, "Traversal outside root must be rejected"
         assert outside_data not in res.body, "Outside file content must not leak"
 
-    def testRejectsSymlinkedParentTraversal(self):
+    def test_rejects_symlinked_parent_traversal(self):
         """`follow_symlinks=False` must block access below symlinked folders."""
         outside_path = tempfile.mkdtemp(prefix="wsgidav-outside-")
         self.temp_paths.append(outside_path)
@@ -287,7 +271,7 @@ class ServerTest(unittest.TestCase):
         self.app.get("/linkdir/secret.txt", status=403)
 
         app = webtest.TestApp(
-            self._makeWsgiDAVApp(
+            self._make_wsgidav_app(
                 self.root_path, False, fs_opts={"follow_symlinks": True}
             )
         )

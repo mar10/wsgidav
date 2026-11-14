@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 """
@@ -94,7 +94,7 @@ class WsgiDAVServerThread(Thread):
 
     def run(self):
         print("WsgiDAVServerThread.run()...")
-        withAuthentication = True
+        with_authentication = True
         self.rootpath = os.path.join(gettempdir(), "wsgidav-test")
         if not os.path.exists(self.rootpath):
             os.mkdir(self.rootpath)
@@ -120,7 +120,7 @@ class WsgiDAVServerThread(Thread):
             "honor_mtime_header": True,  # True: set mtime according to x-oc-mtime
         }
 
-        if withAuthentication:
+        if with_authentication:
             config["http_authenticator"].update(
                 {
                     "accept_basic": True,
@@ -186,13 +186,13 @@ class ServerTest(unittest.TestCase):
     def tearDown(self):
         del self.client
 
-    def testPreconditions(self):
+    def test_preconditions(self):
         """Environment must be set."""
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
         )
 
-    def testAuthentication(self):
+    def test_authentication(self):
         """Read and write file contents."""
         client = self.client
 
@@ -208,7 +208,7 @@ class ServerTest(unittest.TestCase):
         client.put("/file_auth.txt", b"foo")
         client.check_response((201, 204))  # Created or No Content when file existed
 
-    def testMkcolWithMtime(self):
+    def test_mkcol_with_mtime(self):
         client = self.client
         client.delete("/test/")
         client.mkcol("/test/", headers={"x-oc-mtime": "1735660800"})
@@ -217,13 +217,13 @@ class ServerTest(unittest.TestCase):
         stat = os.stat(os.path.join(gettempdir(), "wsgidav-test", "test"))
         assert int(stat.st_mtime) == 1735660800
 
-    def testMkcolWithInvalidMtime(self):
+    def test_mkcol_with_invalid_mtime(self):
         client = self.client
         client.delete("/test/")
         client.mkcol("/test/", headers={"x-oc-mtime": "nonsense"})
         client.check_response(400)
 
-    def testPutWithMtime(self):
+    def test_put_with_mtime(self):
         client = self.client
         data1 = b"this is a file\nwith two lines"
         client.delete("/test/")
@@ -235,7 +235,7 @@ class ServerTest(unittest.TestCase):
         stat = os.stat(os.path.join(gettempdir(), "wsgidav-test", "test", "file1.txt"))
         assert int(stat.st_mtime) == 1735660800
 
-    def testPutWithInvalidMtime(self):
+    def test_put_with_invalid_mtime(self):
         client = self.client
         data1 = b"this is a file\nwith two lines"
         client.delete("/test/")
@@ -244,7 +244,7 @@ class ServerTest(unittest.TestCase):
         client.put("/test/file1.txt", data1, headers={"x-oc-mtime": "nonsense"})
         client.check_response(400)
 
-    def testGetPut(self):
+    def test_get_put(self):
         """Read and write file contents."""
         client = self.client
         # Prepare file content
@@ -374,7 +374,7 @@ class ServerTest(unittest.TestCase):
     #        # PUT a small file (expect '201 Created')
     #        app.put("/file1.txt", params=data1, status=201)
 
-    def _prepareTree0(self):
+    def _prepare_tree0(self):
         """Create a resource structure for testing.
 
         /test/a/
@@ -397,7 +397,7 @@ class ServerTest(unittest.TestCase):
         client.put("/test/x/y", data)
         client.check_response(201)
 
-    def _checkCommonLock(self, client2):
+    def _check_common_lock(self, client2):
         """Check for access when /test/a/ of our sample tree is locked.
 
         These operations must be protected when our sample tree is locked
@@ -444,14 +444,14 @@ class ServerTest(unittest.TestCase):
         client2.proppatch("/test/a", set_props=[("{testns:}testname", "testval")])
         client2.check_response(423)
 
-    def testLocking(self):
+    def test_locking(self):
         """Locking."""
         client1 = self.client
 
         client2 = davclient.DAVClient(SERVER_ADDRESS, logger="DAVClient2")
         client2.set_basic_auth("tester2", "secret2")
 
-        self._prepareTree0()
+        self._prepare_tree0()
 
         # --- Check with deoth-infinity lock ----------------------------------
         # LOCK-infinity parent collection and try to access members
@@ -472,7 +472,7 @@ class ServerTest(unittest.TestCase):
         client2.check_response(403)
 
         # Check that commonly protected operations fail
-        self._checkCommonLock(client2)
+        self._check_common_lock(client2)
 
         # Check operations that are only protected when /test/a is locked
         # with depth-infinity
@@ -533,7 +533,7 @@ class ServerTest(unittest.TestCase):
         token = locks[0]
 
         # Check that commonly protected operations fail
-        self._checkCommonLock(client2)
+        self._check_common_lock(client2)
 
         # These operations are allowed with depth-0
         # Modifying member properties is allowed
@@ -573,7 +573,7 @@ class ServerTest(unittest.TestCase):
         #        print client2.response.body
         client2.check_multi_status_response(423)
 
-    def testHEADReturnsNoBody(self):
+    def test_head_returns_no_body(self):
         client = self.client
         client.head("nonexistent.txt", check_body=True)
         client.check_response(404)

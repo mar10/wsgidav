@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Abstract base class of a domain controller (used by HTTPAuthenticator).
@@ -31,7 +31,7 @@ Permissions and Roles
 
 A domain controller MAY add entries to the `environment["wsgidav.auth. ..."]`
 namespace in order to define access permissions for the following middleware
-(e.g. dir_browser) and DAV providers.
+(e.g. dav_explorer) and DAV providers.
 
 TODO: Work In Progress / Subject to change
 

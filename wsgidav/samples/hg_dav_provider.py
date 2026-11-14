@@ -1,7 +1,14 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 DAV provider that publishes a Mercurial repository.
+
+.. warning::
+   This module is part of ``wsgidav.samples``. Samples are provided as
+   examples and as a starting point for custom extensions only.
+   They are not covered by the test suite, are only lightly maintained, and
+   are **not guaranteed to work correctly or securely**.
+   Review and test the code carefully before using it in production.
 
 Note: This is **not** production code!
 
@@ -108,13 +115,13 @@ BUFFER_SIZE = 8192
 class HgResource(_DAVResource):
     """Abstract base class for all resources."""
 
-    def __init__(self, path, is_collection, environ, rev, localHgPath):
+    def __init__(self, path, is_collection, environ, rev, local_hg_path):
         super().__init__(path, is_collection, environ)
         self.rev = rev
-        self.localHgPath = localHgPath
-        self.absFilePath = self._getFilePath()
-        assert "\\" not in self.localHgPath
-        assert "/" not in self.absFilePath
+        self.local_hg_path = local_hg_path
+        self.abs_file_path = self._get_file_path()
+        assert "\\" not in self.local_hg_path
+        assert "/" not in self.abs_file_path
 
         if is_collection:
             self.fctx = None
@@ -124,17 +131,17 @@ class HgResource(_DAVResource):
             # rev="tip": TIP
             # rev=<int>: Revision ID
             wdctx = self.provider.repo[self.rev]
-            self.fctx = wdctx[self.localHgPath]
+            self.fctx = wdctx[self.local_hg_path]
 
-    #        util.status("HgResource: path=%s, rev=%s, localHgPath=%s, fctx=%s" % (
-    #            self.path, self.rev, self.localHgPath, self.fctx))
+    #        util.status("HgResource: path=%s, rev=%s, local_hg_path=%s, fctx=%s" % (
+    #            self.path, self.rev, self.local_hg_path, self.fctx))
     #        util.status("HgResource: name=%s, dn=%s, abspath=%s" % (
-    #            self.name, self.get_display_name(), self.absFilePath))
+    #            self.name, self.get_display_name(), self.abs_file_path))
 
-    def _getFilePath(self, *addParts):
-        parts = self.localHgPath.split("/")
-        if addParts:
-            parts.extend(addParts)
+    def _get_file_path(self, *add_parts):
+        parts = self.local_hg_path.split("/")
+        if add_parts:
+            parts.extend(add_parts)
         return os.path.join(self.provider.repo.root, *parts)
 
     def _commit(self, message):
@@ -142,7 +149,7 @@ class HgResource(_DAVResource):
         commands.commit(
             self.provider.ui,
             self.provider.repo,
-            self.localHgPath,
+            self.local_hg_path,
             addremove=True,
             user=user,
             message=message,
@@ -200,9 +207,9 @@ class HgResource(_DAVResource):
         assert self.is_collection
         cache = self.environ["wsgidav.hg.cache"][util.to_str(self.rev)]
         dirinfos = cache["dirinfos"]
-        if self.localHgPath not in dirinfos:
+        if self.local_hg_path not in dirinfos:
             return []
-        return dirinfos[self.localHgPath][0] + dirinfos[self.localHgPath][1]
+        return dirinfos[self.local_hg_path][0] + dirinfos[self.local_hg_path][1]
 
     #        return self.provider._listMembers(self.path)
 
@@ -224,10 +231,10 @@ class HgResource(_DAVResource):
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super().get_property_names(is_allprop=is_allprop)
+        prop_name_list = super().get_property_names(is_allprop=is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
         if self.fctx:
-            propNameList.extend(
+            prop_name_list.extend(
                 [
                     "{hg:}branch",
                     "{hg:}date",
@@ -237,7 +244,7 @@ class HgResource(_DAVResource):
                     "{hg:}user",
                 ]
             )
-        return propNameList
+        return prop_name_list
 
     def get_property_value(self, name):
         """Return the value of a property.
@@ -286,7 +293,7 @@ class HgResource(_DAVResource):
         """
         assert self.is_collection
         self._check_write_access()
-        filepath = self._getFilePath(name)
+        filepath = self._get_file_path(name)
         f = open(filepath, "w")
         f.close()
         commands.add(self.provider.ui, self.provider.repo, filepath)
@@ -297,7 +304,7 @@ class HgResource(_DAVResource):
             False,
             self.environ,
             self.rev,
-            self.localHgPath + "/" + name,
+            self.local_hg_path + "/" + name,
         )
 
     def create_collection(self, name):
@@ -307,9 +314,9 @@ class HgResource(_DAVResource):
         """
         assert self.is_collection
         self._check_write_access()
-        collpath = self._getFilePath(name)
+        collpath = self._get_file_path(name)
         os.mkdir(collpath)
-        filepath = self._getFilePath(name, ".directory")
+        filepath = self._get_file_path(name, ".directory")
         f = open(filepath, "w")
         f.write("Created by WsgiDAV.")
         f.close()
@@ -335,7 +342,7 @@ class HgResource(_DAVResource):
         # GC issue 57: always store as binary
         #        if contentType and contentType.startswith("text"):
         #            mode = "w"
-        return open(self.absFilePath, mode, BUFFER_SIZE)
+        return open(self.abs_file_path, mode, BUFFER_SIZE)
 
     def end_write(self, *, with_errors):
         """Called when PUT has finished writing.
@@ -343,7 +350,7 @@ class HgResource(_DAVResource):
         See DAVResource.end_write()
         """
         if not with_errors:
-            commands.add(self.provider.ui, self.provider.repo, self.localHgPath)
+            commands.add(self.provider.ui, self.provider.repo, self.local_hg_path)
 
     #    def handle_delete(self):
     #        """Handle a DELETE request natively.
@@ -360,20 +367,20 @@ class HgResource(_DAVResource):
     def delete(self):
         """Remove this resource (recursive)."""
         self._check_write_access()
-        filepath = self._getFilePath()
+        filepath = self._get_file_path()
         commands.remove(self.provider.ui, self.provider.repo, filepath, force=True)
 
     def handle_copy(self, dest_path, *, depth_infinity):
         """Handle a COPY request natively."""
-        destType, destHgPath = util.pop_path(dest_path)
-        destHgPath = destHgPath.strip("/")
+        dest_type, dest_hg_path = util.pop_path(dest_path)
+        dest_hg_path = dest_hg_path.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
-        _logger.info(f"handle_copy {self.localHgPath} -> {destHgPath}")
-        if self.rev is None and destType == "edit":
+        _logger.info(f"handle_copy {self.local_hg_path} -> {dest_hg_path}")
+        if self.rev is None and dest_type == "edit":
             # COPY /edit/a/b to /edit/c/d: turn into 'hg copy -f a/b c/d'
-            commands.copy(ui, repo, self.localHgPath, destHgPath, force=True)
-        elif self.rev is None and destType == "released":
+            commands.copy(ui, repo, self.local_hg_path, dest_hg_path, force=True)
+        elif self.rev is None and dest_type == "released":
             # COPY /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
             self._commit(f"WsgiDAV commit (COPY {self.path} -> {dest_path})")
@@ -384,15 +391,15 @@ class HgResource(_DAVResource):
 
     def handle_move(self, dest_path):
         """Handle a MOVE request natively."""
-        destType, destHgPath = util.pop_path(dest_path)
-        destHgPath = destHgPath.strip("/")
+        dest_type, dest_hg_path = util.pop_path(dest_path)
+        dest_hg_path = dest_hg_path.strip("/")
         ui = self.provider.ui
         repo = self.provider.repo
-        _logger.info(f"handle_copy {self.localHgPath} -> {destHgPath}")
-        if self.rev is None and destType == "edit":
+        _logger.info(f"handle_copy {self.local_hg_path} -> {dest_hg_path}")
+        if self.rev is None and dest_type == "edit":
             # MOVE /edit/a/b to /edit/c/d: turn into 'hg rename -f a/b c/d'
-            commands.rename(ui, repo, self.localHgPath, destHgPath, force=True)
-        elif self.rev is None and destType == "released":
+            commands.rename(ui, repo, self.local_hg_path, dest_hg_path, force=True)
+        elif self.rev is None and dest_type == "released":
             # MOVE /edit/a/b to /released/c/d
             # This is interpreted as 'hg commit a/b' (ignoring the dest. path)
             self._commit(f"WsgiDAV commit (MOVE {self.path} -> {dest_path})")
@@ -412,14 +419,14 @@ class HgResourceProvider(DAVProvider):
     DAV provider that serves a VirtualResource derived structure.
     """
 
-    def __init__(self, repoRoot):
+    def __init__(self, repo_root):
         super().__init__()
-        self.repoRoot = repoRoot
+        self.repo_root = repo_root
         print("Mercurial version %s" % hgversion)
         self.ui = mercurial.ui.ui()
-        self.repo = hg.repository(self.ui, repoRoot)
+        self.repo = hg.repository(self.ui, repo_root)
         self.ui.status("Connected to repository %s\n" % self.repo.root)
-        self.repoRoot = self.repo.root
+        self.repo_root = self.repo.root
 
         # Some commands (remove) seem to expect cwd set to the repo
         # TODO: try to go along without this, because it prevents serving
@@ -439,7 +446,7 @@ class HgResourceProvider(DAVProvider):
             % self.repo.ui.user_name()
         )
         #        self.repo.ui.status("a short form of user name USER %s\n" % self.repo.ui.shortuser(user))
-        self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repoRoot))
+        self.ui.status("Expandpath: %s\n" % self.repo.ui.expandpath(repo_root))
 
         print("Working directory state summary:")
         self.ui.pushbuffer()
@@ -463,10 +470,10 @@ class HgResourceProvider(DAVProvider):
         commands.log(self.ui, self.repo, limit=limit, date=None, rev=None, user=None)
         res = self.ui.popbuffer().strip()
 
-        logList = []
+        log_list = []
         for logentry in res.split("\n\n"):
             log = {}
-            logList.append(log)
+            log_list.append(log)
             for line in logentry.split("\n"):
                 k, v = line.split(":", 1)
                 assert k in ("changeset", "tag", "user", "date", "summary")
@@ -475,8 +482,8 @@ class HgResourceProvider(DAVProvider):
             local_id, unid = log["changeset"].split(":")
             log["local_id"] = int(local_id)
             log["unid"] = unid
-        #        pprint(logList)
-        return logList
+        #        pprint(log_list)
+        return log_list
 
     def _get_repo_info(self, environ, rev, reload=False):
         """Return a dictionary containing all files under source control.
@@ -578,7 +585,7 @@ class HgResourceProvider(DAVProvider):
         self._count_get_resource_inst += 1
 
         # HG expects the resource paths without leading '/'
-        localHgPath = path.strip("/")
+        local_hg_path = path.strip("/")
         rev = None
         cmd, rest = util.pop_path(path)
 
@@ -587,10 +594,10 @@ class HgResourceProvider(DAVProvider):
                 path, environ, "root", ["edit", "released", "archive"]
             )
         elif cmd == "edit":
-            localHgPath = rest.strip("/")
+            local_hg_path = rest.strip("/")
             rev = None
         elif cmd == "released":
-            localHgPath = rest.strip("/")
+            local_hg_path = rest.strip("/")
             rev = "tip"
         elif cmd == "archive":
             if rest == "/":
@@ -606,18 +613,18 @@ class HgResourceProvider(DAVProvider):
                 return None
             # Access /archive/19
             rev = revid
-            localHgPath = rest.strip("/")
+            local_hg_path = rest.strip("/")
         else:
             return None
 
         # read mercurial repo into request cache
         cache = self._get_repo_info(environ, rev)
 
-        if localHgPath in cache["filedict"]:
+        if local_hg_path in cache["filedict"]:
             # It is a version controlled file
-            return HgResource(path, False, environ, rev, localHgPath)
+            return HgResource(path, False, environ, rev, local_hg_path)
 
-        if localHgPath in cache["dirinfos"] or localHgPath == "":
+        if local_hg_path in cache["dirinfos"] or local_hg_path == "":
             # It is an existing folder
-            return HgResource(path, True, environ, rev, localHgPath)
+            return HgResource(path, True, environ, rev, local_hg_path)
         return None

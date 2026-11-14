@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -84,7 +84,6 @@ import sys
 import time
 import traceback
 from abc import ABC, abstractmethod
-from typing import Optional
 from urllib.parse import quote, unquote
 
 from wsgidav import util, xml_tools
@@ -101,7 +100,7 @@ __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
 
-_standardLivePropNames = [
+_standard_live_prop_names = [
     "{DAV:}creationdate",
     "{DAV:}displayname",
     "{DAV:}getcontenttype",
@@ -112,7 +111,7 @@ _standardLivePropNames = [
     "{DAV:}getcontentlanguage",
     # "{DAV:}source", # removed in rfc4918
 ]
-_lockPropertyNames = ["{DAV:}lockdiscovery", "{DAV:}supportedlock"]
+_lock_property_names = ["{DAV:}lockdiscovery", "{DAV:}supportedlock"]
 
 
 # ========================================================================
@@ -192,7 +191,7 @@ class _DAVResource(ABC):
     #        raise NotImplementedError
 
     @abstractmethod
-    def get_content_length(self) -> Optional[int]:
+    def get_content_length(self) -> int | None:
         """Contains the Content-Length header returned by a GET without accept
         headers.
 
@@ -205,7 +204,7 @@ class _DAVResource(ABC):
             return None
         raise NotImplementedError
 
-    def get_content_type(self) -> Optional[str]:
+    def get_content_type(self) -> str | None:
         """Contains the Content-Type header returned by a GET without accept
         headers.
 
@@ -219,7 +218,7 @@ class _DAVResource(ABC):
             return None
         raise NotImplementedError
 
-    def get_creation_date(self) -> Optional[float]:
+    def get_creation_date(self) -> float | None:
         """Records the time and date the resource was created.
 
         The creationdate property should be defined on all DAV compliant
@@ -279,7 +278,7 @@ class _DAVResource(ABC):
         """
         return None
 
-    def get_used_bytes(self) -> Optional[int]:
+    def get_used_bytes(self) -> int | None:
         """Return used bytes of the DAV collection.
         See http://www.webdav.org/specs/rfc4331.html#quota-used-bytes
 
@@ -287,7 +286,7 @@ class _DAVResource(ABC):
         """
         return None
 
-    def get_available_bytes(self) -> Optional[int]:
+    def get_available_bytes(self) -> int | None:
         """Return available bytes of the DAV collection.
         See http://www.webdav.org/specs/rfc4331.html#quota-available-bytes
 
@@ -450,12 +449,12 @@ class _DAVResource(ABC):
         """
         if not self.is_collection:
             raise NotImplementedError
-        memberList = []
+        member_list = []
         for name in self.get_member_names():
             member = self.get_member(name)
             assert member is not None
-            memberList.append(member)
-        return memberList
+            member_list.append(member)
+        return member_list
 
     def get_member_names(self):
         """Return list of (direct) collection member names (UTF-8 byte strings).
@@ -540,40 +539,40 @@ class _DAVResource(ABC):
         supported custom live property names.
         """
         # Live properties
-        propNameList = []
+        prop_name_list = []
 
-        propNameList.append("{DAV:}resourcetype")
+        prop_name_list.append("{DAV:}resourcetype")
 
         if self.get_creation_date() is not None:
-            propNameList.append("{DAV:}creationdate")
+            prop_name_list.append("{DAV:}creationdate")
         if self.get_content_length() is not None:
             assert not self.is_collection
-            propNameList.append("{DAV:}getcontentlength")
+            prop_name_list.append("{DAV:}getcontentlength")
         if self.get_content_type() is not None:
-            propNameList.append("{DAV:}getcontenttype")
+            prop_name_list.append("{DAV:}getcontenttype")
         if self.get_used_bytes() is not None:
-            propNameList.append("{DAV:}quota-used-bytes")
+            prop_name_list.append("{DAV:}quota-used-bytes")
         if self.get_available_bytes() is not None:
-            propNameList.append("{DAV:}quota-available-bytes")
+            prop_name_list.append("{DAV:}quota-available-bytes")
         if self.get_last_modified() is not None:
-            propNameList.append("{DAV:}getlastmodified")
+            prop_name_list.append("{DAV:}getlastmodified")
         if self.get_display_name() is not None:
-            propNameList.append("{DAV:}displayname")
+            prop_name_list.append("{DAV:}displayname")
         if self.get_etag() is not None:
-            propNameList.append("{DAV:}getetag")
+            prop_name_list.append("{DAV:}getetag")
 
         # Locking properties
         if self.provider.lock_manager and not self.prevent_locking():
-            propNameList.extend(_lockPropertyNames)
+            prop_name_list.extend(_lock_property_names)
 
         # Dead properties
         if self.provider.prop_manager:
-            refUrl = self.get_ref_url()
-            propNameList.extend(
-                self.provider.prop_manager.get_properties(refUrl, self.environ)
+            ref_url = self.get_ref_url()
+            prop_name_list.extend(
+                self.provider.prop_manager.get_properties(ref_url, self.environ)
             )
 
-        return propNameList
+        return prop_name_list
 
     def get_properties(self, mode, *, name_list=None):
         """Return properties as list of 2-tuples (name, value).
@@ -605,23 +604,23 @@ class _DAVResource(ABC):
         else:
             assert name_list is not None
 
-        propList = []
-        namesOnly = mode == "name"
+        prop_list = []
+        names_only = mode == "name"
         for name in name_list:
             try:
-                if namesOnly:
-                    propList.append((name, None))
+                if names_only:
+                    prop_list.append((name, None))
                 else:
                     value = self.get_property_value(name)
-                    propList.append((name, value))
+                    prop_list.append((name, value))
             except DAVError as e:
-                propList.append((name, e))
+                prop_list.append((name, e))
             except Exception as e:
-                propList.append((name, as_DAVError(e)))
+                prop_list.append((name, as_DAVError(e)))
                 if self.provider.verbose >= 2:
                     traceback.print_exc(10, sys.stdout)
 
-        return propList
+        return prop_list
 
     def get_property_value(self, name):
         """Return the value of a property.
@@ -645,32 +644,32 @@ class _DAVResource(ABC):
         Finally, other properties are considered *dead*, and are handled  by
         the associated property manager.
         """
-        refUrl = self.get_ref_url()
+        ref_url = self.get_ref_url()
 
         # lock properties
         lm = self.provider.lock_manager
         if lm and name == "{DAV:}lockdiscovery":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present.
             # Correct?
-            activelocklist = lm.get_url_lock_list(refUrl)
-            lockdiscoveryEL = etree.Element(name)
+            activelocklist = lm.get_url_lock_list(ref_url)
+            lockdiscovery_el = etree.Element(name)
             for lock in activelocklist:
-                activelockEL = etree.SubElement(lockdiscoveryEL, "{DAV:}activelock")
+                activelock_el = etree.SubElement(lockdiscovery_el, "{DAV:}activelock")
 
-                locktypeEL = etree.SubElement(activelockEL, "{DAV:}locktype")
+                locktype_el = etree.SubElement(activelock_el, "{DAV:}locktype")
                 # Note: make sure `{DAV:}` is not handled as format tag:
-                etree.SubElement(locktypeEL, "{}{}".format("{DAV:}", lock["type"]))
+                etree.SubElement(locktype_el, "{}{}".format("{DAV:}", lock["type"]))
 
-                lockscopeEL = etree.SubElement(activelockEL, "{DAV:}lockscope")
+                lockscope_el = etree.SubElement(activelock_el, "{DAV:}lockscope")
                 # Note: make sure `{DAV:}` is not handled as format tag:
-                etree.SubElement(lockscopeEL, "{}{}".format("{DAV:}", lock["scope"]))
+                etree.SubElement(lockscope_el, "{}{}".format("{DAV:}", lock["scope"]))
 
-                etree.SubElement(activelockEL, "{DAV:}depth").text = lock["depth"]
+                etree.SubElement(activelock_el, "{DAV:}depth").text = lock["depth"]
                 if lock["owner"]:
                     # lock["owner"] is an XML string
                     # owner may be empty (#64)
-                    ownerEL = xml_tools.string_to_xml(lock["owner"])
-                    activelockEL.append(ownerEL)
+                    owner_el = xml_tools.string_to_xml(lock["owner"])
+                    activelock_el.append(owner_el)
 
                 timeout = lock["timeout"]
                 if timeout < 0:
@@ -679,43 +678,43 @@ class _DAVResource(ABC):
                     # The time remaining on the lock
                     expire = lock["expire"]
                     timeout = "Second-" + str(int(expire - time.time()))
-                etree.SubElement(activelockEL, "{DAV:}timeout").text = timeout
+                etree.SubElement(activelock_el, "{DAV:}timeout").text = timeout
 
-                locktokenEL = etree.SubElement(activelockEL, "{DAV:}locktoken")
-                etree.SubElement(locktokenEL, "{DAV:}href").text = lock["token"]
+                locktoken_el = etree.SubElement(activelock_el, "{DAV:}locktoken")
+                etree.SubElement(locktoken_el, "{DAV:}href").text = lock["token"]
 
                 # TODO: this is ugly:
                 #       res.get_property_value("{DAV:}lockdiscovery")
                 #
                 #                lockRoot = self.get_href(self.provider.ref_url_to_path(lock["root"]))
-                lockPath = self.provider.ref_url_to_path(lock["root"])
-                lockRes = self.provider.get_resource_inst(lockPath, self.environ)
+                lock_path = self.provider.ref_url_to_path(lock["root"])
+                lock_res = self.provider.get_resource_inst(lock_path, self.environ)
                 # FIXME: test for None
-                lockHref = lockRes.get_href()
+                lock_href = lock_res.get_href()
 
-                lockrootEL = etree.SubElement(activelockEL, "{DAV:}lockroot")
-                etree.SubElement(lockrootEL, "{DAV:}href").text = lockHref
+                lockroot_el = etree.SubElement(activelock_el, "{DAV:}lockroot")
+                etree.SubElement(lockroot_el, "{DAV:}href").text = lock_href
 
-            return lockdiscoveryEL
+            return lockdiscovery_el
 
         elif lm and name == "{DAV:}supportedlock":
             # TODO: we return HTTP_NOT_FOUND if no lockmanager is present. Correct?
             # TODO: the lockmanager should decide about it's features
-            supportedlockEL = etree.Element(name)
+            supportedlock_el = etree.Element(name)
 
-            lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
-            etree.SubElement(lockscopeEL, "{DAV:}exclusive")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
-            etree.SubElement(locktypeEL, "{DAV:}write")
+            lockentry_el = etree.SubElement(supportedlock_el, "{DAV:}lockentry")
+            lockscope_el = etree.SubElement(lockentry_el, "{DAV:}lockscope")
+            etree.SubElement(lockscope_el, "{DAV:}exclusive")
+            locktype_el = etree.SubElement(lockentry_el, "{DAV:}locktype")
+            etree.SubElement(locktype_el, "{DAV:}write")
 
-            lockentryEL = etree.SubElement(supportedlockEL, "{DAV:}lockentry")
-            lockscopeEL = etree.SubElement(lockentryEL, "{DAV:}lockscope")
-            etree.SubElement(lockscopeEL, "{DAV:}shared")
-            locktypeEL = etree.SubElement(lockentryEL, "{DAV:}locktype")
-            etree.SubElement(locktypeEL, "{DAV:}write")
+            lockentry_el = etree.SubElement(supportedlock_el, "{DAV:}lockentry")
+            lockscope_el = etree.SubElement(lockentry_el, "{DAV:}lockscope")
+            etree.SubElement(lockscope_el, "{DAV:}shared")
+            locktype_el = etree.SubElement(lockentry_el, "{DAV:}locktype")
+            etree.SubElement(locktype_el, "{DAV:}write")
 
-            return supportedlockEL
+            return supportedlock_el
 
         elif name.startswith("{DAV:}"):
             # Standard live property (raises HTTP_NOT_FOUND if not supported)
@@ -726,9 +725,9 @@ class _DAVResource(ABC):
                 return self.get_content_type()
             elif name == "{DAV:}resourcetype":
                 if self.is_collection:
-                    resourcetypeEL = etree.Element(name)
-                    etree.SubElement(resourcetypeEL, "{DAV:}collection")
-                    return resourcetypeEL
+                    resourcetype_el = etree.Element(name)
+                    etree.SubElement(resourcetype_el, "{DAV:}collection")
+                    return resourcetype_el
                 return ""
             elif name == "{DAV:}quota-used-bytes":
                 return self.get_used_bytes()
@@ -756,7 +755,7 @@ class _DAVResource(ABC):
         # Dead property
         pm = self.provider.prop_manager
         if pm:
-            value = pm.get_property(refUrl, name, self.environ)
+            value = pm.get_property(ref_url, name, self.environ)
             if value is not None:
                 return xml_tools.string_to_xml(value)
 
@@ -792,7 +791,7 @@ class _DAVResource(ABC):
         """
         assert value is None or xml_tools.is_etree_element(value)
 
-        if name in _lockPropertyNames:
+        if name in _lock_property_names:
             # Locking properties are always read-only
             raise DAVError(
                 HTTP_FORBIDDEN, err_condition=PRECONDITION_CODE_ProtectedProperty
@@ -801,12 +800,12 @@ class _DAVResource(ABC):
         # Live property
         config = self.environ["wsgidav.config"]
         # hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
-        mutableLiveProps = config.get("mutable_live_props", [])
+        mutable_live_props = config.get("mutable_live_props", [])
         # Accept custom live property updates on resources if configured.
         if (
             name.startswith("{DAV:}")
-            and name in _standardLivePropNames
-            and name in mutableLiveProps
+            and name in _standard_live_prop_names
+            and name in mutable_live_props
         ):
             # Please note that some properties should not be mutable according
             # to RFC4918. This includes the 'getlastmodified' property, which
@@ -848,12 +847,12 @@ class _DAVResource(ABC):
         # Dead property
         pm = self.provider.prop_manager
         if pm and not name.startswith("{DAV:}"):
-            refUrl = self.get_ref_url()
+            ref_url = self.get_ref_url()
             if value is None:
-                return pm.remove_property(refUrl, name, dry_run, self.environ)
+                return pm.remove_property(ref_url, name, dry_run, self.environ)
             else:
                 value = etree.tostring(value)
-                return pm.write_property(refUrl, name, value, dry_run, self.environ)
+                return pm.write_property(ref_url, name, value, dry_run, self.environ)
 
         raise DAVError(HTTP_FORBIDDEN)
 
@@ -1367,10 +1366,10 @@ class DAVCollection(_DAVResource):
     #    def getContentLanguage(self):
     #        return None
 
-    def get_content_length(self) -> Optional[int]:
+    def get_content_length(self) -> int | None:
         return None
 
-    def get_content_type(self) -> Optional[str]:
+    def get_content_type(self) -> str | None:
         return None
 
     def create_empty_resource(self, name: str) -> _DAVResource:
@@ -1565,14 +1564,14 @@ class DAVProvider(ABC):
         self.prop_manager = prop_manager
 
     def ref_url_to_path(self, ref_url):
-        """Convert a refUrl to a path, by stripping the share prefix.
+        """Convert a ref_url to a path, by stripping the share prefix.
 
         Used to calculate the <path> from a storage key by inverting get_ref_url().
         """
         return "/" + unquote(util.removeprefix(ref_url, self.share_path)).lstrip("/")
 
     @abstractmethod
-    def get_resource_inst(self, path: str, environ: dict):
+    def get_resource_inst(self, path: str, environ: dict) -> _DAVResource:
         """Return a _DAVResource object for path.
 
         Should be called only once per request and resource::

@@ -5,6 +5,11 @@ This section describes, how a WsgiDAV server is installed.
 
 .. seealso::
 
+  :doc:`quickstart` for the fastest way to install WsgiDAV, share a folder,
+  and map it as a network drive.
+
+.. seealso::
+
   If you plan to contribute to the WsgiDAV project, check out :doc:`development`
   for details on how to install in development mode.
 
@@ -20,7 +25,7 @@ WsgiDAV server was tested with these operating systems (among others):
 
 WsgiDAV requires
 
-  * `Python <https://www.python.org/downloads/>`_ 3.6 or later.
+  * `Python <https://www.python.org/downloads/>`_ 3.10 or later.
   * A WSGI compliant web server. |br|
     WsigDAV is a WSGI application, that must be served by a compliant web server.
     Among others, there are
@@ -43,26 +48,33 @@ Linux / macOS
 -------------
 
 Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_ and can
-be installed using `pip <http://www.pip-installer.org/>`_.
-Using a virtual environment is recommend::
+be installed using `pip <http://www.pip-installer.org/>`_ or
+`uv <https://docs.astral.sh/uv/>`_.
+
+Using ``pip`` with a virtual environment::
 
   $ mkdir wsgidav_test
   $ cd wsgidav_test
-  $ wsgidav_test % python -m venv .venv
-  $ wsgidav_test % source .venv/bin/activate
-  $ (.venv) wsgidav_test % python -m pip install -U pip
-  $ (.venv) wsgidav_test % python -m pip install wsgidav cheroot lxml
-  $ (.venv) wsgidav_test % wsgidav --root . --auth anonymous --browse
+  $ python -m venv .venv
+  $ source .venv/bin/activate
+  $ pip install wsgidav cheroot lxml
+  $ wsgidav --root . --auth anonymous --browse
+
+Or using ``uv`` (recommended — no manual venv management needed).
+Note that the WSGI server (Cheroot) must be added explicitly::
+
+  $ uv tool install wsgidav --with cheroot --with lxml
+  $ wsgidav --root . --auth anonymous --browse
 
 The ``htpasswd`` and ``htdigest`` domain controllers require the optional
-``passlib`` dependency. Install it with::
+``passlib`` dependency. The ``passlib`` extra installs it together with the
+``bcrypt`` backend (needed for bcrypt-hashed password files)::
 
-  $ python -m pip install "wsgidav[htpasswd]"
+  $ python -m pip install "wsgidav[passlib]"
 
-If your password file uses bcrypt hashes, install the optional bcrypt backend
-as well::
+The ``pam`` extra is required for ``--auth pam-login``::
 
-  $ python -m pip install "wsgidav[htpasswd,bcrypt]"
+  $ python -m pip install "wsgidav[pam]"
 
 
 Or install the latest (potentially unstable) development version directly
@@ -117,11 +129,20 @@ https://hub.docker.com/r/mar10/wsgidav/
 ::
 
     $ docker pull mar10/wsgidav
-    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/var/wsgidav-root mar10/wsgidav
+    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
 
 for example::
 
-    $ docker run --rm -it -p 8080:8080 -v c:/temp:/var/wsgidav-root mar10/wsgidav
+    $ docker run --rm -it -p 8080:8080 -v c:/temp:/public/wsgidav-share mar10/wsgidav
 
 Then open (or enter this URL in Windows File Explorer or any other WebDAV client)
 http://localhost:8080/
+
+
+It is also possible to use Docker-compose and a custom configuration file
+to set up multiple mount points, authentication, etc.::
+
+    $ docker-compose up 
+
+See :doc:`user_guide_configure` for details, and :doc:`quickstart` for
+Podman.

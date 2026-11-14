@@ -26,7 +26,8 @@ Package ``wsgidav``
 
    wsgidav.dav_error
    wsgidav.dav_provider
-   wsgidav.dir_browser
+   wsgidav.mw.dir_browser
+   wsgidav.mw.dav_explorer
    wsgidav.error_printer
    wsgidav.fs_dav_provider
    wsgidav.http_authenticator
@@ -79,11 +80,16 @@ Package ``wsgidav.lock_man``
 
 Package ``wsgidav.samples``
 ---------------------------
+.. warning::
+   Sample code is provided as an example only and is
+   **not guaranteed to work correctly or securely**.
+
 .. autosummary::
    :toctree: _autosummary
 
    wsgidav.samples.dav_provider_tools
    wsgidav.samples.hg_dav_provider
+   wsgidav.samples.impersonator
    wsgidav.samples.mongo_dav_provider
    wsgidav.samples.mysql_dav_provider
    wsgidav.samples.virtual_dav_provider

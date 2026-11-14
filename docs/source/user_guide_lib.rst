@@ -6,8 +6,8 @@ Using the Library
    :hidden:
 
 
-This section describes how to use the ``wsgidav`` package to implement custom
-WebDAV servers.
+*This section describes how to use the ``wsgidav`` package in your Python projects 
+to implement custom WebDAV servers.*
 
 
 .. todo::

@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implements a property manager based on MongoDB.
@@ -105,12 +105,12 @@ class MongoPropertyManager:
     def get_properties(self, norm_url, environ=None):
         _logger.debug("get_properties(%s)" % norm_url)
         doc = self.collection.find_one({"_url": norm_url})
-        propNames = []
+        prop_names = []
         if doc:
             for name in doc.keys():
                 if name not in HIDDEN_KEYS:
-                    propNames.append(decode_mongo_key(name))
-        return propNames
+                    prop_names.append(decode_mongo_key(name))
+        return prop_names
 
     def get_property(self, norm_url, name, environ=None):
         _logger.debug(f"get_property({norm_url}, {name})")
@@ -161,35 +161,35 @@ class MongoPropertyManager:
             self.collection.remove(doc)
         return
 
-    def copy_properties(self, srcUrl, destUrl, environ=None):
-        doc = self.collection.find_one({"_url": srcUrl})
+    def copy_properties(self, src_url, dest_url, environ=None):
+        doc = self.collection.find_one({"_url": src_url})
         if not doc:
             _logger.debug(
-                f"copy_properties({srcUrl}, {destUrl}): src has no properties"
+                f"copy_properties({src_url}, {dest_url}): src has no properties"
             )
             return
-        _logger.debug(f"copy_properties({srcUrl}, {destUrl})")
+        _logger.debug(f"copy_properties({src_url}, {dest_url})")
         doc2 = doc.copy()
         self.collection.insert(doc2)
 
-    def move_properties(self, srcUrl, destUrl, with_children, environ=None):
-        _logger.debug(f"move_properties({srcUrl}, {destUrl}, {with_children})")
+    def move_properties(self, src_url, dest_url, with_children, environ=None):
+        _logger.debug(f"move_properties({src_url}, {dest_url}, {with_children})")
         if with_children:
-            # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
-            matchBegin = "^" + srcUrl.rstrip("/") + "/"
-            query = {"$or": [{"_url": srcUrl}, {"_url": {"$regex": matchBegin}}]}
-            docList = self.collection.find(query)
-            for doc in docList:
-                newDest = doc["_url"].replace(srcUrl, destUrl)
-                _logger.debug("move property {} -> {}".format(doc["_url"], newDest))
-                doc["_url"] = newDest
+            # Match URLs that are equal to <src_url> or begin with '<src_url>/'
+            match_begin = "^" + src_url.rstrip("/") + "/"
+            query = {"$or": [{"_url": src_url}, {"_url": {"$regex": match_begin}}]}
+            doc_list = self.collection.find(query)
+            for doc in doc_list:
+                new_dest = doc["_url"].replace(src_url, dest_url)
+                _logger.debug("move property {} -> {}".format(doc["_url"], new_dest))
+                doc["_url"] = new_dest
                 self.collection.save(doc)
         else:
-            # Move srcUrl only
+            # Move src_url only
             # TODO: use findAndModify()?
-            doc = self.collection.find_one({"_url": srcUrl})
+            doc = self.collection.find_one({"_url": src_url})
             if doc:
-                _logger.debug("move property {} -> {}".format(doc["_url"], destUrl))
-                doc["_url"] = destUrl
+                _logger.debug("move property {} -> {}".format(doc["_url"], dest_url))
+                doc["_url"] = dest_url
                 self.collection.save(doc)
         return

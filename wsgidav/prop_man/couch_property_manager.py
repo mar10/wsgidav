@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implements a property manager based on CouchDB.
@@ -55,15 +55,15 @@ class CouchPropertyManager:
         else:
             self.couch = couchdb.Server()
 
-        dbName = opts.get("dbName", "wsgidav_props")
-        if dbName in self.couch:
-            self.db = self.couch[dbName]
+        db_name = opts.get("dbName", "wsgidav_props")
+        if db_name in self.couch:
+            self.db = self.couch[db_name]
             _logger.info(
                 "CouchPropertyManager connected to %s v%s"
                 % (self.db, self.couch.version())
             )
         else:
-            self.db = self.couch.create(dbName)
+            self.db = self.couch.create(db_name)
             _logger.info(
                 "CouchPropertyManager created new db %s v%s"
                 % (self.db, self.couch.version())
@@ -78,7 +78,7 @@ class CouchPropertyManager:
                 }
             }
             """
-            designDoc = {
+            design_doc = {
                 "_id": "_design/properties",
                 # "_rev": "42351258",
                 "language": "javascript",
@@ -93,7 +93,7 @@ class CouchPropertyManager:
                     "by_url": {"map": map},
                 },
             }
-            self.db.save(designDoc)
+            self.db.save(design_doc)
 
     #        pprint(self.couch.stats())
 
@@ -140,11 +140,11 @@ class CouchPropertyManager:
     def get_properties(self, norm_url, environ=None):
         _logger.debug("get_properties(%s)" % norm_url)
         doc = self._find(norm_url)
-        propNames = []
+        prop_names = []
         if doc:
             for name in doc["properties"].keys():
-                propNames.append(name)
-        return propNames
+                prop_names.append(name)
+        return prop_names
 
     def get_property(self, norm_url, name, environ=None):
         _logger.debug(f"get_property({norm_url}, {name})")
@@ -200,41 +200,41 @@ class CouchPropertyManager:
             self.db.delete(doc)
         return
 
-    def copy_properties(self, srcUrl, destUrl, environ=None):
-        doc = self._find(srcUrl)
+    def copy_properties(self, src_url, dest_url, environ=None):
+        doc = self._find(src_url)
         if not doc:
             _logger.debug(
-                f"copy_properties({srcUrl}, {destUrl}): src has no properties"
+                f"copy_properties({src_url}, {dest_url}): src has no properties"
             )
             return
-        _logger.debug(f"copy_properties({srcUrl}, {destUrl})")
-        assert not self._find(destUrl)
+        _logger.debug(f"copy_properties({src_url}, {dest_url})")
+        assert not self._find(dest_url)
         doc2 = {
             "_id": uuid4().hex,
-            "url": destUrl,
-            "title": quote(destUrl),
+            "url": dest_url,
+            "title": quote(dest_url),
             "type": "properties",
             "properties": doc["properties"],
         }
         self.db.save(doc2)
 
-    def move_properties(self, srcUrl, destUrl, with_children, environ=None):
-        _logger.debug(f"move_properties({srcUrl}, {destUrl}, {with_children})")
+    def move_properties(self, src_url, dest_url, with_children, environ=None):
+        _logger.debug(f"move_properties({src_url}, {dest_url}, {with_children})")
         if with_children:
-            # Match URLs that are equal to <srcUrl> or begin with '<srcUrl>/'
-            docList = self._find_descendents(srcUrl)
-            for doc in docList:
-                newDest = doc["url"].replace(srcUrl, destUrl)
-                _logger.debug("move property {} -> {}".format(doc["url"], newDest))
-                doc["url"] = newDest
+            # Match URLs that are equal to <src_url> or begin with '<src_url>/'
+            doc_list = self._find_descendents(src_url)
+            for doc in doc_list:
+                new_dest = doc["url"].replace(src_url, dest_url)
+                _logger.debug("move property {} -> {}".format(doc["url"], new_dest))
+                doc["url"] = new_dest
                 self.db.save(doc)
         else:
-            # Move srcUrl only
+            # Move src_url only
             # TODO: use findAndModify()?
-            doc = self._find(srcUrl)
+            doc = self._find(src_url)
             if doc:
-                _logger.debug("move property {} -> {}".format(doc["url"], destUrl))
-                doc["url"] = destUrl
+                _logger.debug("move property {} -> {}".format(doc["url"], dest_url))
+                doc["url"] = dest_url
                 self.db.save(doc)
         return
 

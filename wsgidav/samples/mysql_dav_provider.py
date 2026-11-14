@@ -1,9 +1,16 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implementation of a WebDAV provider that provides a very basic, read-only
 resource layer emulation of a MySQL database.
+
+.. warning::
+   This module is part of ``wsgidav.samples``. Samples are provided as
+   examples and as a starting point for custom extensions only.
+   They are not covered by the test suite, are only lightly maintained, and
+   are **not guaranteed to work correctly or securely**.
+   Review and test the code carefully before using it in production.
 
 This module is specific to the WsgiDAV application. It provides a
 classes ``MySQLBrowserProvider``.
@@ -102,39 +109,39 @@ class MySQLBrowserResource(_DAVResource):
         # TODO: recalc self.path from <self._file_path>, to fix correct file system case
         #       On windows this would lead to correct URLs
         self.provider._count_get_resource_inst_init += 1
-        tableName, primKey = self.provider._split_path(self.path)
+        table_name, prim_key = self.provider._split_path(self.path)
 
         display_type = "Unknown"
-        displayTypeComment = ""
-        contentType = "text/html"
+        display_type_comment = ""
+        content_type = "text/html"
 
         #        _logger.debug("getInfoDict(%s), nc=%s" % (path, self.connectCount))
-        if tableName is None:
+        if table_name is None:
             display_type = "Database"
-        elif primKey is None:  # "database" and table name
+        elif prim_key is None:  # "database" and table name
             display_type = "Database Table"
         else:
-            contentType = "text/csv"
-            if primKey == "_ENTIRE_CONTENTS":
+            content_type = "text/csv"
+            if prim_key == "_ENTIRE_CONTENTS":
                 display_type = "Database Table Contents"
-                displayTypeComment = "CSV Representation of Table Contents"
+                display_type_comment = "CSV Representation of Table Contents"
             else:
                 display_type = "Database Record"
-                displayTypeComment = "Attributes available as properties"
+                display_type_comment = "Attributes available as properties"
 
         # Avoid calling is_collection, since it would call isExisting -> _init_connection
-        is_collection = primKey is None
+        is_collection = prim_key is None
 
         self._cache = {
             "content_length": None,
-            "contentType": contentType,
+            "contentType": content_type,
             "created": time.time(),
             "display_name": self.name,
             "etag": hashlib.md5().update(self.path).hexdigest(),
             # "etag": md5.new(self.path).hexdigest(),
             "modified": None,
             "support_ranges": False,
-            "display_info": {"type": display_type, "typeComment": displayTypeComment},
+            "display_info": {"type": display_type, "typeComment": display_type_comment},
         }
 
         # Some resource-only infos:
@@ -177,8 +184,8 @@ class MySQLBrowserResource(_DAVResource):
         members = []
         conn = self.provider._init_connection()
         try:
-            tableName, primKey = self.provider._split_path(self.path)
-            if tableName is None:
+            table_name, prim_key = self.provider._split_path(self.path)
+            if table_name is None:
                 retlist = self.provider._list_tables(conn)
                 for name in retlist:
                     members.append(
@@ -189,10 +196,10 @@ class MySQLBrowserResource(_DAVResource):
                             self.environ,
                         )
                     )
-            elif primKey is None:
-                pri_key = self.provider._find_primary_key(conn, tableName)
+            elif prim_key is None:
+                pri_key = self.provider._find_primary_key(conn, table_name)
                 if pri_key is not None:
-                    retlist = self.provider._list_fields(conn, tableName, pri_key)
+                    retlist = self.provider._list_fields(conn, table_name, pri_key)
                     for name in retlist:
                         members.append(
                             MySQLBrowserResource(
@@ -222,21 +229,21 @@ class MySQLBrowserResource(_DAVResource):
         """
         filestream = StringIO()
 
-        tableName, primKey = self.provider._split_path(self.path)
-        if primKey is not None:
+        table_name, prim_key = self.provider._split_path(self.path)
+        if prim_key is not None:
             conn = self.provider._init_connection()
-            listFields = self.provider._get_field_list(conn, tableName)
-            csvwriter = csv.DictWriter(filestream, listFields, extrasaction="ignore")
-            dictFields = {}
-            for field_name in listFields:
-                dictFields[field_name] = field_name
-            csvwriter.writerow(dictFields)
+            list_fields = self.provider._get_field_list(conn, table_name)
+            csvwriter = csv.DictWriter(filestream, list_fields, extrasaction="ignore")
+            dict_fields = {}
+            for field_name in list_fields:
+                dict_fields[field_name] = field_name
+            csvwriter.writerow(dict_fields)
 
-            if primKey == "_ENTIRE_CONTENTS":
+            if prim_key == "_ENTIRE_CONTENTS":
                 cursor = conn.cursor(MySQLdb.cursors.DictCursor)
                 sql = ("SELECT * FROM `{db}`.`{table}`").format(
                     db=_escape_id(self.provider._db),
-                    table=_escape_id(tableName),
+                    table=_escape_id(table_name),
                 )
                 cursor.execute(sql)
                 result_set = cursor.fetchall()
@@ -244,7 +251,9 @@ class MySQLBrowserResource(_DAVResource):
                     csvwriter.writerow(row)
                 cursor.close()
             else:
-                row = self.provider._get_record_by_primary_key(conn, tableName, primKey)
+                row = self.provider._get_record_by_primary_key(
+                    conn, table_name, prim_key
+                )
                 if row is not None:
                     csvwriter.writerow(row)
             conn.close()
@@ -263,16 +272,16 @@ class MySQLBrowserResource(_DAVResource):
         In addition, all table field names are returned as properties.
         """
         # Let default implementation return supported live and dead properties
-        propNames = super().get_property_names(is_allprop=is_allprop)
+        prop_names = super().get_property_names(is_allprop=is_allprop)
         # Add fieldnames as properties
-        tableName, primKey = self.provider._split_path(self.path)
-        if primKey is not None:
+        table_name, prim_key = self.provider._split_path(self.path)
+        if prim_key is not None:
             conn = self.provider._init_connection()
-            fieldlist = self.provider._get_field_list(conn, tableName)
+            fieldlist = self.provider._get_field_list(conn, table_name)
             for fieldname in fieldlist:
-                propNames.append(f"{{{tableName}:}}{fieldname}")
+                prop_names.append(f"{{{table_name}:}}{fieldname}")
             conn.close()
-        return propNames
+        return prop_names
 
     def get_property_value(self, name):
         """Return the value of a property.
@@ -287,15 +296,15 @@ class MySQLBrowserResource(_DAVResource):
           the associated property manager, if one is present.
         """
         # Return table field as property
-        tableName, primKey = self.provider._split_path(self.path)
-        if primKey is not None:
-            ns, localName = util.split_namespace(name)
-            if ns == (tableName + ":"):
+        table_name, prim_key = self.provider._split_path(self.path)
+        if prim_key is not None:
+            ns, local_name = util.split_namespace(name)
+            if ns == (table_name + ":"):
                 conn = self.provider._init_connection()
-                fieldlist = self.provider._get_field_list(conn, tableName)
-                if localName in fieldlist:
+                fieldlist = self.provider._get_field_list(conn, table_name)
+                if local_name in fieldlist:
                     val = self.provider._get_field_by_primary_key(
-                        conn, tableName, primKey, localName
+                        conn, table_name, prim_key, local_name
                     )
                     conn.close()
                     return val
@@ -334,9 +343,9 @@ class MySQLBrowserProvider(DAVProvider):
         """Return (tableName, primaryKey) tuple for a request path."""
         if path.strip() in (None, "", "/"):
             return (None, None)
-        tableName, primKey = util.save_split(path.strip("/"), "/", 1)
-        #        _logger.debug("'%s' -> ('%s', '%s')" % (path, tableName, primKey))
-        return (tableName, primKey)
+        table_name, prim_key = util.save_split(path.strip("/"), "/", 1)
+        #        _logger.debug("'%s' -> ('%s', '%s')" % (path, table_name, prim_key))
+        return (table_name, prim_key)
 
     def _init_connection(self):
         self._count_initConnection += 1
@@ -439,7 +448,7 @@ class MySQLBrowserProvider(DAVProvider):
         return val
 
     def _get_record_by_primary_key(self, conn, table_name, pri_key_value):
-        dictRet = {}
+        dict_ret = {}
         pri_key = None
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("DESCRIBE `%s`" % _escape_id(table_name))
@@ -464,9 +473,9 @@ class MySQLBrowserProvider(DAVProvider):
             cursor.close()
             return None
         for fname in row.keys():
-            dictRet[fname] = util.to_str(row[fname])
+            dict_ret[fname] = util.to_str(row[fname])
         cursor.close()
-        return dictRet
+        return dict_ret
 
     def _find_primary_key(self, conn, table_name):
         pri_key = None
@@ -516,17 +525,17 @@ class MySQLBrowserProvider(DAVProvider):
         """
         # TODO: calling exists() makes directory browsing VERY slow.
         #       At least compared to PyFileServer, which simply used string
-        #       functions to get display_type and displayTypeComment
+        #       functions to get display_type and display_type_comment
         self._count_get_resource_inst += 1
         if not self.exists(path, environ):
             return None
-        _tableName, primKey = self._split_path(path)
-        is_collection = primKey is None
+        _table_name, prim_key = self._split_path(path)
+        is_collection = prim_key is None
         return MySQLBrowserResource(self, path, is_collection, environ)
 
     def exists(self, path, environ):
-        tableName, primKey = self._split_path(path)
-        if tableName is None:
+        table_name, prim_key = self._split_path(path)
+        if table_name is None:
             return True
 
         try:
@@ -534,16 +543,16 @@ class MySQLBrowserProvider(DAVProvider):
             conn = self._init_connection()
             # Check table existence:
             tbllist = self._list_tables(conn)
-            if tableName not in tbllist:
+            if table_name not in tbllist:
                 return False
             # Check table key existence:
-            if primKey and primKey != "_ENTIRE_CONTENTS":
-                return self._exists_record_by_primary_key(conn, tableName, primKey)
+            if prim_key and prim_key != "_ENTIRE_CONTENTS":
+                return self._exists_record_by_primary_key(conn, table_name, prim_key)
             return True
         finally:
             if conn:
                 conn.close()
 
     def is_collection(self, path, environ):
-        _tableName, primKey = self._split_path(path)
-        return self.exists(path, environ) and primKey is None
+        _table_name, prim_key = self._split_path(path)
+        return self.exists(path, environ) and prim_key is None

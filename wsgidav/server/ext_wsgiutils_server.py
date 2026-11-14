@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
@@ -120,50 +120,50 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     #        BaseHTTPServer.BaseHTTPRequestHandler.log_request(self, *args)
 
-    def getApp(self):
+    def get_app(self):
         # We want fragments to be returned as part of <path>
         _protocol, _host, path, _parameters, query, _fragment = urlparse(
             f"http://dummyhost{self.path}", allow_fragments=False
         )
         # Find any application we might have
-        for appPath, app in self.server.wsgiApplications:
-            if path.startswith(appPath):
+        for app_path, app in self.server.wsgi_applications:
+            if path.startswith(app_path):
                 # We found the application to use - work out the script_name and path_info
-                path_info = path[len(appPath) :]
+                path_info = path[len(app_path) :]
                 if len(path_info) > 0:
                     if not path_info.startswith("/"):
                         path_info = "/" + path_info
-                if appPath.endswith("/"):
-                    script_name = appPath[:-1]
+                if app_path.endswith("/"):
+                    script_name = app_path[:-1]
                 else:
-                    script_name = appPath
+                    script_name = app_path
                 # Return all this
                 return app, script_name, path_info, query
         return None, None, None, None
 
-    def handlerFunctionClosure(self, name):
-        def handlerFunction(*args, **kwargs):
+    def handler_function_closure(self, name):
+        def handler_function(*args, **kwargs):
             self.do_method()
 
-        return handlerFunction
+        return handler_function
 
     def do_method(self):
-        app, script_name, path_info, query = self.getApp()
+        app, script_name, path_info, query = self.get_app()
         if not app:
             self.send_error(404, "Application not found.")
             return
-        self.runWSGIApp(app, script_name, path_info, query)
+        self.run_wsgi_app(app, script_name, path_info, query)
 
     def __getattr__(self, name):
         if len(name) > 3 and name[0:3] == "do_" and name[3:] in self._SUPPORTED_METHODS:
-            return self.handlerFunctionClosure(name)
+            return self.handler_function_closure(name)
         elif name == "_headers_buffer":
             # 2015-10-22: py3: prevent recursion/stackovervlow
             raise AttributeError
         self.send_error(501, "Method Not Implemented.")
         return
 
-    def runWSGIApp(self, application, script_name, path_info, query):
+    def run_wsgi_app(self, application, script_name, path_info, query):
         # logging.info ("Running application with SCRIPT_NAME {} PATH_INFO {}".format(
         #     script_name, path_info))
 
@@ -189,72 +189,74 @@ class ExtHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "SERVER_PORT": util.to_str(self.server.server_address[1]),
             "SERVER_PROTOCOL": self.request_version,
         }
-        for httpHeader, httpValue in self.headers.items():
-            if httpHeader.lower() not in ("content-type", "content-length"):
-                env["HTTP_{}".format(httpHeader.replace("-", "_").upper())] = httpValue
+        for http_header, http_value in self.headers.items():
+            if http_header.lower() not in ("content-type", "content-length"):
+                env["HTTP_{}".format(http_header.replace("-", "_").upper())] = (
+                    http_value
+                )
 
         # Setup the state
-        self.wsgiSentHeaders = 0
-        self.wsgiHeaders = []
+        self.wsgi_sent_headers = 0
+        self.wsgi_headers = []
 
         try:
             # We have there environment, now invoke the application
-            _logger.debug("runWSGIApp application()...")
-            result = application(env, self.wsgiStartResponse)
+            _logger.debug("run_wsgi_app application()...")
+            result = application(env, self.wsgi_start_response)
             try:
                 for data in result:
                     if data:
-                        self.wsgiWriteData(data)
+                        self.wsgi_write_data(data)
                     else:
-                        _logger.debug("runWSGIApp empty data")
+                        _logger.debug("run_wsgi_app empty data")
             finally:
-                _logger.debug("runWSGIApp finally.")
+                _logger.debug("run_wsgi_app finally.")
                 if hasattr(result, "close"):
                     result.close()
         except Exception:
-            _logger.debug("runWSGIApp caught exception...")
-            errorMsg = StringIO()
-            traceback.print_exc(file=errorMsg)
-            logging.error(errorMsg.getvalue())
-            if not self.wsgiSentHeaders:
-                self.wsgiStartResponse(
+            _logger.debug("run_wsgi_app caught exception...")
+            error_msg = StringIO()
+            traceback.print_exc(file=error_msg)
+            logging.error(error_msg.getvalue())
+            if not self.wsgi_sent_headers:
+                self.wsgi_start_response(
                     "500 Server Error", [("Content-type", "text/html")]
                 )
-            self.wsgiWriteData(SERVER_ERROR)
+            self.wsgi_write_data(SERVER_ERROR)
 
-        if not self.wsgiSentHeaders:
+        if not self.wsgi_sent_headers:
             # GC issue 29 sending one byte, when content-length is '0' seems wrong
             # We must write out something!
-            #            self.wsgiWriteData (" ")
-            self.wsgiWriteData(b"")
+            #            self.wsgi_write_data (" ")
+            self.wsgi_write_data(b"")
         return
 
-    def wsgiStartResponse(self, response_status, response_headers, exc_info=None):
+    def wsgi_start_response(self, response_status, response_headers, exc_info=None):
         _logger.debug(
-            f"wsgiStartResponse({response_status}, {response_headers}, {exc_info})"
+            f"wsgi_start_response({response_status}, {response_headers}, {exc_info})"
         )
-        if self.wsgiSentHeaders:
+        if self.wsgi_sent_headers:
             raise Exception("Headers already sent and start_response called again!")
         # Should really take a copy to avoid changes in the application....
-        self.wsgiHeaders = (response_status, response_headers)
-        return self.wsgiWriteData
+        self.wsgi_headers = (response_status, response_headers)
+        return self.wsgi_write_data
 
-    def wsgiWriteData(self, data):
-        if not self.wsgiSentHeaders:
-            status, headers = self.wsgiHeaders
+    def wsgi_write_data(self, data):
+        if not self.wsgi_sent_headers:
+            status, headers = self.wsgi_headers
             # Need to send header prior to data
-            statusCode = status[: status.find(" ")]
-            statusMsg = status[status.find(" ") + 1 :]
-            _logger.debug(f"wsgiWriteData: send headers '{status!r}', {headers!r}")
-            self.send_response(int(statusCode), statusMsg)
+            status_code = status[: status.find(" ")]
+            status_msg = status[status.find(" ") + 1 :]
+            _logger.debug(f"wsgi_write_data: send headers '{status!r}', {headers!r}")
+            self.send_response(int(status_code), status_msg)
             for header, value in headers:
                 self.send_header(header, value)
             self.end_headers()
-            self.wsgiSentHeaders = 1
+            self.wsgi_sent_headers = 1
         # Send the data
         assert type(data) is bytes  # If not, Content-Length is probably wrong!
         _logger.debug(
-            f"wsgiWriteData: write {len(data)} bytes: '{util.to_str(data[:50])!r}'..."
+            f"wsgi_write_data: write {len(data)} bytes: '{util.to_str(data[:50])!r}'..."
         )
         if util.is_str(data):  # If not, Content-Length is probably wrong!
             _logger.info(f"ext_wsgiutils_server: Got unicode data: {data!r}")
@@ -316,7 +318,7 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             return
 
         # Add a do_SHUTDOWN method to to the ExtHandler class
-        def _shutdownHandler(self):
+        def _shutdown_handler(self):
             """Send 200 OK response, and set server.stop_request to True.
 
             http://code.activestate.com/recipes/336012/
@@ -327,7 +329,7 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             self.server.stop_request = True
 
         if not hasattr(ExtHandler, "do_SHUTDOWN"):
-            ExtHandler.do_SHUTDOWN = _shutdownHandler
+            ExtHandler.do_SHUTDOWN = _shutdown_handler
 
         # Send request, so socket is unblocked
         (host, port) = self.server_address
@@ -353,14 +355,14 @@ class ExtServer(socketserver.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         #        _logger.info "serve_forever_stoppable() stopped."
         self.stopped = True
 
-    def __init__(self, serverAddress, wsgiApplications, serveFiles=1):
-        BaseHTTPServer.HTTPServer.__init__(self, serverAddress, ExtHandler)
-        appList = []
-        for urlPath, wsgiApp in wsgiApplications.items():
-            appList.append((urlPath, wsgiApp))
-        self.wsgiApplications = appList
-        self.serveFiles = serveFiles
-        self.serverShuttingDown = 0
+    def __init__(self, server_address, wsgi_applications, serve_files=1):
+        BaseHTTPServer.HTTPServer.__init__(self, server_address, ExtHandler)
+        app_list = []
+        for url_path, wsgi_app in wsgi_applications.items():
+            app_list.append((url_path, wsgi_app))
+        self.wsgi_applications = app_list
+        self.serve_files = serve_files
+        self.server_shutting_down = 0
 
 
 def serve(conf, app):

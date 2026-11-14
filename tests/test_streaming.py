@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
 
@@ -113,7 +113,7 @@ class BasicTest(unittest.TestCase):
             os.remove(self.target_path)
         self.provider = None
 
-    def testFileLikeQueueUnsized(self):
+    def test_file_like_queue_unsized(self):
         # queue of unlimited size
         q = FileLikeQueue()
         q.write(b"*" * 42)
@@ -129,7 +129,7 @@ class BasicTest(unittest.TestCase):
         # subsequent write will raise
         self.assertRaises(ValueError, q.write, b"***")
 
-    def testFileLikeQueue(self):
+    def test_file_like_queue(self):
         # queue of unlimited size
         q = FileLikeQueue()
         # queue 32 bytes
@@ -145,7 +145,7 @@ class BasicTest(unittest.TestCase):
         self.assertEqual(len(q.read(5)), 0, "further read() returns ''")
         # self.assertEqual(q.size, 0)
 
-    def testFileLikeQueueAll(self):
+    def test_file_like_queue_all(self):
         # queue of unlimited size
         q = FileLikeQueue()
         # queue 32 bytes
@@ -158,9 +158,9 @@ class BasicTest(unittest.TestCase):
         self.assertEqual(len(q.read(-1)), 32)
         self.assertEqual(len(q.read(-1)), 0)
 
-    def testStream(self):
+    def test_stream(self):
         with WsgiDavTestServer(provider=self.provider):
-            with Timing("testStream", self.SIZE):
+            with Timing("test_stream", self.SIZE):
                 with open(self.test_file, "rb") as f:
                     r = requests.put("http://127.0.0.1:8080/bar.txt", data=f)
         self.assertEqual(r.status_code, 204)
@@ -168,7 +168,7 @@ class BasicTest(unittest.TestCase):
 
     # def testStreamBlob(self):
     #     with WsgiDavTestServer(provider=self.provider):
-    #         with Timing("testStream", self.SIZE):
+    #         with Timing("test_stream", self.SIZE):
     #             blob = b"*" * self.SIZE
     #             r = requests.put("http://127.0.0.1:8080/bar.txt", data=blob)
     #         self.assertEqual(r.status_code, 204)
@@ -176,7 +176,7 @@ class BasicTest(unittest.TestCase):
 
     # def testStreamChunked(self):
     #     with WsgiDavTestServer(provider=self.provider):
-    #         with Timing("testStream", self.SIZE):
+    #         with Timing("test_stream", self.SIZE):
     #             def _print_url(r, *args, **kwargs):
     #                 print(r.url)
     #             def _generate():

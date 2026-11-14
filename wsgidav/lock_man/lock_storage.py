@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -212,9 +212,9 @@ class LockStorageDict:
             else:
                 # Note: Shelve dictionary returns copies, so we must reassign
                 # values:
-                tokList = self._dict[key]
-                tokList.append(token)
-                self._dict[key] = tokList
+                tok_list = self._dict[key]
+                tok_list.append(token)
+                self._dict[key] = tok_list
             self._flush()
             _logger.debug(f"LockStorageDict.set({org_path!r}): {lock_string(lock)}")
             return lock
@@ -266,12 +266,12 @@ class LockStorageDict:
             key = "URL2TOKEN:{}".format(lock.get("root"))
             if key in self._dict:
                 # _logger.debug("    delete token {} from url {}".format(token, lock.get("root")))
-                tokList = self._dict[key]
-                if len(tokList) > 1:
+                tok_list = self._dict[key]
+                if len(tok_list) > 1:
                     # Note: shelve dictionary returns copies, so we must
                     # reassign values:
-                    tokList.remove(token)
-                    self._dict[key] = tokList
+                    tok_list.remove(token)
+                    self._dict[key] = tok_list
                 else:
                     del self._dict[key]
             # Remove the lock
@@ -304,32 +304,32 @@ class LockStorageDict:
         assert path and path.startswith("/")
         assert include_root or include_children
 
-        def __appendLocks(toklist):
+        def __append_locks(toklist):
             # Since we can do this quickly, we use self.get() even if
             # token_only is set, so expired locks are purged.
             for token in toklist:
                 lock = self.get(token)
                 if lock:
                     if token_only:
-                        lockList.append(lock["token"])
+                        lock_list.append(lock["token"])
                     else:
-                        lockList.append(lock)
+                        lock_list.append(lock)
 
         path = normalize_lock_root(path)
         self._lock.acquire_read()
         try:
             key = f"URL2TOKEN:{path}"
-            tokList = self._dict.get(key, [])
-            lockList = []
+            tok_list = self._dict.get(key, [])
+            lock_list = []
             if include_root:
-                __appendLocks(tokList)
+                __append_locks(tok_list)
 
             if include_children:
                 for u, ltoks in self._dict.items():
                     if util.is_child_uri(key, u):
-                        __appendLocks(ltoks)
+                        __append_locks(ltoks)
 
-            return lockList
+            return lock_list
         finally:
             self._lock.release()
 

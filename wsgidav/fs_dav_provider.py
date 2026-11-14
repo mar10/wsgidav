@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -19,7 +19,6 @@ import os
 import shutil
 import stat
 import sys
-from typing import List
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
@@ -116,25 +115,25 @@ class FileResource(DAVNonCollection):
         """See DAVResource.copy_move_single()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
+        fp_dest = self.provider._loc_to_file_path(dest_path, self.environ)
         assert not util.is_equal_or_child_uri(self.path, dest_path)
         # Copy file (overwrite, if exists)
-        shutil.copy2(self._file_path, fpDest)
+        shutil.copy2(self._file_path, fp_dest)
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
-        propMan = self.provider.prop_manager
-        if propMan:
-            destRes = self.provider.get_resource_inst(dest_path, self.environ)
+        prop_man = self.provider.prop_manager
+        if prop_man:
+            dest_res = self.provider.get_resource_inst(dest_path, self.environ)
             if is_move:
-                propMan.move_properties(
+                prop_man.move_properties(
                     self.get_ref_url(),
-                    destRes.get_ref_url(),
+                    dest_res.get_ref_url(),
                     with_children=False,
                     environ=self.environ,
                 )
             else:
-                propMan.copy_properties(
-                    self.get_ref_url(), destRes.get_ref_url(), self.environ
+                prop_man.copy_properties(
+                    self.get_ref_url(), dest_res.get_ref_url(), self.environ
                 )
 
     def support_recursive_move(self, dest_path):
@@ -145,18 +144,18 @@ class FileResource(DAVNonCollection):
         """See DAVResource.move_recursive()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
+        fp_dest = self.provider._loc_to_file_path(dest_path, self.environ)
         assert not util.is_equal_or_child_uri(self.path, dest_path)
-        assert not os.path.exists(fpDest)
-        _logger.debug(f"move_recursive({self._file_path}, {fpDest})")
-        shutil.move(self._file_path, fpDest)
+        assert not os.path.exists(fp_dest)
+        _logger.debug(f"move_recursive({self._file_path}, {fp_dest})")
+        shutil.move(self._file_path, fp_dest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
         if self.provider.prop_manager:
-            destRes = self.provider.get_resource_inst(dest_path, self.environ)
+            dest_res = self.provider.get_resource_inst(dest_path, self.environ)
             self.provider.prop_manager.move_properties(
                 self.get_ref_url(),
-                destRes.get_ref_url(),
+                dest_res.get_ref_url(),
                 with_children=True,
                 environ=self.environ,
             )
@@ -218,7 +217,7 @@ class FolderResource(DAVCollection):
     def is_link(self):
         return os.path.islink(self._file_path)
 
-    def get_member_names(self) -> List[str]:
+    def get_member_names(self) -> list[str]:
         """Return list of direct collection member names (utf-8 encoded).
 
         See DAVCollection.get_member_names()
@@ -230,7 +229,7 @@ class FolderResource(DAVCollection):
         # instead of a special character. The name would then be unusable to
         # build a distinct URL that references this resource.
 
-        nameList = []
+        name_list = []
         # self._file_path is unicode, so os.listdir returns unicode as well
         assert util.is_str(self._file_path)
         # if "temp" in self._file_path:
@@ -249,8 +248,8 @@ class FolderResource(DAVCollection):
                 continue
             # name = name.encode("utf8")
             name = util.to_str(name)
-            nameList.append(name)
-        return nameList
+            name_list.append(name)
+        return name_list
 
     def get_member(self, name: str) -> FileResource:
         """Return direct collection member (DAVResource or derived).
@@ -305,32 +304,32 @@ class FolderResource(DAVCollection):
         """See DAVResource.copy_move_single()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
+        fp_dest = self.provider._loc_to_file_path(dest_path, self.environ)
         assert not util.is_equal_or_child_uri(self.path, dest_path)
         # Create destination collection, if not exists
-        if not os.path.exists(fpDest):
-            os.mkdir(fpDest)
+        if not os.path.exists(fp_dest):
+            os.mkdir(fp_dest)
         try:
             # may raise: [Error 5] Permission denied:
             # u'C:\\temp\\litmus\\ccdest'
-            shutil.copystat(self._file_path, fpDest)
+            shutil.copystat(self._file_path, fp_dest)
         except Exception:
             _logger.exception(f"Could not copy folder stats: {self._file_path}")
         # (Live properties are copied by copy2 or copystat)
         # Copy dead properties
-        propMan = self.provider.prop_manager
-        if propMan:
-            destRes = self.provider.get_resource_inst(dest_path, self.environ)
+        prop_man = self.provider.prop_manager
+        if prop_man:
+            dest_res = self.provider.get_resource_inst(dest_path, self.environ)
             if is_move:
-                propMan.move_properties(
+                prop_man.move_properties(
                     self.get_ref_url(),
-                    destRes.get_ref_url(),
+                    dest_res.get_ref_url(),
                     with_children=False,
                     environ=self.environ,
                 )
             else:
-                propMan.copy_properties(
-                    self.get_ref_url(), destRes.get_ref_url(), self.environ
+                prop_man.copy_properties(
+                    self.get_ref_url(), dest_res.get_ref_url(), self.environ
                 )
 
     def support_recursive_move(self, dest_path):
@@ -341,18 +340,18 @@ class FolderResource(DAVCollection):
         """See DAVResource.move_recursive()"""
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        fpDest = self.provider._loc_to_file_path(dest_path, self.environ)
+        fp_dest = self.provider._loc_to_file_path(dest_path, self.environ)
         assert not util.is_equal_or_child_uri(self.path, dest_path)
-        assert not os.path.exists(fpDest)
-        _logger.debug(f"move_recursive({self._file_path}, {fpDest})")
-        shutil.move(self._file_path, fpDest)
+        assert not os.path.exists(fp_dest)
+        _logger.debug(f"move_recursive({self._file_path}, {fp_dest})")
+        shutil.move(self._file_path, fp_dest)
         # (Live properties are copied by copy2 or copystat)
         # Move dead properties
         if self.provider.prop_manager:
-            destRes = self.provider.get_resource_inst(dest_path, self.environ)
+            dest_res = self.provider.get_resource_inst(dest_path, self.environ)
             self.provider.prop_manager.move_properties(
                 self.get_ref_url(),
-                destRes.get_ref_url(),
+                dest_res.get_ref_url(),
                 with_children=True,
                 environ=self.environ,
             )
@@ -408,6 +407,9 @@ class FilesystemProvider(DAVProvider):
     def __repr__(self):
         rw = "Read-Only" if self.readonly else "Read-Write"
         return f"{self.__class__.__name__} for path {self.root_folder_path!r} ({rw})"
+
+    def is_readonly(self):
+        return bool(self.readonly)
 
     @staticmethod
     def _is_equal_or_child_path(root_path, file_path):

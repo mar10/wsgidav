@@ -15,7 +15,7 @@ There are many ways you can help:
 - Send feedback: |br|
   Know a cool project that uses it,
   created a custom provider or have an interesting use case?
-  Let us know in :ref:`the forum <_forum>` .
+  Let us know in the `forum`_.
 - Create issues for bugs or feature requests (see `Bug Reports and Feature Requests`_ below).
 - Help others, by answering questions in the `forum`_ or on `Stackoverflow`_.
 - Improve this documentation.
@@ -40,7 +40,7 @@ feature, please submit it to the `issue tracker`_ on GitHub.
 
 .. note::
   The issue tracker is for bugs and feature requests.
-  Please use :ref:`the Q&A forum <forum>` or `Stackoverflow`_ to ask questions.
+  Please use the `forum`_ or `Stackoverflow`_ to ask questions.
 
 Use the search function to find existing issues if any.
 If you have additional information, add a comment there instead of creating a new issue.
@@ -121,56 +121,55 @@ Create and Activate a Virtual Environment
 
 Virtual environments allow us to develop and test in a sandbox, without affecting our
 system otherwise. |br|
-We need `Python 3.9+ <https://www.python.org/downloads/>`_,
+We need `Python 3.10+ <https://www.python.org/downloads/>`_,
 and `pip <https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip>`_ 
 on our system.
 
 If you want to run tests on *all supported* platforms, install Python 
-3.9, 3.10, 3.11 and 3.12.
+3.10, 3.11, 3.12, 3.13 and 3.14.
 
-On Linux/OS X, we recommend to use `pipenv <https://github.com/kennethreitz/pipenv>`_
-to activate a virtual environment::
+We use `uv <https://docs.astral.sh/uv/>`_ for dependency management. Install it with::
+
+    $ curl -LsSf https://astral.sh/uv/install.sh | sh
+
+or via Homebrew (macOS)::
+
+    $ brew install uv
+
+Then create and activate the virtual environment::
 
     $ cd /path/to/wsgidav
-    $ pipenv shell
-    bash-3.2$
+    $ uv sync
+    $ source .venv/bin/activate
 
-**Note:** On Ubuntu you additionally may have to install ``apt-get install python3-venv``.
-
-
-Alternatively (especially on Windows), use `virtualenv <https://virtualenv.pypa.io/en/latest/>`_
-to create and activate the virtual environment.
-For example using Python's builtin ``venv`` (instead of ``virtualenvwrapper``)
-in a Windows PowerShell::
+On Windows (PowerShell)::
 
     > cd /path/wsgidav
-    > py -3.6 -m venv c:\env\wsgidav_py36
-    > c:\env\wsgidav_py36\Scripts\Activate.ps1
-    (wsgidav_py36) $
+    > uv sync
+    > .venv\Scripts\Activate.ps1
+
+**Note:** On Ubuntu you additionally may have to install ``apt-get install python3-venv``.
 
 
 Install Requirements
 ^^^^^^^^^^^^^^^^^^^^
 
-Now that the new environment exists and is activated, we can setup the
-requirements::
+``uv sync`` installs all runtime and development dependencies defined in
+``pyproject.toml`` (including the ``[dependency-groups]``) and creates a
+``uv.lock`` lock file::
 
-    $ pip install -r requirements-dev.txt
+    $ uv sync
 
-and install wsgidav to run from source code::
-
-    $ pip install -e .
-
-..    $ python setup.py develop
+``uv sync`` also installs wsgidav itself in editable mode, so source changes
+are picked up immediately.
 
 If everything is cool, this code should now run::
 
-    $ wsgidav --version
-    $ 2.3.1
+    $ uv run wsgidav --version
 
 The test suite should run as well::
 
-    $ tox
+    $ uv run tox
 
 
 Hack, Hack, Hack
@@ -180,20 +179,19 @@ Hack, Hack, Hack
 
       Follow the Style Guide, basically `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
 
-      Since version 3.x source formatting rules are delegated to the
-      `Black library <https://black.readthedocs.io/en/stable/>`_.
+      Since version 3.x source formatting rules are delegated to
+      `Ruff <https://docs.astral.sh/ruff/>`_ (lint + format).
 
       Failing tests or not following PEP 8 will break builds on
       `GitHub <https://github.com/mar10/wsgidav/actions/workflows/tests.yml>`_ 
       and therefore be automatically rejected:
 
-        - Run ``$ tox -e format`` to re-format the code, or
-          `look for plugins for your favorite editor <https://black.readthedocs.io/en/stable/editor_integration.html>`_
-          that format on-save.
+        - Run ``$ uv run tox -e format`` to re-format the code, or
+          look for plugins for your favorite editor that format on-save.
 
-        - Run ``$ tox -e check`` frequently and before you commit.
+        - Run ``$ uv run tox -e check`` frequently and before you commit.
 
-        - Don't forget to run ``$ tox -e format`` and ``$ tox`` to run the
+        - Don't forget to run ``$ uv run tox -e format`` and ``$ uv run tox`` to run the
           whole test suite before you commit.
 
 
@@ -203,31 +201,31 @@ Test, Test, Test
 Testing is best done through ``tox``, which provides a number of targets and
 allows testing against multiple different Python environments:
 
-* To run all unit tests on all suppprted Python versions inclusive flake8 style
+* To run all unit tests on all supported Python versions inclusive Ruff style
   checks and code coverage::
 
-      $ tox
+      $ uv run tox
 
-* To run unit tests for a specific Python version, such as 3.6::
+* To run unit tests for a specific Python version, such as 3.10::
 
-      $ tox -e py36
+      $ uv run tox -e py310
 
-* To run selective tests, ww can call ``py.test`` directly, e.g.::
+* To run selective tests, we can call ``pytest`` directly, e.g.::
 
-      $ py.test -ra wsgidav tests/test_util.py
+      $ uv run pytest -ra tests/test_util.py
 
 * Arguments to ``pytest`` can be passed via ``tox``, e.g. in order to run a
   particular test::
 
-      $ tox -e py39 -- -x tests/test_util.py::BasicTest::testBasics
+      $ uv run tox -e py310 -- -x tests/test_util.py::BasicTest::test_basics
 
 * To list all possible targets (available commands)::
 
-      $ tox -av
+      $ uv run tox -av
 
 * To build the Sphinx documentation::
 
-      $ tox -e docs
+      $ uv run tox -e docs
 
 Gain additional Kudos by first adding a test that fails without your changes and passes
 after they are applied. |br|

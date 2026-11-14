@@ -15,7 +15,7 @@ NOTE:
     "3.0.0a4" seems not to work in this case!
 """
 
-__version__ = "4.4.1-0"
+__version__ = "5.0.0-a1"
 
 # make version accessible as 'wsgidav.__version__'
 # from wsgidav._version import __version__  # noqa: F401

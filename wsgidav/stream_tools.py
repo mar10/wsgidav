@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Implement the FileLikeQueue helper class.
@@ -6,10 +6,10 @@ Implement the FileLikeQueue helper class.
 This helper class is intended to handle use cases where an incoming PUT
 request should be directly streamed to a remote target.
 
-Usage: return an instance of this class to`begin_write` and pass it to the
+Usage: return an instance of this class to ``begin_write`` and pass it to the
 consumer at the same time::
 
-    def begin_write(self, contentType=None):
+    def begin_write(self, *, content_type=None):
         queue = FileLikeQueue(max_size=1)
         requests.post(..., data=queue)
         return queue
@@ -38,7 +38,7 @@ class FileLikeQueue:
     This helper class is intended to handle use cases where an incoming PUT
     request should be directly streamed to a remote target:
 
-    def begin_write(self, contentType=None):
+    def begin_write(self, *, content_type=None):
         # Create a proxy buffer
         queue = FileLikeQueue(max_size=1)
         # ... and use it as source for the consumer:

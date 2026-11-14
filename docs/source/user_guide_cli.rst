@@ -5,8 +5,8 @@ Command Line Interface
 
 The WsgiDAV server was tested with these platforms
 
-  * Mac OS X
-  * Ubuntu
+  * macOS
+  * Linux
   * Windows
 
 To serve the ``/tmp`` folder as WebDAV ``/`` share, simply run::
@@ -38,8 +38,8 @@ CLI Options
 Use the ``--help`` or ``-h`` argument to get help::
 
   $ wsgidav --help
-  usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH] [--auth {anonymous,nt,pam-login}] [--server {cheroot,ext-wsgiutils,gevent,gunicorn,paste,uvicorn,wsgiref}]
-                [--ssl-adapter {builtin,pyopenssl}] [-v | -q] [-c CONFIG_FILE | --no-config] [--browse] [-V]
+usage: wsgidav [-h] [-p PORT] [-H HOST] [-r ROOT_PATH] [--auth {anonymous,nt,pam-login}] [--server {cheroot,ext-wsgiutils,gevent,gunicorn,paste,uvicorn,wsgiref}]
+               [--ssl-adapter {builtin,pyopenssl}] [--web-ui {none,dav-explorer,dir-browser}] [-v | -q] [-c CONFIG_FILE | --no-config] [--browse] [-V]
 
   Run a WEBDAV server to share file system folders.
 
@@ -70,6 +70,8 @@ Use the ``--help`` or ``-h`` argument to get help::
                           type of pre-installed WSGI server to use (default: cheroot).
     --ssl-adapter {builtin,pyopenssl}
                           used by 'cheroot' server if SSL certificates are configured (default: builtin).
+    --web-ui {none,dav-explorer,dir-browser}
+                          web frontend for directory browsing (default: dav-explorer).
     -v, --verbose         increment verbosity by one (default: 3, range: 0..5)
     -q, --quiet           decrement verbosity by one
     -c CONFIG_FILE, --config CONFIG_FILE

@@ -1,4 +1,4 @@
-# (c) 2009-2024 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
+# (c) 2009-2026 Martin Wendt and contributors; see WsgiDAV https://github.com/mar10/wsgidav
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
@@ -149,10 +149,10 @@ class LockManager:
         return f"{self.__class__.__name__}({self.storage!r})"
 
     def _dump(self, msg=""):
-        urlDict = {}  # { <url>: [<tokenlist>] }
-        ownerDict = {}  # { <LOCKOWNER>: [<tokenlist>] }
-        userDict = {}  # { <LOCKUSER>: [<tokenlist>] }
-        tokenDict = {}  # { <token>: <LOCKURLS> }
+        url_dict = {}  # { <url>: [<tokenlist>] }
+        owner_dict = {}  # { <LOCKOWNER>: [<tokenlist>] }
+        user_dict = {}  # { <LOCKUSER>: [<tokenlist>] }
+        token_dict = {}  # { <token>: <LOCKURLS> }
 
         _logger.info(f"{self}: {msg}")
 
@@ -160,18 +160,18 @@ class LockManager:
             "/", include_root=True, include_children=True, token_only=False
         ):
             tok = lock["token"]
-            tokenDict[tok] = lock_string(lock)
-            userDict.setdefault(lock["principal"], []).append(tok)
-            ownerDict.setdefault(lock["owner"], []).append(tok)
-            urlDict.setdefault(lock["root"], []).append(tok)
+            token_dict[tok] = lock_string(lock)
+            user_dict.setdefault(lock["principal"], []).append(tok)
+            owner_dict.setdefault(lock["owner"], []).append(tok)
+            url_dict.setdefault(lock["root"], []).append(tok)
 
-        _logger.info(f"Locks:\n{pformat(tokenDict, indent=0, width=255)}")
-        if tokenDict:
-            _logger.info(f"Locks by URL:\n{pformat(urlDict, indent=4, width=255)}")
+        _logger.info(f"Locks:\n{pformat(token_dict, indent=0, width=255)}")
+        if token_dict:
+            _logger.info(f"Locks by URL:\n{pformat(url_dict, indent=4, width=255)}")
             _logger.info(
-                f"Locks by principal:\n{pformat(userDict, indent=4, width=255)}"
+                f"Locks by principal:\n{pformat(user_dict, indent=4, width=255)}"
             )
-            _logger.info(f"Locks by owner:\n{pformat(ownerDict, indent=4, width=255)}")
+            _logger.info(f"Locks by owner:\n{pformat(owner_dict, indent=4, width=255)}")
 
     def _generate_lock(
         self, principal, lock_type, lock_scope, lock_depth, lock_owner, path, timeout
@@ -336,10 +336,10 @@ class LockManager:
         Side effect: expired locks for this url are purged.
         """
         url = normalize_lock_root(url)
-        lockList = self.storage.get_lock_list(
+        lock_list = self.storage.get_lock_list(
             url, include_root=True, include_children=recursive, token_only=False
         )
-        return lockList
+        return lock_list
 
     def get_indirect_url_lock_list(self, url, *, principal=None):
         """Return a list of valid lockDicts, that protect <path> directly or indirectly.
@@ -348,13 +348,13 @@ class LockManager:
         Side effect: expired locks for this path and all parents are purged.
         """
         url = normalize_lock_root(url)
-        lockList = []
+        lock_list = []
         u = url
         while u:
-            lock_list = self.storage.get_lock_list(
+            u_lock_list = self.storage.get_lock_list(
                 u, include_root=True, include_children=False, token_only=False
             )
-            for lock in lock_list:
+            for lock in u_lock_list:
                 if u != url and lock["depth"] != "infinity":
                     continue  # We only consider parents with Depth: infinity
                 # TODO: handle shared locks in some way?
@@ -362,25 +362,25 @@ class LockManager:
                 #                   and principal != lock["principal"]):
                 # continue  # Only compatible with shared locks by other users
                 if principal is None or principal == lock["principal"]:
-                    lockList.append(lock)
+                    lock_list.append(lock)
             u = util.get_uri_parent(u)
-        return lockList
+        return lock_list
 
     def is_url_locked(self, url):
         """Return True, if url is directly locked."""
-        lockList = self.get_url_lock_list(url)
-        return len(lockList) > 0
+        lock_list = self.get_url_lock_list(url)
+        return len(lock_list) > 0
 
     def is_url_locked_by_token(self, url, lock_token):
         """Check, if url (or any of it's parents) is locked by lock_token."""
-        lockUrl = self.get_lock(lock_token, key="root")
-        return lockUrl and util.is_equal_or_child_uri(lockUrl, url)
+        lock_url = self.get_lock(lock_token, key="root")
+        return lock_url and util.is_equal_or_child_uri(lock_url, url)
 
     def remove_all_locks_from_url(self, url, *, recursive=False):
         self._lock.acquire_write()
         try:
-            lockList = self.get_url_lock_list(url, recursive=recursive)
-            for lock in lockList:
+            lock_list = self.get_url_lock_list(url, recursive=recursive)
+            for lock in lock_list:
                 self.release(lock["token"])
         finally:
             self._lock.release()

@@ -43,19 +43,13 @@ from pprint import pformat
 from threading import Timer
 
 import yaml
+from json5 import load as json_load
 
 from wsgidav import __version__, util
 from wsgidav.default_conf import DEFAULT_CONFIG, DEFAULT_VERBOSE
 from wsgidav.fs_dav_provider import FilesystemProvider
 from wsgidav.wsgidav_app import WsgiDAVApp
 from wsgidav.xml_tools import use_lxml
-
-try:
-    # Try pyjson5 first because it's faster than json5
-    from pyjson5 import load as json_load
-except ImportError:
-    from json5 import load as json_load
-
 
 __docformat__ = "reStructuredText"
 
@@ -178,6 +172,12 @@ See https://github.com/mar10/wsgidav for additional information.
         help="used by 'cheroot' server if SSL certificates are configured "
         "(default: builtin).",
     )
+    parser.add_argument(
+        "--web-ui",
+        choices=("none", "dav-explorer", "dir-browser"),
+        default="dir-browser",
+        help="web frontend for directory browsing (default: dir-browser).",
+    )
 
     qv_group = parser.add_mutually_exclusive_group()
     qv_group.add_argument(
@@ -251,11 +251,11 @@ See https://github.com/mar10/wsgidav for additional information.
     elif args.config_file is None:
         # If --config was omitted, use default (if it exists)
         for filename in DEFAULT_CONFIG_FILES:
-            defPath = os.path.abspath(filename)
-            if os.path.exists(defPath):
+            def_path = os.path.abspath(filename)
+            if os.path.exists(def_path):
                 if args.verbose >= 3:
-                    print(f"Using default configuration file: {defPath}")
-                args.config_file = defPath
+                    print(f"Using default configuration file: {def_path}")
+                args.config_file = def_path
                 break
     else:
         # If --config was specified convert to absolute path and assert it exists
@@ -266,12 +266,12 @@ See https://github.com/mar10/wsgidav for additional information.
             )
 
     # Convert args object to dictionary
-    cmdLineOpts = args.__dict__.copy()
+    cmd_line_opts = args.__dict__.copy()
     if args.verbose >= 5:
         print("Command line args:")
-        for k, v in cmdLineOpts.items():
+        for k, v in cmd_line_opts.items():
             print(f"    {k:>12}: {v}")
-    return cmdLineOpts, parser
+    return cmd_line_opts, parser
 
 
 def _read_config_file(config_file, _verbose):
@@ -338,6 +338,13 @@ def _init_config():
         config["server"] = cli_opts.get("server")
     if cli_opts.get("ssl_adapter") is not None:
         config["ssl_adapter"] = cli_opts.get("ssl_adapter")
+
+    web_ui = cli_opts.get("web_ui")
+    if web_ui is not None:
+        ui_dir_browser = config.get("dir_browser", {})
+        ui_dav_explorer = config.get("dav_explorer", {})
+        ui_dir_browser["enable"] = web_ui == "dir-browser"
+        ui_dav_explorer["enable"] = web_ui == "dav-explorer"
 
     # Command line overrides file only if -v or -q where passed:
     if cli_opts.get("verbose") != DEFAULT_VERBOSE:

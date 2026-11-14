@@ -11,6 +11,7 @@ This section describes how to *use* the WsgiDAV library. |br|
    user_guide_cli
    user_guide_configure
    user_guide_access
+   user_guide_dav_explorer
    user_guide_lib
    user_guide_custom_providers.rst
    faq.rst
