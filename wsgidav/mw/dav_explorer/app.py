@@ -52,12 +52,16 @@ class WsgiDavExplorer(BaseMiddleware):
             ASSET_SHARE, True
         )
 
-        # Prepare a Jinja2 template
+        # Prepare a Jinja2 template.
+        # The template is looked up on every request: Jinja caches it and only
+        # reloads it when app.html changed (`auto_reload`). This keeps the page
+        # in sync with the JS/CSS assets, which are served from disk as well.
         template_loader = FileSystemLoader(searchpath=self.htdocs_path)
-        template_env = Environment(
-            loader=template_loader, autoescape=select_autoescape()
+        self.template_env = Environment(
+            loader=template_loader, autoescape=select_autoescape(), auto_reload=True
         )
-        self.template = template_env.get_template("app.html")
+        # Fail early if the template is missing or invalid
+        self.template_env.get_template("app.html")
 
     def is_disabled(self):
         return self.davex_config.get("enable") is False
@@ -100,7 +104,7 @@ class WsgiDavExplorer(BaseMiddleware):
 
             context = self._get_jinja_context(environ, dav_res)
 
-            res = self.template.render(**context)
+            res = self.template_env.get_template("app.html").render(**context)
             res = util.to_bytes(res)
             start_response(
                 "200 OK",

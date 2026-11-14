@@ -1,11 +1,11 @@
 "use strict";
 
 import { Wunderbaum, config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, isIgnored, isValidResourceName, parseDateToTimestamp, settingsStore } from "./util.js";
-import { getFileIcon, getFileInfo, getOfficeUrlPrefix, showPreview, togglePreviewPane, updateNodePreviewInfo } from "./previews.js";
+import { closeTextEditor, getFileIcon, getFileInfo, getOfficeUrlPrefix, showPreview, togglePreviewPane, updateNodePreviewInfo } from "./previews.js";
 import { addFileToDataTransfer, createFolder, downloadFile, registerCommandButtons, rowActionsHtmlTemplateFile, rowActionsHtmlTemplateFolder, showContextMenu, showNotification, uploadFiles, uploadFilesDialog } from "./widgets.js";
 
 // Commands that modify server data are rejected in readonly mode
-const WRITE_COMMANDS = new Set(["cut", "delete", "newFolder", "newTopFolder", "paste", "rename", "upload", "uploadTop"]);
+const WRITE_COMMANDS = new Set(["cut", "delete", "edit", "newFolder", "newTopFolder", "paste", "rename", "upload", "uploadTop"]);
 
 const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 const SHORTCUTS = {
@@ -104,8 +104,10 @@ function getMenuItems(node) {
   const file = isFile(node) && !isRoot;
   const container = isRoot || isFolder(node);
   const inOffice = file && settingsStore.get("office_support") && !!getOfficeUrlPrefix(node);
+  const isText = file && getFileInfo(node.title)?.preview === "text";
   const items = [
     file && { command: "open", label: inOffice ? "Open in Office" : "Open", icon: inOffice ? "bi-windows" : "bi-box-arrow-up-right" },
+    isText && { command: "edit", label: "Edit", icon: "bi-pencil" },
     file && { command: "download", label: "Download", icon: "bi-cloud-download" },
     container && { command: "upload", label: "Upload files...", icon: "bi-cloud-plus" },
     container && { command: "newFolder", label: isRoot ? "New top folder..." : "New subfolder...", icon: "bi-folder-plus" },
@@ -307,6 +309,10 @@ const _tree = new Wunderbaum({
       e.tree.sort({ colId: e.info.colId, updateColInfo: true });
     }
   },
+  beforeActivate: () => {
+    // Returns false (keep the current node) if the user wants to keep editing
+    return closeTextEditor();
+  },
   activate: (e) => {
     showPreview(e.node);
   },
@@ -490,12 +496,8 @@ function handleCommand(e) {
   }
   switch (e.command) {
     case "togglePreview":
+      // Also updates the preview for the active node
       togglePreviewPane(e.isPressed);
-      if (e.isPressed) {
-        showPreview(node);
-      } else {
-        showPreview(null);
-      }
       break;
     case "toggleTheme": {
       const next = THEME_MODES[(THEME_MODES.indexOf(getThemeMode()) + 1) % THEME_MODES.length];
@@ -542,6 +544,9 @@ function handleCommand(e) {
       break;
     case "open":
       openDocument(node);
+      break;
+    case "edit":
+      showPreview(node, { autoOpen: true, edit: true });
       break;
     case "cut":
     case "copy":

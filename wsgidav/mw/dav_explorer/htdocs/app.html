@@ -90,7 +90,22 @@
           <p>Please select a file or folder.</p>
         </div>
         <img id="preview-img" src="" alt="Image Preview" class="preview-pane hidden" />
-        <pre id="preview-text" class="preview-pane hidden"></pre>
+        <div id="preview-text" class="preview-pane hidden">
+          <div class="text-toolbar">
+            <span class="text-status" aria-live="polite"></span>
+            <button type="button" data-text-command="edit" title="Lock the file and edit it" data-write hidden>
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+            <button type="button" data-text-command="save" class="primary" title="Save (Ctrl+S)" hidden>
+              <i class="bi bi-floppy"></i> Save
+            </button>
+            <button type="button" data-text-command="cancel" title="Close the editor and release the lock (Esc)" hidden>
+              <i class="bi bi-x-lg"></i> Close
+            </button>
+          </div>
+          <pre class="text-fallback"></pre>
+          <div class="cm-host hidden"></div>
+        </div>
         <div id="preview-folder" class="preview-pane hidden">
           <div id="dropzone" class="dropzone" data-write>
             <p>Drag and drop files here to upload into current folder, or click to select files.</p>

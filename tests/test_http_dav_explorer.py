@@ -107,13 +107,87 @@ class DavExplorerTest(unittest.TestCase):
 
     def test_assets_are_anonymous(self):
         """The JS/CSS assets are served without authentication."""
-        for name in ("app.js", "util.js", "app.css"):
+        for name in ("app.js", "util.js", "app.css", "previews.js", "editor.js"):
             res = requests.get(self.url + ":dav_explorer/" + name)
             assert res.status_code == 200, name
 
         # Removed dead module
         res = requests.get(self.url + ":dav_explorer/actions.js")
         assert res.status_code == 404
+
+    def test_lock_edit_save_unlock(self):
+        """The text editor locks a file, saves it with the lock token, and unlocks it."""
+        url = self.url + "editor-test.txt"
+        res = requests.put(url, data=b"initial", auth=self.auth)
+        assert res.status_code in (201, 204)
+
+        # LOCK (like webdav.client.lock())
+        res = requests.request(
+            "LOCK",
+            url,
+            auth=self.auth,
+            headers={"Timeout": "Second-300", "Content-Type": "application/xml"},
+            data=LOCKINFO_BODY,
+        )
+        assert res.status_code == 200
+        token = res.headers["Lock-Token"].strip("<>")
+        assert token.startswith("opaquelocktoken:")
+
+        try:
+            # Another user cannot lock the file that is being edited
+            res = requests.request(
+                "LOCK",
+                url,
+                auth=("tester2", "secret2"),
+                headers={"Timeout": "Second-300", "Content-Type": "application/xml"},
+                data=LOCKINFO_BODY,
+            )
+            assert res.status_code == 423
+
+            # Saving without the lock token fails
+            res = requests.put(url, data=b"no token", auth=self.auth)
+            assert res.status_code == 423
+
+            # Saving with the lock token succeeds
+            res = requests.put(
+                url,
+                data="edited \u00e4".encode(),
+                auth=self.auth,
+                headers={
+                    "If": f"(<{token}>)",
+                    "Content-Type": "text/plain; charset=utf-8",
+                },
+            )
+            assert res.status_code == 204
+            res = requests.get(url, auth=self.auth)
+            assert res.content == "edited \u00e4".encode()
+
+            # Refresh the lock (LOCK without body, as sent by the editor)
+            res = requests.request(
+                "LOCK",
+                url,
+                auth=self.auth,
+                headers={"If": f"(<{token}>)", "Timeout": "Second-300"},
+            )
+            assert res.status_code == 200
+        finally:
+            res = requests.request(
+                "UNLOCK", url, auth=self.auth, headers={"Lock-Token": f"<{token}>"}
+            )
+            assert res.status_code == 204
+
+        # Unlocked: saving without a token works again
+        res = requests.put(url, data=b"unlocked", auth=self.auth)
+        assert res.status_code == 204
+        requests.delete(url, auth=self.auth)
+
+
+LOCKINFO_BODY = """<?xml version="1.0" encoding="utf-8" ?>
+<d:lockinfo xmlns:d="DAV:">
+  <d:lockscope><d:exclusive/></d:lockscope>
+  <d:locktype><d:write/></d:locktype>
+  <d:owner><d:href>dav-explorer-test</d:href></d:owner>
+</d:lockinfo>"""
 
 
 def get_context_data(html: str) -> dict:

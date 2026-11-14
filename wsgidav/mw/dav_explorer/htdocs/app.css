@@ -297,6 +297,83 @@ div#preview > pre {
   padding: 10px;
 }
 
+/* --- Text Preview and Editor (CodeMirror) --- */
+
+div#preview > div#preview-text:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Leave room for the node info below */
+  height: calc(100% - 2.5em);
+  text-align: left;
+}
+
+#preview-text .text-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  min-height: 24px;
+  font-size: 80%;
+}
+
+#preview-text .text-status {
+  flex: 1;
+  color: gray;
+}
+
+#preview-text .text-toolbar button {
+  font: inherit;
+  padding: 1px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--wdx-menu-border-color);
+  background-color: var(--wdx-menu-bg-color);
+  color: var(--wdx-text-color);
+  cursor: pointer;
+}
+
+#preview-text .text-toolbar button.primary {
+  border-color: var(--wdx-text-color-branding);
+}
+
+#preview-text .text-toolbar button:hover:not(:disabled) {
+  background-color: var(--wdx-menu-hover-color);
+}
+
+#preview-text .text-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#preview-text pre.text-fallback,
+#preview-text div.cm-host {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  background-color: var(--wdx-bg-color-content);
+  border-radius: 4px;
+  border: 2px solid gray;
+}
+
+#preview-text pre.text-fallback {
+  overflow: auto;
+  font-size: 70%;
+  padding: 10px;
+}
+
+#preview-text div.cm-host {
+  overflow: hidden;
+}
+
+#preview-text.editing div.cm-host {
+  border-color: var(--wdx-text-color-branding);
+}
+
+#preview-text .cm-editor {
+  height: 100%;
+  font-size: 80%;
+}
+
 /* --- Dropzone --- */
 
 .dropzone {

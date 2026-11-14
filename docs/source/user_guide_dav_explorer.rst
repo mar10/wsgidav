@@ -34,6 +34,29 @@ Using DAV Explorer
 
 TODO: Add detailed instructions here.
 
+Viewing and Editing Text Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Text and source files (for example ``.txt``, ``.md``, ``.toml``, ``.yaml``,
+``.py``, ``.js``, ``.html``, ``.ps1``) are displayed with syntax highlighting
+in the details pane. Files larger than ``dav_explorer.max_preview_size_kb``
+are not displayed.
+
+Unless the share or DAV Explorer is readonly, click **Edit** above the text (or
+choose *Edit* from the context menu) to change the file:
+
+- The file is locked (WebDAV ``LOCK``), so other users and clients cannot
+  modify it while it is being edited. The lock is refreshed while the editor
+  is open.
+- **Save** (or :kbd:`Ctrl+S` / :kbd:`Cmd+S`) stores the file with a ``PUT``
+  request that passes the lock token.
+- **Close** (or :kbd:`Esc`) releases the lock (``UNLOCK``). DAV Explorer asks
+  before unsaved changes are discarded.
+
+The editor (`CodeMirror <https://codemirror.net>`_) is loaded from a CDN
+(esm.sh) when a text file is displayed for the first time. If it cannot be
+loaded, the text is displayed without highlighting and cannot be edited.
+
 Known Limitations
 -----------------
 

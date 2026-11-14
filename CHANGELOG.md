@@ -14,6 +14,9 @@
   Row actions are available from a context menu (right-click, the row's "⋯"
   button, or Menu / Shift+F10) instead of a column of icon buttons; each row
   keeps one quick action (download file / upload into folder).
+- DAV Explorer: display text files with syntax highlighting (CodeMirror 6, loaded
+  on demand) and edit them in the details pane. The file is locked while it is
+  being edited (WebDAV LOCK/UNLOCK) and saved with the lock token.
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 - Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)
