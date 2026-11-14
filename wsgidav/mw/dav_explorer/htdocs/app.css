@@ -16,6 +16,11 @@
   --wdx-statbar-text-color: var(--wdx-header-text-color);
   --wdx-statbar-text-color-active: var(--wdx-header-text-color-active);
   --wdx-statbar-text-color-disabled: var(--wdx-header-text-color-disabled);
+
+  --wdx-menu-bg-color: #ffffff;
+  --wdx-menu-border-color: #d0d7de;
+  --wdx-menu-hover-color: #e3ecfb;
+  --wdx-danger-color: #c53030;
 }
 
 :root[data-theme="dark"] {
@@ -25,6 +30,11 @@
   --wdx-bg-color: #1a202c;
   --wdx-bg-color-content: #232b3a;
   --wdx-header-bg-color: #2d3748;
+
+  --wdx-menu-bg-color: #2d3748;
+  --wdx-menu-border-color: #4a5568;
+  --wdx-menu-hover-color: #3c4a63;
+  --wdx-danger-color: #fc8181;
 
   --wb-background-color: #1a202c;
   --wb-node-text-color: #e2e8f0;
@@ -302,16 +312,25 @@ div#preview > pre {
   background-color: #e9f5ff;
 }
 
-/* --- Command Palette --- */
+/* --- Row Actions (quick action + context menu button) --- */
 
-span.command-palette {
+span.row-actions {
   display: none;
+  width: 100%;
+  justify-content: flex-end;
+  gap: 2px;
 }
 
-/* Show commands on hover or when active */
-/* .wb-row:hover span.command-palette, */
-.wb-row.wb-active span.command-palette {
-  display: unset;
+/* Show on hover or when active; always on touch devices (no hover) */
+.wb-row:hover span.row-actions,
+.wb-row.wb-active span.row-actions {
+  display: inline-flex;
+}
+
+@media (hover: none) {
+  span.row-actions {
+    display: inline-flex;
+  }
 }
 
 .wb-button {
@@ -336,9 +355,82 @@ span.command-palette {
   cursor: pointer;
 }
 
-span.command-palette .wb-button:not(.disabled):hover {
+span.row-actions .wb-button:not(.disabled):hover,
+span.row-actions .wb-button[aria-expanded="true"] {
   color: unset;
-  border-color: unset;
+  border-color: currentColor;
+}
+
+/* --- Context Menu --- */
+
+.context-menu {
+  position: fixed;
+  z-index: 1100;
+  min-width: 200px;
+  max-width: min(320px, calc(100vw - 8px));
+  padding: 4px 0;
+  background-color: var(--wdx-menu-bg-color);
+  color: var(--wdx-text-color);
+  border: 1px solid var(--wdx-menu-border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+  font-size: 0.9rem;
+}
+
+.context-menu[hidden] {
+  display: none;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.context-menu-item .label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-menu-item kbd {
+  font-family: inherit;
+  font-size: 0.8em;
+  opacity: 0.65;
+}
+
+.context-menu-item:focus {
+  outline: none;
+  background-color: var(--wdx-menu-hover-color);
+}
+
+.context-menu-item:focus-visible {
+  outline: 2px solid var(--wdx-text-color-branding);
+  outline-offset: -2px;
+}
+
+.context-menu-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.context-menu-item.danger {
+  color: var(--wdx-danger-color);
+}
+
+.context-menu-separator {
+  height: 1px;
+  margin: 4px 0;
+  background-color: var(--wdx-menu-border-color);
 }
 
 .wb-button.alert:not(.disabled):hover {

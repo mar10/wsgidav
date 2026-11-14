@@ -11,6 +11,9 @@
 - Support Python 3.10 .. 3.15
 - WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
   Honors `dav_explorer.ignore_list` and hides write controls in readonly mode.
+  Row actions are available from a context menu (right-click, the row's "⋯"
+  button, or Menu / Shift+F10) instead of a column of icon buttons; each row
+  keeps one quick action (download file / upload into folder).
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 - Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)

@@ -2,10 +2,19 @@
 
 import { Wunderbaum, config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, isIgnored, isValidResourceName, parseDateToTimestamp, settingsStore } from "./util.js";
 import { getFileIcon, getFileInfo, getOfficeUrlPrefix, showPreview, togglePreviewPane, updateNodePreviewInfo } from "./previews.js";
-import { addFileToDataTransfer, commandHtmlTemplateFile, commandHtmlTemplateFolder, createFolder, downloadFile, registerCommandButtons, showNotification, uploadFiles, uploadFilesDialog } from "./widgets.js";
+import { addFileToDataTransfer, createFolder, downloadFile, registerCommandButtons, rowActionsHtmlTemplateFile, rowActionsHtmlTemplateFolder, showContextMenu, showNotification, uploadFiles, uploadFilesDialog } from "./widgets.js";
 
 // Commands that modify server data are rejected in readonly mode
-const WRITE_COMMANDS = new Set(["delete", "newFolder", "newTopFolder", "rename", "upload", "uploadTop"]);
+const WRITE_COMMANDS = new Set(["cut", "delete", "newFolder", "newTopFolder", "paste", "rename", "upload", "uploadTop"]);
+
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const SHORTCUTS = {
+  cut: IS_MAC ? "⌘X" : "Ctrl+X",
+  copy: IS_MAC ? "⌘C" : "Ctrl+C",
+  paste: IS_MAC ? "⌘V" : "Ctrl+V",
+  delete: IS_MAC ? "⌘⌫" : "Del",
+  rename: "F2",
+};
 
 let _wb_clipboard_node = null;
 let _wb_clipboard_is_cut = null;
@@ -63,8 +72,87 @@ async function loadWbResources(options = {}) {
   }
 }
 
-const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
-const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
+const rowActionsFile = util.elemFromHtml(rowActionsHtmlTemplateFile);
+const rowActionsFolder = util.elemFromHtml(rowActionsHtmlTemplateFolder);
+
+function setClipboard(node, isCut) {
+  if (!node || node.isRootNode()) {
+    return;
+  }
+  _wb_clipboard_node = node;
+  _wb_clipboard_is_cut = isCut;
+}
+
+/** Paste the clipboard node into `targetNode` (a folder) or next to it (a file). */
+async function pasteClipboard(targetNode) {
+  if (!_wb_clipboard_node || !targetNode || config.readonly) {
+    return false;
+  }
+  const asChild = targetNode.isRootNode() || isFolder(targetNode);
+  const isCut = _wb_clipboard_is_cut;
+  const sourceNode = _wb_clipboard_node;
+  if (isCut) {
+    // A moved node cannot be pasted a second time
+    _wb_clipboard_node = _wb_clipboard_is_cut = null;
+  }
+  return copyMoveNode(sourceNode, targetNode, !isCut, asChild, true);
+}
+
+/** Return the context menu entries that apply to `node` (or the root folder). */
+function getMenuItems(node) {
+  const isRoot = !node || node.isRootNode();
+  const file = isFile(node) && !isRoot;
+  const container = isRoot || isFolder(node);
+  const inOffice = file && settingsStore.get("office_support") && !!getOfficeUrlPrefix(node);
+  const items = [
+    file && { command: "open", label: inOffice ? "Open in Office" : "Open", icon: inOffice ? "bi-windows" : "bi-box-arrow-up-right" },
+    file && { command: "download", label: "Download", icon: "bi-cloud-download" },
+    container && { command: "upload", label: "Upload files...", icon: "bi-cloud-plus" },
+    container && { command: "newFolder", label: isRoot ? "New top folder..." : "New subfolder...", icon: "bi-folder-plus" },
+    "-",
+    !isRoot && { command: "rename", label: "Rename", icon: "bi-pencil-square", shortcut: SHORTCUTS.rename },
+    { command: "copyUrl", label: "Copy link", icon: "bi-link-45deg" },
+    "-",
+    !isRoot && { command: "cut", label: "Cut", icon: "bi-scissors", shortcut: SHORTCUTS.cut },
+    // Copying is only useful for pasting, which needs write access
+    !isRoot && !config.readonly && { command: "copy", label: "Copy", icon: "bi-copy", shortcut: SHORTCUTS.copy },
+    { command: "paste", label: "Paste", icon: "bi-clipboard", shortcut: SHORTCUTS.paste, disabled: !_wb_clipboard_node },
+    "-",
+    isRoot && { command: "reloadTree", label: "Reload", icon: "bi-arrow-clockwise" },
+    !isRoot && { command: "delete", label: "Delete", icon: "bi-trash3", shortcut: SHORTCUTS.delete, danger: true },
+  ];
+  return items.filter((item) => item === "-" || (item && !(config.readonly && WRITE_COMMANDS.has(item.command))));
+}
+
+/**
+ * Open the context menu for `node` (default: root folder).
+ * Pass `x`/`y` for a pointer position, or `anchor` to align it to an element.
+ */
+function openNodeMenu(node, options = {}) {
+  const tree = getTree();
+  node ??= tree.root;
+  showContextMenu(getMenuItems(node), {
+    ...options,
+    label: node.isRootNode() ? "Actions for the root folder" : `Actions for ${node.title}`,
+    onClose: () => tree.setFocus(),
+    onSelect: (item) => handleCommand({ command: item.command, node: node, tree: tree, event: null, target: null }),
+  });
+}
+
+/** Open the context menu for the active node, below its row (keyboard access). */
+function openActiveNodeMenu() {
+  const tree = getTree();
+  const node = tree.getActiveNode();
+  let anchor = tree.element;
+  if (node) {
+    try {
+      anchor = node.getColElem(0) ?? anchor;
+    } catch (err) {
+      // Row is not rendered: fall back to the tree element
+    }
+  }
+  openNodeMenu(node, { anchor: anchor });
+}
 
 async function deleteNode(node) {
   if (!node || node.isRootNode()) {
@@ -177,7 +265,7 @@ const _tree = new Wunderbaum({
   types: {},
   columns: [
     { id: "*", title: "Path", width: 2 },
-    { id: "commands", title: "Commands", width: "190px", sortable: false },
+    { id: "actions", title: "\u00a0", width: "56px", sortable: false }, // Blank header (empty string would show the id)
     { id: "type", title: "Type", width: "100px" },
     { id: "size", title: "Size", width: "80px", classes: "wb-helper-end" },
     { id: "lastmod", title: "Modified", width: "150px", classes: "wb-helper-end" },
@@ -272,26 +360,21 @@ const _tree = new Wunderbaum({
         break;
       case "Meta+c":
       case "Control+c":
-        _wb_clipboard_node = activeNode;
-        _wb_clipboard_is_cut = false;
+        setClipboard(activeNode, false);
         break;
       case "Meta+x":
       case "Control+x":
-        _wb_clipboard_node = activeNode;
-        _wb_clipboard_is_cut = true;
+        setClipboard(activeNode, true);
         break;
       case "Meta+v":
       case "Control+v":
-        if (_wb_clipboard_node && activeNode && !config.readonly) {
-          const asChild = isFolder(activeNode);
-          const isCut = _wb_clipboard_is_cut;
-          copyMoveNode(_wb_clipboard_node, activeNode, !isCut, asChild, true);
-          if (isCut) {
-            // A moved node cannot be pasted a second time
-            _wb_clipboard_node = _wb_clipboard_is_cut = null;
-          }
-        }
+        pasteClipboard(activeNode);
         break;
+      case "ContextMenu":
+      case "Shift+F10":
+        e.event.preventDefault();
+        openActiveNodeMenu();
+        return false;
     }
   },
   render: function (e) {
@@ -303,12 +386,10 @@ const _tree = new Wunderbaum({
         case "type":
           col.elem.textContent = node.type;
           break;
-        case "commands":
-          // <a href="ms-word:ofe|u|http://some_WebDav_enabled_address.com/some_Word_document.docx">Open Document in Word</a>
-          // https://stackoverflow.com/a/25765784/19166
+        case "actions":
           if (e.isNew) {
-            const cmdBar = isDir ? commandBarFolder : commandBarFile;
-            col.elem.appendChild(cmdBar.cloneNode(true));
+            const rowActions = isDir ? rowActionsFolder : rowActionsFile;
+            col.elem.appendChild(rowActions.cloneNode(true));
           }
           break;
         case "size":
@@ -381,7 +462,28 @@ function getThemeMode() {
 applyTheme(getThemeMode());
 darkQuery.addEventListener("change", () => applyTheme(getThemeMode()));
 
-registerCommandButtons("body", (e) => {
+// Right-click on a row (or empty tree space) opens the context menu
+_tree.element.addEventListener("contextmenu", (e) => {
+  if (_tree.isEditingTitle() || e.target.closest(".wb-header")) {
+    return; // Keep the native menu for the rename input and the column headers
+  }
+  e.preventDefault();
+  if (e.target === _tree.element) {
+    // Triggered by the keyboard while the tree has the focus
+    openActiveNodeMenu();
+    return;
+  }
+  const node = Wunderbaum.getNode(e);
+  node?.setActive();
+  openNodeMenu(node, { x: e.clientX, y: e.clientY });
+});
+
+/**
+ * Run a command from a button or a context menu item.
+ *
+ * @param {object} e `{command, node, tree, event, target, isPressed}`
+ */
+function handleCommand(e) {
   let node = e.node;
   if (config.readonly && WRITE_COMMANDS.has(e.command)) {
     return;
@@ -434,8 +536,19 @@ registerCommandButtons("body", (e) => {
     case "upload":
       uploadFilesDialog(node);
       break;
-    case "startOffice":
+    case "showMenu":
+      node.setActive();
+      openNodeMenu(node, { anchor: e.target, align: "end" });
+      break;
+    case "open":
       openDocument(node);
+      break;
+    case "cut":
+    case "copy":
+      setClipboard(node, e.command === "cut");
+      break;
+    case "paste":
+      pasteClipboard(node);
       break;
     case "download":
       downloadFile(node);
@@ -452,7 +565,9 @@ registerCommandButtons("body", (e) => {
         });
       break;
   }
-});
+}
+
+registerCommandButtons("body", handleCommand);
 
 document.getElementById("resetSettings").addEventListener("click", () => {
   // Keep UI state that is not part of the settings form

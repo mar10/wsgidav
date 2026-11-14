@@ -3,29 +3,20 @@
 import { Wunderbaum, util, getNodeResourceUrl, getDAVClient, getActiveNode, getTree, isFile, isFolder, isRootFolder, isValidResourceName } from "./util.js";
 
 /**
- * Command Buttons & Palette
+ * Command Buttons & Row Actions
  */
-// Buttons marked with `data-write` are hidden in readonly mode (see app.css)
-export const commandHtmlTemplateFile = `
-<span class="command-palette">
-  <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
-  <i class="wb-button bi bi-cloud-plus disabled" title="Upload file..." data-write></i>
-  <i class="wb-button bi bi-folder-plus disabled" title="Create subfolder..." data-write></i>
-  <i class="wb-button bi bi-cloud-download" title="Download file..." data-command="download"></i>
-  <i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
-  <i class="wb-button bi bi-trash3 alert" title="Delete file" data-command="delete" data-write></i>
-  <i class="wb-button bi bi-pencil-square" title="Rename file" data-command="rename" data-write></i>
+// Buttons marked with `data-write` are hidden in readonly mode (see app.css).
+// Each row shows one quick action and a button that opens the context menu.
+export const rowActionsHtmlTemplateFile = `
+<span class="row-actions">
+  <i class="wb-button bi bi-cloud-download" role="button" title="Download file" aria-label="Download file" data-command="download"></i>
+  <i class="wb-button bi bi-three-dots-vertical" role="button" title="More actions..." aria-label="More actions" aria-haspopup="menu" data-command="showMenu"></i>
 </span>
 `;
-export const commandHtmlTemplateFolder = `
-<span class="command-palette">
-  <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
-  <i class="wb-button bi bi-cloud-plus" title="Upload file to this folder..." data-command="upload" data-write></i>
-  <i class="wb-button bi bi-folder-plus" title="Create subfolder..." data-command="newFolder" data-write></i>
-  <i class="wb-button bi bi-cloud-download disabled" title="Download folder..."></i>
-  <i class="wb-button bi bi-windows disabled" title="Open in MS-Office"></i>
-  <i class="wb-button bi bi-trash3 alert" title="Delete folder" data-command="delete" data-write></i>
-  <i class="wb-button bi bi-pencil-square" title="Rename folder" data-command="rename" data-write></i>
+export const rowActionsHtmlTemplateFolder = `
+<span class="row-actions">
+  <i class="wb-button bi bi-cloud-plus" role="button" title="Upload files to this folder..." aria-label="Upload files to this folder" data-command="upload" data-write></i>
+  <i class="wb-button bi bi-three-dots-vertical" role="button" title="More actions..." aria-label="More actions" aria-haspopup="menu" data-command="showMenu"></i>
 </span>
 `;
 
@@ -62,6 +53,235 @@ export function setCommandButton(command, options = {}) {
   if (pressed !== undefined && buttonElem.classList.contains("wb-button-toggle")) {
     buttonElem.classList.toggle("wb-pressed", pressed);
   }
+}
+
+/* --- Context Menu --- */
+
+const _menu = {
+  elem: null,
+  anchor: null,
+  onSelect: null,
+  onClose: null,
+  // Set when a pointerdown on the anchor closed the menu, so the following
+  // click on the same anchor toggles the menu instead of reopening it
+  closedByAnchor: null,
+  closedAt: 0,
+};
+
+function getMenuElem() {
+  if (_menu.elem) {
+    return _menu.elem;
+  }
+  const elem = document.createElement("div");
+  elem.id = "contextMenu";
+  elem.className = "context-menu";
+  elem.setAttribute("role", "menu");
+  elem.hidden = true;
+  document.body.appendChild(elem);
+  _menu.elem = elem;
+
+  elem.addEventListener("click", (e) => {
+    const itemElem = e.target.closest("button.context-menu-item");
+    if (!itemElem || itemElem.disabled) {
+      return;
+    }
+    const item = itemElem._menuItem;
+    const onSelect = _menu.onSelect;
+    closeContextMenu({ restoreFocus: true });
+    onSelect?.(item);
+  });
+  // Mouse and keyboard highlight the same item
+  elem.addEventListener("pointermove", (e) => {
+    const itemElem = e.target.closest("button.context-menu-item:not(:disabled)");
+    if (itemElem && document.activeElement !== itemElem) {
+      itemElem.focus();
+    }
+  });
+  elem.addEventListener("keydown", (e) => {
+    const items = [...elem.querySelectorAll("button.context-menu-item:not(:disabled)")];
+    const idx = items.indexOf(document.activeElement);
+    let next = null;
+    switch (e.key) {
+      case "ArrowDown":
+        next = items[(idx + 1) % items.length];
+        break;
+      case "ArrowUp":
+        next = items[(idx - 1 + items.length) % items.length];
+        break;
+      case "Home":
+        next = items[0];
+        break;
+      case "End":
+        next = items[items.length - 1];
+        break;
+      case "Escape":
+      case "Tab":
+        closeContextMenu({ restoreFocus: true });
+        break;
+      default:
+        return; // Enter and Space trigger a click on the focused button
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    next?.focus();
+  });
+  // Do not open the native context menu on top of ours
+  elem.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  // Light dismiss
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (elem.hidden || elem.contains(e.target)) {
+        return;
+      }
+      _menu.closedByAnchor = _menu.anchor?.contains(e.target) ? _menu.anchor : null;
+      _menu.closedAt = Date.now();
+      closeContextMenu();
+    },
+    true
+  );
+  document.addEventListener(
+    "scroll",
+    (e) => {
+      if (!elem.hidden && !elem.contains(e.target)) {
+        closeContextMenu();
+      }
+    },
+    true
+  );
+  window.addEventListener("resize", () => closeContextMenu());
+  window.addEventListener("blur", () => closeContextMenu());
+  return elem;
+}
+
+export function isContextMenuOpen() {
+  return !!_menu.elem && !_menu.elem.hidden;
+}
+
+export function closeContextMenu(options = {}) {
+  const { restoreFocus = false } = options;
+  if (!isContextMenuOpen()) {
+    return;
+  }
+  const onClose = _menu.onClose;
+  _menu.elem.hidden = true;
+  _menu.elem.replaceChildren();
+  _menu.anchor?.setAttribute("aria-expanded", "false");
+  _menu.anchor = _menu.onSelect = _menu.onClose = null;
+  if (restoreFocus) {
+    onClose?.();
+  }
+}
+
+/**
+ * Show a context menu at a pointer position or below an anchor element.
+ *
+ * @param {Array<object|string>} items `{command, label, icon, shortcut, disabled, danger}`
+ *     or "-" for a separator.
+ * @param {object} options
+ * @param {number} [options.x] Viewport position (used if no `anchor` is given)
+ * @param {number} [options.y]
+ * @param {Element} [options.anchor] Align the menu to this element
+ * @param {string} [options.align] "start" (default) or "end" (right-aligned to anchor)
+ * @param {string} [options.label] Accessible name of the menu
+ * @param {function} [options.onSelect] Called with the selected item
+ * @param {function} [options.onClose] Called to restore the focus when the menu
+ *     is closed by keyboard or after selecting an item
+ */
+export function showContextMenu(items, options = {}) {
+  const { x = 0, y = 0, anchor = null, align = "start", label = "Actions", onSelect = null, onClose = null } = options;
+  const elem = getMenuElem();
+
+  if (anchor && anchor === _menu.closedByAnchor && Date.now() - _menu.closedAt < 1000) {
+    // The click on the anchor that closed this menu should not reopen it
+    _menu.closedByAnchor = null;
+    return;
+  }
+  _menu.closedByAnchor = null;
+  closeContextMenu();
+
+  // Drop leading, trailing, and repeated separators
+  const cleaned = [];
+  for (const item of items) {
+    if (item === "-" && (cleaned.length === 0 || cleaned[cleaned.length - 1] === "-")) {
+      continue;
+    }
+    cleaned.push(item);
+  }
+  while (cleaned[cleaned.length - 1] === "-") {
+    cleaned.pop();
+  }
+  if (cleaned.length === 0) {
+    return;
+  }
+
+  for (const item of cleaned) {
+    if (item === "-") {
+      const sep = document.createElement("div");
+      sep.className = "context-menu-separator";
+      sep.setAttribute("role", "separator");
+      elem.appendChild(sep);
+      continue;
+    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "context-menu-item" + (item.danger ? " danger" : "");
+    btn.setAttribute("role", "menuitem");
+    btn.dataset.command = item.command;
+    btn.disabled = !!item.disabled;
+    btn._menuItem = item;
+
+    const icon = document.createElement("i");
+    icon.className = `bi ${item.icon || ""}`;
+    icon.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    text.className = "label";
+    text.textContent = item.label;
+    btn.append(icon, text);
+    if (item.shortcut) {
+      const kbd = document.createElement("kbd");
+      kbd.textContent = item.shortcut;
+      btn.appendChild(kbd);
+      btn.setAttribute("aria-keyshortcuts", item.shortcut);
+    }
+    elem.appendChild(btn);
+  }
+  elem.setAttribute("aria-label", label);
+  _menu.anchor = anchor;
+  _menu.onSelect = onSelect;
+  _menu.onClose = onClose;
+  anchor?.setAttribute("aria-expanded", "true");
+
+  // Measure, then keep the menu inside the viewport
+  elem.style.visibility = "hidden";
+  elem.hidden = false;
+  const { offsetWidth: w, offsetHeight: h } = elem;
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  let left = x;
+  let top = y;
+  if (anchor) {
+    const r = anchor.getBoundingClientRect();
+    left = align === "end" ? r.right - w : r.left;
+    top = r.bottom + 2;
+    if (top + h > vh) {
+      top = r.top - h - 2;
+    }
+  } else {
+    if (left + w > vw) {
+      left -= w;
+    }
+    if (top + h > vh) {
+      top -= h;
+    }
+  }
+  const margin = 4;
+  elem.style.left = `${Math.max(margin, Math.min(left, vw - w - margin))}px`;
+  elem.style.top = `${Math.max(margin, Math.min(top, vh - h - margin))}px`;
+  elem.style.visibility = "";
+
+  elem.querySelector("button.context-menu-item:not(:disabled)")?.focus();
 }
 
 let _notificationTimeoutId = null;
