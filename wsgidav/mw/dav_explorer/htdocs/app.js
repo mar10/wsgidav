@@ -402,7 +402,8 @@ registerCommandButtons("body", (e) => {
       break;
     }
     case "showHelp":
-      showPreview(config.htdocs + "/help.html", { autoOpen: true, iframe: true });
+      // Resolve relative to this module (served from htdocs), not from DOM-provided config
+      showPreview(new URL("help.html", import.meta.url).href, { autoOpen: true, iframe: true });
       break;
     case "showSettings":
       showPreview("settings", { autoOpen: true });

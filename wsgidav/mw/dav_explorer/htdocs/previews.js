@@ -404,10 +404,17 @@ export async function showPreview(urlOrNode, options = {}) {
       imgElem.src = objectUrl;
       break;
     }
-    case "iframe":
+    case "iframe": {
       iframeElem.src = "about:blank"; // Reset before setting new src
-      iframeElem.setAttribute("src", url);
+      // Only embed same-origin pages (e.g. the bundled help page)
+      const parsed = new URL(url);
+      if (parsed.origin !== window.location.origin) {
+        console.warn("Refusing to embed cross-origin URL", url);
+        break;
+      }
+      iframeElem.src = parsed.href;
       break;
+    }
   }
 
   updateNodePreviewInfo(node);
