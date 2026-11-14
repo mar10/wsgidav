@@ -38,3 +38,7 @@ wsgidav-props.shelve.dir
 manifests/
 wsgidav/mw/dav_explorer/htdocs/wunderbaum.*
 /Python
+
+# Local AI agent files
+.claude/settings.local.json
+CLAUDE.local.md
