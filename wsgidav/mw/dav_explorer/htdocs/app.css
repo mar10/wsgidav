@@ -395,3 +395,8 @@ span.command-palette .wb-button:not(.disabled):hover {
 .notification-close:hover {
   opacity: 1;
 }
+
+/* Readonly mode: hide all controls that would modify server data */
+html.readonly [data-write] {
+  display: none !important;
+}

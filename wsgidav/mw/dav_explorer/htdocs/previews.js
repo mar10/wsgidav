@@ -289,9 +289,15 @@ function sanitizeUrl(rawUrl) {
   return null;
 }
 
+// Incremented on every showPreview() call, so pending async loads can detect
+// that they are outdated
+let _previewSeq = 0;
+
 export async function showPreview(urlOrNode, options = {}) {
   let { autoOpen = false, iframe = false, maxSizeKB = settingsStore.get("max_preview_size_kb") } = options;
+  const seq = ++_previewSeq;
 
+  imgElem.onload = imgElem.onerror = null;
   imgElem.src = imgPlaceholderEmpty;
   textElem.textContent = "";
   if (!urlOrNode) {
@@ -318,20 +324,16 @@ export async function showPreview(urlOrNode, options = {}) {
     preview = "settings";
   } else if (iframe) {
     preview = "iframe";
-  } else {
-    const extension = url.split(".").pop().toLowerCase();
-    const typeInfo = fileExtensionMap[extension] ?? {};
-    preview = typeInfo.preview;
+  } else if (!isFolder) {
+    // Derive the preview type from the file name (folders never have a preview)
+    preview = getFileInfo(node ? node.title : new URL(url).pathname)?.preview ?? null;
   }
-  placeholderElem.innerHTML = "<p>No preview available.</p>";
-  console.info(`showPreview(${urlOrNode}, { autoOpen: ${autoOpen}, iframe: ${iframe} })`, preview, node);
+  placeholderElem.replaceChildren(Object.assign(document.createElement("p"), { textContent: "No preview available." }));
   if (preview && node && node.data.size > 1024 * maxSizeKB) {
-    // Large files must be previewed explicitly to avoid performance issues
-    // NOTE: we set a.href by assignment not with a template string,
-    // to prevent XSS
-    placeholderElem.innerHTML = `File is too large (> ${maxSizeKB} KiB).<br>
-		<a href="" target="_blank">Click here</a> to preview.`;
-    placeholderElem.querySelector("a").href = url;
+    // Large files must be previewed explicitly to avoid performance issues.
+    // Build the elements via DOM API to prevent XSS.
+    const link = Object.assign(document.createElement("a"), { href: url, target: "_blank", rel: "noopener", textContent: "Click here" });
+    placeholderElem.replaceChildren(`File is too large (> ${Number(maxSizeKB)} KiB).`, document.createElement("br"), link, " to preview.");
     preview = null;
   }
 
@@ -344,16 +346,27 @@ export async function showPreview(urlOrNode, options = {}) {
   nodeInfo.classList.toggle("hidden", !node);
 
   switch (preview) {
-    case "text":
+    case "text": {
       textElem.textContent = "Loading...";
-      const response = await fetch(url);
-      const text = await response.text();
-      textElem.textContent = text;
+      let text;
+      try {
+        const response = await fetch(url);
+        text = response.ok ? await response.text() : `Could not load preview: ${response.status} ${response.statusText}`;
+      } catch (err) {
+        text = `Could not load preview: ${err.message}`;
+      }
+      // Ignore the result if another preview was requested in the meantime
+      if (seq === _previewSeq) {
+        textElem.textContent = text;
+      }
       break;
+    }
     case "image":
       imgElem.onload = () => {
         imgElem.onload = null;
-        imgElem.setAttribute("src", url);
+        if (seq === _previewSeq) {
+          imgElem.setAttribute("src", url);
+        }
       };
       imgElem.onerror = (e) => {
         imgElem.onerror = null;
@@ -363,8 +376,6 @@ export async function showPreview(urlOrNode, options = {}) {
       imgElem.setAttribute("src", imgPlaceholderLoadingSvg);
       break;
     case "iframe":
-      // const iframe = document.querySelector("aside.right div#preview-iframe iframe");
-      // const iframe = iframeElem.querySelector("iframe");
       iframeElem.src = "about:blank"; // Reset before setting new src
       iframeElem.setAttribute("src", url);
       break;

@@ -1,33 +1,31 @@
 "use strict";
 
-// import { Wunderbaum } from "./wunderbaum.esm.js";
-import { Wunderbaum } from "https://esm.run/wunderbaum@0.14";
-import { util, getNodeResourceUrl, getDAVClient, getNodeOrActive, getActiveNode, isFile, isFolder, isRootFolder } from "./util.js";
+import { Wunderbaum, util, getNodeResourceUrl, getDAVClient, getActiveNode, getTree, isFile, isFolder, isRootFolder, isValidResourceName } from "./util.js";
 
 /**
  * Command Buttons & Palette
  */
+// Buttons marked with `data-write` are hidden in readonly mode (see app.css)
 export const commandHtmlTemplateFile = `
 <span class="command-palette">
-    <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
-	<i class="wb-button bi bi-cloud-plus disabled" title="Upload file..."></i>
-  <i class="wb-button bi bi-folder-plus disabled" title="Create subfolder..."></i>
-	<i class="wb-button bi bi-cloud-download" title="Download file..." data-command="download"></i>
-	<i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
-	<i class="wb-button bi bi-trash3 alert" title="Delete file" data-command="delete"></i>
-	<i class="wb-button bi bi-pencil-square" title="Rename file" data-command="rename"></i>
-    <!--	<i class="wb-button bi bi-unlock" title="File is unlocked" data-command="lock"></i> -->
-    </span>
-    `;
+  <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
+  <i class="wb-button bi bi-cloud-plus disabled" title="Upload file..." data-write></i>
+  <i class="wb-button bi bi-folder-plus disabled" title="Create subfolder..." data-write></i>
+  <i class="wb-button bi bi-cloud-download" title="Download file..." data-command="download"></i>
+  <i class="wb-button bi bi-windows" title="Open in MS-Office" data-command="startOffice"></i>
+  <i class="wb-button bi bi-trash3 alert" title="Delete file" data-command="delete" data-write></i>
+  <i class="wb-button bi bi-pencil-square" title="Rename file" data-command="rename" data-write></i>
+</span>
+`;
 export const commandHtmlTemplateFolder = `
-    <span class="command-palette">
-    <i class="wb-button bi bi-copy disabled" title="Copy link"></i>
-	<i class="wb-button bi bi-cloud-plus" title="Upload file to this folder..." data-command="upload"></i>
-	<i class="wb-button bi bi-folder-plus" title="Create subfolder..." data-command="newFolder"></i>
-	<i class="wb-button bi bi-cloud-download disabled" title="Download folder..."></i>
-	<i class="wb-button bi bi-windows disabled" title="Open in MS-Office"></i>
-	<i class="wb-button bi bi-trash3 alert" title="Delete folder" data-command="delete"></i>
-	<i class="wb-button bi bi-pencil-square" title="Rename folder" data-command="rename"></i>
+<span class="command-palette">
+  <i class="wb-button bi bi-copy" title="Copy link" data-command="copyUrl"></i>
+  <i class="wb-button bi bi-cloud-plus" title="Upload file to this folder..." data-command="upload" data-write></i>
+  <i class="wb-button bi bi-folder-plus" title="Create subfolder..." data-command="newFolder" data-write></i>
+  <i class="wb-button bi bi-cloud-download disabled" title="Download folder..."></i>
+  <i class="wb-button bi bi-windows disabled" title="Open in MS-Office"></i>
+  <i class="wb-button bi bi-trash3 alert" title="Delete folder" data-command="delete" data-write></i>
+  <i class="wb-button bi bi-pencil-square" title="Rename folder" data-command="rename" data-write></i>
 </span>
 `;
 
@@ -54,7 +52,7 @@ export function registerCommandButtons(parent, handler) {
 }
 
 export function setCommandButton(command, options = {}) {
-  const { pressed = undefined, icon = undefined } = options;
+  const { pressed = undefined } = options;
   const escapedCommand = typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(String(command)) : String(command).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const buttonElem = document.querySelector(`.wb-button[data-command="${escapedCommand}"]`);
   if (!buttonElem) {
@@ -64,8 +62,10 @@ export function setCommandButton(command, options = {}) {
   if (pressed !== undefined && buttonElem.classList.contains("wb-button-toggle")) {
     buttonElem.classList.toggle("wb-pressed", pressed);
   }
-  console.info("command:", command, buttonElem);
 }
+
+let _notificationTimeoutId = null;
+let _notificationResolve = null;
 
 export async function showNotification(message, options = {}) {
   const durationMap = { info: 5000, warning: 10000, error: 20000 };
@@ -84,22 +84,28 @@ export async function showNotification(message, options = {}) {
   // Prevent XSS by setting textContent instead of innerHTML
   notification.querySelector(".notification-message").textContent = message;
 
-  // Add close button functionality
-  const closeBtn = notification.querySelector(".notification-close");
-  let timeoutId;
-
-  const hideNotification = () => {
-    notification.style.display = "none";
-    if (timeoutId) clearTimeout(timeoutId);
-  };
-
-  closeBtn.addEventListener("click", hideNotification);
+  // A new message replaces the previous one: cancel its pending timer, so it
+  // does not hide this message early
+  if (_notificationTimeoutId) {
+    clearTimeout(_notificationTimeoutId);
+    _notificationTimeoutId = null;
+  }
+  _notificationResolve?.();
 
   return new Promise((resolve) => {
-    timeoutId = setTimeout(() => {
-      hideNotification();
+    _notificationResolve = resolve;
+    const hideNotification = () => {
+      if (_notificationResolve !== resolve) {
+        return; // Already replaced by a newer notification
+      }
+      clearTimeout(_notificationTimeoutId);
+      _notificationTimeoutId = null;
+      _notificationResolve = null;
+      notification.style.display = "none";
       resolve();
-    }, duration);
+    };
+    notification.querySelector(".notification-close").addEventListener("click", hideNotification);
+    _notificationTimeoutId = setTimeout(hideNotification, duration);
   });
 }
 
@@ -165,9 +171,8 @@ export async function addFileToDataTransfer(node, dragStartEvent) {
 
   try {
     dt.setData("DownloadURL", `${mime}:${name}:${fileUrl}`);
-    console.info("Drag file using DownloadURL");
   } catch (error) {
-    console.info("Drag file using temporary fetch (DownloadURL not supported)");
+    // DownloadURL not supported: use a temporary fetch
     const response = await fetch(fileUrl);
     const blob = await response.blob();
     const file = new File([blob], name, { type: mime });
@@ -192,10 +197,6 @@ export async function uploadFiles(node, fileArray, options = {}) {
   }
   const uploadPath = node.getPath();
 
-  function _progressCallback(progress) {
-    console.info(`Uploading: ${progress.loaded} / ${progress.total} bytes`);
-  }
-
   // showNotification("Upload started...");
   for (const file of fileArray) {
     try {
@@ -203,7 +204,6 @@ export async function uploadFiles(node, fileArray, options = {}) {
       const data = await file.arrayBuffer();
       const res = await client.putFileContents(filePath, data, {
         overwrite: overwrite,
-        onUploadProgress: _progressCallback,
       });
       if (res === true) {
         if (_isReplacing) {
@@ -217,11 +217,11 @@ export async function uploadFiles(node, fileArray, options = {}) {
       } else if (!overwrite && !_isReplacing) {
         const retry = confirm(`File "${file.name}" already exists. Do you want to overwrite it?`);
         if (retry) {
-          uploadFiles(node, [file], { overwrite: true, _isReplacing: true });
+          await uploadFiles(node, [file], { overwrite: true, _isReplacing: true });
         } else {
           showNotification(`Skipped '${file.name}'.`, { type: "info" });
         }
-        return;
+        // Continue with the remaining files
       } else {
         showNotification(`Failed to upload '${file.name}'.`, { type: "error" });
         console.error("Upload failed: ", res);
@@ -249,18 +249,11 @@ export async function uploadFilesDialog(node, options = {}) {
   input.click();
 }
 
-export async function deleteResource(node, options = {}) {
-  try {
-    await getDAVClient().deleteFile(node.getPath());
-    showNotification(`Deleted "/${node.getPath()}".`);
-    node.remove();
-  } catch (err) {
-    showNotification(`Failed to delete "/${node.getPath()}": ${err.message}`, { type: "error" });
-    console.error("Failed to delete: ", err);
-  }
-}
-
 export async function createFolder(node, newName, options = {}) {
+  if (!isValidResourceName(newName)) {
+    showNotification(`Invalid folder name: "${newName}".`, { type: "warning" });
+    return false;
+  }
   const client = getDAVClient();
   const path = node.getPath();
   const filePath = `${path}/${newName}`;
@@ -269,7 +262,8 @@ export async function createFolder(node, newName, options = {}) {
     await client.createDirectory(filePath);
     showNotification(`Created folder "${filePath}/".`);
     if (!node.isUnloaded()) {
-      node.addChildren({ title: newName, type: "directory", lazy: true, expanded: true, children: [] });
+      // An empty, already loaded folder
+      node.addChildren({ title: newName, type: "directory", children: [] });
     }
   } catch (err) {
     if (err.status === 405) {
@@ -301,10 +295,10 @@ dropzone.addEventListener("drop", (event) => {
   event.preventDefault();
   dropzone.classList.remove("dragover");
   const files = event.dataTransfer.files;
-  uploadFiles(getActiveNode(), files);
+  uploadFiles(getActiveNode() ?? getTree().root, files);
 });
 
 fileInput.addEventListener("change", () => {
   const files = fileInput.files;
-  uploadFiles(getActiveNode(), files);
+  uploadFiles(getActiveNode() ?? getTree().root, files);
 });

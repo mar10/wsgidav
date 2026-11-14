@@ -7,6 +7,8 @@ Functional test suite for WsgiDAV.
 This test suite uses requests to generate HTTP requests.
 """
 
+import json
+import re
 import unittest
 
 import requests
@@ -76,3 +78,50 @@ class DavExplorerTest(unittest.TestCase):
         # seems to follow redirects?
         res = requests.get(self.url + "subfolder", auth=self.auth)
         assert res.status_code == 200
+
+    def testHeaders(self):
+        res = requests.get(self.url, auth=self.auth)
+        assert res.headers["X-Content-Type-Options"] == "nosniff"
+
+        res = requests.head(self.url, auth=self.auth)
+        assert res.status_code == 200
+        assert res.text == ""
+
+    def testContextData(self):
+        """The page passes a JSON config to the JavaScript app."""
+        res = requests.get(self.url, auth=self.auth)
+        config = get_context_data(res.text)
+        assert config["readonly"] is False
+        assert ".DS_Store" in config["ignore_list"]
+        assert config["htdocs"] == "/:dav_explorer"
+        # Not needed by the frontend
+        assert "page_trailer" not in config
+
+    def testNonGetRequestsPassThrough(self):
+        """WebDAV methods on collections must not be handled by the web UI."""
+        res = requests.request(
+            "PROPFIND", self.url, auth=self.auth, headers={"Depth": "1"}
+        )
+        assert res.status_code == 207
+        assert "<!-- WsgiDAV-UI" not in res.text
+
+    def testAssetsAreAnonymous(self):
+        """The JS/CSS assets are served without authentication."""
+        for name in ("app.js", "util.js", "app.css"):
+            res = requests.get(self.url + ":dav_explorer/" + name)
+            assert res.status_code == 200, name
+
+        # Removed dead module
+        res = requests.get(self.url + ":dav_explorer/actions.js")
+        assert res.status_code == 404
+
+
+def get_context_data(html: str) -> dict:
+    """Return the JSON config that the DAV Explorer page passes to JavaScript."""
+    m = re.search(
+        r'<script id="context-data" type="application/json">(.*?)</script>',
+        html,
+        re.DOTALL,
+    )
+    assert m, "context-data not found"
+    return json.loads(m.group(1))

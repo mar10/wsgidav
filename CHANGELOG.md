@@ -10,6 +10,7 @@
   - Remove davmount support
 - Support Python 3.10 .. 3.15
 - WsgiDavExplorer: new web frontend that replaces DirBrowser by default.
+  Honors `dav_explorer.ignore_list` and hides write controls in readonly mode.
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 

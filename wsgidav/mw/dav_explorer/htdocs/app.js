@@ -1,11 +1,11 @@
 "use strict";
 
-// import { Wunderbaum } from "./wunderbaum.esm.js";
-import { Wunderbaum } from "https://esm.run/wunderbaum@0.15";
-
-import { config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, parseDateToTimestamp, settingsStore } from "./util.js";
+import { Wunderbaum, config, getDAVClient, util, getNodeResourceUrl, getTree, isFile, isFolder, isIgnored, isValidResourceName, parseDateToTimestamp, settingsStore } from "./util.js";
 import { getFileIcon, getFileInfo, getOfficeUrlPrefix, showPreview, togglePreviewPane, updateNodePreviewInfo } from "./previews.js";
 import { addFileToDataTransfer, commandHtmlTemplateFile, commandHtmlTemplateFolder, createFolder, downloadFile, registerCommandButtons, showNotification, uploadFiles, uploadFilesDialog } from "./widgets.js";
+
+// Commands that modify server data are rejected in readonly mode
+const WRITE_COMMANDS = new Set(["delete", "newFolder", "newTopFolder", "rename", "upload", "uploadTop"]);
 
 let _wb_clipboard_node = null;
 let _wb_clipboard_is_cut = null;
@@ -15,14 +15,18 @@ let _wb_clipboard_is_cut = null;
  *
  * @param {object} opts
  * @returns {boolean} true if the URL could be opened
- */ function openDocument(node, options = {}) {
-  const { readonly = config.readonly, officeSupport = settingsStore.get("office_support") } = options;
+ */
+function openDocument(node, options = {}) {
+  const {
+    // Server-side readonly mode always wins over the user setting
+    readonly = config.readonly || settingsStore.get("office_readonly"),
+    officeSupport = settingsStore.get("office_support"),
+  } = options;
   const info = node ? getFileInfo(node.title) : null;
   if (!info || !isFile(node)) {
     return false;
   }
   let url = getOfficeUrlPrefix(node, { readonly: readonly });
-  console.log("Open %s...", url);
   if (officeSupport && url) {
     showNotification(`Opening ${node.title} in Office`, { type: "info" });
     return window.open(url, "_self");
@@ -41,6 +45,9 @@ async function loadWbResources(options = {}) {
 
     const nodeList = [];
     for (let res of resList) {
+      if (isIgnored(res.basename)) {
+        continue;
+      }
       res.title = res.basename;
       delete res.basename;
       if (res.type === "directory") res.lazy = true;
@@ -48,7 +55,6 @@ async function loadWbResources(options = {}) {
       res.lastmod = parseDateToTimestamp(res.lastmod);
       nodeList.push(res);
     }
-    // console.info("getDirectoryContents", nodeList);
     return nodeList;
   } catch (err) {
     console.error("Error loading resources:", err);
@@ -61,86 +67,113 @@ const commandBarFile = util.elemFromHtml(commandHtmlTemplateFile);
 const commandBarFolder = util.elemFromHtml(commandHtmlTemplateFolder);
 
 async function deleteNode(node) {
-  if (confirm(`Delete '${node.getPath()}' from the server?\n\nThis cannot be undone!`)) {
-    getDAVClient()
-      .deleteFile(node.getPath())
-      .then(() => {
-        node.remove();
-      })
-      .catch((err) => {
-        showNotification(`Failed to delete "${node.getPath()}": ${err.message}`, { type: "error" });
-        console.error("Failed to delete: ", err);
-      });
+  if (!node || node.isRootNode()) {
+    return false;
+  }
+  const path = node.getPath();
+  if (!confirm(`Delete '${path}' from the server?\n\nThis cannot be undone!`)) {
+    return false;
+  }
+  try {
+    await getDAVClient().deleteFile(path);
+    node.remove();
+    showNotification(`Deleted "${path}".`, { type: "info" });
+    return true;
+  } catch (err) {
+    showNotification(`Failed to delete "${path}": ${err.message}`, { type: "error" });
+    console.error("Failed to delete: ", err);
+    return false;
   }
 }
 
-async function copyMoveNode(sourceNode, targetNode, isCopy, asChild, rename) {
+function joinPath(parentPath, name) {
+  return parentPath.endsWith("/") ? parentPath + name : parentPath + "/" + name;
+}
+
+/**
+ * Copy or move `sourceNode` next to (or into, if `asChild`) `targetNode`.
+ *
+ * If the target exists, the user is asked to overwrite it, unless `rename` is
+ * set for a copy into the same folder, in which case 'Copy of ...' is used.
+ */
+async function copyMoveNode(sourceNode, targetNode, isCopy, asChild, rename = false) {
   const client = getDAVClient();
-  if (!isCopy && targetNode.isDescendantOf(sourceNode)) {
-    showNotification(`Cannot move a node into its own descendant.`, { type: "warning" });
+  if (!sourceNode || !targetNode) {
+    return false;
+  }
+  if (!isCopy && (targetNode === sourceNode || targetNode.isDescendantOf(sourceNode))) {
+    showNotification(`Cannot move a node into itself or its own descendant.`, { type: "warning" });
     return false;
   }
   const sourcePath = sourceNode.getPath();
   const targetParent = asChild ? targetNode : targetNode.parent;
-  let targetPath = targetParent.getPath() + "/" + sourceNode.title;
-  const targetExists = await client.exists(targetPath);
   let newTitle = sourceNode.title;
-  if (targetExists) {
-    const [title, ext] = sourceNode.title.split(/\.(?=[^\.]+$)/);
-    if (isCopy && !asChild && rename) {
-      newTitle = `Copy of ${sourceNode.title}`;
+  let targetPath = joinPath(targetParent.getPath(), newTitle);
+  let overwrite = false;
 
-      let exists = true;
-      let i = 1;
-      while (exists) {
-        exists = targetParent.children.some((sibling) => sibling.title === newTitle);
-        if (exists) {
-          i++;
+  try {
+    if (await client.exists(targetPath)) {
+      if (isCopy && rename && targetParent === sourceNode.parent) {
+        // Copy into the same folder: find a free 'Copy of ...' name
+        const [title, ext] = sourceNode.title.split(/\.(?=[^.]+$)/);
+        newTitle = `Copy of ${sourceNode.title}`;
+        for (let i = 2; await client.exists(joinPath(targetParent.getPath(), newTitle)); i++) {
           newTitle = `Copy of ${title} ${i}${ext ? "." + ext : ""}`;
         }
-      }
-      targetPath = targetParent.getPath() + "/" + newTitle;
-    } else {
-      if (!window.confirm(`Overwrite ${targetPath}?`)) {
+        targetPath = joinPath(targetParent.getPath(), newTitle);
+      } else if (window.confirm(`Overwrite ${targetPath}?`)) {
+        overwrite = true;
+      } else {
         showNotification(`Operation cancelled.`, { type: "warning" });
         return false;
       }
-      // overwrite the existing target
     }
-  }
-  if (isCopy) {
-    await client
-      .copyFile(sourcePath, targetPath)
-      .then(() => {
-        targetNode.addNode({ title: newTitle, type: sourceNode.type, size: sourceNode.size }, asChild ? "appendChild" : "after");
-        showNotification(`Copied ${sourcePath} to ${targetPath}.`, { type: "info" });
-      })
-      .catch((err) => {
-        showNotification(`Failed to copy ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
-        return false;
-      });
-  } else {
-    await client
-      .moveFile(sourcePath, targetPath)
-      .then(() => {
-        sourceNode.moveTo(targetNode, asChild ? "appendChild" : "after");
-        showNotification(`Moved ${sourcePath} to ${targetPath}.`, { type: "info" });
-      })
-      .catch((err) => {
-        showNotification(`Failed to move ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
-        return false;
-      });
+    if (isCopy) {
+      await client.copyFile(sourcePath, targetPath, { overwrite: overwrite });
+    } else {
+      await client.moveFile(sourcePath, targetPath, { overwrite: overwrite });
+    }
+  } catch (err) {
+    const op = isCopy ? "copy" : "move";
+    showNotification(`Failed to ${op} ${sourcePath} to ${targetPath}: ${err.message}`, { type: "error" });
+    console.error(`Failed to ${op}: `, err);
+    return false;
   }
 
-  if (targetExists) {
-    targetNode.loadLazy(true);
+  // Update the tree
+  if (overwrite) {
+    // The target node already exists: re-sync the parent from the server
+    // (this also removes `sourceNode` if it was moved inside that folder)
+    if (!isCopy) {
+      sourceNode.remove();
+    }
+    if (targetParent.isRootNode()) {
+      getTree().reload({ source: loadWbResources() });
+    } else {
+      await targetParent.loadLazy(true);
+    }
+  } else if (isCopy) {
+    const data = { title: newTitle, type: sourceNode.type, size: sourceNode.data.size, lastmod: sourceNode.data.lastmod, mime: sourceNode.data.mime };
+    if (isFolder(sourceNode)) {
+      data.lazy = true;
+    }
+    if (!asChild || !targetNode.isUnloaded()) {
+      targetNode.addNode(data, asChild ? "appendChild" : "after");
+    }
+  } else if (asChild && targetNode.isUnloaded()) {
+    // Target folder will show the node when it is expanded
+    sourceNode.remove();
+  } else {
+    sourceNode.moveTo(targetNode, asChild ? "appendChild" : "after");
   }
+  const verb = isCopy ? "Copied" : "Moved";
+  showNotification(`${verb} ${sourcePath} to ${targetPath}.`, { type: "info" });
   return true;
 }
 
 const _tree = new Wunderbaum({
   element: "div#tree",
-  debugLevel: 5,
+  debugLevel: 1,
   types: {},
   columns: [
     { id: "*", title: "Path", width: 2 },
@@ -190,18 +223,32 @@ const _tree = new Wunderbaum({
     showPreview(e.node);
   },
   dblclick: (e) => {
-    if (isFile(e.node)) {
-      openDocument(e.node);
+    const node = e.node;
+    if (isFile(node)) {
+      switch (settingsStore.get("dblclick_action")) {
+        case "download":
+          downloadFile(node);
+          break;
+        case "nothing":
+          break;
+        default:
+          openDocument(node);
+      }
+    } else if (isFolder(node) && settingsStore.get("dblclick_action_folders") === "set_root") {
+      window.location.href = getNodeResourceUrl(node) + "/";
+      return false;
     }
   },
   edit: {
-    trigger: ["clickActive", "F2", "macEnter"],
+    trigger: config.readonly ? [] : ["clickActive", "F2", "macEnter"],
     apply: (e) => {
       const newValue = e.newValue;
+      if (!isValidResourceName(newValue)) {
+        throw new util.ValidationError(`Invalid name: "${newValue}"`);
+      }
       const sourcePath = e.node.getPath();
       const parentPath = e.node.parent ? e.node.parent.getPath() : "/";
-      const targetPath = parentPath.endsWith("/") ? parentPath + newValue : parentPath + "/" + newValue;
-      e.node.logInfo(`Move to ${newValue}`);
+      const targetPath = joinPath(parentPath, newValue);
       return getDAVClient()
         .moveFile(sourcePath, targetPath)
         .catch((err) => {
@@ -212,33 +259,37 @@ const _tree = new Wunderbaum({
     },
   },
   keydown: (e) => {
-    console.log(`Keydown event: ${e.eventName}`);
+    const activeNode = e.tree.getActiveNode();
     switch (e.eventName) {
       case "Meta+Backspace":
       case "Delete":
-        deleteNode(e.tree.getActiveNode());
+        if (activeNode && !config.readonly) {
+          deleteNode(activeNode);
+        }
         break;
       case "Escape":
         _wb_clipboard_node = _wb_clipboard_is_cut = null;
         break;
-      case "Command+c":
+      case "Meta+c":
       case "Control+c":
-        _wb_clipboard_node = e.tree.getActiveNode();
+        _wb_clipboard_node = activeNode;
         _wb_clipboard_is_cut = false;
         break;
+      case "Meta+x":
       case "Control+x":
-        _wb_clipboard_node = e.tree.getActiveNode();
+        _wb_clipboard_node = activeNode;
         _wb_clipboard_is_cut = true;
         break;
-      case "Alt+Command+v":
-      case "Command+v":
-        _wb_clipboard_is_cut = !!e.event.altKey;
-      // fall through to handle the paste operation
+      case "Meta+v":
       case "Control+v":
-        if (_wb_clipboard_node) {
-          const targetNode = e.tree.getActiveNode();
-          const asChild = targetNode.type === "directory";
-          copyMoveNode(_wb_clipboard_node, targetNode, !_wb_clipboard_is_cut, asChild, true);
+        if (_wb_clipboard_node && activeNode && !config.readonly) {
+          const asChild = isFolder(activeNode);
+          const isCut = _wb_clipboard_is_cut;
+          copyMoveNode(_wb_clipboard_node, activeNode, !isCut, asChild, true);
+          if (isCut) {
+            // A moved node cannot be pasted a second time
+            _wb_clipboard_node = _wb_clipboard_is_cut = null;
+          }
         }
         break;
     }
@@ -275,12 +326,13 @@ const _tree = new Wunderbaum({
   },
   dnd: {
     dragStart: (e) => {
-      console.log(e.type, e);
       addFileToDataTransfer(e.node, e.event);
       return true;
     },
     dragEnter: (e) => {
-      // console.log(e.type, e);
+      if (config.readonly) {
+        return false;
+      }
       if (e.node.parent === e.sourceNode?.parent) {
         return isFolder(e.node) ? "over" : false;
       }
@@ -292,28 +344,14 @@ const _tree = new Wunderbaum({
     drop: (e) => {
       const node = e.node;
       const dataTransfer = e.event.dataTransfer;
-      console.log(e.type, e, dataTransfer.items?.length);
       if (e.sourceNode) {
         // copy/move a node inside the tree
-        const asChild = node.type === "directory" && e.region === "over";
-        switch (e.suggestedDropEffect) {
-          case "copy":
-            copyMoveNode(e.sourceNode, node, true, asChild);
-            break;
-          default:
-            copyMoveNode(e.sourceNode, node, false, asChild);
-            break;
-        }
+        const asChild = isFolder(node) && e.region === "over";
+        copyMoveNode(e.sourceNode, node, e.suggestedDropEffect === "copy", asChild);
       } else if (dataTransfer.items && dataTransfer.items.length) {
         // drop an external file onto the tree
-        const fileArray = [];
-        [...dataTransfer.items].forEach((item, i) => {
-          if (item.kind === "file") {
-            const file = item.getAsFile();
-            fileArray.push(file);
-          }
-        });
-        uploadFiles(e.node, fileArray);
+        const fileArray = [...dataTransfer.items].filter((item) => item.kind === "file").map((item) => item.getAsFile());
+        uploadFiles(node, fileArray);
       }
     },
   },
@@ -345,7 +383,9 @@ darkQuery.addEventListener("change", () => applyTheme(getThemeMode()));
 
 registerCommandButtons("body", (e) => {
   let node = e.node;
-  console.info("got", `${node}`, e.command, e);
+  if (config.readonly && WRITE_COMMANDS.has(e.command)) {
+    return;
+  }
   switch (e.command) {
     case "togglePreview":
       togglePreviewPane(e.isPressed);
@@ -376,13 +416,14 @@ registerCommandButtons("body", (e) => {
     case "newTopFolder":
       node = getTree().root;
     // fall through
-    case "newFolder":
+    case "newFolder": {
       const promptText = node.isRootNode() ? "Name of the new toplevel folder" : `Name of the new subfolder of\n '${node.getPath() + "/"}'`;
       const newName = prompt(promptText, "New Folder");
       if (newName) {
         createFolder(node, newName);
       }
       break;
+    }
     case "delete":
       deleteNode(node);
       break;
@@ -410,4 +451,12 @@ registerCommandButtons("body", (e) => {
         });
       break;
   }
+});
+
+document.getElementById("resetSettings").addEventListener("click", () => {
+  // Keep UI state that is not part of the settings form
+  const showInfoPane = settingsStore.get("showInfoPane");
+  settingsStore.reset({ ...settingsStore.opts.defaults, showInfoPane: showInfoPane });
+  settingsStore.writeToForm();
+  showNotification("Settings were reset to defaults.", { type: "info" });
 });

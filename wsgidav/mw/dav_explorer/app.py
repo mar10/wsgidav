@@ -63,15 +63,14 @@ class WsgiDavExplorer(BaseMiddleware):
     def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
 
+        # Only GET/HEAD requests on collections are handled here: avoid creating
+        # a resource instance for all other requests (PROPFIND, PUT, ...)
         dav_res = None
-        if environ["wsgidav.provider"]:
-            dav_res = environ["wsgidav.provider"].get_resource_inst(path, environ)
+        provider = environ["wsgidav.provider"]
+        if provider and environ["REQUEST_METHOD"] in ("GET", "HEAD"):
+            dav_res = provider.get_resource_inst(path, environ)
 
-        if (
-            environ["REQUEST_METHOD"] in ("GET", "HEAD")
-            and dav_res
-            and dav_res.is_collection
-        ):
+        if dav_res and dav_res.is_collection:
             if util.get_content_length(environ) != 0:
                 self._fail(
                     HTTP_MEDIATYPE_NOT_SUPPORTED,
@@ -108,6 +107,7 @@ class WsgiDavExplorer(BaseMiddleware):
                     ("Content-Length", str(len(res))),
                     ("Cache-Control", "private"),
                     ("Date", util.get_rfc1123_time()),
+                    ("X-Content-Type-Options", "nosniff"),
                 ],
             )
             return [res]
@@ -139,12 +139,9 @@ class WsgiDavExplorer(BaseMiddleware):
             if k
             in [
                 "directory_slash",
-                "icon",
-                # "ignore_list",
+                "ignore_list",
                 "max_preview_size_kb",
                 "office_support",
-                "page_trailer",
-                "readonly",
                 "show_login",
                 "show_user",
             ]
