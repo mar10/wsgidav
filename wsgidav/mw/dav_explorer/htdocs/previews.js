@@ -293,12 +293,23 @@ function sanitizeUrl(rawUrl) {
 // that they are outdated
 let _previewSeq = 0;
 
+// Blob URL of the currently displayed image preview (must be revoked on change)
+let _imgObjectUrl = null;
+
+function revokeImageObjectUrl() {
+  if (_imgObjectUrl) {
+    URL.revokeObjectURL(_imgObjectUrl);
+    _imgObjectUrl = null;
+  }
+}
+
 export async function showPreview(urlOrNode, options = {}) {
   let { autoOpen = false, iframe = false, maxSizeKB = settingsStore.get("max_preview_size_kb") } = options;
   const seq = ++_previewSeq;
 
   imgElem.onload = imgElem.onerror = null;
   imgElem.src = imgPlaceholderEmpty;
+  revokeImageObjectUrl();
   textElem.textContent = "";
   if (!urlOrNode) {
     return false;
@@ -361,20 +372,38 @@ export async function showPreview(urlOrNode, options = {}) {
       }
       break;
     }
-    case "image":
-      imgElem.onload = () => {
-        imgElem.onload = null;
-        if (seq === _previewSeq) {
-          imgElem.setAttribute("src", url);
+    case "image": {
+      imgElem.setAttribute("src", imgPlaceholderLoadingSvg);
+      // Load the image data via fetch() and display it through a blob URL,
+      // so no DOM-derived string is ever assigned to the `src` attribute.
+      let objectUrl = null;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
         }
-      };
+        const blob = await response.blob();
+        if (seq !== _previewSeq) {
+          break; // Another preview was requested in the meantime
+        }
+        objectUrl = URL.createObjectURL(blob);
+      } catch (err) {
+        console.warn("Error loading preview %s", url, err);
+        if (seq === _previewSeq) {
+          imgElem.src = imgPlaceholderErrorSvg;
+        }
+        break;
+      }
+      revokeImageObjectUrl();
+      _imgObjectUrl = objectUrl;
       imgElem.onerror = (e) => {
         imgElem.onerror = null;
-        console.warn("Error loading preview %s", url, e);
+        console.warn("Error displaying preview %s", url, e);
         imgElem.src = imgPlaceholderErrorSvg;
       };
-      imgElem.setAttribute("src", imgPlaceholderLoadingSvg);
+      imgElem.src = objectUrl;
       break;
+    }
     case "iframe":
       iframeElem.src = "about:blank"; // Reset before setting new src
       iframeElem.setAttribute("src", url);
