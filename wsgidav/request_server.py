@@ -47,16 +47,16 @@ DEFAULT_BLOCK_SIZE = 8192
 # ========================================================================
 class RequestServer:
     def __init__(self, dav_provider: DAVProvider):
-        self._davProvider = dav_provider
+        self._dav_provider = dav_provider
         self.allow_propfind_infinite = True
         self._verbose = 3
         self.block_size = DEFAULT_BLOCK_SIZE
         # _logger.debug("RequestServer: __init__")
 
         self._possible_methods = ["OPTIONS", "HEAD", "GET", "PROPFIND"]
-        # if self._davProvider.prop_manager is not None:
+        # if self._dav_provider.prop_manager is not None:
         #     self._possible_methods.extend( [ "PROPFIND" ] )
-        if not self._davProvider.is_readonly():
+        if not self._dav_provider.is_readonly():
             self._possible_methods.extend(
                 [
                     "PUT",
@@ -68,9 +68,9 @@ class RequestServer:
                     "POST",
                 ]
             )
-            # if self._davProvider.prop_manager is not None:
+            # if self._dav_provider.prop_manager is not None:
             #     self._possible_methods.extend( [ "PROPPATCH" ] )
-            if self._davProvider.lock_manager is not None:
+            if self._dav_provider.lock_manager is not None:
                 self._possible_methods.extend(["LOCK", "UNLOCK"])
 
     # def __del__(self):
@@ -79,7 +79,7 @@ class RequestServer:
 
     def __call__(self, environ, start_response):
         assert "wsgidav.verbose" in environ
-        provider = self._davProvider
+        provider = self._dav_provider
         # TODO: allow anonymous somehow: this should run, even if http_authenticator middleware
         # is not installed
         #        assert "wsgidav.auth.user_name" in environ
@@ -190,26 +190,26 @@ class RequestServer:
             return util.send_status_response(environ, start_response, error_list[0][1])
 
         # Multiple errors, or error on one single child
-        multistatusEL = xml_tools.make_multistatus_el()
+        multistatus_el = xml_tools.make_multistatus_el()
 
         for refurl, e in error_list:
             # assert refurl.startswith("http:")
             assert refurl.startswith("/")
             assert isinstance(e, DAVError)
-            responseEL = etree.SubElement(multistatusEL, "{DAV:}response")
-            etree.SubElement(responseEL, "{DAV:}href").text = refurl
+            response_el = etree.SubElement(multistatus_el, "{DAV:}response")
+            etree.SubElement(response_el, "{DAV:}href").text = refurl
             etree.SubElement(
-                responseEL, "{DAV:}status"
+                response_el, "{DAV:}status"
             ).text = f"HTTP/1.1 {get_http_status_string(e)}"
 
-        return util.send_multi_status_response(environ, start_response, multistatusEL)
+        return util.send_multi_status_response(environ, start_response, multistatus_el)
 
     def _check_write_permission(self, res, depth, environ):
         """Raise DAVError(HTTP_LOCKED), if res is locked.
 
         If depth=='infinity', we also raise when child resources are locked.
         """
-        lock_man = self._davProvider.lock_manager
+        lock_man = self._dav_provider.lock_manager
         if lock_man is None or res is None:
             return True
 
@@ -234,7 +234,7 @@ class RequestServer:
         so a lock cannot be acquired by another principal while the request
         body is being received (TOCTOU, CWE-367).
         """
-        lock_man = self._davProvider.lock_manager
+        lock_man = self._dav_provider.lock_manager
         if lock_man is None or res is None:
             yield
             return
@@ -302,13 +302,13 @@ class RequestServer:
         #            isnewfile = not provider.exists(mappedpath)
 
         ref_url = res.get_ref_url()
-        lock_man = self._davProvider.lock_manager
+        lock_man = self._dav_provider.lock_manager
         locktoken_list = []
         if lock_man:
-            lockList = lock_man.get_indirect_url_lock_list(
+            lock_list = lock_man.get_indirect_url_lock_list(
                 ref_url, principal=environ["wsgidav.user_name"]
             )
-            for lock in lockList:
+            for lock in lock_list:
                 locktoken_list.append(lock["token"])
 
         if not util.test_if_header_dict(res, if_dict, ref_url, locktoken_list, etag):
@@ -324,7 +324,7 @@ class RequestServer:
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_PROPFIND
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.get_resource_inst(path, environ)
+        res = self._dav_provider.get_resource_inst(path, environ)
 
         # RFC: By default, the PROPFIND method without a Depth header MUST act
         # as if a "Depth: infinity" header was included.
@@ -353,43 +353,43 @@ class RequestServer:
         self._evaluate_if_headers(res, environ)
 
         # Parse PROPFIND request
-        requestEL = util.parse_xml_body(environ, allow_empty=True)
-        if requestEL is None:
+        request_el = util.parse_xml_body(environ, allow_empty=True)
+        if request_el is None:
             # An empty PROPFIND request body MUST be treated as a request for
             # the names and values of all properties.
-            requestEL = etree.XML(
+            request_el = etree.XML(
                 "<D:propfind xmlns:D='DAV:'><D:allprop/></D:propfind>"
             )
 
-        if requestEL.tag != "{DAV:}propfind":
+        if request_el.tag != "{DAV:}propfind":
             self._fail(HTTP_BAD_REQUEST)
 
-        propNameList = []
-        propFindMode = None
-        for pfnode in requestEL:
+        prop_name_list = []
+        prop_find_mode = None
+        for pfnode in request_el:
             if pfnode.tag == "{DAV:}allprop":
-                if propFindMode:
+                if prop_find_mode:
                     # RFC: allprop and name are mutually exclusive
                     self._fail(HTTP_BAD_REQUEST)
-                propFindMode = "allprop"
+                prop_find_mode = "allprop"
             # TODO: implement <include> option
             #            elif pfnode.tag == "{DAV:}include":
-            #                if not propFindMode in (None, "allprop"):
+            #                if not prop_find_mode in (None, "allprop"):
             #                    self._fail(HTTP_BAD_REQUEST,
             #                        context_info="<include> element is only valid with 'allprop'.")
             #                for pfpnode in pfnode:
-            #                    propNameList.append(pfpnode.tag)
+            #                    prop_name_list.append(pfpnode.tag)
             elif pfnode.tag == "{DAV:}name":
-                if propFindMode:  # RFC: allprop and name are mutually exclusive
+                if prop_find_mode:  # RFC: allprop and name are mutually exclusive
                     self._fail(HTTP_BAD_REQUEST)
-                propFindMode = "name"
+                prop_find_mode = "name"
             elif pfnode.tag == "{DAV:}prop":
                 # RFC: allprop and name are mutually exclusive
-                if propFindMode not in (None, "named"):
+                if prop_find_mode not in (None, "named"):
                     self._fail(HTTP_BAD_REQUEST)
-                propFindMode = "named"
+                prop_find_mode = "named"
                 for pfpnode in pfnode:
-                    propNameList.append(pfpnode.tag)
+                    prop_name_list.append(pfpnode.tag)
 
         # --- Build list of resource URIs
 
@@ -397,26 +397,26 @@ class RequestServer:
         #        if environ["wsgidav.verbose"] >= 3:
         #            pprint(reslist, indent=4)
 
-        multistatusEL = xml_tools.make_multistatus_el()
+        multistatus_el = xml_tools.make_multistatus_el()
         responsedescription = []
 
         for child in reslist:
-            if propFindMode == "allprop":
-                propList = child.get_properties("allprop")
-            elif propFindMode == "name":
-                propList = child.get_properties("name")
+            if prop_find_mode == "allprop":
+                prop_list = child.get_properties("allprop")
+            elif prop_find_mode == "name":
+                prop_list = child.get_properties("name")
             else:
-                propList = child.get_properties("named", name_list=propNameList)
+                prop_list = child.get_properties("named", name_list=prop_name_list)
 
             href = child.get_href()
-            util.add_property_response(multistatusEL, href, propList)
+            util.add_property_response(multistatus_el, href, prop_list)
 
         if responsedescription:
             etree.SubElement(
-                multistatusEL, "{DAV:}responsedescription"
+                multistatus_el, "{DAV:}responsedescription"
             ).text = "\n".join(responsedescription)
 
-        return util.send_multi_status_response(environ, start_response, multistatusEL)
+        return util.send_multi_status_response(environ, start_response, multistatus_el)
 
     def do_PROPPATCH(self, environ, start_response):
         """Handle PROPPATCH request to set or remove a property.
@@ -424,7 +424,7 @@ class RequestServer:
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_PROPPATCH
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.get_resource_inst(path, environ)
+        res = self._dav_provider.get_resource_inst(path, environ)
 
         # Only accept Depth: 0 (but assume this, if omitted)
         environ.setdefault("HTTP_DEPTH", "0")
@@ -443,15 +443,15 @@ class RequestServer:
         # still being received (TOCTOU, CWE-367).
         with self._write_transaction(res, environ):
             # Parse request
-            requestEL = util.parse_xml_body(environ)
+            request_el = util.parse_xml_body(environ)
 
-            if requestEL.tag != "{DAV:}propertyupdate":
+            if request_el.tag != "{DAV:}propertyupdate":
                 self._fail(HTTP_BAD_REQUEST)
 
             # Create a list of update request tuples: (name, value)
             propupdatelist = []
 
-            for ppnode in requestEL:
+            for ppnode in request_el:
                 propupdatemethod = None
                 if ppnode.tag == "{DAV:}remove":
                     propupdatemethod = "remove"
@@ -505,7 +505,7 @@ class RequestServer:
 
         # Generate response list of 2-tuples (name, value)
         # <value> is None on success, or an instance of DAVError
-        propResponseList = []
+        prop_response_list = []
         responsedescription = []
 
         if not successflag:
@@ -515,7 +515,7 @@ class RequestServer:
                     result = DAVError(HTTP_FAILED_DEPENDENCY)
                 elif isinstance(result, DAVError):
                     responsedescription.append(result.get_user_info())
-                propResponseList.append((name, result))
+                prop_response_list.append((name, result))
 
         else:
             # Dry-run succeeded: set properties again, this time in 'real' mode
@@ -525,23 +525,23 @@ class RequestServer:
                 try:
                     res.set_property_value(name, propvalue, dry_run=False)
                     # Set value to None, so the response xml contains empty tags
-                    propResponseList.append((name, None))
+                    prop_response_list.append((name, None))
                 except Exception as e:
                     e = as_DAVError(e)
-                    propResponseList.append((name, e))
+                    prop_response_list.append((name, e))
                     responsedescription.append(e.get_user_info())
 
         # Generate response XML
-        multistatusEL = xml_tools.make_multistatus_el()
+        multistatus_el = xml_tools.make_multistatus_el()
         href = res.get_href()
-        util.add_property_response(multistatusEL, href, propResponseList)
+        util.add_property_response(multistatus_el, href, prop_response_list)
         if responsedescription:
             etree.SubElement(
-                multistatusEL, "{DAV:}responsedescription"
+                multistatus_el, "{DAV:}responsedescription"
             ).text = "\n".join(responsedescription)
 
         # Send response
-        return util.send_multi_status_response(environ, start_response, multistatusEL)
+        return util.send_multi_status_response(environ, start_response, multistatus_el)
 
     def do_MKCOL(self, environ, start_response):
         """Handle MKCOL request to create a new collection.
@@ -549,7 +549,7 @@ class RequestServer:
         @see http://www.webdav.org/specs/rfc4918.html#METHOD_MKCOL
         """
         path = environ["PATH_INFO"]
-        provider = self._davProvider
+        provider = self._dav_provider
         mtime = None
 
         # Do not understand ANY request body entities
@@ -579,8 +579,8 @@ class RequestServer:
                 else:
                     mtime = int(mtime_header)
 
-        parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
-        if not parentRes or not parentRes.is_collection:
+        parent_res = provider.get_resource_inst(util.get_uri_parent(path), environ)
+        if not parent_res or not parent_res.is_collection:
             self._fail(
                 HTTP_CONFLICT, context_info="Parent must be an existing collection."
             )
@@ -588,12 +588,12 @@ class RequestServer:
         # TODO: should we check If headers here?
         #        self._evaluate_if_headers(res, environ)
         # Check for write permissions on the PARENT
-        self._check_write_permission(parentRes, "0", environ)
+        self._check_write_permission(parent_res, "0", environ)
 
-        parentRes.create_collection(util.get_uri_name(path))
+        parent_res.create_collection(util.get_uri_name(path))
         if mtime is not None:
-            createdRes = provider.get_resource_inst(path, environ)
-            createdRes.set_last_modified(createdRes.path, mtime, dry_run=False)
+            created_res = provider.get_resource_inst(path, environ)
+            created_res.set_last_modified(created_res.path, mtime, dry_run=False)
 
         return util.send_status_response(environ, start_response, HTTP_CREATED)
 
@@ -609,7 +609,7 @@ class RequestServer:
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_DELETE
         """
         path = environ["PATH_INFO"]
-        provider = self._davProvider
+        provider = self._dav_provider
         res = provider.get_resource_inst(path, environ)
 
         # --- Check request preconditions -------------------------------------
@@ -643,10 +643,10 @@ class RequestServer:
         self._evaluate_if_headers(res, environ)
         # We need write access on the parent collection. Also we check for
         # locked children
-        parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
-        if parentRes:
-            #            self._check_write_permission(parentRes, environ["HTTP_DEPTH"], environ)
-            self._check_write_permission(parentRes, "0", environ)
+        parent_res = provider.get_resource_inst(util.get_uri_parent(path), environ)
+        if parent_res:
+            #            self._check_write_permission(parent_res, environ["HTTP_DEPTH"], environ)
+            self._check_write_permission(parent_res, "0", environ)
         else:
             #            self._check_write_permission(res, environ["HTTP_DEPTH"], environ)
             self._check_write_permission(res, "0", environ)
@@ -743,9 +743,9 @@ class RequestServer:
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_PUT
         """
         path = environ["PATH_INFO"]
-        provider = self._davProvider
+        provider = self._dav_provider
         res = provider.get_resource_inst(path, environ)
-        parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
+        parent_res = provider.get_resource_inst(util.get_uri_parent(path), environ)
 
         isnewfile = res is None
         mtime = None
@@ -778,15 +778,15 @@ class RequestServer:
                 HTTP_METHOD_NOT_ALLOWED, context_info="Cannot PUT to a collection"
             )
         elif (
-            parentRes is None or not parentRes.is_collection
-        ):  # TODO: allow parentRes==None?
+            parent_res is None or not parent_res.is_collection
+        ):  # TODO: allow parent_res==None?
             self._fail(HTTP_CONFLICT, context_info="PUT parent must be a collection")
 
         self._evaluate_if_headers(res, environ)
 
         if isnewfile:
-            self._check_write_permission(parentRes, "0", environ)
-            res = parentRes.create_empty_resource(util.get_uri_name(path))
+            self._check_write_permission(parent_res, "0", environ)
+            res = parent_res.create_empty_resource(util.get_uri_name(path))
         else:
             self._check_write_permission(res, "0", environ)
 
@@ -795,7 +795,7 @@ class RequestServer:
         # by another principal while the (potentially slow) request body is
         # still being received (TOCTOU, CWE-367).
         with self._write_transaction(res, environ):
-            hasErrors = False
+            has_errors = False
             try:
                 data_stream = self._stream_data(environ, self.block_size)
 
@@ -820,7 +820,7 @@ class RequestServer:
                 _logger.exception("PUT: byte copy failed")
                 util.fail(e)
 
-            res.end_write(with_errors=hasErrors)
+            res.end_write(with_errors=has_errors)
 
         headers = None
         if res.support_etag():
@@ -852,7 +852,7 @@ class RequestServer:
         """
         wsgidav_app = environ["wsgidav.app"]
         src_path = environ["PATH_INFO"]
-        provider = self._davProvider
+        provider = self._dav_provider
         src_res = provider.get_resource_inst(src_path, environ)
         src_parent_res = provider.get_resource_inst(
             util.get_uri_parent(src_path), environ
@@ -1047,8 +1047,8 @@ class RequestServer:
             if is_move:
                 handled = src_res.handle_move(dest_path)
             else:
-                isInfinity = environ["HTTP_DEPTH"] == "infinity"
-                handled = src_res.handle_copy(dest_path, depth_infinity=isInfinity)
+                is_infinity = environ["HTTP_DEPTH"] == "infinity"
+                handled = src_res.handle_copy(dest_path, depth_infinity=is_infinity)
             assert handled in (True, False) or type(handled) is list
             if type(handled) is list:
                 error_list = handled
@@ -1142,8 +1142,8 @@ class RequestServer:
         for sres in src_list:
             # Skip this resource, if there was a failure copying a parent
             parent_error = False
-            for ignorePath in ignore_dict.keys():
-                if util.is_equal_or_child_uri(ignorePath, sres.path):
+            for ignore_path in ignore_dict.keys():
+                if util.is_equal_or_child_uri(ignore_path, sres.path):
                     parent_error = True
                     break
             if parent_error:
@@ -1189,8 +1189,8 @@ class RequestServer:
                     continue
                 # Skip collections that contain errors (unmoved resources)
                 child_error = False
-                for ignorePath in ignore_dict.keys():
-                    if util.is_equal_or_child_uri(sres.path, ignorePath):
+                for ignore_path in ignore_dict.keys():
+                    if util.is_equal_or_child_uri(sres.path, ignore_path):
                         child_error = True
                         break
                 if child_error:
@@ -1219,7 +1219,7 @@ class RequestServer:
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_LOCK
         """
         path = environ["PATH_INFO"]
-        provider = self._davProvider
+        provider = self._dav_provider
         res = provider.get_resource_inst(path, environ)
         lock_man = provider.lock_manager
 
@@ -1344,15 +1344,15 @@ class RequestServer:
 
         # http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.4
         # Locking unmapped URLs: must create an empty resource
-        createdNewResource = False
+        created_new_resource = False
         if res is None:
-            parentRes = provider.get_resource_inst(util.get_uri_parent(path), environ)
-            if not parentRes or not parentRes.is_collection:
+            parent_res = provider.get_resource_inst(util.get_uri_parent(path), environ)
+            if not parent_res or not parent_res.is_collection:
                 self._fail(
                     HTTP_CONFLICT, context_info="LOCK-0 parent must be a collection"
                 )
-            res = parentRes.create_empty_resource(util.get_uri_name(path))
-            createdNewResource = True
+            res = parent_res.create_empty_resource(util.get_uri_name(path))
+            created_new_resource = True
 
         # --- Check, if path is already locked --------------------------------
 
@@ -1375,7 +1375,7 @@ class RequestServer:
         prop_el.append(lockdiscovery_el)
 
         respcode = "200 OK"
-        if createdNewResource:
+        if created_new_resource:
             respcode = "201 Created"
 
         xml = xml_tools.xml_to_bytes(prop_el)
@@ -1411,30 +1411,30 @@ class RequestServer:
     #            dictStatus[res.get_ref_url()] = DAVError(HTTP_FAILED_DEPENDENCY)
     #
     #        # Return multi-status fault response
-    #        multistatusEL = xml_tools.make_multistatus_el()
+    #        multistatus_el = xml_tools.make_multistatus_el()
     #        for nu, e in dictStatus.items():
-    #            responseEL = etree.SubElement(multistatusEL, "{DAV:}response")
-    #            etree.SubElement(responseEL, "{DAV:}href").text = nu
-    #            etree.SubElement(responseEL, "{DAV:}status").text = "HTTP/1.1 %s" %
+    #            response_el = etree.SubElement(multistatus_el, "{DAV:}response")
+    #            etree.SubElement(response_el, "{DAV:}href").text = nu
+    #            etree.SubElement(response_el, "{DAV:}status").text = "HTTP/1.1 %s" %
     #                get_http_status_string(e)
     #            # TODO: all responses should have this(?):
     #            if e.context_info:
-    #                etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = e.context_info
+    #                etree.SubElement(multistatus_el, "{DAV:}responsedescription").text = e.context_info
     #
     # if responsedescription:
-    #            etree.SubElement(multistatusEL, "{DAV:}responsedescription").text = "\n".join(
+    #            etree.SubElement(multistatus_el, "{DAV:}responsedescription").text = "\n".join(
     #                responsedescription)
     #
     # return util.send_multi_status_response(environ, start_response,
-    # multistatusEL)
+    # multistatus_el)
 
     def do_UNLOCK(self, environ, start_response):
         """
         @see: http://www.webdav.org/specs/rfc4918.html#METHOD_UNLOCK
         """
         path = environ["PATH_INFO"]
-        provider = self._davProvider
-        res = self._davProvider.get_resource_inst(path, environ)
+        provider = self._dav_provider
+        res = self._dav_provider.get_resource_inst(path, environ)
 
         lock_man = provider.lock_manager
         if lock_man is None:
@@ -1483,7 +1483,7 @@ class RequestServer:
         @see http://www.webdav.org/specs/rfc4918.html#HEADER_DAV
         """
         path = environ["PATH_INFO"]
-        provider = self._davProvider
+        provider = self._dav_provider
         config = environ["wsgidav.config"]
         hotfixes = util.get_dict_value(config, "hotfixes", as_dict=True)
 
@@ -1581,7 +1581,7 @@ class RequestServer:
         @see: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
         """
         path = environ["PATH_INFO"]
-        res = self._davProvider.get_resource_inst(path, environ)
+        res = self._dav_provider.get_resource_inst(path, environ)
 
         if util.get_content_length(environ) != 0:
             self._fail(

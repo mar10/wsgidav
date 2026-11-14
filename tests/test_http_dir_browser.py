@@ -46,7 +46,7 @@ class DirbrowserTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testGet(self):
+    def test_get(self):
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
         assert '<meta name="generator" content="WsgiDAV/' in res.text
@@ -58,7 +58,7 @@ class DirbrowserTest(unittest.TestCase):
         assert res.status_code == 200
         assert "<!-- WsgiDAV-UI: dir_browser -->" in res.text
 
-    def testGetResources(self):
+    def test_get_resources(self):
         """Server must respond to GET on a collection."""
         # Access collection (expect '200 Ok' with HTML response)
         res = requests.get(self.url, auth=self.auth)

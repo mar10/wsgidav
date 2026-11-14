@@ -2,6 +2,13 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Tools that make it easier to implement custom WsgiDAV providers.
+
+.. warning::
+   This module is part of ``wsgidav.samples``. Samples are provided as
+   examples and as a starting point for custom extensions only.
+   They are not covered by the test suite, are only lightly maintained, and
+   are **not guaranteed to work correctly or securely**.
+   Review and test the code carefully before using it in production.
 """
 
 import os

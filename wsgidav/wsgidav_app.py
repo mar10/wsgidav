@@ -496,37 +496,37 @@ class WsgiDAVApp:
 
         def _start_response_wrapper(status, response_headers, exc_info=None):
             # Postprocess response headers
-            headerDict = {}
+            header_dict = {}
             for header, value in response_headers:
-                if header.lower() in headerDict:
+                if header.lower() in header_dict:
                     _logger.error(f"Duplicate header in response: {header}")
-                headerDict[header.lower()] = value
+                header_dict[header.lower()] = value
 
             # Check if we should close the connection after this request.
             # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.4
-            forceCloseConnection = False
-            currentContentLength = headerDict.get("content-length")
-            statusCode = int(status.split(" ", 1)[0])
-            contentLengthRequired = (
+            force_close_connection = False
+            current_content_length = header_dict.get("content-length")
+            status_code = int(status.split(" ", 1)[0])
+            content_length_required = (
                 environ["REQUEST_METHOD"] != "HEAD"
-                and statusCode >= 200
-                and statusCode not in (204, 304)
+                and status_code >= 200
+                and status_code not in (204, 304)
             )
-            # _logger.info(environ["REQUEST_METHOD"], statusCode, contentLengthRequired)
-            if contentLengthRequired and currentContentLength in (None, ""):
+            # _logger.info(environ["REQUEST_METHOD"], status_code, content_length_required)
+            if content_length_required and current_content_length in (None, ""):
                 # A typical case: a GET request on a virtual resource, for which
                 # the provider doesn't know the length
                 _logger.error(
-                    f"Missing required Content-Length header in {statusCode}-response: closing connection"
+                    f"Missing required Content-Length header in {status_code}-response: closing connection"
                 )
-                forceCloseConnection = True
-            elif type(currentContentLength) is not str:
+                force_close_connection = True
+            elif type(current_content_length) is not str:
                 _logger.error(
                     "Invalid Content-Length header in response ({!r}): closing connection".format(
-                        headerDict.get("content-length")
+                        header_dict.get("content-length")
                     )
                 )
-                forceCloseConnection = True
+                force_close_connection = True
 
             # HOTFIX for Vista and Windows 7 (GC issue 13, issue 23)
             # It seems that we must read *all* of the request body, otherwise
@@ -545,17 +545,17 @@ class WsgiDAVApp:
                 _logger.warning(
                     "Input stream not completely consumed: closing connection."
                 )
-                forceCloseConnection = True
+                force_close_connection = True
 
-            if forceCloseConnection and headerDict.get("connection") != "close":
+            if force_close_connection and header_dict.get("connection") != "close":
                 _logger.warning("Adding 'Connection: close' header.")
                 response_headers.append(("Connection", "close"))
 
             # Log request
             if self.verbose >= 3:
-                userInfo = environ.get("wsgidav.auth.user_name")
-                if not userInfo:
-                    userInfo = "(anonymous)"
+                user_info = environ.get("wsgidav.auth.user_name")
+                if not user_info:
+                    user_info = "(anonymous)"
                 extra = []
                 if "HTTP_DESTINATION" in environ:
                     extra.append('dest="{}"'.format(environ.get("HTTP_DESTINATION")))
@@ -588,7 +588,7 @@ class WsgiDAVApp:
                 _logger.info(
                     '{addr} - {user} - [{time}] "{method} {path}" {extra} -> {status}'.format(
                         addr=environ.get("REMOTE_ADDR", ""),
-                        user=userInfo,
+                        user=user_info,
                         time=util.get_log_time(),
                         method=environ.get("REQUEST_METHOD"),
                         path=safe_re_encode(

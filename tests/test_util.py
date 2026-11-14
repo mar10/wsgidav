@@ -38,13 +38,13 @@ class BasicTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testPreconditions(self):
+    def test_preconditions(self):
         """Environment must be set."""
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
         )
 
-    def testBasics(self):
+    def test_basics(self):
         """Test basic tool functions."""
         assert join_uri("/a/b", "c") == "/a/b/c"
         assert join_uri("/a/b/", "c") == "/a/b/c"
@@ -197,86 +197,86 @@ class LoggerTest(unittest.TestCase):
 
     def setUp(self):
         # We add handlers that store root- and base-logger output
-        self.rootBuffer = StringIO()
-        rootLogger = logging.getLogger()
-        self.prevRootLogLevel = rootLogger.getEffectiveLevel()
-        self.rootLogHandler = logging.StreamHandler(self.rootBuffer)
-        rootLogger.addHandler(self.rootLogHandler)
+        self.root_buffer = StringIO()
+        root_logger = logging.getLogger()
+        self.prev_root_log_level = root_logger.getEffectiveLevel()
+        self.root_log_handler = logging.StreamHandler(self.root_buffer)
+        root_logger.addHandler(self.root_log_handler)
 
-        self.baseBuffer = StringIO()
-        baseLogger = logging.getLogger(BASE_LOGGER_NAME)
-        self.prevBaseLogLevel = baseLogger.getEffectiveLevel()
-        self.baseLogHandler = logging.StreamHandler(self.baseBuffer)
-        baseLogger.addHandler(self.baseLogHandler)
+        self.base_buffer = StringIO()
+        base_logger = logging.getLogger(BASE_LOGGER_NAME)
+        self.prev_base_log_level = base_logger.getEffectiveLevel()
+        self.base_log_handler = logging.StreamHandler(self.base_buffer)
+        base_logger.addHandler(self.base_log_handler)
 
     def tearDown(self):
-        rootLogger = logging.getLogger()
-        self.rootLogHandler.close()
-        rootLogger.setLevel(self.prevRootLogLevel)
-        rootLogger.removeHandler(self.rootLogHandler)
+        root_logger = logging.getLogger()
+        self.root_log_handler.close()
+        root_logger.setLevel(self.prev_root_log_level)
+        root_logger.removeHandler(self.root_log_handler)
 
-        baseLogger = logging.getLogger(BASE_LOGGER_NAME)
-        self.baseLogHandler.close()
-        baseLogger.setLevel(self.prevBaseLogLevel)
-        baseLogger.removeHandler(self.baseLogHandler)
+        base_logger = logging.getLogger(BASE_LOGGER_NAME)
+        self.base_log_handler.close()
+        base_logger.setLevel(self.prev_base_log_level)
+        base_logger.removeHandler(self.base_log_handler)
 
-    def getLogOutput(self):
-        self.rootLogHandler.flush()
-        self.baseLogHandler.flush()
-        return (self.rootBuffer.getvalue(), self.baseBuffer.getvalue())
+    def get_log_output(self):
+        self.root_log_handler.flush()
+        self.base_log_handler.flush()
+        return (self.root_buffer.getvalue(), self.base_buffer.getvalue())
 
-    def testDefault(self):
+    def test_default(self):
         """By default, there should be no logging."""
-        _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+        _base_logger = logging.getLogger(BASE_LOGGER_NAME)
 
         # If this fails, some previous test probably changed the default logging level.
-        assert _baseLogger.getEffectiveLevel() == logging.INFO, (
+        assert _base_logger.getEffectiveLevel() == logging.INFO, (
             "Default base logger level should be INFO"
         )
 
-        _baseLogger.debug("_baseLogger.debug")
-        _baseLogger.info("_baseLogger.info")
-        _baseLogger.warning("_baseLogger.warning")
-        _baseLogger.error("_baseLogger.error")
+        _base_logger.debug("_base_logger.debug")
+        _base_logger.info("_base_logger.info")
+        _base_logger.warning("_base_logger.warning")
+        _base_logger.error("_base_logger.error")
 
-        rootOutput, baseOutput = self.getLogOutput()
+        root_output, base_output = self.get_log_output()
         # Printed for debugging, when test fails:
-        print(f"ROOT OUTPUT:\n{rootOutput!r}\nBASE OUTPUT:\n{baseOutput!r}")
+        print(f"ROOT OUTPUT:\n{root_output!r}\nBASE OUTPUT:\n{base_output!r}")
 
         # No output should be generated in the root logger
-        assert rootOutput == ""
+        assert root_output == ""
         # The library logger should default to INFO level
         # (this output will not be visible, because the base logger only has a NullHandler)
-        assert ".debug" not in baseOutput
-        assert ".info" in baseOutput
-        assert ".warning" in baseOutput
-        assert ".error" in baseOutput
+        assert ".debug" not in base_output
+        assert ".info" in base_output
+        assert ".warning" in base_output
+        assert ".error" in base_output
 
-    def testEnablePropagation(self):
+    def test_enable_propagation(self):
         """Users can enable logging by propagating to root logger."""
-        _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
+        _base_logger = logging.getLogger(BASE_LOGGER_NAME)
 
-        _baseLogger.propagate = True
+        _base_logger.propagate = True
 
-        _baseLogger.debug("_baseLogger.debug")
-        _baseLogger.info("_baseLogger.info")
-        _baseLogger.warning("_baseLogger.warning")
-        _baseLogger.error("_baseLogger.error")
+        _base_logger.debug("_base_logger.debug")
+        _base_logger.info("_base_logger.info")
+        _base_logger.warning("_base_logger.warning")
+        _base_logger.error("_base_logger.error")
 
-        rootOutput, baseOutput = self.getLogOutput()
+        root_output, base_output = self.get_log_output()
         # Printed for debugging, when test fails:
-        print(f"ROOT OUTPUT:\n{rootOutput!r}\nBASE OUTPUT:\n{baseOutput!r}")
+        print(f"ROOT OUTPUT:\n{root_output!r}\nBASE OUTPUT:\n{base_output!r}")
 
         # Now output we should see output in the root logger
-        assert rootOutput == baseOutput
+        assert root_output == base_output
         # The library logger should default to INFO level
         # (this output will not be visible, because the base logger only has a NullHandler)
-        assert ".debug" not in baseOutput
-        assert ".info" in baseOutput
-        assert ".warning" in baseOutput
-        assert ".error" in baseOutput
+        assert ".debug" not in base_output
+        assert ".info" in base_output
+        assert ".warning" in base_output
+        assert ".error" in base_output
 
-    def testCliLogging(self):
+    def test_cli_logging(self):
         """CLI initializes logging."""
         config = {
             "verbose": 3,
@@ -286,32 +286,32 @@ class LoggerTest(unittest.TestCase):
         }
         init_logging(config)
 
-        _baseLogger = logging.getLogger(BASE_LOGGER_NAME)
-        _enabledLogger = get_module_logger("test")
-        _disabledLogger = get_module_logger("test2")
+        _base_logger = logging.getLogger(BASE_LOGGER_NAME)
+        _enabled_logger = get_module_logger("test")
+        _disabled_logger = get_module_logger("test2")
 
-        _baseLogger.debug("_baseLogger.debug")
-        _baseLogger.info("_baseLogger.info")
-        _baseLogger.warning("_baseLogger.warning")
-        _baseLogger.error("_baseLogger.error")
+        _base_logger.debug("_base_logger.debug")
+        _base_logger.info("_base_logger.info")
+        _base_logger.warning("_base_logger.warning")
+        _base_logger.error("_base_logger.error")
 
-        _enabledLogger.debug("_enabledLogger.debug")
-        _enabledLogger.info("_enabledLogger.info")
-        _enabledLogger.warning("_enabledLogger.warning")
-        _enabledLogger.error("_enabledLogger.error")
+        _enabled_logger.debug("_enabled_logger.debug")
+        _enabled_logger.info("_enabled_logger.info")
+        _enabled_logger.warning("_enabled_logger.warning")
+        _enabled_logger.error("_enabled_logger.error")
 
-        _disabledLogger.debug("_disabledLogger.debug")
-        _disabledLogger.info("_disabledLogger.info")
-        _disabledLogger.warning("_disabledLogger.warning")
-        _disabledLogger.error("_disabledLogger.error")
+        _disabled_logger.debug("_disabled_logger.debug")
+        _disabled_logger.info("_disabled_logger.info")
+        _disabled_logger.warning("_disabled_logger.warning")
+        _disabled_logger.error("_disabled_logger.error")
 
-        rootOutput, baseOutput = self.getLogOutput()
+        root_output, base_output = self.get_log_output()
         # Printed for debugging, when test fails:
-        print(f"ROOT OUTPUT:\n{rootOutput!r}\nBASE OUTPUT:\n{baseOutput!r}")
+        print(f"ROOT OUTPUT:\n{root_output!r}\nBASE OUTPUT:\n{base_output!r}")
 
         # init_logging() removes all other handlers
-        assert rootOutput == ""
-        assert baseOutput == ""
+        assert root_output == ""
+        assert base_output == ""
 
 
 if __name__ == "__main__":

@@ -63,7 +63,7 @@ DEFAULT_CONFIG = {
         HTTPAuthenticator,
         WsgiDavDirBrowser,  # configured under dir_browser option (see below)
         WsgiDavExplorer,  # configured under dav_explorer option (see below)
-        # Impersonator,
+        # Impersonator,  # wsgidav.samples.impersonator (experimental sample)
         RequestResolver,  # this must be the last middleware item
     ],
     # HTTP Authentication Options

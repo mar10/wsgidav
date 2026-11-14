@@ -53,9 +53,11 @@ class WsgiDavExplorer(BaseMiddleware):
         )
 
         # Prepare a Jinja2 template
-        templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
-        templateEnv = Environment(loader=templateLoader, autoescape=select_autoescape())
-        self.template = templateEnv.get_template("app.html")
+        template_loader = FileSystemLoader(searchpath=self.htdocs_path)
+        template_env = Environment(
+            loader=template_loader, autoescape=select_autoescape()
+        )
+        self.template = template_env.get_template("app.html")
 
     def is_disabled(self):
         return self.davex_config.get("enable") is False

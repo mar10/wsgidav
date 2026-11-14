@@ -34,12 +34,12 @@ class BasicTest(unittest.TestCase):
     #     def suite(cls):
     #         """Return test case suite (so we can control the order)."""
     #         suite = TestSuite()
-    #         suite.addTest(cls("testPreconditions"))
+    #         suite.addTest(cls("test_preconditions"))
     # #        suite.addTest(cls("testOpen"))
-    #         suite.addTest(cls("testValidation"))
-    #         suite.addTest(cls("testLock"))
-    #         suite.addTest(cls("testTimeout"))
-    #         suite.addTest(cls("testConflict"))
+    #         suite.addTest(cls("test_validation"))
+    #         suite.addTest(cls("test_lock"))
+    #         suite.addTest(cls("test_timeout"))
+    #         suite.addTest(cls("test_conflict"))
     #         return suite
 
     def setUp(self):
@@ -76,37 +76,37 @@ class BasicTest(unittest.TestCase):
         except DAVError:
             return None
 
-    def _isLockDict(self, o):
+    def _is_lock_dict(self, o):
         try:
             _ = o["root"]  # noqa F841
         except Exception:
             return False
         return True
 
-    def _isLockResultOK(self, resultTupleList):
+    def _is_lock_result_ok(self, result_tuple_list):
         """Return True, if result is [ (lock_dict, None) ]."""
         try:
             return (
-                len(resultTupleList) == 1
-                and len(resultTupleList) == 2
-                and self._isLockDict(resultTupleList[0][0])
-                and resultTupleList[0][1] is None
+                len(result_tuple_list) == 1
+                and len(result_tuple_list) == 2
+                and self._is_lock_dict(result_tuple_list[0][0])
+                and result_tuple_list[0][1] is None
             )
         except Exception:
             return False
 
-    def _isLockResultFault(self, lock, conflictList, status=None):
+    def _is_lock_result_fault(self, lock, conflict_list, status=None):
         """Return True, if it is a valid result tuple containing a DAVError."""
         try:
             if lock is not None:
                 return False
-            if len(conflictList) < 1:
+            if len(conflict_list) < 1:
                 return False
-            resultTuple = conflictList[0]
+            result_tuple = conflict_list[0]
             if (
-                len(resultTuple) != 2
-                or not self._isLockDict(resultTuple[0])
-                or not isinstance(resultTuple[1], DAVError)
+                len(result_tuple) != 2
+                or not self._is_lock_dict(result_tuple[0])
+                or not isinstance(result_tuple[1], DAVError)
             ):
                 return False
             elif status and status != DAVError.value:
@@ -115,7 +115,7 @@ class BasicTest(unittest.TestCase):
         except Exception:
             return False
 
-    def testPreconditions(self):
+    def test_preconditions(self):
         """Environment must be set."""
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
@@ -131,7 +131,7 @@ class BasicTest(unittest.TestCase):
     #                        10)
     #        assert lm._loaded, "LM must be opened after first access"
 
-    def testValidation(self):
+    def test_validation(self):
         """Lock manager should raise errors on bad args."""
         lm = self.lm
         self.assertRaises(
@@ -192,7 +192,7 @@ class BasicTest(unittest.TestCase):
 
     #        assert lm._dict is None, "No locks should have been created by this test"
 
-    def testLock(self):
+    def test_lock(self):
         """Lock manager should create and find locks."""
         lm = self.lm
         url = "/dav/res"
@@ -259,7 +259,7 @@ class BasicTest(unittest.TestCase):
             "parent url reported as locked"
         )
 
-    def testTimeout(self):
+    def test_timeout(self):
         """Locks should be purged after expiration date."""
         lm = self.lm
         timeout = 1
@@ -285,7 +285,7 @@ class BasicTest(unittest.TestCase):
         lock_dict = lm.get_lock(tok)
         assert lock_dict is None, "Lock has not expired"
 
-    def testConflict(self):
+    def test_conflict(self):
         """Locks should prevent conflicts."""
         token_list = []
 
@@ -367,7 +367,7 @@ class BasicTest(unittest.TestCase):
         )
         assert lock is None, "Could acquire a conflicting child lock (same principal)"
 
-    def testWriteTransactionBlocksLock(self):
+    def test_write_transaction_blocks_lock(self):
         """A pending write transaction must block a conflicting LOCK request.
 
         Regression test for a TOCTOU race (CWE-367): without this guard, a
@@ -407,7 +407,7 @@ class BasicTest(unittest.TestCase):
         )
         assert lock is not None, "Lock should succeed after write transaction ends"
 
-    def testLockBlocksWriteTransaction(self):
+    def test_lock_blocks_write_transaction(self):
         """An existing lock must prevent a conflicting write transaction."""
         lm = self.lm
         url = "/dav/res"
@@ -433,7 +433,7 @@ class BasicTest(unittest.TestCase):
             principal="another principal",
         )
 
-    def testWriteTransactionContextReleasesMarker(self):
+    def test_write_transaction_context_releases_marker(self):
         """A write transaction context must release its marker on failure."""
         lm = self.lm
         url = "/dav/res"

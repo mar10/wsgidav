@@ -48,7 +48,7 @@ class DavExplorerTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testGet(self):
+    def test_get(self):
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
         assert '<meta name="generator" content="WsgiDAV/' in res.text
@@ -57,7 +57,7 @@ class DavExplorerTest(unittest.TestCase):
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
         assert "<!-- WsgiDAV-UI: dav_explorer -->" in res.text
 
-    def testGetResources(self):
+    def test_get_resources(self):
         """Server must respond to GET on a collection."""
 
         # Access collection (expect '200 Ok' with HTML response)
@@ -79,7 +79,7 @@ class DavExplorerTest(unittest.TestCase):
         res = requests.get(self.url + "subfolder", auth=self.auth)
         assert res.status_code == 200
 
-    def testHeaders(self):
+    def test_headers(self):
         res = requests.get(self.url, auth=self.auth)
         assert res.headers["X-Content-Type-Options"] == "nosniff"
 
@@ -87,7 +87,7 @@ class DavExplorerTest(unittest.TestCase):
         assert res.status_code == 200
         assert res.text == ""
 
-    def testContextData(self):
+    def test_context_data(self):
         """The page passes a JSON config to the JavaScript app."""
         res = requests.get(self.url, auth=self.auth)
         config = get_context_data(res.text)
@@ -97,7 +97,7 @@ class DavExplorerTest(unittest.TestCase):
         # Not needed by the frontend
         assert "page_trailer" not in config
 
-    def testNonGetRequestsPassThrough(self):
+    def test_non_get_requests_pass_through(self):
         """WebDAV methods on collections must not be handled by the web UI."""
         res = requests.request(
             "PROPFIND", self.url, auth=self.auth, headers={"Depth": "1"}
@@ -105,7 +105,7 @@ class DavExplorerTest(unittest.TestCase):
         assert res.status_code == 207
         assert "<!-- WsgiDAV-UI" not in res.text
 
-    def testAssetsAreAnonymous(self):
+    def test_assets_are_anonymous(self):
         """The JS/CSS assets are served without authentication."""
         for name in ("app.js", "util.js", "app.css"):
             res = requests.get(self.url + ":dav_explorer/" + name)

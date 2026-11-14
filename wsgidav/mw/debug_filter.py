@@ -69,7 +69,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
         self._config = config
         log_opts = config.get("logging") or {}
         # self.out = sys.stdout
-        self.passedLitmus = {}
+        self.passed_litmus = {}
         # These methods boost verbose=2 to verbose=3
         self.debug_methods = log_opts.get("debug_methods", [])
         # Litmus tests containing these string boost verbose=2 to verbose=3
@@ -86,12 +86,12 @@ class WsgiDavDebugFilter(BaseMiddleware):
 
         method = environ["REQUEST_METHOD"]
 
-        debugBreak = False
-        dumpRequest = False
-        dumpResponse = False
+        debug_break = False
+        dump_request = False
+        dump_response = False
 
         if verbose >= 5:
-            dumpRequest = dumpResponse = True
+            dump_request = dump_response = True
 
         # Process URL commands
         if "dump_storage" in environ.get("QUERY_STRING", ""):
@@ -102,42 +102,42 @@ class WsgiDavDebugFilter(BaseMiddleware):
                 dav.prop_manager._dump()
 
         # Turn on max. debugging for selected litmus tests
-        litmusTag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
-        if litmusTag and verbose >= 3:
-            _logger.info(f"----\nRunning litmus test {litmusTag!r}...")
-            for litmusSubstring in self.debug_litmus:
-                if litmusSubstring in litmusTag:
+        litmus_tag = environ.get("HTTP_X_LITMUS", environ.get("HTTP_X_LITMUS_SECOND"))
+        if litmus_tag and verbose >= 3:
+            _logger.info(f"----\nRunning litmus test {litmus_tag!r}...")
+            for litmus_substring in self.debug_litmus:
+                if litmus_substring in litmus_tag:
                     verbose = 5
-                    debugBreak = True
-                    dumpRequest = True
-                    dumpResponse = True
+                    debug_break = True
+                    dump_request = True
+                    dump_response = True
                     break
-            for litmusSubstring in self.break_after_litmus:
+            for litmus_substring in self.break_after_litmus:
                 if (
-                    litmusSubstring in self.passedLitmus
-                    and litmusSubstring not in litmusTag
+                    litmus_substring in self.passed_litmus
+                    and litmus_substring not in litmus_tag
                 ):
-                    _logger.info(f" *** break after litmus {litmusTag}")
+                    _logger.info(f" *** break after litmus {litmus_tag}")
                     sys.exit(-1)
-                if litmusSubstring in litmusTag:
-                    self.passedLitmus[litmusSubstring] = True
+                if litmus_substring in litmus_tag:
+                    self.passed_litmus[litmus_substring] = True
 
         # Turn on max. debugging for selected request methods
         if verbose >= 3 and method in self.debug_methods:
             verbose = 5
-            debugBreak = True
-            dumpRequest = True
-            dumpResponse = True
+            debug_break = True
+            dump_request = True
+            dump_response = True
 
         # Set debug options to environment
         environ["wsgidav.verbose"] = verbose
         # environ["wsgidav.debug_methods"] = self.debug_methods
-        environ["wsgidav.debug_break"] = debugBreak
-        environ["wsgidav.dump_request_body"] = dumpRequest
-        environ["wsgidav.dump_response_body"] = dumpResponse
+        environ["wsgidav.debug_break"] = debug_break
+        environ["wsgidav.dump_request_body"] = dump_request
+        environ["wsgidav.dump_response_body"] = dump_response
 
         # Dump request headers
-        if dumpRequest:
+        if dump_request:
             _logger.info(f"{method} Request ---")
             # _logger.info("<{}> --- {} Request ---".format(
             #         threading.current_thread().ident, method))
@@ -168,7 +168,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                 )
 
             # Dump response headers
-            if first_yield and dumpResponse:
+            if first_yield and dump_response:
                 _logger.info(
                     f"<{threading.current_thread().ident}> ---{method}  Response({sub_app_start_response.status}): ---"
                 )
@@ -210,7 +210,7 @@ class WsgiDavDebugFilter(BaseMiddleware):
                 sub_app_start_response.exc_info,
             )
 
-        if dumpResponse:
+        if dump_response:
             _logger.info(
                 f"<{threading.current_thread().ident}> --- End of {method} Response ({nbytes:d} bytes) ---"
             )

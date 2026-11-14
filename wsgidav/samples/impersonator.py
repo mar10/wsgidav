@@ -8,6 +8,13 @@ current process to match the Unix user corresponding to the HTTP username.
 This is useful for applications that need to access files or resources with the
 permissions of a specific Unix user.
 
+.. warning::
+   This module is part of ``wsgidav.samples``. Samples are provided as
+   examples and as a starting point for custom extensions only.
+   They are not covered by the test suite, are only lightly maintained, and
+   are **not guaranteed to work correctly or securely**.
+   Review and test the code carefully before using it in production.
+
 NOTE: **Experimental**:
 This middleware is not thread-safe and should not be used in a
 multithreaded environment. It is designed to be used in a single-threaded

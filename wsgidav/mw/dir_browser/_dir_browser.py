@@ -66,9 +66,11 @@ class WsgiDavDirBrowser(BaseMiddleware):
         )
 
         # Prepare a Jinja2 template
-        templateLoader = FileSystemLoader(searchpath=self.htdocs_path)
-        templateEnv = Environment(loader=templateLoader, autoescape=select_autoescape())
-        self.template = templateEnv.get_template("template.html")
+        template_loader = FileSystemLoader(searchpath=self.htdocs_path)
+        template_env = Environment(
+            loader=template_loader, autoescape=select_autoescape()
+        )
+        self.template = template_env.get_template("template.html")
 
     def is_disabled(self):
         return self.dir_config.get("enable") is False
@@ -184,8 +186,8 @@ class WsgiDavDirBrowser(BaseMiddleware):
         if dir_info_list is None:
             # No pre-build info: traverse members
             dir_info_list = []
-            childList = dav_res.get_descendants(depth="1", add_self=False)
-            for res in childList:
+            child_list = dav_res.get_descendants(depth="1", add_self=False)
+            for res in child_list:
                 di = res.get_display_info()
                 href = res.get_href()
                 ofe_prefix = None

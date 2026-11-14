@@ -24,10 +24,10 @@ class BasicTest(unittest.TestCase):
     #     def suite(cls):
     #         """Return test case suite (so we can control the order)."""
     #         suite = TestSuite()
-    #         suite.addTest(cls("testPreconditions"))
-    #         suite.addTest(cls("testOpen"))
-    #         suite.addTest(cls("testValidation"))
-    #         suite.addTest(cls("testReadWrite"))
+    #         suite.addTest(cls("test_preconditions"))
+    #         suite.addTest(cls("test_open"))
+    #         suite.addTest(cls("test_validation"))
+    #         suite.addTest(cls("test_read_write"))
     #         return suite
 
     def setUp(self):
@@ -38,13 +38,13 @@ class BasicTest(unittest.TestCase):
         self.pm._close()
         self.pm = None
 
-    def testPreconditions(self):
+    def test_preconditions(self):
         """Environment must be set."""
         self.assertTrue(
             __debug__, "__debug__ must be True, otherwise asserts are ignored"
         )
 
-    def testOpen(self):
+    def test_open(self):
         """Property manager should be lazy opening on first access."""
         pm = self.pm
         assert not pm._loaded, "PM must be closed until first access"
@@ -56,7 +56,7 @@ class BasicTest(unittest.TestCase):
             raise
         assert pm._loaded, "PM must be opened after first access"
 
-    def testValidation(self):
+    def test_validation(self):
         """Property manager should raise errors on bad args."""
         pm = self.pm
         self.assertRaises(
@@ -74,7 +74,7 @@ class BasicTest(unittest.TestCase):
 
         assert pm._dict is None, "No properties should have been created by this test"
 
-    def testReadWrite(self):
+    def test_read_write(self):
         """Property manager should raise errors on bad args."""
         pm = self.pm
         url = "/dav/res"

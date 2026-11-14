@@ -251,11 +251,11 @@ See https://github.com/mar10/wsgidav for additional information.
     elif args.config_file is None:
         # If --config was omitted, use default (if it exists)
         for filename in DEFAULT_CONFIG_FILES:
-            defPath = os.path.abspath(filename)
-            if os.path.exists(defPath):
+            def_path = os.path.abspath(filename)
+            if os.path.exists(def_path):
                 if args.verbose >= 3:
-                    print(f"Using default configuration file: {defPath}")
-                args.config_file = defPath
+                    print(f"Using default configuration file: {def_path}")
+                args.config_file = def_path
                 break
     else:
         # If --config was specified convert to absolute path and assert it exists
@@ -266,12 +266,12 @@ See https://github.com/mar10/wsgidav for additional information.
             )
 
     # Convert args object to dictionary
-    cmdLineOpts = args.__dict__.copy()
+    cmd_line_opts = args.__dict__.copy()
     if args.verbose >= 5:
         print("Command line args:")
-        for k, v in cmdLineOpts.items():
+        for k, v in cmd_line_opts.items():
             print(f"    {k:>12}: {v}")
-    return cmdLineOpts, parser
+    return cmd_line_opts, parser
 
 
 def _read_config_file(config_file, _verbose):

@@ -474,10 +474,10 @@ def init_logging(config):
     formatter = logging.Formatter(logger_format, logger_date_format)
 
     # Define handlers
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    #    consoleHandler = logging.StreamHandler(sys.stderr)
-    consoleHandler.setFormatter(formatter)
-    # consoleHandler.setLevel(logging.DEBUG)
+    console_handler = logging.StreamHandler(sys.stdout)
+    #    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setFormatter(formatter)
+    # console_handler.setLevel(logging.DEBUG)
 
     # Add the handlers to the base logger
     logger = logging.getLogger(BASE_LOGGER_NAME)
@@ -488,13 +488,13 @@ def init_logging(config):
         logger.setLevel(logging.INFO)
     elif verbose == 2:  # --quiet
         logger.setLevel(logging.WARN)
-        # consoleHandler.setLevel(logging.WARN)
+        # console_handler.setLevel(logging.WARN)
     elif verbose == 1:  # -qq
         logger.setLevel(logging.ERROR)
-        # consoleHandler.setLevel(logging.WARN)
+        # console_handler.setLevel(logging.WARN)
     else:  # -qqq
         logger.setLevel(logging.CRITICAL)
-        # consoleHandler.setLevel(logging.ERROR)
+        # console_handler.setLevel(logging.ERROR)
 
     # Don't call the root's handlers after our custom handlers
     logger.propagate = False
@@ -508,7 +508,7 @@ def init_logging(config):
             pass
         logger.removeHandler(hdlr)
 
-    logger.addHandler(consoleHandler)
+    logger.addHandler(console_handler)
 
     if verbose >= 3:
         for e in enable_loggers:
@@ -519,15 +519,15 @@ def init_logging(config):
     return
 
 
-def get_module_logger(moduleName, *, default_to_verbose=False):
+def get_module_logger(module_name, *, default_to_verbose=False):
     """Create a module logger, that can be en/disabled by configuration.
 
     @see: unit.init_logging
     """
-    # moduleName = moduleName.split(".")[-1]
-    if not moduleName.startswith(BASE_LOGGER_NAME + "."):
-        moduleName = BASE_LOGGER_NAME + "." + moduleName
-    logger = logging.getLogger(moduleName)
+    # module_name = module_name.split(".")[-1]
+    if not module_name.startswith(BASE_LOGGER_NAME + "."):
+        module_name = BASE_LOGGER_NAME + "." + module_name
+    logger = logging.getLogger(module_name)
     # if logger.level == logging.NOTSET and not default_to_verbose:
     #     logger.setLevel(logging.INFO)  # Disable debug messages by default
     return logger
@@ -1179,9 +1179,9 @@ def parse_xml_body(environ, *, allow_empty=False):
       WSGI allows it to be empty or absent: treated like 'missing'.
     """
     #
-    clHeader = environ.get("CONTENT_LENGTH", "").strip()
+    cl_header = environ.get("CONTENT_LENGTH", "").strip()
     #    content_length = -1 # read all of stream
-    if clHeader == "":
+    if cl_header == "":
         # No Content-Length given: read to end of stream
         # TODO: etree.parse() locks, if input is invalid?
         #        pfroot = etree.parse(environ["wsgi.input"]).getroot()
@@ -1190,7 +1190,7 @@ def parse_xml_body(environ, *, allow_empty=False):
         requestbody = ""
     else:
         try:
-            content_length = int(clHeader)
+            content_length = int(cl_header)
             if content_length < 0:
                 raise DAVError(HTTP_BAD_REQUEST, "Negative content-length.")
         except ValueError:
@@ -1210,11 +1210,11 @@ def parse_xml_body(environ, *, allow_empty=False):
 
     try:
         if use_lxml:
-            rootEL = etree.XML(
+            root_el = etree.XML(
                 requestbody, parser=etree.XMLParser(resolve_entities=False)
             )
         else:
-            rootEL = etree.fromstring(requestbody)
+            root_el = etree.fromstring(requestbody)
     except Exception as e:
         raise DAVError(
             HTTP_BAD_REQUEST, "Invalid XML format.", src_exception=e
@@ -1225,12 +1225,12 @@ def parse_xml_body(environ, *, allow_empty=False):
         _logger.info(
             "{} XML request body:\n{}".format(
                 environ["REQUEST_METHOD"],
-                to_str(xml_to_bytes(rootEL, pretty=True)),
+                to_str(xml_to_bytes(root_el, pretty=True)),
             )
         )
         environ["wsgidav.dump_request_body"] = False
 
-    return rootEL
+    return root_el
 
 
 # def sendResponse(environ, start_response, body, content_type):
@@ -1347,10 +1347,10 @@ def add_property_response(multistatus_elem, href, prop_list):
     @param prop_list: list of 2-tuples (name, value)
     """
     # Split prop_list by status code and build a unique list of namespaces
-    nsCount = 1
-    nsDict = {}
-    nsMap = {}
-    propDict = {}
+    ns_count = 1
+    ns_dict = {}
+    ns_map = {}
+    prop_dict = {}
 
     for name, value in prop_list:
         status = "200 OK"
@@ -1362,39 +1362,39 @@ def add_property_response(multistatus_elem, href, prop_list):
         # Collect namespaces, so we can declare them in the <response> for
         # compacter output
         ns, _ = split_namespace(name)
-        if ns != "DAV:" and ns not in nsDict and ns != "":
-            nsDict[ns] = True
-            nsMap[f"NS{nsCount}"] = ns
-            nsCount += 1
+        if ns != "DAV:" and ns not in ns_dict and ns != "":
+            ns_dict[ns] = True
+            ns_map[f"NS{ns_count}"] = ns
+            ns_count += 1
 
-        propDict.setdefault(status, []).append((name, value))
+        prop_dict.setdefault(status, []).append((name, value))
 
     # <response>
-    responseEL = make_sub_element(multistatus_elem, "{DAV:}response", nsmap=nsMap)
+    response_el = make_sub_element(multistatus_elem, "{DAV:}response", nsmap=ns_map)
 
     #    log("href value:{}".format(string_repr(href)))
-    #    etree.SubElement(responseEL, "{DAV:}href").text = toUnicode(href)
-    etree.SubElement(responseEL, "{DAV:}href").text = href
-    #    etree.SubElement(responseEL, "{DAV:}href").text = quote(href, safe="/" + "!*'(),"
+    #    etree.SubElement(response_el, "{DAV:}href").text = toUnicode(href)
+    etree.SubElement(response_el, "{DAV:}href").text = href
+    #    etree.SubElement(response_el, "{DAV:}href").text = quote(href, safe="/" + "!*'(),"
     #       + "$-_|.")
 
     # One <propstat> per status code
-    for status in propDict:
-        propstatEL = etree.SubElement(responseEL, "{DAV:}propstat")
+    for status in prop_dict:
+        propstat_el = etree.SubElement(response_el, "{DAV:}propstat")
         # List of <prop>
-        propEL = etree.SubElement(propstatEL, "{DAV:}prop")
-        for name, value in propDict[status]:
+        prop_el = etree.SubElement(propstat_el, "{DAV:}prop")
+        for name, value in prop_dict[status]:
             if value is None:
-                etree.SubElement(propEL, name)
+                etree.SubElement(prop_el, name)
             elif is_etree_element(value):
-                propEL.append(value)
+                prop_el.append(value)
             else:
                 # value must be string or unicode
                 #                log("{} value:{}".format(name, string_repr(value)))
-                #                etree.SubElement(propEL, name).text = value
-                etree.SubElement(propEL, name).text = to_unicode_safe(value)
+                #                etree.SubElement(prop_el, name).text = value
+                etree.SubElement(prop_el, name).text = to_unicode_safe(value)
         # <status>
-        etree.SubElement(propstatEL, "{DAV:}status").text = f"HTTP/1.1 {status}"
+        etree.SubElement(propstat_el, "{DAV:}status").text = f"HTTP/1.1 {status}"
 
 
 # ========================================================================
@@ -1492,8 +1492,8 @@ def get_file_etag(file_path):
 # ========================================================================
 
 # Range Specifiers
-reByteRangeSpecifier = re.compile("(([0-9]+)-([0-9]*))")
-reSuffixByteRangeSpecifier = re.compile("(-([0-9]+))")
+re_byte_range_specifier = re.compile("(([0-9]+)-([0-9]*))")
+re_suffix_byte_range_specifier = re.compile("(-([0-9]+))")
 
 
 def obtain_content_ranges(range_header, filesize):
@@ -1513,7 +1513,7 @@ def obtain_content_ranges(range_header, filesize):
     for subrange in request_ranges:
         is_matched = False
         if not is_matched:
-            match = reByteRangeSpecifier.search(subrange)
+            match = re_byte_range_specifier.search(subrange)
             if match:
                 range_start = int(match.group(2))
 
@@ -1539,7 +1539,7 @@ def obtain_content_ranges(range_header, filesize):
                     is_matched = True
 
         if not is_matched:
-            match = reSuffixByteRangeSpecifier.search(subrange)
+            match = re_suffix_byte_range_specifier.search(subrange)
             if match:
                 range_start = filesize - int(match.group(2))
                 if range_start < 0:
@@ -1576,7 +1576,7 @@ def obtain_content_ranges(range_header, filesize):
 
 #: any numofsecs above the following limit is regarded as infinite
 MAX_FINITE_TIMEOUT_LIMIT = 10 * 365 * 24 * 60 * 60  # approx 10 years
-reSecondsReader = re.compile(r"second\-([0-9]+)", re.I)
+re_seconds_reader = re.compile(r"second\-([0-9]+)", re.I)
 
 
 def read_timeout_value_header(timeoutvalue):
@@ -1588,8 +1588,8 @@ def read_timeout_value_header(timeoutvalue):
         if timeoutspec.lower() == "infinite":
             return -1
         else:
-            listSR = reSecondsReader.findall(timeoutspec)
-            for secs in listSR:
+            list_sr = re_seconds_reader.findall(timeoutspec)
+            for secs in list_sr:
                 timeoutsecs = int(secs)
                 if timeoutsecs > MAX_FINITE_TIMEOUT_LIMIT:
                     return -1
@@ -1648,18 +1648,18 @@ def evaluate_http_conditionals(dav_res, last_modified, entity_tag, environ):
             raise DAVError(HTTP_PRECONDITION_FAILED, "If-Match header condition failed")
 
     # TODO: after the refactoring
-    ifModifiedSinceFailed = False
+    if_modified_since_failed = False
     if "HTTP_IF_MODIFIED_SINCE" in environ and dav_res.support_modified():
         ifmodtime = parse_time_string(environ["HTTP_IF_MODIFIED_SINCE"])
         if ifmodtime and ifmodtime > last_modified:
-            ifModifiedSinceFailed = True
+            if_modified_since_failed = True
 
     # If-None-Match
     # If none of the entity tags match, then the server MAY perform the requested method as if the
     # If-None-Match header field did not exist, but MUST also ignore any If-Modified-Since header
     # field (s) in the request. That is, if no entity tags match, then the server MUST NOT return
     # a 304 (Not Modified) response.
-    ignoreIfModifiedSince = False
+    ignore_if_modified_since = False
     if "HTTP_IF_NONE_MATCH" in environ and dav_res.support_etag():
         token_list = parse_if_match_header(environ["HTTP_IF_NONE_MATCH"])
         for token in token_list:
@@ -1668,13 +1668,13 @@ def evaluate_http_conditionals(dav_res, last_modified, entity_tag, environ):
                 # conflicting If-Modified header, we return NOT_MODIFIED
                 if (
                     environ["REQUEST_METHOD"] in ("GET", "HEAD")
-                    and not ifModifiedSinceFailed
+                    and not if_modified_since_failed
                 ):
                     raise DAVError(HTTP_NOT_MODIFIED, "If-None-Match header failed")
                 raise DAVError(
                     HTTP_PRECONDITION_FAILED, "If-None-Match header condition failed"
                 )
-        ignoreIfModifiedSince = True
+        ignore_if_modified_since = True
 
     if "HTTP_IF_UNMODIFIED_SINCE" in environ and dav_res.support_modified():
         ifunmodtime = parse_time_string(environ["HTTP_IF_UNMODIFIED_SINCE"])
@@ -1683,16 +1683,16 @@ def evaluate_http_conditionals(dav_res, last_modified, entity_tag, environ):
                 HTTP_PRECONDITION_FAILED, "If-Unmodified-Since header condition failed"
             )
 
-    if ifModifiedSinceFailed and not ignoreIfModifiedSince:
+    if if_modified_since_failed and not ignore_if_modified_since:
         raise DAVError(HTTP_NOT_MODIFIED, "If-Modified-Since header condition failed")
 
     return
 
 
-reIfSeparator = re.compile(r"(\<([^>]+)\>)|(\(([^\)]+)\))")
-reIfHeader = re.compile(r"\<([^>]+)\>([^<]+)")
-reIfTagList = re.compile(r"\(([^)]+)\)")
-reIfTagListContents = re.compile(r"(\S+)")
+re_if_separator = re.compile(r"(\<([^>]+)\>)|(\(([^\)]+)\))")
+re_if_header = re.compile(r"\<([^>]+)\>([^<]+)")
+re_if_tag_list = re.compile(r"\(([^)]+)\)")
+re_if_tag_list_contents = re.compile(r"(\S+)")
 
 
 def parse_if_header_dict(environ):
@@ -1712,20 +1712,22 @@ def parse_if_header_dict(environ):
     if not iftext.startswith("<"):
         iftext = "<*>" + iftext
 
-    ifDict = dict([])
-    ifLockList = []
+    if_dict = dict([])
+    if_lock_list = []
 
     resource1 = "*"
-    for tmpURLVar, URLVar, _tmpContentVar, contentVar in reIfSeparator.findall(iftext):
-        if tmpURLVar != "":
+    for tmp_url_var, URLVar, _tmp_content_var, content_var in re_if_separator.findall(
+        iftext
+    ):
+        if tmp_url_var != "":
             resource1 = URLVar
         else:
-            listTagContents = []
+            list_tag_contents = []
             testflag = True
-            for listitem in reIfTagListContents.findall(contentVar):
+            for listitem in re_if_tag_list_contents.findall(content_var):
                 if listitem.upper() != "NOT":
                     if listitem.startswith("["):
-                        listTagContents.append(
+                        list_tag_contents.append(
                             (
                                 testflag,
                                 "entity",
@@ -1733,26 +1735,26 @@ def parse_if_header_dict(environ):
                             )
                         )
                     else:
-                        listTagContents.append(
+                        list_tag_contents.append(
                             (
                                 testflag,
                                 "locktoken",
                                 listitem.strip("<>"),
                             )
                         )
-                        ifLockList.append(listitem.strip("<>"))
+                        if_lock_list.append(listitem.strip("<>"))
                 testflag = listitem.upper() != "NOT"
 
-            if resource1 in ifDict:
-                listTag = ifDict[resource1]
+            if resource1 in if_dict:
+                list_tag = if_dict[resource1]
             else:
-                listTag = []
-                ifDict[resource1] = listTag
-            listTag.append(listTagContents)
+                list_tag = []
+                if_dict[resource1] = list_tag
+            list_tag.append(list_tag_contents)
 
-    environ["wsgidav.conditions.if"] = ifDict
-    environ["wsgidav.ifLockTokenList"] = ifLockList
-    _logger.debug(f"parse_if_header_dict\n{pformat(ifDict)}")
+    environ["wsgidav.conditions.if"] = if_dict
+    environ["wsgidav.ifLockTokenList"] = if_lock_list
+    _logger.debug(f"parse_if_header_dict\n{pformat(if_dict)}")
     return
 
 
@@ -1760,19 +1762,19 @@ def test_if_header_dict(dav_res, if_dict, fullurl, locktoken_list, entity_tag):
     _logger.debug(f"test_if_header_dict({fullurl}, {locktoken_list}, {entity_tag})")
 
     if fullurl in if_dict:
-        listTest = if_dict[fullurl]
+        list_test = if_dict[fullurl]
     elif "*" in if_dict:
-        listTest = if_dict["*"]
+        list_test = if_dict["*"]
     else:
         return True
 
-    #    supportEntityTag = dav.isInfoTypeSupported(path, "etag")
-    supportEntityTag = dav_res.support_etag()
-    for listTestConds in listTest:
+    #    support_entity_tag = dav.isInfoTypeSupported(path, "etag")
+    support_entity_tag = dav_res.support_etag()
+    for list_test_conds in list_test:
         matchfailed = False
 
-        for testflag, checkstyle, checkvalue in listTestConds:
-            if checkstyle == "entity" and supportEntityTag:
+        for testflag, checkstyle, checkvalue in list_test_conds:
+            if checkstyle == "entity" and support_entity_tag:
                 testresult = entity_tag == checkvalue
             elif checkstyle == "entity":
                 testresult = testflag

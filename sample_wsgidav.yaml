@@ -103,7 +103,6 @@ middleware_stack:
     - wsgidav.http_authenticator.HTTPAuthenticator
     # - wsgidav.mw.dir_browser.WsgiDavDirBrowser
     - wsgidav.mw.dav_explorer.WsgiDavExplorer
-    # - wsgidav.mw.impersonator.Impersonator
     - wsgidav.request_resolver.RequestResolver  # this must be the last middleware item
 
 # ==============================================================================

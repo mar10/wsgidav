@@ -14,6 +14,12 @@
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 - Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)
+- Docs: mark `wsgidav.samples` modules as examples that are not guaranteed to
+  work correctly or securely; fix Impersonator path in `sample_wsgidav.yaml`.
+- Rename remaining camelCase variables, methods, and parameters to snake_case
+  (PEP 8). `copy_properties()`/`move_properties()` of the CouchDB and MongoDB
+  property managers now use `src_url`/`dest_url` like the base class;
+  `ExtServer` (ext-wsgiutils) methods and arguments were renamed as well.
 
 ## 4.4.1 / Unreleased
 

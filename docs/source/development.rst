@@ -220,7 +220,7 @@ allows testing against multiple different Python environments:
 * Arguments to ``pytest`` can be passed via ``tox``, e.g. in order to run a
   particular test::
 
-      $ uv run tox -e py310 -- -x tests/test_util.py::BasicTest::testBasics
+      $ uv run tox -e py310 -- -x tests/test_util.py::BasicTest::test_basics
 
 * To list all possible targets (available commands)::
 

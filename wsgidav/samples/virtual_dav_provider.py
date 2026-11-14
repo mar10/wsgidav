@@ -4,6 +4,13 @@
 Sample implementation of a DAV provider that provides a browsable,
 multi-categorized resource tree.
 
+.. warning::
+   This module is part of ``wsgidav.samples``. Samples are provided as
+   examples and as a starting point for custom extensions only.
+   They are not covered by the test suite, are only lightly maintained, and
+   are **not guaranteed to work correctly or securely**.
+   Review and test the code carefully before using it in production.
+
 Note that this is simply an example with no concrete real world benefit.
 But it demonstrates some techniques to customize WsgiDAV.
 
@@ -127,7 +134,7 @@ All files listed in resPathList are expected to exist in FILE_FOLDER.
 """
 FILE_FOLDER = r"c:\temp\virtfiles"
 
-_resourceData = [
+_resource_data = [
     {
         "key": "1",
         "title": "My doc 1",
@@ -161,21 +168,21 @@ _resourceData = [
 ]
 
 
-def _get_res_list_by_attr(attrName, attrVal):
+def _get_res_list_by_attr(attr_name, attr_val):
     """ """
-    assert attrName in RootCollection._visibleMemberNames
-    if attrName == "by_status":
-        return [data for data in _resourceData if data.get("status") == attrVal]
-    elif attrName == "by_orga":
-        resList = [data for data in _resourceData if data.get("orga") == attrVal]
-    elif attrName == "by_tag":
-        resList = [data for data in _resourceData if attrVal in data.get("tags")]
-    return resList
+    assert attr_name in RootCollection._visible_member_names
+    if attr_name == "by_status":
+        return [data for data in _resource_data if data.get("status") == attr_val]
+    elif attr_name == "by_orga":
+        res_list = [data for data in _resource_data if data.get("orga") == attr_val]
+    elif attr_name == "by_tag":
+        res_list = [data for data in _resource_data if attr_val in data.get("tags")]
+    return res_list
 
 
 def _get_res_by_key(key):
     """ """
-    for data in _resourceData:
+    for data in _resource_data:
         if data["key"] == key:
             return data
     return None
@@ -187,18 +194,18 @@ def _get_res_by_key(key):
 class RootCollection(DAVCollection):
     """Resolve top-level requests '/'."""
 
-    _visibleMemberNames = ("by_orga", "by_tag", "by_status")
-    _validMemberNames = _visibleMemberNames + ("by_key",)
+    _visible_member_names = ("by_orga", "by_tag", "by_status")
+    _valid_member_names = _visible_member_names + ("by_key",)
 
     def __init__(self, environ):
         super().__init__("/", environ)
 
     def get_member_names(self):
-        return self._visibleMemberNames
+        return self._visible_member_names
 
     def get_member(self, name):
         # Handle visible categories and also /by_key/...
-        if name in self._validMemberNames:
+        if name in self._valid_member_names:
             return CategoryTypeCollection(join_uri(self.path, name), self.environ)
         return None
 
@@ -214,7 +221,7 @@ class CategoryTypeCollection(DAVCollection):
 
     def get_member_names(self):
         names = []
-        for data in _resourceData:
+        for data in _resource_data:
             if self.name == "by_status":
                 if data["status"] not in names:
                     names.append(data["status"])
@@ -242,22 +249,22 @@ class CategoryTypeCollection(DAVCollection):
 class CategoryCollection(DAVCollection):
     """Resolve '/catType/cat' URLs, for example '/by_tag/cool'."""
 
-    def __init__(self, path, environ, catType):
+    def __init__(self, path, environ, cat_type):
         super().__init__(path, environ)
-        self.catType = catType
+        self.cat_type = cat_type
 
     def get_display_info(self):
         return {"type": "Category"}
 
     def get_member_names(self):
         names = [
-            data["title"] for data in _get_res_list_by_attr(self.catType, self.name)
+            data["title"] for data in _get_res_list_by_attr(self.cat_type, self.name)
         ]
         names.sort()
         return names
 
     def get_member(self, name):
-        for data in _get_res_list_by_attr(self.catType, self.name):
+        for data in _get_res_list_by_attr(self.cat_type, self.name):
             if data["title"] == name:
                 return VirtualResource(join_uri(self.path, name), self.environ, data)
         return None
@@ -269,13 +276,13 @@ class CategoryCollection(DAVCollection):
 class VirtualResource(DAVCollection):
     """A virtual 'resource', displayed as a collection of artifacts and files."""
 
-    _artifactNames = (
+    _artifact_names = (
         ".Info.txt",
         ".Info.html",
         ".Description.txt",
         # ".Admin.html",
     )
-    _supportedProps = [
+    _supported_props = [
         "{virtres:}key",
         "{virtres:}title",
         "{virtres:}status",
@@ -292,14 +299,14 @@ class VirtualResource(DAVCollection):
         return {"type": "Virtual Resource"}
 
     def get_member_names(self):
-        names = list(self._artifactNames)
+        names = list(self._artifact_names)
         for f in self.data["resPathList"]:
             name = os.path.basename(f)
             names.append(name)
         return names
 
     def get_member(self, name):
-        if name in self._artifactNames:
+        if name in self._artifact_names:
             return VirtualArtifact(join_uri(self.path, name), self.environ, self.data)
         for file_path in self.data["resPathList"]:
             fname = os.path.basename(file_path)
@@ -315,8 +322,8 @@ class VirtualResource(DAVCollection):
         if "/by_tag/" not in self.path:
             raise DAVError(HTTP_FORBIDDEN)
         # path must be '/by_tag/<tag>/<resname>'
-        catType, tag, _rest = util.save_split(self.path.strip("/"), "/", 2)
-        assert catType == "by_tag"
+        cat_type, tag, _rest = util.save_split(self.path.strip("/"), "/", 2)
+        assert cat_type == "by_tag"
         assert tag in self.data["tags"]
         self.data["tags"].remove(tag)
         return True  # OK
@@ -326,8 +333,8 @@ class VirtualResource(DAVCollection):
         # destPath must be '/by_tag/<tag>/<resname>'
         if "/by_tag/" not in dest_path:
             raise DAVError(HTTP_FORBIDDEN)
-        catType, tag, _rest = util.save_split(dest_path.strip("/"), "/", 2)
-        assert catType == "by_tag"
+        cat_type, tag, _rest = util.save_split(dest_path.strip("/"), "/", 2)
+        assert cat_type == "by_tag"
         if tag not in self.data["tags"]:
             self.data["tags"].append(tag)
         return True  # OK
@@ -339,19 +346,19 @@ class VirtualResource(DAVCollection):
             raise DAVError(HTTP_FORBIDDEN)
         if "/by_tag/" not in dest_path:
             raise DAVError(HTTP_FORBIDDEN)
-        catType, tag, _rest = util.save_split(self.path.strip("/"), "/", 2)
-        assert catType == "by_tag"
+        cat_type, tag, _rest = util.save_split(self.path.strip("/"), "/", 2)
+        assert cat_type == "by_tag"
         assert tag in self.data["tags"]
         self.data["tags"].remove(tag)
-        catType, tag, _rest = util.save_split(dest_path.strip("/"), "/", 2)
-        assert catType == "by_tag"
+        cat_type, tag, _rest = util.save_split(dest_path.strip("/"), "/", 2)
+        assert cat_type == "by_tag"
         if tag not in self.data["tags"]:
             self.data["tags"].append(tag)
         return True  # OK
 
     def get_ref_url(self):
-        refPath = "/by_key/%s" % self.data["key"]
-        return quote(self.provider.share_path + refPath)
+        ref_path = "/by_key/%s" % self.data["key"]
+        return quote(self.provider.share_path + ref_path)
 
     def get_property_names(self, *, is_allprop):
         """Return list of supported property names in Clark Notation.
@@ -359,10 +366,10 @@ class VirtualResource(DAVCollection):
         See DAVResource.get_property_names()
         """
         # Let base class implementation add supported live and dead properties
-        propNameList = super().get_property_names(is_allprop=is_allprop)
+        prop_name_list = super().get_property_names(is_allprop=is_allprop)
         # Add custom live properties (report on 'allprop' and 'propnames')
-        propNameList.extend(VirtualResource._supportedProps)
-        return propNameList
+        prop_name_list.extend(VirtualResource._supported_props)
+        return prop_name_list
 
     def get_property_value(self, name):
         """Return the value of a property.
@@ -400,7 +407,7 @@ class VirtualResource(DAVCollection):
         elif name == "{virtres:}description":
             # value is of type etree.Element
             self.data["description"] = value.text
-        elif name in VirtualResource._supportedProps:
+        elif name in VirtualResource._supported_props:
             # Supported property, but read-only
             raise DAVError(
                 HTTP_FORBIDDEN, err_condition=PRECONDITION_CODE_ProtectedProperty
@@ -461,7 +468,7 @@ class VirtualArtifact(_VirtualNonCollection):
     """A virtual file, containing resource descriptions."""
 
     def __init__(self, path, environ, data):
-        #        assert name in _artifactNames
+        #        assert name in _artifact_names
         super().__init__(path, environ)
         self.data = data
 
@@ -480,16 +487,16 @@ class VirtualArtifact(_VirtualNonCollection):
         return True
 
     def get_ref_url(self):
-        refPath = "/by_key/{}/{}".format(self.data["key"], self.name)
-        return quote(self.provider.share_path + refPath)
+        ref_path = "/by_key/{}/{}".format(self.data["key"], self.name)
+        return quote(self.provider.share_path + ref_path)
 
     def get_content(self):
-        fileLinks = [
+        file_links = [
             f"<a href='{os.path.basename(f)}'>{f}</a>\n"
             for f in self.data["resPathList"]
         ]
         dict = self.data.copy()
-        dict["fileLinks"] = ", ".join(fileLinks)
+        dict["fileLinks"] = ", ".join(file_links)
         if self.name == ".Info.html":
             html = (
                 """\
@@ -579,10 +586,10 @@ class VirtualResFile(_VirtualNonCollection):
         return statresults[stat.ST_MTIME]
 
     def get_ref_url(self):
-        refPath = "/by_key/{}/{}".format(
+        ref_path = "/by_key/{}/{}".format(
             self.data["key"], os.path.basename(self.file_path)
         )
-        return quote(self.provider.share_path + refPath)
+        return quote(self.provider.share_path + ref_path)
 
     def get_content(self):
         # mime = self.get_content_type()
@@ -602,7 +609,7 @@ class VirtualResourceProvider(DAVProvider):
 
     def __init__(self):
         super().__init__()
-        self.resourceData = _resourceData
+        self.resource_data = _resource_data
 
     def get_resource_inst(self, path, environ):
         """Return _VirtualResource object for path.
@@ -626,7 +633,7 @@ class VirtualResourceProvider(DAVProvider):
 #    """
 #    def __init__(self):
 #        super().__init__()
-#        self.resourceData = _resourceData
+#        self.resource_data = _resource_data
 #        self.rootCollection = VirtualCollection(self, "/", environ)
 #
 #
@@ -642,15 +649,15 @@ class VirtualResourceProvider(DAVProvider):
 #        """
 #        self._count_get_resource_inst += 1
 #
-#        catType, cat, resName, artifactName = util.save_split(path.strip("/"), "/", 3)
+#        cat_type, cat, resName, artifactName = util.save_split(path.strip("/"), "/", 3)
 #
-#        _logger.info("get_resource_inst('%s'): catType=%s, cat=%s, resName=%s" % (path, catType,
+#        _logger.info("get_resource_inst('%s'): cat_type=%s, cat=%s, resName=%s" % (path, cat_type,
 #             cat, resName))
 #
-#        if catType and catType not in _alllowedCategories:
+#        if cat_type and cat_type not in _alllowedCategories:
 #            return None
 #
-#        if catType == _realCategory:
+#        if cat_type == _realCategory:
 #            # Accessing /by_key/<key>
 #            data = _get_res_by_key(cat)
 #            if data:
@@ -658,51 +665,51 @@ class VirtualResourceProvider(DAVProvider):
 #            return None
 #
 #        elif resName:
-#            # Accessing /<catType>/<cat>/<name> or /<catType>/<cat>/<resName>/<artifactName>
+#            # Accessing /<cat_type>/<cat>/<name> or /<cat_type>/<cat>/<resName>/<artifactName>
 #            res = None
-#            for data in _get_res_list_by_attr(catType, cat):
+#            for data in _get_res_list_by_attr(cat_type, cat):
 #                if data["title"] == resName:
 #                    res = data
 #                    break
 #            if not res:
 #                return None
-#            # Accessing /<catType>/<cat>/<name>
-#            if artifactName in _artifactNames:
-#                # Accessing /<catType>/<cat>/<name>/.info.html, or similar
+#            # Accessing /<cat_type>/<cat>/<name>
+#            if artifactName in _artifact_names:
+#                # Accessing /<cat_type>/<cat>/<name>/.info.html, or similar
 #                return VirtualArtifact(self, util.join_uri(path, artifactName), environ,
 #                                       res, artifactName)
 #            elif artifactName:
-#                # Accessing /<catType>/<cat>/<name>/<file-name>
+#                # Accessing /<cat_type>/<cat>/<name>/<file-name>
 #                for f in res["resPathList"]:
 #                    if artifactName == os.path.basename(f):
 #                        return VirtualResFile(self, path, environ, res, f)
 #                return None
-#            # Accessing /<catType>/<cat>/<name>
+#            # Accessing /<cat_type>/<cat>/<name>
 #            return VirtualResource(self, path, environ, data)
 #
 #        elif cat:
-#            # Accessing /catType/cat: return list of matching names
-#            resList = _get_res_list_by_attr(catType, cat)
-#            nameList = [ data["title"] for data in resList ]
+#            # Accessing /cat_type/cat: return list of matching names
+#            res_list = _get_res_list_by_attr(cat_type, cat)
+#            nameList = [ data["title"] for data in res_list ]
 #            return VirtualCollection(self, path, environ, nameList)
 #
-#        elif catType:
-#            # Accessing /catType/: return all possible values for this catType
-#            if catType in _browsableCategories:
-#                resList = []
-#                for data in _resourceData:
-#                    if catType == "by_status":
-#                        if not data["status"] in resList:
-#                            resList.append(data["status"])
-#                    elif catType == "by_orga":
-#                        if not data["orga"] in resList:
-#                            resList.append(data["orga"])
-#                    elif catType == "by_tag":
+#        elif cat_type:
+#            # Accessing /cat_type/: return all possible values for this cat_type
+#            if cat_type in _browsableCategories:
+#                res_list = []
+#                for data in _resource_data:
+#                    if cat_type == "by_status":
+#                        if not data["status"] in res_list:
+#                            res_list.append(data["status"])
+#                    elif cat_type == "by_orga":
+#                        if not data["orga"] in res_list:
+#                            res_list.append(data["orga"])
+#                    elif cat_type == "by_tag":
 #                        for tag in data["tags"]:
-#                            if not tag in resList:
-#                                resList.append(tag)
+#                            if not tag in res_list:
+#                                res_list.append(tag)
 #
-#                return VirtualCollection(self, path, environ, resList)
+#                return VirtualCollection(self, path, environ, res_list)
 #            # Known category type, but not browsable (e.g. 'by_key')
 #            raise DAVError(HTTP_FORBIDDEN)
 #
