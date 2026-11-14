@@ -23,8 +23,17 @@ Samples and Addons for WsgiDAV
    addons-couch-propman
 
 
-.. note::
-  Not all samples have yet been ported to WsgiDAV 2.x.
+.. warning::
+  Modules in the ``wsgidav.samples`` package (Mercurial, MongoDB, MySQL,
+  and virtual providers, the impersonator middleware, and provider tools)
+  are provided as examples and as a starting point for custom extensions
+  only.
+  They are not covered by the test suite, are only lightly maintained, and
+  are **not guaranteed to work correctly or securely**.
+  Review and test the code carefully before using it in production.
+
+  CloudDAV is an external project that was hosted on the (now retired)
+  Google Code platform.
 
 
 :doc:`addons-mercurial`

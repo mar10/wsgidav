@@ -16,6 +16,7 @@ written in Python and based on `WSGI <http://www.python.org/dev/peps/pep-3333/>`
    :hidden:
 
    Overview<self>
+   quickstart
    installation
    user_guide
    reference_guide
@@ -75,55 +76,29 @@ WsgiDAV comes with a web interface and was tested with different clients
 Quickstart
 ==========
 
-Releases are hosted on `PyPI <https://pypi.python.org/pypi/WsgiDAV>`_.
-Install WsgiDAV (and a server) like::
+Install WsgiDAV together with a WSGI server, for example using
+`uv <https://docs.astral.sh/uv/>`_::
 
-  $ pip install cheroot wsgidav
+  $ uv tool install wsgidav --with cheroot
 
 .. note::
-   MS Windows users that only need the command line interface may prefer the
-   `MSI installer <https://github.com/mar10/wsgidav/releases>`_ or install
-   using the Windows Package Manager::
+   Windows users may prefer ``winget install wsgidav`` or the
+   `MSI installer <https://github.com/mar10/wsgidav/releases/latest>`_.
+   A `Docker image <https://hub.docker.com/r/mar10/wsgidav/>`_ is available
+   as well.
 
-     > winget install wsgidav
+Share a folder with anonymous read-write access (no configuration file
+needed)::
 
-To serve the ``/tmp`` folder as WebDAV ``/`` share with anonymous read-write
-access, simply run::
+  $ wsgidav --host 0.0.0.0 --port 8080 --root /path/to/share --auth anonymous --no-config
 
-  $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
+Then open `http://HOST:8080/ <http://localhost:8080/>`_ in your browser, or
+map it as a network drive in Windows File Explorer, macOS Finder, or a Linux
+file manager.
 
-Then open `http://HOST/ <http://localhost/>`_ in your browser or pass this URL to another
-WebDAV-aware client, such as MS Word, macOS Finder, Windows File Explorer, ...
-
-**On Linux** we can enforce authentication against known users (e.g.
-``/etc/passwd``, ``/etc/shadow``) like so::
-
-  $ wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=pam-login
-
-**On Windows** we can enforce authentication against known users (e.g.
-Windows Domain Controller) like so::
-
-  > wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=nt
-
-There is much more to configure. Read this docs to find out.
-
-**Docker**
-An experimental Docker image that exposes a local directory using WebDAV
-is available here: https://hub.docker.com/r/mar10/wsgidav/
-
-::
-
-    $ docker pull mar10/wsgidav
-    $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
-
-for example::
-
-    $ docker run --rm -it -p 8080:8080 -v c:/temp:/public/wsgidav-share mar10/wsgidav
-
-If you want to use a custom configuration file, mount it like this::
-
-     $ docker run --rm -it -v c:/path/to/wsgidav.yaml:/path/to/wsgidav.yaml mar10/wsgidav
-
+Read :doc:`quickstart` for more installation options (pipx, pip, Docker,
+Podman), authentication, and step-by-step instructions to map a drive on
+Windows, macOS, and Linux.
 
 
 .. |logo| image:: logo.png

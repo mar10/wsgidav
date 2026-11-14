@@ -5,6 +5,11 @@ This section describes, how a WsgiDAV server is installed.
 
 .. seealso::
 
+  :doc:`quickstart` for the fastest way to install WsgiDAV, share a folder,
+  and map it as a network drive.
+
+.. seealso::
+
   If you plan to contribute to the WsgiDAV project, check out :doc:`development`
   for details on how to install in development mode.
 
@@ -55,20 +60,21 @@ Using ``pip`` with a virtual environment::
   $ pip install wsgidav cheroot lxml
   $ wsgidav --root . --auth anonymous --browse
 
-Or using ``uv`` (recommended — no manual venv management needed)::
+Or using ``uv`` (recommended — no manual venv management needed).
+Note that the WSGI server (Cheroot) must be added explicitly::
 
-  $ uv tool install wsgidav
+  $ uv tool install wsgidav --with cheroot --with lxml
   $ wsgidav --root . --auth anonymous --browse
 
 The ``htpasswd`` and ``htdigest`` domain controllers require the optional
-``passlib`` dependency. Install it with::
+``passlib`` dependency. The ``passlib`` extra installs it together with the
+``bcrypt`` backend (needed for bcrypt-hashed password files)::
 
-  $ python -m pip install "wsgidav[htpasswd]"
+  $ python -m pip install "wsgidav[passlib]"
 
-If your password file uses bcrypt hashes, install the optional bcrypt backend
-as well::
+The ``pam`` extra is required for ``--auth pam-login``::
 
-  $ python -m pip install "wsgidav[htpasswd,bcrypt]"
+  $ python -m pip install "wsgidav[pam]"
 
 
 Or install the latest (potentially unstable) development version directly
@@ -138,4 +144,5 @@ to set up multiple mount points, authentication, etc.::
 
     $ docker-compose up 
 
-See :doc:`user_guide_configure` for details.
+See :doc:`user_guide_configure` for details, and :doc:`quickstart` for
+Podman.

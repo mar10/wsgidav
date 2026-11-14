@@ -5,6 +5,10 @@ WebDAV Clients
 *This section describes, how a WsgiDAV server can be accessed with different
 clients.*
 
+.. seealso::
+   :doc:`quickstart` has short, current instructions for mapping a drive on
+   Windows, macOS, and Linux.
+
 .. image:: ./teaser.png
   :name: WsgiDAV clients
 
@@ -182,8 +186,7 @@ First make sure, that davfs2 is installed::
 
 Then create the mount point::
 
-    $ sudo mkdir /mnt/wsgidav_temp
-    $ sudo chmod 0766 /mnt/wsgidav_temp
+    $ sudo mkdir /mnt/wsgidav
     $ sudo mount -t davfs http://192.168.0.2/dav /mnt/wsgidav -o rw
     Please enter the username to authenticate with server
     http://192.168.0.2/dav or hit enter for none.
@@ -194,7 +197,7 @@ Then create the mount point::
 
 To unmount::
 
-    sudo unmount /mnt/wsgidav
+    sudo umount /mnt/wsgidav
 
 
 Mac

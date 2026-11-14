@@ -32,6 +32,24 @@ Main features:
 
   Run `wsgidav --help` for a list of available options.<br>
 
+- Quick install with [uv](https://docs.astral.sh/uv/) (the WSGI server
+  `cheroot` must be added explicitly):
+
+  ```bash
+  $ uv tool install wsgidav --with cheroot
+  $ wsgidav --root /path/to/share --auth anonymous --no-config
+  ```
+
+  or run it once without installing:
+
+  ```bash
+  $ uvx --from wsgidav --with cheroot wsgidav --root . --auth anonymous
+  ```
+
+  See the [Quickstart](https://wsgidav.readthedocs.io/en/latest/quickstart.html)
+  for more options (winget, pipx, Docker, Podman) and how to map a network
+  drive on Windows, macOS, and Linux.
+
 - The [python-pam](https://github.com/FirefighterBlu3/python-pam) library is
   needed as extra requirement if pam-login authentication is used on Linux
   or OSX:
@@ -42,13 +60,10 @@ Main features:
   ```
 
 - The `htpasswd` and `htdigest` domain controllers require the optional
-  `passlib` dependency.
-  If your password file uses bcrypt hashes, install the optional bcrypt
-  backend, e.g.:
+  `passlib` dependency (the `passlib` extra includes the bcrypt backend):
 
   ```bash
-  $ ython -m pip install "wsgidav[htpasswd]"
-  $ python -m pip install "wsgidav[htpasswd,bcrypt]"
+  $ python -m pip install "wsgidav[passlib]"
   ```
 
 - Windows users may prefer the
@@ -68,7 +83,7 @@ Main features:
   $ docker run --rm -it -p <PORT>:8080 -v <ROOT_FOLDER>:/public/wsgidav-share mar10/wsgidav
   ```
 
-  for example publish the content of `/tmp` as `http://0.0.0.0/` for anonymous access::
+  for example publish the content of `/tmp` as `http://localhost:8080/` for anonymous access:
 
   ```bash
   $ docker run --rm -it -p 8080:8080 -v /tmp:/public/wsgidav-share mar10/wsgidav
@@ -86,11 +101,11 @@ Main features:
   WebDAV services into your project.<br>
   Typical use cases are:
   - Expose data structures as virtual, editable file systems, that can be mapped in
-    _macoOS Finder_, _Windows File Explorer_, etc.
+    _macOS Finder_, _Windows File Explorer_, etc.
   - Allow online editing of _MS Office_ and _LibreOffice_ documents.
 
 - _DAV Explorer_: A simple built-in web interface allows up- and download files,
-  rename, move, copy, delete operations, and peviews.
+  rename, move, copy, delete operations, and previews.
 
 ## Status
 

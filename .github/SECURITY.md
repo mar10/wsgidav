@@ -2,28 +2,28 @@
 
 ## Supported Versions
 
-These project versions are currently being supported with security updates:
+Security fixes are provided for the latest release line only:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Version              | Supported          |
+| -------------------- | ------------------ |
+| 5.0.x (unreleased)   | :construction: in development |
+| 4.4.x                | :white_check_mark: |
+| < 4.4                | :x:                |
+
+Please upgrade to the latest release before reporting an issue, and check
+whether it is still reproducible.
+
+Code in `wsgidav/samples/` (sample providers, the impersonator middleware,
+etc.) is example code. It is not guaranteed to work correctly or securely
+and is not covered by this policy.
 
 
 ## Reporting a Vulnerability
 
-<!--
-Use this section to tell people how to report a vulnerability.
-
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
--->
-
-Thank you for reporting a security related issue using a private channel 
+Thank you for reporting a security related issue using a private channel
 instead of opening a public issue!
 
-The security team (i.e. me) will try to acknowledge and respond as quick as 
+The security team (i.e. me) will try to acknowledge and respond as quickly as
 possible.
 
 To report a security issue, please email 

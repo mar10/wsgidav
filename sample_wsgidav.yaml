@@ -195,7 +195,6 @@ simple_dc:
                 # Optional: passed to downstream middleware as environ["wsgidav.auth.roles"]
                 roles: ['editor']
             'user2':
-                password: 'def456'
                 password: 'qwerty'
         '/pub': true  # Pass true to allow anonymous access
 

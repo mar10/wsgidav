@@ -15,7 +15,7 @@ There are many ways you can help:
 - Send feedback: |br|
   Know a cool project that uses it,
   created a custom provider or have an interesting use case?
-  Let us know in :ref:`the forum <_forum>` .
+  Let us know in the `forum`_.
 - Create issues for bugs or feature requests (see `Bug Reports and Feature Requests`_ below).
 - Help others, by answering questions in the `forum`_ or on `Stackoverflow`_.
 - Improve this documentation.
@@ -40,7 +40,7 @@ feature, please submit it to the `issue tracker`_ on GitHub.
 
 .. note::
   The issue tracker is for bugs and feature requests.
-  Please use :ref:`the Q&A forum <forum>` or `Stackoverflow`_ to ask questions.
+  Please use the `forum`_ or `Stackoverflow`_ to ask questions.
 
 Use the search function to find existing issues if any.
 If you have additional information, add a comment there instead of creating a new issue.
@@ -160,11 +160,8 @@ Install Requirements
 
     $ uv sync
 
-and install wsgidav itself in editable mode (already handled by ``uv sync``)::
-
-    $ uv pip install -e .
-
-..    $ python setup.py develop
+``uv sync`` also installs wsgidav itself in editable mode, so source changes
+are picked up immediately.
 
 If everything is cool, this code should now run::
 
@@ -204,7 +201,7 @@ Test, Test, Test
 Testing is best done through ``tox``, which provides a number of targets and
 allows testing against multiple different Python environments:
 
-* To run all unit tests on all suppprted Python versions inclusive flake8 style
+* To run all unit tests on all supported Python versions inclusive Ruff style
   checks and code coverage::
 
       $ uv run tox
@@ -215,7 +212,7 @@ allows testing against multiple different Python environments:
 
 * To run selective tests, we can call ``pytest`` directly, e.g.::
 
-      $ uv run pytest -ra wsgidav tests/test_util.py
+      $ uv run pytest -ra tests/test_util.py
 
 * Arguments to ``pytest`` can be passed via ``tox``, e.g. in order to run a
   particular test::
