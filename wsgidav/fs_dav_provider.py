@@ -408,6 +408,9 @@ class FilesystemProvider(DAVProvider):
         rw = "Read-Only" if self.readonly else "Read-Write"
         return f"{self.__class__.__name__} for path {self.root_folder_path!r} ({rw})"
 
+    def is_readonly(self):
+        return bool(self.readonly)
+
     @staticmethod
     def _is_equal_or_child_path(root_path, file_path):
         try:

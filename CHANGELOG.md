@@ -14,6 +14,10 @@
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 - Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)
+- Fix `FilesystemProvider.is_readonly()`: always returned `False`, so read-only
+  shares advertised write methods (`Allow`, `DAV: 1,2`) and were logged as
+  allowing anonymous *write* access. Write requests to read-only shares now
+  fail early with `405 Method Not Allowed` (was `403 Forbidden`).
 - Docs: mark `wsgidav.samples` modules as examples that are not guaranteed to
   work correctly or securely; fix Impersonator path in `sample_wsgidav.yaml`.
 - Rename remaining camelCase variables, methods, and parameters to snake_case
