@@ -69,7 +69,8 @@ where = ["."]
 exclude = ["tests"]
 
 [tool.setuptools.package-data]
-wsgidav = ["dir_browser/htdocs/*.*"]
+"wsgidav.mw.dav_explorer" = ["htdocs/*"]
+"wsgidav.mw.dir_browser" = ["htdocs/*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "wsgidav.__version__" }
