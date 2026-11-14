@@ -44,7 +44,7 @@
     },
     "dav_explorer": {
         "enable": true,
-        "response_trailer": "",
+        "page_trailer": "",
         "htdocs_path": null
     }
 }

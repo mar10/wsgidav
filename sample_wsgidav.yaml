@@ -353,7 +353,7 @@ dav_explorer:
     #: Display WsgiDAV icon in header
     icon: true
     #: Raw HTML code, appended as footer (true: use a default trailer)
-    response_trailer: true
+    page_trailer: true
     #: Display the name and realm of the authenticated user (or 'anomymous')
     show_user: true
     show_login: true
