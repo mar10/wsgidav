@@ -13,6 +13,7 @@
 #   http://localhost:8080/
 #
 # Changes:
+# - 2026-11-14: install curl (required by healthcheck), add HEALTHCHECK
 # - 2026-03-18: support for custom configuration file and healthchecks with curl
 # - 2019-11-27: smallest image generated at the end
 # - 2018-07-28: alpine does not compile lxml
@@ -29,7 +30,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # RUN pip install --no-cache-dir wsgidav cheroot lxml
 
-# Install dependencies
+# Install dependencies (curl is used by HEALTHCHECK)
+RUN apk add --no-cache curl
 RUN apk add --no-cache --virtual .build-deps gcc libxslt-dev musl-dev py3-lxml \
     && uv pip install --system wsgidav cheroot lxml \
     && apk del .build-deps gcc musl-dev
@@ -52,6 +54,11 @@ RUN echo '#!/bin/sh' > /entrypoint.sh && \
 
 
 EXPOSE 8080
+
+# Healthy if the server answers any HTTP response (401 is fine when
+# authentication is configured); fails only if the server is not reachable.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -s -o /dev/null http://127.0.0.1:8080/ || exit 1
 
 # Use entrypoint script to handle different configurations
 ENTRYPOINT ["/entrypoint.sh"]

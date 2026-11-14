@@ -14,6 +14,9 @@
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 - Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)
+- Docker: install `curl` (required by the healthcheck) and add a `HEALTHCHECK`
+  to the image; the healthcheck now also passes when authentication is
+  enabled (HTTP 401).
 - Fix `FilesystemProvider.is_readonly()`: always returned `False`, so read-only
   shares advertised write methods (`Allow`, `DAV: 1,2`) and were logged as
   allowing anonymous *write* access. Write requests to read-only shares now

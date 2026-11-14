@@ -22,7 +22,8 @@ services:
       - ~/wsgidav_share:/public/wsgidav-share
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/"]
+      # Any HTTP response counts as healthy (401 if authentication is enabled)
+      test: ["CMD", "curl", "-s", "-o", "/dev/null", "http://127.0.0.1:8080/"]
       interval: 30s
       timeout: 10s
       retries: 3
