@@ -17,6 +17,10 @@
 - DAV Explorer: display text files with syntax highlighting (CodeMirror 6, loaded
   on demand) and edit them in the details pane. The file is locked while it is
   being edited (WebDAV LOCK/UNLOCK) and saved with the lock token.
+- DAV Explorer: dragging a file to the desktop downloads the real file in
+  Chromium based browsers (Chrome, Edge, ...). Safari and Firefox cannot do
+  this; they now drop a link instead of a text clipping with the file name and
+  show a hint.
 - Use ruff instead of black/isort
 - Use uv instead of pip/pipenv
 - Docs: publish `llms.txt` and `llms-full.txt` (via sphinx-llms-txt)

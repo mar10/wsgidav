@@ -375,29 +375,95 @@ async function downloadFileToFolder(node, options = {}) {
   }
 }
 
-// function supportsDownloadURL() {
-//   // 'DownloadURL' is ignored by Safari and Firefox
-//   return /Chrome|Chromium|Edg/.test(navigator.userAgent) && !/Firefox|Safari/.test(navigator.userAgent);
-// }
+/**
+ * Return true if the browser turns a 'DownloadURL' drag item into a real file
+ * when dropped onto the desktop (Chromium based browsers only).
+ *
+ * This cannot be feature-detected: `dataTransfer.setData()` accepts any type
+ * without error, so we have to check the browser.
+ */
+export function supportsDownloadURL() {
+  const brands = navigator.userAgentData?.brands;
+  if (brands) {
+    // `navigator.userAgentData` is only implemented by Chromium (secure contexts)
+    return brands.some((b) => b.brand === "Chromium");
+  }
+  // Fallback for insecure contexts. Note: Chromium's user agent also contains
+  // 'Safari/', but Safari's and Firefox's do not contain 'Chrome/'.
+  // Chrome on iOS uses WebKit and identifies as 'CriOS/', so it does not match.
+  return /\b(Chrome|Chromium)\//.test(navigator.userAgent);
+}
 
-export async function addFileToDataTransfer(node, dragStartEvent) {
+let _dragOutHintShown = false;
+let _dragOutCleanup = null;
+
+/**
+ * Show a one-time hint when a file was dragged out of the browser window in a
+ * browser that cannot create real files from a drag (Safari, Firefox).
+ */
+function watchDragOut() {
+  _dragOutCleanup?.(); // in case a previous 'dragend' never reached document
+  if (_dragOutHintShown) {
+    return;
+  }
+  let droppedInside = false;
+  const onDrop = () => {
+    droppedInside = true;
+  };
+  const onDragEnd = (e) => {
+    _dragOutCleanup();
+    if (droppedInside) {
+      return;
+    }
+    // Safari reports the effect the drop target accepted ('none' if canceled).
+    // Firefox reports 'none' even if another app (Finder) accepted the drop,
+    // so we treat every drag that did not end inside the page as a drop.
+    // TODO: use Wunderbaum's dragEnd event data, once available
+    const isFirefox = /\bFirefox\//.test(navigator.userAgent);
+    if (!isFirefox && e.dataTransfer?.dropEffect === "none") {
+      return;
+    }
+    _dragOutHintShown = true;
+    showNotification(
+      "This browser cannot drag files to the desktop: a link was created " +
+        "instead. Use the Download action, or a Chromium based browser " +
+        "(Chrome, Edge, ...).",
+      { type: "info" },
+    );
+  };
+  _dragOutCleanup = () => {
+    document.removeEventListener("drop", onDrop, { capture: true });
+    document.removeEventListener("dragend", onDragEnd, { capture: true });
+    _dragOutCleanup = null;
+  };
+  document.addEventListener("drop", onDrop, { capture: true });
+  document.addEventListener("dragend", onDragEnd, { capture: true });
+}
+
+/**
+ * Add drag data so a file node can be dropped onto the desktop.
+ *
+ * Must be called synchronously from the 'dragstart' handler: the dataTransfer
+ * object is read-only afterwards.
+ */
+export function addFileToDataTransfer(node, dragStartEvent) {
   if (!isFile(node)) {
     return false;
   }
   const dt = dragStartEvent.dataTransfer;
-  const fileUrl = getNodeResourceUrl(node);
-  const name = node.title;
-  const mime = node.data.mime || "text/plain";
+  const url = getNodeResourceUrl(node);
 
-  try {
-    dt.setData("DownloadURL", `${mime}:${name}:${fileUrl}`);
-  } catch (error) {
-    // DownloadURL not supported: use a temporary fetch
-    const response = await fetch(fileUrl);
-    const blob = await response.blob();
-    const file = new File([blob], name, { type: mime });
-    dt.effectAllowed = "copy";
-    dt.items.add(file);
+  if (supportsDownloadURL()) {
+    // Format is "mime:filename:url", so the name must not contain ':'
+    const name = node.title.replace(/[:\r\n]/g, "_");
+    const mime = node.data.mime || "application/octet-stream";
+    dt.setData("DownloadURL", `${mime}:${name}:${url}`);
+  } else {
+    // Safari/Firefox cannot create a file from a drag. Drop a link to the
+    // resource rather than a text clipping with the file name.
+    dt.setData("text/uri-list", url);
+    dt.setData("text/plain", url);
+    watchDragOut();
   }
   return true;
 }
