@@ -5,6 +5,8 @@ Tests cover:
   - CWE-338: Weak PRNG for nonce generation (fixed: secrets.token_hex)
   - CWE-208: Timing side-channel in digest comparison (fixed: hmac.compare_digest)
   - CWE-294: Digest `uri` not bound to the request target (RFC 7616, 3.4.6)
+  - CWE-294: Digest nonce not validated (replay of a captured header)
+  - Malformed Basic credentials must be answered with 401, not 500
 """
 
 import re
@@ -347,9 +349,12 @@ class TestDigestUriBinding(unittest.TestCase):
         # so that an accepted request can be distinguished from a rejected one.
         self.next_app = MagicMock(return_value=[b"OK"])
         self.auth.next_app = self.next_app
+        self.nonce = self.auth._make_nonce()
 
     def test_captured_header_does_not_authenticate_another_resource(self):
-        header = digest_header("user", "test_realm", "pass", "GET", "/secret.txt")
+        header = digest_header(
+            "user", "test_realm", "pass", "GET", "/secret.txt", nonce=self.nonce
+        )
         # Same resource: accepted
         status, _ = self._run(header, self._environ(path_info="/secret.txt"))
         self.assertIsNone(status, "the legitimate request must reach next_app")
@@ -360,7 +365,9 @@ class TestDigestUriBinding(unittest.TestCase):
         self.assertEqual(self.next_app.call_count, 1, "no further call to next_app")
 
     def test_captured_put_header_cannot_overwrite_another_resource(self):
-        header = digest_header("user", "test_realm", "pass", "PUT", "/put_canary.txt")
+        header = digest_header(
+            "user", "test_realm", "pass", "PUT", "/put_canary.txt", nonce=self.nonce
+        )
         status, _ = self._run(
             header, self._environ(method="PUT", path_info="/put_canary.txt")
         )
@@ -371,6 +378,194 @@ class TestDigestUriBinding(unittest.TestCase):
         )
         self.assertEqual(status, "401 Not Authorized")
         self.assertEqual(self.next_app.call_count, 1, "no further call to next_app")
+
+
+class TestDigestNonceValidation(unittest.TestCase):
+    """CWE-294: only fresh nonces that were issued by this server are accepted.
+
+    Otherwise a captured `Authorization: Digest ...` header could be replayed
+    forever for the same method and resource.
+    """
+
+    def setUp(self):
+        self.auth = make_auth()
+        self.next_app = MagicMock(return_value=[b"OK"])
+        self.auth.next_app = self.next_app
+
+    def _run(self, nonce, *, auth=None, password="pass"):
+        environ = {
+            "REQUEST_METHOD": "DELETE",
+            "SCRIPT_NAME": "",
+            "PATH_INFO": "/secret.txt",
+            "QUERY_STRING": "",
+            "HTTP_AUTHORIZATION": digest_header(
+                "user", "test_realm", password, "DELETE", "/secret.txt", nonce=nonce
+            ),
+        }
+        captured = {}
+
+        def start_response(status, headers):
+            captured["status"] = status
+            captured["www_auth"] = dict(headers).get("WWW-Authenticate")
+
+        (auth or self.auth).handle_digest_auth_request(environ, start_response)
+        return captured.get("status"), captured.get("www_auth")
+
+    def test_server_nonce_is_accepted(self):
+        status, _ = self._run(self.auth._make_nonce())
+        self.assertIsNone(status, "the request must reach next_app")
+        self.assertEqual(self.next_app.call_count, 1)
+
+    def test_forged_nonce_is_rejected(self):
+        for nonce in ("nonce", "", "1:2:3", "a:b", f"{2**40}:00:00"):
+            status, www_auth = self._run(nonce)
+            self.assertEqual(status, "401 Not Authorized", nonce)
+            self.assertIn("stale=true", www_auth)
+        self.assertEqual(self.next_app.call_count, 0)
+
+    def test_tampered_timestamp_is_rejected(self):
+        timestamp, salt, signature = self.auth._make_nonce().split(":")
+        status, _ = self._run(f"{int(timestamp) + 1000}:{salt}:{signature}")
+        self.assertEqual(status, "401 Not Authorized")
+        self.assertEqual(self.next_app.call_count, 0)
+
+    def test_expired_nonce_is_rejected_as_stale(self):
+        nonce = self.auth._make_nonce()
+        lifetime = self.auth.digest_nonce_lifetime
+        with patch("wsgidav.http_authenticator.time.time") as now:
+            now.return_value = int(nonce.split(":")[0]) + lifetime - 1
+            status, _ = self._run(nonce)
+            self.assertIsNone(status, "still valid")
+            now.return_value += 10
+            status, www_auth = self._run(nonce)
+        self.assertEqual(status, "401 Not Authorized")
+        self.assertIn("stale=true", www_auth)
+        self.assertEqual(self.next_app.call_count, 1)
+
+    def test_wrong_password_is_not_reported_as_stale(self):
+        status, www_auth = self._run("nonce", password="wrong")
+        self.assertEqual(status, "401 Not Authorized")
+        self.assertNotIn("stale", www_auth)
+
+    def test_nonce_of_another_server_is_rejected(self):
+        status, _ = self._run(make_auth()._make_nonce())
+        self.assertEqual(status, "401 Not Authorized")
+
+    def test_shared_secret_accepts_nonce_of_another_process(self):
+        def conf():
+            return {
+                "http_authenticator": {
+                    "accept_basic": True,
+                    "accept_digest": True,
+                    "default_to_digest": False,
+                    "digest_nonce_secret": "s3cret",
+                }
+            }
+
+        auth = make_auth(conf())
+        auth.next_app = self.next_app
+        status, _ = self._run(make_auth(conf())._make_nonce(), auth=auth)
+        self.assertIsNone(status)
+        self.assertEqual(self.next_app.call_count, 1)
+
+
+class TestMalformedBasicHeader(unittest.TestCase):
+    """Malformed credentials must be answered with 401 (not raise -> 500)."""
+
+    def _run(self, header, query_string=""):
+        auth = make_auth()
+        auth.next_app = MagicMock(return_value=[b"OK"])
+        environ = {
+            "REQUEST_METHOD": "GET",
+            "SCRIPT_NAME": "",
+            "PATH_INFO": "/",
+            "QUERY_STRING": query_string,
+            "HTTP_AUTHORIZATION": header,
+        }
+        captured = {}
+
+        def start_response(status, headers):
+            captured["status"] = status
+
+        auth(environ, start_response)
+        return captured.get("status"), auth.next_app.call_count
+
+    def test_valid_credentials_are_accepted(self):
+        self.assertEqual(self._run("Basic dXNlcjpwYXNz"), (None, 1))  # user:pass
+
+    def test_malformed_credentials_return_401(self):
+        for header in (
+            "Basic",
+            "Basic !!!not-base64!!!",
+            "Basic dXNlcg==",  # 'user' (no colon)
+            "Basic /w==",  # b'\xff' (not UTF-8)
+        ):
+            self.assertEqual(self._run(header), ("401 Not Authorized", 0), header)
+
+    def test_logout_is_a_query_parameter(self):
+        """Only `?logout` forces a new login, not any query containing the word."""
+        header = "Basic dXNlcjpwYXNz"
+        self.assertEqual(self._run(header, "logout"), ("401 Not Authorized", 0))
+        self.assertEqual(self._run(header, "name=logout.txt"), (None, 1))
+
+
+class TestPamAllowUsers(unittest.TestCase):
+    """`allow_users: current` must not be evaluated as a substring test."""
+
+    def _make_dc(self, allow_users, deny_users=None):
+        import importlib
+        import sys
+
+        # python-pam is an optional dependency: stub it
+        with patch.dict(sys.modules, {"pam": MagicMock()}):
+            sys.modules.pop("wsgidav.dc.pam_dc", None)
+            pam_dc = importlib.import_module("wsgidav.dc.pam_dc")
+        self.addCleanup(sys.modules.pop, "wsgidav.dc.pam_dc", None)
+        config = {"pam_dc": {"allow_users": allow_users}}
+        if deny_users is not None:
+            config["pam_dc"]["deny_users"] = deny_users
+        return pam_dc.PAMDomainController(None, config)
+
+    def test_current(self):
+        dc = self._make_dc("current")
+        with patch("os.getlogin", return_value="joe"):
+            self.assertTrue(dc._validate_user("joe"))
+            for name in ("", "c", "rent", "current", "jo"):
+                self.assertFalse(dc._validate_user(name), name)
+
+    def test_all(self):
+        dc = self._make_dc("all", deny_users=["root"])
+        self.assertTrue(dc._validate_user("joe"))
+        self.assertFalse(dc._validate_user("root"))
+
+    def test_list(self):
+        dc = self._make_dc(["joe", "current"])
+        self.assertTrue(dc._validate_user("joe"))
+        self.assertFalse(dc._validate_user("jo"))
+        self.assertFalse(dc._validate_user("rent"))
+
+
+class TestSimpleDcBasicAuth(unittest.TestCase):
+    def test_basic_auth_user(self):
+        from wsgidav.dc.simple_dc import SimpleDomainController
+
+        config = {
+            "simple_dc": {
+                "user_mapping": {
+                    "/": {"joe": {"password": "s\u00e4cret", "roles": ["editor"]}},
+                    "/nopw": {"joe": {"roles": []}},
+                }
+            }
+        }
+        dc = SimpleDomainController(None, config)
+        environ = {}
+        self.assertTrue(dc.basic_auth_user("/", "joe", "s\u00e4cret", environ))
+        self.assertEqual(environ["wsgidav.auth.roles"], ["editor"])
+        environ = {}
+        self.assertFalse(dc.basic_auth_user("/", "joe", "secret", environ))
+        self.assertFalse(dc.basic_auth_user("/", "jane", "s\u00e4cret", environ))
+        self.assertFalse(dc.basic_auth_user("/nopw", "joe", "", environ))
+        self.assertEqual(environ, {})
 
 
 if __name__ == "__main__":

@@ -67,11 +67,10 @@ class PAMDomainController(BaseDomainController):
         if self.allow_users == "all":
             return True
         if self.allow_users == "current":
-            if user_name == os.getlogin():
-                return True
-        if user_name in self.allow_users:
-            return True
-        return False
+            return user_name == os.getlogin()
+        # Note: must be a list here. `in` on the string options above would be
+        # a substring test (e.g. "rent" in "current").
+        return isinstance(self.allow_users, list) and user_name in self.allow_users
 
     def basic_auth_user(self, realm, user_name, password, environ):
         # Seems that python_pam is not threadsafe (#265)

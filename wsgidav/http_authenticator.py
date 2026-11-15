@@ -78,20 +78,21 @@ from previous middleware or server config (if required).
 """
 
 import base64
+import binascii
 import hmac
 import inspect
 import re
 import secrets
 import time
-from hashlib import md5
+from hashlib import md5, sha256
 from textwrap import dedent
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_NOT_FOUND, DAVError
 from wsgidav.dc.simple_dc import SimpleDomainController
 from wsgidav.mw.base_mw import BaseMiddleware
-from wsgidav.util import calc_base64, calc_hexdigest, dynamic_import_class
+from wsgidav.util import dynamic_import_class
 
 __docformat__ = "reStructuredText"
 
@@ -180,7 +181,23 @@ class HTTPAuthenticator(BaseMiddleware):
                 "Set accept_basic=True, accept_digest=False, default_to_digest=False"
             )
 
-        self._nonce_dict = dict([])
+        # Digest nonces are self-validating: they carry their creation time
+        # and are signed with a server secret, so we can verify that a nonce
+        # was issued by this server and has not expired without keeping state.
+        # The secret is random per process by default. If several processes
+        # serve the same clients (e.g. gunicorn workers), they must share a
+        # secret: set `http_authenticator.digest_nonce_secret`.
+        nonce_secret = auth_conf.get("digest_nonce_secret")
+        if nonce_secret:
+            self._nonce_secret = util.to_bytes(nonce_secret)
+        else:
+            self._nonce_secret = secrets.token_bytes(32)
+        #: Maximum age of a digest nonce in seconds
+        self.digest_nonce_lifetime = int(auth_conf.get("digest_nonce_lifetime", 300))
+        if self.digest_nonce_lifetime <= 0:
+            raise ValueError(
+                "http_authenticator.digest_nonce_lifetime must be a positive number"
+            )
 
         # Note: the leading \b is required. Without it every interior position
         # of a run of word characters starts a match attempt that consumes the
@@ -216,7 +233,9 @@ class HTTPAuthenticator(BaseMiddleware):
         # _logger.debug("{}".format(environ))
 
         force_logout = False
-        if "logout" in environ.get("QUERY_STRING", ""):
+        if "logout" in parse_qs(
+            environ.get("QUERY_STRING", ""), keep_blank_values=True
+        ):
             force_logout = True
             _logger.warning("Force logout")
 
@@ -297,15 +316,15 @@ class HTTPAuthenticator(BaseMiddleware):
     def handle_basic_auth_request(self, environ, start_response):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
         auth_header = environ["HTTP_AUTHORIZATION"]
-        auth_value = ""
         try:
             auth_value = auth_header[len("Basic ") :].strip()
-        except Exception:
-            auth_value = ""
-
-        auth_value = base64.decodebytes(util.to_bytes(auth_value))
-        auth_value = util.to_str(auth_value)
-        user_name, password = auth_value.split(":", 1)
+            auth_value = base64.decodebytes(util.to_bytes(auth_value))
+            auth_value = util.to_str(auth_value)
+            user_name, password = auth_value.split(":", 1)
+        except (binascii.Error, UnicodeError, ValueError):
+            # Not base64, not UTF-8, or no ':' separator
+            _logger.warning("Authentication (basic) failed: malformed header.")
+            return self.send_basic_auth_response(environ, start_response)
 
         if self.domain_controller.basic_auth_user(realm, user_name, password, environ):
             environ["wsgidav.auth.realm"] = realm
@@ -317,20 +336,51 @@ class HTTPAuthenticator(BaseMiddleware):
         )
         return self.send_basic_auth_response(environ, start_response)
 
-    def send_digest_auth_response(self, environ, start_response):
+    def _sign_nonce(self, timestamp, salt):
+        msg = util.to_bytes(f"{timestamp}:{salt}")
+        return hmac.new(self._nonce_secret, msg, sha256).hexdigest()
+
+    def _make_nonce(self):
+        """Return a new nonce: `<timestamp>:<salt>:<signature>`.
+
+        The salt is a cryptographically secure random value (128-bit, CWE-338)
+        that makes every nonce unique. The signature binds timestamp and salt
+        to the server secret.
+        """
+        timestamp = str(int(time.time()))
+        salt = secrets.token_hex(16)
+        return f"{timestamp}:{salt}:{self._sign_nonce(timestamp, salt)}"
+
+    def _is_nonce_valid(self, nonce):
+        """Return True if `nonce` was issued by this server and is not expired.
+
+        Without this check, a captured `Authorization: Digest ...` header
+        could be replayed forever for the same method and resource (CWE-294).
+        """
+        try:
+            timestamp, salt, signature = nonce.split(":")
+            issued = int(timestamp)
+        except (AttributeError, ValueError):
+            return False
+        if not hmac.compare_digest(
+            util.to_bytes(self._sign_nonce(timestamp, salt)), util.to_bytes(signature)
+        ):
+            return False
+        age = time.time() - issued
+        # (Allow a second of slack for the truncated timestamp.)
+        return -1 <= age <= self.digest_nonce_lifetime
+
+    def send_digest_auth_response(self, environ, start_response, *, stale=False):
         realm = self.domain_controller.get_domain_realm(environ["PATH_INFO"], environ)
-        # Use a cryptographically secure random nonce (128-bit) instead of
-        # `random.getrandbits(32)` which is not a CSPRNG (CWE-338).
-        serverkey = secrets.token_hex(16)
-        etagkey = calc_hexdigest(environ["PATH_INFO"])
-        timekey = str(time.time())
-        nonce_source = timekey + calc_hexdigest(
-            timekey + ":" + etagkey + ":" + serverkey
-        )
-        nonce = calc_base64(nonce_source)
+        nonce = self._make_nonce()
         wwwauthheaders = (
             f'Digest realm="{realm}", nonce="{nonce}", algorithm=MD5, qop="auth"'
         )
+        if stale:
+            # The client knows the password, but the nonce is expired or
+            # unknown: it may retry with the new nonce without prompting the
+            # user (RFC 7616, section 3.3).
+            wwwauthheaders += ", stale=true"
 
         _logger.debug(
             f"401 Not Authorized for realm {realm!r} (digest): {wwwauthheaders}"
@@ -557,6 +607,17 @@ class HTTPAuthenticator(BaseMiddleware):
                     f"Authentication (digest) failed for user {req_username!r}, realm {realm!r}."
                 )
             return self.send_digest_auth_response(environ, start_response)
+
+        if not self._is_nonce_valid(req_nonce):
+            # The digest is correct, but was computed for a nonce that we did
+            # not issue or that is expired (e.g. a replayed request).
+            _logger.info(
+                f"Authentication (digest) for user {req_username!r}, realm {realm!r}: "
+                "stale nonce."
+            )
+            environ["wsgidav.auth.roles"] = None
+            environ["wsgidav.auth.permissions"] = None
+            return self.send_digest_auth_response(environ, start_response, stale=True)
 
         environ["wsgidav.auth.realm"] = realm
         environ["wsgidav.auth.user_name"] = req_username

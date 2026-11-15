@@ -169,7 +169,19 @@ http_authenticator:
     default_to_digest: true
     #: Header field that will be accepted as authorized user.
     #: Including quotes, for example: trusted_auth_header = 'REMOTE_USER'
+    #: NOTE: this is the name of a WSGI environ key. A value that starts with
+    #: `HTTP_` (e.g. 'HTTP_X_REMOTE_USER') is a request header that any client
+    #: can send, so it must only be used if a trusted reverse proxy always
+    #: overwrites or removes this header.
     trusted_auth_header: null
+    #: Maximum age in seconds of a nonce for digest authentication.
+    #: Clients re-authenticate transparently when it expires (default: 300).
+    digest_nonce_lifetime: 300
+    #: Secret that is used to sign the nonces for digest authentication.
+    #: By default (null) a random secret is created on startup. Set this to a
+    #: long random string if several server processes serve the same clients
+    #: (e.g. gunicorn workers), so they accept each other's nonces.
+    digest_nonce_secret: null
     #: Domain controller that is used to resolve realms and authorization.
     #: Default null: which uses SimpleDomainController and the
     #: `simple_dc.user_mapping` option below.

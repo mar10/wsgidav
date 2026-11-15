@@ -74,6 +74,10 @@ DEFAULT_CONFIG = {
         "default_to_digest": True,  # True (default digest) or False (default basic)
         # Name of a header field that will be accepted as authorized user
         "trusted_auth_header": None,
+        # Maximum age of a digest nonce in seconds
+        "digest_nonce_lifetime": 300,
+        # Secret used to sign digest nonces (None: random per process)
+        "digest_nonce_secret": None,
     },
     #: Used by SimpleDomainController only
     "simple_dc": {"user_mapping": {}},  # NO anonymous access by default

@@ -62,6 +62,8 @@ DomainControllerBase_
 
 """
 
+import hmac
+
 from wsgidav import util
 from wsgidav.dc.base_dc import BaseDomainController
 
@@ -119,10 +121,16 @@ class SimpleDomainController(BaseDomainController):
         False otherwise. Used for basic authentication."""
         user = self._get_realm_entry(realm, user_name)
 
-        if user is not None and password == user.get("password"):
-            environ["wsgidav.auth.roles"] = user.get("roles", [])
-            return True
-        return False
+        if user is None:
+            return False
+        expected = user.get("password")
+        # Constant-time comparison to prevent timing side-channels (CWE-208)
+        if expected is None or not hmac.compare_digest(
+            util.to_bytes(password), util.to_bytes(expected)
+        ):
+            return False
+        environ["wsgidav.auth.roles"] = user.get("roles", [])
+        return True
 
     def supports_http_digest_auth(self):
         # We have access to a plaintext password (or stored hash)
