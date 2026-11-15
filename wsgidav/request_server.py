@@ -1029,6 +1029,14 @@ class RequestServer:
 
         # dest_path is now relative to current mount/share starting with '/'
 
+        if util.is_child_uri(dest_path, src_path):
+            # An existing destination is removed before the copy/move, which
+            # would delete the source (and its siblings) as well.
+            self._fail(
+                HTTP_FORBIDDEN,
+                context_info="Cannot copy/move source onto one of its parents",
+            )
+
         dest_res = provider.get_resource_inst(dest_path, environ)
         dest_exists = dest_res is not None
 
