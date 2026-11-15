@@ -2,7 +2,8 @@
 # Original PyFileServer (c) 2005 Ho Chun Wei.
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license.php
-import pickle
+import base64
+import json
 import time
 
 import redis
@@ -16,6 +17,40 @@ from wsgidav.lock_man.lock_manager import (
 )
 
 _logger = util.get_module_logger(__name__)
+
+
+def dump_lock(lock):
+    """Serialize a lock dictionary as JSON.
+
+    Note: we deliberately don't use pickle here. Unpickling executes code, so
+    anybody with write access to the Redis database could run arbitrary code
+    in the server process (CWE-502).
+    """
+    data = dict(lock)
+    owner = data.get("owner")
+    if isinstance(owner, bytes):
+        # The lock owner is an XML byte string
+        data["owner"] = {"base64": base64.b64encode(owner).decode("ascii")}
+    return json.dumps(data)
+
+
+def load_lock(data):
+    """Deserialize a lock dictionary that was stored by `dump_lock()`.
+
+    Return None if `data` is not valid, e.g. a pickled lock that was stored by
+    WsgiDAV 4.x.
+    """
+    try:
+        lock = json.loads(data)
+        if not isinstance(lock, dict):
+            raise ValueError("Expected a dict")
+        owner = lock.get("owner")
+        if isinstance(owner, dict):
+            lock["owner"] = base64.b64decode(owner["base64"])
+    except (ValueError, KeyError, TypeError):  # includes UnicodeDecodeError
+        _logger.warning("Ignoring lock entry with an unsupported storage format.")
+        return None
+    return lock
 
 
 class LockStorageRedis:
@@ -82,12 +117,13 @@ class LockStorageRedis:
         Side effect: if lock is expired, it will be purged and None is returned.
         """
         lock = self._redis.get(self._redis_lock_prefix.format(token))
+        if lock is not None:
+            lock = load_lock(lock)
         if lock is None:
             # Lock not found: purge dangling URL2TOKEN entries
             _logger.debug(f"Lock purged dangling: {token}")
             self.delete(token)
             return None
-        lock = pickle.loads(lock)
         expire = float(lock["expire"])
         if 0 <= expire < time.time():
             _logger.debug(f"Lock timed-out({expire}): {lock_string(lock)}")
@@ -135,7 +171,7 @@ class LockStorageRedis:
 
         # Store lock
         self._redis.set(
-            self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout)
+            self._redis_lock_prefix.format(token), dump_lock(lock), ex=int(timeout)
         )
 
         # Store locked path reference
@@ -166,11 +202,13 @@ class LockStorageRedis:
 
         # Note: shelve dictionary returns copies, so we must reassign
         # values:
-        lock = pickle.loads(self._redis.get(self._redis_lock_prefix.format(token)))
+        lock = load_lock(self._redis.get(self._redis_lock_prefix.format(token)))
+        if lock is None:
+            raise ValueError(f"Invalid lock token: {token}")
         lock["timeout"] = timeout
         lock["expire"] = time.time() + timeout
         self._redis.set(
-            self._redis_lock_prefix.format(token), pickle.dumps(lock), ex=int(timeout)
+            self._redis_lock_prefix.format(token), dump_lock(lock), ex=int(timeout)
         )
         self._flush()
         return lock
@@ -182,7 +220,11 @@ class LockStorageRedis:
         lock = self._redis.get(self._redis_lock_prefix.format(token))
         if lock is None:
             return False
-        lock = pickle.loads(lock)
+        lock = load_lock(lock)
+        if lock is None:
+            # Unsupported storage format: drop the entry
+            self._redis.delete(self._redis_lock_prefix.format(token))
+            return False
         _logger.debug(f"delete {lock_string(lock)}")
         # Remove url to lock mapping
         key = self._redis_url2token_prefix.format(lock.get("root"))
@@ -217,7 +259,8 @@ class LockStorageRedis:
             for token in map(lambda x: x.decode("utf-8"), toklist):
                 lock = self._redis.get(self._redis_lock_prefix.format(token))
                 if lock:
-                    lock = pickle.loads(lock)
+                    lock = load_lock(lock)
+                if lock:
                     if token_only:
                         lock_list.append(lock["token"])
                     else:

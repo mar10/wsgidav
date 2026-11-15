@@ -303,6 +303,12 @@ is also available::
         kwargs:
             storage_path: /path/to/wsgidav_locks.shelve
 
+.. warning::
+   Shelve files (``LockStorageShelve``, ``ShelvePropertyManager``) are based on
+   Python's ``pickle`` format: loading such a file can execute arbitrary code.
+   Make sure that the storage file is only writable by the account that runs
+   the server, and never use a file from an untrusted source.
+
 
 Domain Controller
 -----------------
