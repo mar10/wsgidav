@@ -26,6 +26,7 @@ from wsgidav.dav_error import (
     HTTP_OK,
     HTTP_PRECONDITION_FAILED,
     HTTP_RANGE_NOT_SATISFIABLE,
+    HTTP_REQUEST_ENTITY_TOO_LARGE,
     DAVError,
     PRECONDITION_CODE_LockTokenMismatch,
     PRECONDITION_CODE_PropfindFiniteDepth,
@@ -93,6 +94,9 @@ class RequestServer:
 
         self.block_size = environ["wsgidav.config"].get(
             "block_size", DEFAULT_BLOCK_SIZE
+        )
+        self.allow_propfind_infinite = bool(
+            environ["wsgidav.config"].get("allow_propfind_infinite", True)
         )
 
         # Convert 'infinity' and 'T'/'F' to a common case
@@ -728,13 +732,21 @@ class RequestServer:
             environ, start_response, res, HTTP_NO_CONTENT, error_list
         )
 
-    def _stream_data(self, environ, block_size):
+    def _stream_data(self, environ, block_size, *, max_size=None):
         """Get the data."""
+        total = 0
         while True:
             buf = environ["wsgi.input"].read(block_size)
             if buf == b"":
                 break
             environ["wsgidav.some_input_read"] = 1
+            total += len(buf)
+            if max_size and total > max_size:
+                # Content-Length was missing or wrong (e.g. chunked transfer)
+                self._fail(
+                    HTTP_REQUEST_ENTITY_TOO_LARGE,
+                    context_info=f"Upload exceeds {max_size:,} bytes.",
+                )
             yield buf
         environ["wsgidav.all_input_read"] = 1
 
@@ -773,6 +785,13 @@ class RequestServer:
                 else:
                     mtime = int(mtime_header)
 
+        max_upload_size = environ["wsgidav.config"].get("max_upload_size")
+        if max_upload_size and util.get_content_length(environ) > max_upload_size:
+            self._fail(
+                HTTP_REQUEST_ENTITY_TOO_LARGE,
+                context_info=f"Upload exceeds {max_upload_size:,} bytes.",
+            )
+
         if res and res.is_collection:
             self._fail(
                 HTTP_METHOD_NOT_ALLOWED, context_info="Cannot PUT to a collection"
@@ -797,7 +816,9 @@ class RequestServer:
         with self._write_transaction(res, environ):
             has_errors = False
             try:
-                data_stream = self._stream_data(environ, self.block_size)
+                data_stream = self._stream_data(
+                    environ, self.block_size, max_size=max_upload_size
+                )
 
                 fileobj = res.begin_write(content_type=environ.get("CONTENT_TYPE"))
 
@@ -817,6 +838,8 @@ class RequestServer:
 
             except Exception as e:
                 res.end_write(with_errors=True)
+                if isinstance(e, DAVError):
+                    raise
                 _logger.exception("PUT: byte copy failed")
                 util.fail(e)
 
@@ -884,9 +907,11 @@ class RequestServer:
             # This was dropped with RFC 4918.
             # Still clients may send it (e.g. DAVExplorer 0.9.1 File-Copy) sends
             # <A:propertybehavior xmlns:A="DAV:"> <A:keepalive>*</A:keepalive>
-            body = environ["wsgi.input"].read(util.get_content_length(environ))
+            n = util.discard_input(
+                environ["wsgi.input"], util.get_content_length(environ)
+            )
             environ["wsgidav.all_input_read"] = 1
-            _logger.info(f"Ignored copy/move  body: {body[:50]!r}...")
+            _logger.info(f"Ignored copy/move body ({n} bytes).")
 
         if src_res.is_collection:
             # The COPY method on a collection without a Depth header MUST act as

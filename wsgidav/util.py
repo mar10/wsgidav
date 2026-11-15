@@ -34,6 +34,7 @@ from wsgidav.dav_error import (
     HTTP_OK,
     HTTP_PRECONDITION_FAILED,
     HTTP_RANGE_NOT_SATISFIABLE,
+    HTTP_REQUEST_ENTITY_TOO_LARGE,
     DAVError,
     as_DAVError,
     get_http_status_string,
@@ -907,6 +908,18 @@ def get_content_length(environ):
 #    environ["wsgidav.all_input_read"] = 1
 
 
+def discard_input(wsgi_input, length, *, block_size=64 * 1024):
+    """Read and drop `length` bytes in blocks, so the size of a request body
+    (which is declared by the client) does not determine our memory usage."""
+    remaining = length
+    while remaining > 0:
+        buf = wsgi_input.read(min(block_size, remaining))
+        if not buf:
+            break
+        remaining -= len(buf)
+    return length - remaining
+
+
 def read_and_discard_input(environ):
     """Read 1 byte from wsgi.input, if this has not been done yet.
 
@@ -950,9 +963,9 @@ def read_and_discard_input(environ):
                 n = wsgi_input.length
             else:
                 n = 1
-            body = wsgi_input.read(n)
+            discard_input(wsgi_input, n)
             _logger.debug(
-                f"Reading {n} bytes from potentially unread httpserver.LimitedLengthFile: {body[:50]!r}..."
+                f"Discarded {n} bytes from potentially unread httpserver.LimitedLengthFile."
             )
 
     elif hasattr(wsgi_input, "_sock") and hasattr(wsgi_input._sock, "settimeout"):
@@ -968,10 +981,8 @@ def read_and_discard_input(environ):
                     n = cl
                 else:
                     n = 1
-                body = wsgi_input.read(n)
-                _logger.debug(
-                    f"Reading {n} bytes from potentially unread POST body: {body[:50]!r}..."
-                )
+                discard_input(wsgi_input, n)
+                _logger.debug(f"Discarded {n} bytes from potentially unread POST body.")
             except OSError as se:
                 # se(10035, 'The socket operation could not complete without blocking')
                 _logger.error(f"-> read {n} bytes failed: {se}")
@@ -1141,6 +1152,10 @@ def update_headers_in_place(target, new_items) -> None:
 # ========================================================================
 
 
+#: Default for the `max_xml_body_size` option (bytes)
+DEFAULT_MAX_XML_BODY_SIZE = 1024 * 1024
+
+
 def parse_xml_body(environ, *, allow_empty=False):
     """Read request body XML into an etree.Element.
 
@@ -1195,6 +1210,16 @@ def parse_xml_body(environ, *, allow_empty=False):
                 raise DAVError(HTTP_BAD_REQUEST, "Negative content-length.")
         except ValueError:
             raise DAVError(HTTP_BAD_REQUEST, "content-length is not numeric.") from None
+
+        max_size = (environ.get("wsgidav.config") or {}).get(
+            "max_xml_body_size", DEFAULT_MAX_XML_BODY_SIZE
+        )
+        if max_size and content_length > max_size:
+            # The body is parsed in memory: don't let the client choose the size
+            raise DAVError(
+                HTTP_REQUEST_ENTITY_TOO_LARGE,
+                f"XML request body is too large ({content_length:,} > {max_size:,} bytes).",
+            )
 
         if content_length == 0:
             requestbody = ""

@@ -41,6 +41,11 @@ DEFAULT_CONFIG = {
         "follow_symlinks": False,
     },
     "honor_mtime_header": False,
+    # Request limits
+    "allow_propfind_infinite": True,  # False: reject PROPFIND with `Depth: infinity`
+    "max_xml_body_size": 1024
+    * 1024,  # Max. size of XML request bodies (None: no limit)
+    "max_upload_size": None,  # Max. size of a PUT request body in bytes (None: no limit)
     "add_header_MS_Author_Via": True,
     "default_charset": "utf-8",  # e.g. "utf-8"
     "hotfixes": {

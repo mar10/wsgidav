@@ -158,6 +158,22 @@ fs_dav_provider:
 #: Set last modification based on timestamp provided by `X-OC-Mtime` header
 honor_mtime_header: false
 
+# ----------------------------------------------------------------------------
+# Request limits
+
+#: Allow PROPFIND requests with `Depth: infinity` (default: true).
+#: Such a request lists the complete tree below a collection, which can be
+#: expensive. Set to false to answer with 403 (propfind-finite-depth) instead.
+allow_propfind_infinite: true
+
+#: Maximum size in bytes of an XML request body (PROPFIND, PROPPATCH, LOCK).
+#: Larger requests are rejected with 413. (Default: 1 MiB, null: no limit)
+max_xml_body_size: 1048576
+
+#: Maximum size in bytes of an uploaded file (PUT). Larger requests are
+#: rejected with 413. (Default: null, i.e. no limit)
+max_upload_size: null
+
 # ==============================================================================
 # AUTHENTICATION
 http_authenticator:
