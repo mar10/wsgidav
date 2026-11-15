@@ -22,6 +22,7 @@ Valid options are (sample shows defaults)::
 
 """
 
+import json
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -128,10 +129,10 @@ class CouchPropertyManager:
         # Ad-hoc query for URL starting with a prefix
         map_fun = """function(doc) {
                 var url = doc.url + "/";
-                if(doc.type === 'properties' && url.indexOf('%s') === 0) {
+                if(doc.type === 'properties' && url.indexOf(%s) === 0) {
                     emit(doc.url, { 'id': doc._id, 'url': doc.url });
                 }
-            }""" % (url + "/")
+            }""" % json.dumps(url.rstrip("/") + "/")
         vr = self.db.query(map_fun, include_docs=True)
         for row in vr:
             yield row.doc
@@ -224,7 +225,7 @@ class CouchPropertyManager:
             # Match URLs that are equal to <src_url> or begin with '<src_url>/'
             doc_list = self._find_descendents(src_url)
             for doc in doc_list:
-                new_dest = doc["url"].replace(src_url, dest_url)
+                new_dest = util.replace_uri_prefix(doc["url"], src_url, dest_url)
                 _logger.debug("move property {} -> {}".format(doc["url"], new_dest))
                 doc["url"] = new_dest
                 self.db.save(doc)

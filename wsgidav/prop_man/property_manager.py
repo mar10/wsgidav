@@ -245,7 +245,7 @@ class PropertyManager:
                 # Move src_url\*
                 for url in list(self._dict.keys()):
                     if util.is_equal_or_child_uri(src_url, url):
-                        d = url.replace(src_url, dest_url)
+                        d = util.replace_uri_prefix(url, src_url, dest_url)
                         self._dict[d] = self._dict[url]
                         del self._dict[url]
             elif src_url in self._dict:

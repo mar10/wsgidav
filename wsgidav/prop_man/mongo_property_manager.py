@@ -22,6 +22,7 @@ Valid options are (sample shows defaults)::
 
 """
 
+import re
 from urllib.parse import quote
 
 import pymongo
@@ -176,11 +177,11 @@ class MongoPropertyManager:
         _logger.debug(f"move_properties({src_url}, {dest_url}, {with_children})")
         if with_children:
             # Match URLs that are equal to <src_url> or begin with '<src_url>/'
-            match_begin = "^" + src_url.rstrip("/") + "/"
+            match_begin = "^" + re.escape(src_url.rstrip("/") + "/")
             query = {"$or": [{"_url": src_url}, {"_url": {"$regex": match_begin}}]}
             doc_list = self.collection.find(query)
             for doc in doc_list:
-                new_dest = doc["_url"].replace(src_url, dest_url)
+                new_dest = util.replace_uri_prefix(doc["_url"], src_url, dest_url)
                 _logger.debug("move property {} -> {}".format(doc["_url"], new_dest))
                 doc["_url"] = new_dest
                 self.collection.save(doc)

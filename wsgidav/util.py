@@ -1105,6 +1105,19 @@ def is_equal_or_child_uri(parent_uri, child_uri):
     )
 
 
+def replace_uri_prefix(uri: str, old_prefix: str, new_prefix: str) -> str:
+    """Return `uri` with its leading `old_prefix` replaced by `new_prefix`.
+
+    Only the start of `uri` is replaced (unlike `str.replace()`, which would
+    also modify '/a/x/a/f' -> '/b/x/b/f' when moving '/a/' to '/b/').
+    """
+    # ('/a/b' is considered identical with '/a/b/')
+    old = old_prefix.rstrip("/")
+    if uri != old and not uri.startswith(old + "/"):
+        raise ValueError(f"{uri!r} is not equal to or below {old_prefix!r}")
+    return new_prefix.rstrip("/") + uri[len(old) :]
+
+
 def make_complete_url(environ, local_uri=None):
     """URL reconstruction according to PEP 333.
     @see https://www.python.org/dev/peps/pep-3333/#url-reconstruction
