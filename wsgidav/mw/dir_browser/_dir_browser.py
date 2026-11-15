@@ -8,6 +8,7 @@ WSGI middleware that handles GET requests on collections to display directories.
 import os
 import sys
 from fnmatch import fnmatch
+from html import escape as html_escape
 from urllib.parse import unquote
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -214,8 +215,12 @@ class WsgiDavDirBrowser(BaseMiddleware):
                             ofe_prefix = f"ms-{ms_office_type}:ofe|u|"
                             a_classes.append("msoffice")
                             if libre_office_support:
+                                # Note: this is rendered as raw HTML, and URLs
+                                # may contain quotes
                                 add_link_html.append(
-                                    f"<a class='edit2' title='Edit with Libre Office' href='vnd.libreoffice.command:ofv|u|{rel_href}'>Edit</a>"
+                                    "<a class='edit2' title='Edit with Libre Office' "
+                                    "href='vnd.libreoffice.command:ofv|u|"
+                                    f"{html_escape(rel_href, quote=True)}'>Edit</a>"
                                 )
                                 # ofe_prefix_2 = "vnd.libreoffice.command:ofv|u|"
                                 # a_classes.append("msoffice")
