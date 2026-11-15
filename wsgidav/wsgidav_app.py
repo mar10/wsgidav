@@ -222,6 +222,8 @@ class WsgiDAVApp:
         provider_mapping = self.config["provider_mapping"]
 
         self.provider_map = {}
+        #: Maps lower-case share names to the spelling that was configured
+        self._share_by_lower_name = {}
         self.sorted_share_list = None
         for share, provider in provider_mapping.items():
             self.add_provider(share, provider)
@@ -308,6 +310,7 @@ class WsgiDAVApp:
         if self.verbose >= 3:
             _logger.info("Registered DAV providers by route:")
             for share in self.sorted_share_list:
+                share = self._share_by_lower_name[share]
                 provider = self.provider_map[share]
                 if domain_controller:
                     if domain_controller.is_share_anonymous(share):
@@ -341,7 +344,11 @@ class WsgiDAVApp:
         """Add a provider to the provider_map routing table."""
         # Make sure share starts with, or is '/'
         share = "/" + share.strip("/")
-        assert share not in self.provider_map
+        # Shares are matched case-insensitively (see resolve_provider())
+        if share.lower() in self._share_by_lower_name:
+            raise ValueError(
+                f"Share {share!r} is already defined (share names are not case-sensitive)"
+            )
 
         fs_opts = self.config.get("fs_dav_provider") or {}
 
@@ -392,6 +399,7 @@ class WsgiDAVApp:
         provider.set_prop_manager(self.prop_manager)
 
         self.provider_map[share] = provider
+        self._share_by_lower_name[share.lower()] = share
         # self.provider_map[share] = {"provider": provider, "allow_anonymous": False}
 
         # Store the list of share paths, ordered by length, so route lookups
@@ -422,7 +430,10 @@ class WsgiDAVApp:
 
         if share is None:
             return None, None
-        return share, self.provider_map.get(share)
+        # `share` is lower case: return the configured spelling, which is
+        # also the key of the provider map and the realm name
+        share = self._share_by_lower_name[share]
+        return share, self.provider_map[share]
 
     def __call__(self, environ, start_response):
         # util.log("SCRIPT_NAME={!r}, PATH_INFO={!r}".format(
