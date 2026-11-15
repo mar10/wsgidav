@@ -20,13 +20,13 @@ jobs:
         # Python 3.5  # EOL 2020-09-13
         # Python 3.6  # EOL 2021-12-21
         # Python 3.7  # EOL 2023-06-27
-        # Python 3.8  # EOL 2024-10  Not available on GH-Actions anymore
-        # Python 3.9  # EOL 2025-10
+        # Python 3.8  # EOL 2024-10  Not available on GH-Actions ubuntu 26 anymore
+        # Python 3.9  # EOL 2025-10  Not available on GH-Actions ubuntu 26 anymore
         # Python 3.10 # EOL 2026-10
         # Python 3.11 # EOL 2027-10
         # Python 3.12 # EOL 2028-10
         # Python 3.13 # EOL 2029-10
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
