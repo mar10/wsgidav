@@ -43,6 +43,7 @@ from pprint import pformat
 
 from wsgidav import util
 from wsgidav.dav_error import (
+    HTTP_INSUFFICIENT_STORAGE,
     HTTP_LOCKED,
     DAVError,
     DAVErrorCondition,
@@ -141,6 +142,8 @@ class LockManager:
         # LOCK is acquired *after* the check but *before* the (potentially
         # slow) write completes (CWE-367).
         self._active_writes = {}
+        #: Maximum number of locks that one principal may hold (None: no limit)
+        self.max_locks_per_principal = None
 
     def __del__(self):
         self.storage.close()
@@ -237,11 +240,33 @@ class LockManager:
             self._check_lock_permission(
                 url, lock_type, lock_scope, lock_depth, token_list, principal
             )
+            self._check_lock_quota(principal)
             return self._generate_lock(
                 principal, lock_type, lock_scope, lock_depth, lock_owner, url, timeout
             )
         finally:
             self._lock.release()
+
+    def _check_lock_quota(self, principal):
+        """Raise HTTP_INSUFFICIENT_STORAGE if <principal> holds too many locks.
+
+        Locks are kept in the lock storage until they expire, so without a
+        limit a single user could exhaust its memory.
+        """
+        max_locks = self.max_locks_per_principal
+        if not max_locks:
+            return
+        count = 0
+        for lock in self.storage.get_lock_list(
+            "/", include_root=True, include_children=True, token_only=False
+        ):
+            if lock["principal"] == principal:
+                count += 1
+                if count >= max_locks:
+                    raise DAVError(
+                        HTTP_INSUFFICIENT_STORAGE,
+                        f"Too many locks for user {principal!r} (limit: {max_locks}).",
+                    )
 
     def _begin_write_transaction(self, *, url, token_list, principal, depth="0"):
         """Atomically check write permission and mark <url> as being written.

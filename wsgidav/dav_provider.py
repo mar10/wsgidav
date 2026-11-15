@@ -89,6 +89,7 @@ from urllib.parse import quote, unquote
 from wsgidav import util, xml_tools
 from wsgidav.dav_error import (
     HTTP_FORBIDDEN,
+    HTTP_INSUFFICIENT_STORAGE,
     HTTP_NOT_FOUND,
     DAVError,
     PRECONDITION_CODE_ProtectedProperty,
@@ -851,6 +852,15 @@ class _DAVResource(ABC):
             if value is None:
                 return pm.remove_property(ref_url, name, dry_run, self.environ)
             else:
+                max_props = config.get("max_dead_props_per_resource")
+                if max_props:
+                    # Don't let a client store an unlimited number of properties
+                    names = pm.get_properties(ref_url, self.environ)
+                    if name not in names and len(names) >= max_props:
+                        raise DAVError(
+                            HTTP_INSUFFICIENT_STORAGE,
+                            f"Too many properties (limit: {max_props}).",
+                        )
                 value = etree.tostring(value)
                 return pm.write_property(ref_url, name, value, dry_run, self.environ)
 

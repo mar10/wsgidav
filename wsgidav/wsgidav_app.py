@@ -181,6 +181,7 @@ class WsgiDAVApp:
             if not hasattr(lock_storage, "refresh"):
                 raise ValueError(f"Invalid lock_storage: {lock_storage!r}")
             self.lock_manager = LockManager(lock_storage)
+            self.lock_manager.max_locks_per_principal = config.get("max_locks_per_user")
 
         prop_manager = config.get("property_manager")
         if prop_manager is True:

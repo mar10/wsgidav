@@ -517,35 +517,35 @@ class RequestServer:
                     writeresult = "200 OK"
                 writeresultlist.append((name, writeresult))
                 successflag = successflag and writeresult == "200 OK"
+
+            # Generate response list of 2-tuples (name, value)
+            # <value> is None on success, or an instance of DAVError
+            prop_response_list = []
+            responsedescription = []
+
+            if not successflag:
+                # If dry run failed: convert all OK to FAILED_DEPENDENCY.
+                for name, result in writeresultlist:
+                    if result == "200 OK":
+                        result = DAVError(HTTP_FAILED_DEPENDENCY)
+                    elif isinstance(result, DAVError):
+                        responsedescription.append(result.get_user_info())
+                    prop_response_list.append((name, result))
+
+            else:
+                # Dry-run succeeded: set properties again, this time in 'real' mode
+                # In theory, there should be no exceptions thrown here, but this is
+                # real live...
+                for name, propvalue in propupdatelist:
+                    try:
+                        res.set_property_value(name, propvalue, dry_run=False)
+                        # Set value to None, so the response xml contains empty tags
+                        prop_response_list.append((name, None))
+                    except Exception as e:
+                        e = as_DAVError(e)
+                        prop_response_list.append((name, e))
+                        responsedescription.append(e.get_user_info())
         # <<< end of `with self._write_transaction()`
-
-        # Generate response list of 2-tuples (name, value)
-        # <value> is None on success, or an instance of DAVError
-        prop_response_list = []
-        responsedescription = []
-
-        if not successflag:
-            # If dry run failed: convert all OK to FAILED_DEPENDENCY.
-            for name, result in writeresultlist:
-                if result == "200 OK":
-                    result = DAVError(HTTP_FAILED_DEPENDENCY)
-                elif isinstance(result, DAVError):
-                    responsedescription.append(result.get_user_info())
-                prop_response_list.append((name, result))
-
-        else:
-            # Dry-run succeeded: set properties again, this time in 'real' mode
-            # In theory, there should be no exceptions thrown here, but this is
-            # real live...
-            for name, propvalue in propupdatelist:
-                try:
-                    res.set_property_value(name, propvalue, dry_run=False)
-                    # Set value to None, so the response xml contains empty tags
-                    prop_response_list.append((name, None))
-                except Exception as e:
-                    e = as_DAVError(e)
-                    prop_response_list.append((name, e))
-                    responsedescription.append(e.get_user_info())
 
         # Generate response XML
         multistatus_el = xml_tools.make_multistatus_el()
@@ -1402,16 +1402,25 @@ class RequestServer:
         # --- Check, if path is already locked --------------------------------
 
         # May raise DAVError(HTTP_LOCKED):
-        lock = lock_man.acquire(
-            url=res.get_ref_url(),
-            lock_type=lock_type,
-            lock_scope=lock_scope,
-            lock_depth=lock_depth,
-            lock_owner=lock_owner,
-            timeout=timeout_secs,
-            principal=environ["wsgidav.user_name"],
-            token_list=submitted_token_list,
-        )
+        try:
+            lock = lock_man.acquire(
+                url=res.get_ref_url(),
+                lock_type=lock_type,
+                lock_scope=lock_scope,
+                lock_depth=lock_depth,
+                lock_owner=lock_owner,
+                timeout=timeout_secs,
+                principal=environ["wsgidav.user_name"],
+                token_list=submitted_token_list,
+            )
+        except Exception:
+            if created_new_resource:
+                # Don't leave the empty resource behind if it cannot be locked
+                try:
+                    res.delete()
+                except Exception:
+                    _logger.exception(f"Could not remove unlocked resource {path!r}")
+            raise
 
         # Lock succeeded
         prop_el = xml_tools.make_prop_elem()

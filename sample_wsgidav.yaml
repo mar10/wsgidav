@@ -183,6 +183,15 @@ max_xml_body_size: 1048576
 #: rejected with 413. (Default: null, i.e. no limit)
 max_upload_size: null
 
+#: Maximum number of locks that one user may hold at the same time.
+#: Further LOCK requests are rejected with 507. (Default: 1000, null: no limit)
+#: Note: all anonymous clients count as one user.
+max_locks_per_user: 1000
+
+#: Maximum number of dead properties that can be stored for one resource.
+#: Further properties are rejected with 507. (Default: 1000, null: no limit)
+max_dead_props_per_resource: 1000
+
 # ==============================================================================
 # AUTHENTICATION
 http_authenticator:
