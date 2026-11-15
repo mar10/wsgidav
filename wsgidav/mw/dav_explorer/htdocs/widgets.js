@@ -10,13 +10,13 @@ import { Wunderbaum, util, getNodeResourceUrl, getDAVClient, getActiveNode, getT
 export const rowActionsHtmlTemplateFile = `
 <span class="row-actions">
   <i class="wb-button bi bi-cloud-download" role="button" title="Download file" aria-label="Download file" data-command="download"></i>
-  <i class="wb-button bi bi-three-dots-vertical" role="button" title="More actions..." aria-label="More actions" aria-haspopup="menu" data-command="showMenu"></i>
+  <i class="wb-button bi bi-three-dots-vertical" role="button" title="More actions... (Menu, Shift+F10)" aria-label="More actions" aria-haspopup="menu" data-command="showMenu"></i>
 </span>
 `;
 export const rowActionsHtmlTemplateFolder = `
 <span class="row-actions">
   <i class="wb-button bi bi-cloud-plus" role="button" title="Upload files to this folder..." aria-label="Upload files to this folder" data-command="upload" data-write></i>
-  <i class="wb-button bi bi-three-dots-vertical" role="button" title="More actions..." aria-label="More actions" aria-haspopup="menu" data-command="showMenu"></i>
+  <i class="wb-button bi bi-three-dots-vertical" role="button" title="More actions... (Menu, Shift+F10)" aria-label="More actions" aria-haspopup="menu" data-command="showMenu"></i>
 </span>
 `;
 
