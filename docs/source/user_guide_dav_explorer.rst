@@ -46,8 +46,10 @@ Unless the share or DAV Explorer is readonly, click **Edit** above the text (or
 choose *Edit* from the context menu) to change the file:
 
 - The file is locked (WebDAV ``LOCK``), so other users and clients cannot
-  modify it while it is being edited. The lock is refreshed while the editor
-  is open.
+  modify it while it is being edited. The lock is requested with a timeout of
+  two minutes and refreshed while the editor is open. It is released when the
+  page is closed or reloaded; if that fails (e.g. the browser crashes), the
+  lock expires after at most two minutes.
 - **Save** (or :kbd:`Ctrl+S` / :kbd:`Cmd+S`) stores the file with a ``PUT``
   request that passes the lock token.
 - **Close** (or :kbd:`Esc`) releases the lock (``UNLOCK``). DAV Explorer asks

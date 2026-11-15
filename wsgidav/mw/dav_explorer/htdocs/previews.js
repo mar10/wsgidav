@@ -336,7 +336,10 @@ function revokeImageObjectUrl() {
 /* --- Text Preview and Editor --- */
 
 // Requested lock timeout. The lock is refreshed while the editor is open.
-const LOCK_TIMEOUT_SECS = 300;
+// Kept short, so a lock that was not released (e.g. browser crash) expires
+// soon. Refreshing at 80% (~96s) still works with Chrome's throttling of
+// timers in hidden tabs (about once per minute).
+const LOCK_TIMEOUT_SECS = 120;
 
 const textHostElem = textElem.querySelector("div.cm-host");
 const textFallbackElem = textElem.querySelector("pre.text-fallback");

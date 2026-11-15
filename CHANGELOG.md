@@ -16,7 +16,9 @@
   keeps one quick action (download file / upload into folder).
 - DAV Explorer: display text files with syntax highlighting (CodeMirror 6, loaded
   on demand) and edit them in the details pane. The file is locked while it is
-  being edited (WebDAV LOCK/UNLOCK) and saved with the lock token.
+  being edited (WebDAV LOCK/UNLOCK) and saved with the lock token. The lock
+  has a two-minute timeout and is refreshed while the editor is open, so an
+  unreleased lock (e.g. after a browser crash) expires quickly.
 - DAV Explorer: dragging a file to the desktop downloads the real file in
   Chromium based browsers (Chrome, Edge, ...). Safari and Firefox cannot do
   this; they now drop a link instead of a text clipping with the file name and
