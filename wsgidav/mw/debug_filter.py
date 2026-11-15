@@ -62,6 +62,11 @@ __docformat__ = "reStructuredText"
 
 _logger = util.get_module_logger(__name__)
 
+#: Request headers that contain credentials
+REDACTED_ENVIRON_KEYS = frozenset(
+    ("HTTP_AUTHORIZATION", "HTTP_PROXY_AUTHORIZATION", "HTTP_COOKIE")
+)
+
 
 class WsgiDavDebugFilter(BaseMiddleware):
     def __init__(self, wsgidav_app, next_app, config):
@@ -142,10 +147,18 @@ class WsgiDavDebugFilter(BaseMiddleware):
             # _logger.info("<{}> --- {} Request ---".format(
             #         threading.current_thread().ident, method))
             for k, v in environ.items():
-                try:
-                    v = safe_re_encode(v, "utf8")
-                except Exception:
-                    pass
+                if k in REDACTED_ENVIRON_KEYS:
+                    # Never write credentials to the log
+                    if k.endswith("AUTHORIZATION"):
+                        # ... but show the scheme ('Basic', 'Digest')
+                        v = f"{str(v).split(' ', 1)[0]} <redacted>"
+                    else:
+                        v = "<redacted>"
+                else:
+                    try:
+                        v = safe_re_encode(v, "utf8")
+                    except Exception:
+                        pass
                 _logger.info(f"{k:<20}: {v!r}")
             _logger.info("\n")
 
