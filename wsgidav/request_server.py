@@ -1688,10 +1688,13 @@ class RequestServer:
         if res.support_ranges():
             response_headers.append(("Accept-Ranges", "bytes"))
 
-        if "response_headers" in environ["wsgidav.config"]:
-            custom_headers = environ["wsgidav.config"]["response_headers"]
-            for header, value in custom_headers:
-                response_headers.append((header, value))
+        custom_headers = environ["wsgidav.config"].get("response_headers") or []
+        # Prevent browsers from guessing a different (executable) content type
+        # for uploaded files, unless the header is configured explicitly.
+        if not any(h.lower() == "x-content-type-options" for h, _v in custom_headers):
+            response_headers.append(("X-Content-Type-Options", "nosniff"))
+        for header, value in custom_headers:
+            response_headers.append((header, value))
 
         res.finalize_headers(environ, response_headers)
 

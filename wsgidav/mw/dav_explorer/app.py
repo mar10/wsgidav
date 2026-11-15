@@ -114,6 +114,9 @@ class WsgiDavExplorer(BaseMiddleware):
                     ("Cache-Control", "private"),
                     ("Date", util.get_rfc1123_time()),
                     ("X-Content-Type-Options", "nosniff"),
+                    # Do not allow other sites to embed the UI (clickjacking)
+                    ("X-Frame-Options", "SAMEORIGIN"),
+                    ("Content-Security-Policy", "frame-ancestors 'self'"),
                 ],
             )
             return [res]

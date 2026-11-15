@@ -82,6 +82,12 @@ class DavExplorerTest(unittest.TestCase):
     def test_headers(self):
         res = requests.get(self.url, auth=self.auth)
         assert res.headers["X-Content-Type-Options"] == "nosniff"
+        assert res.headers["X-Frame-Options"] == "SAMEORIGIN"
+        assert res.headers["Content-Security-Policy"] == "frame-ancestors 'self'"
+        # Files are served with `nosniff` as well
+        res = requests.get(self.url + ":dav_explorer/app.js")
+        assert res.status_code == 200
+        assert res.headers["X-Content-Type-Options"] == "nosniff"
 
         res = requests.head(self.url, auth=self.auth)
         assert res.status_code == 200

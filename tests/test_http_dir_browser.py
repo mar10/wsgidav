@@ -53,6 +53,9 @@ class DirbrowserTest(unittest.TestCase):
         assert res.encoding == "utf-8"
         assert "WsgiDAV" in res.headers["Server"]
         assert res.headers["Content-Type"] == "text/html; charset=utf-8"
+        assert res.headers["X-Content-Type-Options"] == "nosniff"
+        assert res.headers["X-Frame-Options"] == "SAMEORIGIN"
+        assert res.headers["Content-Security-Policy"] == "frame-ancestors 'self'"
 
         res = requests.get(self.url, auth=self.auth)
         assert res.status_code == 200
