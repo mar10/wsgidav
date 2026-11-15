@@ -42,6 +42,18 @@ _logger = util.get_module_logger(__name__)
 
 DEFAULT_BLOCK_SIZE = 8192
 
+#: Content types that a browser may execute as script in the origin of this
+#: server (see the `sandbox_active_content` option).
+ACTIVE_CONTENT_TYPES = frozenset(
+    (
+        "application/xhtml+xml",
+        "application/xml",
+        "image/svg+xml",
+        "text/html",
+        "text/xml",
+    )
+)
+
 
 # ========================================================================
 # RequestServer
@@ -1720,6 +1732,18 @@ class RequestServer:
             response_headers.append(("X-Content-Type-Options", "nosniff"))
         for header, value in custom_headers:
             response_headers.append((header, value))
+
+        # Uploaded HTML or SVG files are served from the same origin as the
+        # web UI. Opening such a file would run its scripts with the
+        # credentials of the current user (stored XSS), so we ask the browser
+        # to render it in a sandbox: no scripts, no forms, and a unique origin.
+        # (Shares starting with '/:' serve the assets of the web UI itself.)
+        if (
+            environ["wsgidav.config"].get("sandbox_active_content", True)
+            and mimetype.split(";", 1)[0].strip().lower() in ACTIVE_CONTENT_TYPES
+            and not self._dav_provider.share_path.startswith("/:")
+        ):
+            response_headers.append(("Content-Security-Policy", "sandbox"))
 
         res.finalize_headers(environ, response_headers)
 

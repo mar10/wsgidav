@@ -41,6 +41,8 @@ DEFAULT_CONFIG = {
         "follow_symlinks": False,
     },
     "honor_mtime_header": False,
+    # True: serve HTML, XML, and SVG files with `Content-Security-Policy: sandbox`
+    "sandbox_active_content": True,
     # Request limits
     "allow_propfind_infinite": True,  # False: reject PROPFIND with `Depth: infinity`
     "max_xml_body_size": 1024

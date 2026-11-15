@@ -154,6 +154,21 @@ class LimitsTest(unittest.TestCase):
     def test_files_are_served_with_nosniff(self):
         res = self._app().get("/file.txt")
         assert res.headers["X-Content-Type-Options"] == "nosniff"
+        assert "Content-Security-Policy" not in res.headers
+
+    def test_active_content_is_sandboxed(self):
+        app = self._app()
+        for name in ("x.html", "x.HTM", "x.svg", "x.xhtml", "x.xml"):
+            app.put(f"/{name}", params=b"<script>alert(1)</script>", status=201)
+            res = app.get(f"/{name}")
+            assert res.headers["Content-Security-Policy"] == "sandbox", name
+            assert res.headers["X-Content-Type-Options"] == "nosniff"
+        for name in ("x.txt", "x.pdf", "x.png", "x.js", "x.unknown"):
+            app.put(f"/{name}", params=b"<script>alert(1)</script>", status=201)
+            assert "Content-Security-Policy" not in app.get(f"/{name}").headers, name
+
+        app = self._app(sandbox_active_content=False)
+        assert "Content-Security-Policy" not in app.get("/x.html").headers
 
 
 class DiscardInputTest(unittest.TestCase):

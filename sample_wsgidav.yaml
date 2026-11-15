@@ -158,6 +158,15 @@ fs_dav_provider:
 #: Set last modification based on timestamp provided by `X-OC-Mtime` header
 honor_mtime_header: false
 
+#: Serve HTML, XML, and SVG files with `Content-Security-Policy: sandbox`
+#: (default: true).
+#: These files are served from the same origin as the web UI. Without this
+#: header, a user with write access could upload a page with a script that
+#: runs with the credentials of everybody who opens it.
+#: Set to false if a share is used to host web pages that need scripts or
+#: forms, and all users with write access are trusted.
+sandbox_active_content: true
+
 # ----------------------------------------------------------------------------
 # Request limits
 
