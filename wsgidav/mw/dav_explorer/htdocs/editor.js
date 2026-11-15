@@ -6,65 +6,44 @@
  */
 "use strict";
 
-// All CodeMirror packages must share a single copy of these modules, otherwise
-// CodeMirror fails with "Unrecognized extension value ... multiple instances".
-// esm.sh resolves the shared dependencies to the pinned versions below.
-const CM_DEPS = [
-  "@codemirror/state@6.7.6",
-  "@codemirror/view@6.43.15",
-  "@codemirror/language@6.13.1",
-  "@lezer/common@1.5.5",
-  "@lezer/highlight@1.2.5",
-  "@lezer/lr@1.4.12",
-].join(",");
-
-/**
- * Return the esm.sh URL of a package that is imported directly.
- *
- * esm.sh builds a separate copy of a module for each distinct `deps` list that
- * is not a subset of its real dependencies. The core packages (that other
- * packages import too) must therefore be requested with exactly the `deps`
- * that esm.sh uses when resolving them as a dependency:
- * `@codemirror/state` has none, `@codemirror/view` only depends on state.
- */
-function esm(spec, deps = CM_DEPS) {
-  return deps ? `https://esm.sh/${spec}?deps=${deps}` : `https://esm.sh/${spec}`;
-}
-
+// The bare module specifiers are resolved by the import map in app.html, which
+// pins every CodeMirror package (and its dependencies) to a single version
+// and lets the browser verify the file hashes (SRI).
+// CodeMirror needs a single copy of each package, otherwise it fails with
+// "Unrecognized extension value ... multiple instances".
+// Note: import modules with string literals, so tests can check that the
+// import map covers them (see `ENTRY_POINTS` in
+// scripts/update_dav_explorer_cdn.py).
 const [{ basicSetup }, { Compartment, EditorState, Prec }, { EditorView, keymap }, { oneDark }] = await Promise.all([
-  import(esm("codemirror@6.0.2")),
-  import(esm("@codemirror/state@6.7.6", null)),
-  import(esm("@codemirror/view@6.43.15", "@codemirror/state@6.7.6")),
-  import(esm("@codemirror/theme-one-dark@6.1.3")),
+  import("codemirror"),
+  import("@codemirror/state"),
+  import("@codemirror/view"),
+  import("@codemirror/theme-one-dark"),
 ]);
 
 /** Load a language from `@codemirror/legacy-modes` (StreamLanguage). */
-async function legacyMode(file, name) {
-  // `language` depends on all other CM_DEPS packages
-  const languageDeps = CM_DEPS.split(",")
-    .filter((d) => !d.startsWith("@codemirror/language@"))
-    .join(",");
-  const [{ StreamLanguage }, mod] = await Promise.all([import(esm("@codemirror/language@6.13.1", languageDeps)), import(esm(`@codemirror/legacy-modes@6.5.5/mode/${file}`))]);
+async function legacyMode(modulePromise, name) {
+  const [{ StreamLanguage }, mod] = await Promise.all([import("@codemirror/language"), modulePromise]);
   return StreamLanguage.define(mod[name]);
 }
 
 // Keys are the `lang` values in previews.js `fileTypeInfo`
 const LANGUAGE_LOADERS = {
-  css: async () => (await import(esm("@codemirror/lang-css@6.3.1"))).css(),
-  html: async () => (await import(esm("@codemirror/lang-html@6.4.12"))).html(),
-  javascript: async () => (await import(esm("@codemirror/lang-javascript@6.2.5"))).javascript(),
-  jsx: async () => (await import(esm("@codemirror/lang-javascript@6.2.5"))).javascript({ jsx: true }),
-  typescript: async () => (await import(esm("@codemirror/lang-javascript@6.2.5"))).javascript({ typescript: true }),
-  tsx: async () => (await import(esm("@codemirror/lang-javascript@6.2.5"))).javascript({ jsx: true, typescript: true }),
-  json: async () => (await import(esm("@codemirror/lang-json@6.0.2"))).json(),
-  markdown: async () => (await import(esm("@codemirror/lang-markdown@6.5.2"))).markdown(),
-  python: async () => (await import(esm("@codemirror/lang-python@6.2.1"))).python(),
-  xml: async () => (await import(esm("@codemirror/lang-xml@6.1.0"))).xml(),
-  yaml: async () => (await import(esm("@codemirror/lang-yaml@6.1.3"))).yaml(),
-  powershell: () => legacyMode("powershell.js", "powerShell"),
-  properties: () => legacyMode("properties.js", "properties"),
-  shell: () => legacyMode("shell.js", "shell"),
-  toml: () => legacyMode("toml.js", "toml"),
+  css: async () => (await import("@codemirror/lang-css")).css(),
+  html: async () => (await import("@codemirror/lang-html")).html(),
+  javascript: async () => (await import("@codemirror/lang-javascript")).javascript(),
+  jsx: async () => (await import("@codemirror/lang-javascript")).javascript({ jsx: true }),
+  typescript: async () => (await import("@codemirror/lang-javascript")).javascript({ typescript: true }),
+  tsx: async () => (await import("@codemirror/lang-javascript")).javascript({ jsx: true, typescript: true }),
+  json: async () => (await import("@codemirror/lang-json")).json(),
+  markdown: async () => (await import("@codemirror/lang-markdown")).markdown(),
+  python: async () => (await import("@codemirror/lang-python")).python(),
+  xml: async () => (await import("@codemirror/lang-xml")).xml(),
+  yaml: async () => (await import("@codemirror/lang-yaml")).yaml(),
+  powershell: () => legacyMode(import("@codemirror/legacy-modes/mode/powershell.js"), "powerShell"),
+  properties: () => legacyMode(import("@codemirror/legacy-modes/mode/properties.js"), "properties"),
+  shell: () => legacyMode(import("@codemirror/legacy-modes/mode/shell.js"), "shell"),
+  toml: () => legacyMode(import("@codemirror/legacy-modes/mode/toml.js"), "toml"),
 };
 
 const _languageCache = new Map();

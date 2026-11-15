@@ -1,6 +1,6 @@
 "use strict";
 
-import Split from "https://cdn.jsdelivr.net/npm/split.js@1.6.5/+esm";
+import Split from "split.js";
 import { config, getDAVClient, getNodeResourceUrl, getTree, settingsStore } from "./util.js";
 import { setCommandButton, showNotification } from "./widgets.js";
 

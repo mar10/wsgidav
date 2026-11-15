@@ -86,12 +86,14 @@ class DavExplorerTest(unittest.TestCase):
         csp = res.headers["Content-Security-Policy"]
         assert "frame-ancestors 'self'" in csp
         assert "script-src 'self' 'nonce-" in csp
-        assert "https://esm.sh" in csp and "connect-src 'self'" in csp
+        assert "https://cdn.jsdelivr.net" in csp and "connect-src 'self'" in csp
+        assert "esm.sh" not in csp and "esm.run" not in csp
         # Inline scripts carry the nonce of this response (changes every time)
         nonce = csp.split("'nonce-")[1].split("'")[0]
         assert len(nonce) >= 16
         assert f'<script nonce="{nonce}">' in res.text
-        assert res.text.count("<script") == 3  # inline, JSON data, app.js
+        assert f'<script type="importmap" nonce="{nonce}">' in res.text
+        assert res.text.count("<script") == 4  # inline, import map, JSON data, app.js
         res2 = requests.get(self.url, auth=self.auth)
         assert f"'nonce-{nonce}'" not in res2.headers["Content-Security-Policy"]
         # Assets of the UI are not sandboxed

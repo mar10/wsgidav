@@ -24,14 +24,15 @@ _logger = util.get_module_logger(__name__)
 ASSET_SHARE = "/:dav_explorer"
 
 #: Default Content-Security-Policy for the DAV Explorer page.
-#: The UI loads some libraries from CDNs. This policy makes sure that scripts
-#: can only be loaded from these hosts (and this server), and that the page
-#: only talks to this server. `{nonce}` is replaced with a per-response value
-#: that is required for inline scripts.
+#: The UI loads some libraries from cdn.jsdelivr.net (pinned with SRI hashes in
+#: the import map of app.html). This policy makes sure that scripts can only be
+#: loaded from there (and this server), and that the page only talks to this
+#: server. `{nonce}` is replaced with a per-response value that is required for
+#: inline scripts (including the import map).
 DEFAULT_CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
-        "script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://esm.run https://esm.sh",
+        "script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net",
         # Inline styles are used by the UI and injected by the libraries
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
         "font-src 'self' data: https://cdn.jsdelivr.net",

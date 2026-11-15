@@ -107,7 +107,7 @@ dev = [
 # line-length = 79
 # Support Python 3.10+.
 target-version = "py310"
-src = ["wsgidav", "tests"]
+src = ["wsgidav", "tests", "scripts"]
 
 
 [tool.ruff.lint]

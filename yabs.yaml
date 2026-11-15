@@ -28,6 +28,13 @@ tasks:
     stream: true
     ignore_errors: false    # `true`: show warning, but proceed on errors (exit code != 0)
 
+  # Fail if a DAV Explorer CDN file no longer matches its SRI hash in app.html
+  - task: exec
+    args: ["tox", "-e", "cdn"]
+    always: true            # `true`: run even in dry-run mode
+    stream: true
+    ignore_errors: false
+
   - task: exec
     args: ["tox"]           # shell command and optional arguments
     always: true            # `true`: run even in dry-run mode

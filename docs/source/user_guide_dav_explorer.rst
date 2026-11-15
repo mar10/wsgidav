@@ -54,8 +54,26 @@ choose *Edit* from the context menu) to change the file:
   before unsaved changes are discarded.
 
 The editor (`CodeMirror <https://codemirror.net>`_) is loaded from a CDN
-(esm.sh) when a text file is displayed for the first time. If it cannot be
-loaded, the text is displayed without highlighting and cannot be edited.
+when a text file is displayed for the first time. If it cannot be loaded, the
+text is displayed without highlighting and cannot be edited.
+
+Third-Party Libraries
+---------------------
+
+DAV Explorer loads its JavaScript libraries and stylesheets from the
+`jsDelivr <https://www.jsdelivr.com>`_ CDN, so the browser needs access to
+``cdn.jsdelivr.net``.
+All files are pinned to exact versions and protected with
+`Subresource Integrity <https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity>`_
+(SRI) hashes: the browser refuses to use a file that was modified on the CDN.
+JavaScript modules are verified by the ``integrity`` section of the import map
+in ``app.html``. This is supported by Chrome and Edge 127+, Safari 18+, and
+Firefox 138+; older browsers load the modules without checking them.
+Fonts that the stylesheets load (Bootstrap icons) are not covered by SRI.
+
+Maintainers update the versions and hashes with
+``scripts/update_dav_explorer_cdn.py``. ``tox -e cdn`` verifies the hashes
+against the CDN without modifying files (also run by the release workflow).
 
 Known Limitations
 -----------------

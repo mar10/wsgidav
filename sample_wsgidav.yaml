@@ -405,7 +405,7 @@ dav_explorer:
     office_support: true
     #: Content-Security-Policy header of the page (default: true).
     #: true: only allow scripts from this server and from the CDNs that are
-    #: used by the UI (cdn.jsdelivr.net, esm.run, esm.sh).
+    #: used by the UI (cdn.jsdelivr.net).
     #: false: don't restrict scripts, or pass a custom policy string. The
     #: placeholder `{nonce}` is replaced with the nonce for inline scripts.
     content_security_policy: true

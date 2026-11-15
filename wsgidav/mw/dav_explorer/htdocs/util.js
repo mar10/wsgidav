@@ -4,10 +4,11 @@
  */
 "use strict";
 
-import { createClient } from "https://esm.run/webdav@5.11.0";
-import { PersistentObject } from "https://esm.run/persisto@2.0.2";
-// import { Wunderbaum } from "./wunderbaum.esm.js";
-import { Wunderbaum } from "https://esm.run/wunderbaum@0.15.0";
+// CDN modules are resolved (and their hashes verified) by the import map in
+// app.html, see scripts/update_dav_explorer_cdn.py
+import { createClient } from "webdav";
+import { PersistentObject } from "persisto";
+import { Wunderbaum } from "wunderbaum";
 
 // All modules must import Wunderbaum from here, so only one copy is loaded
 export { Wunderbaum };

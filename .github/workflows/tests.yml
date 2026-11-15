@@ -53,7 +53,7 @@ jobs:
       - name: Lint with ruff
         run: |
           uv run ruff -V
-          uv run ruff check wsgidav tests
+          uv run ruff check wsgidav tests scripts
 
       - name: Test with pytest
         run: |

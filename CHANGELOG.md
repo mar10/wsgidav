@@ -62,10 +62,15 @@
     run with the credentials of the user who opens them. Set
     `sandbox_active_content: false` for shares that host web pages.
   - DAV Explorer sends a `Content-Security-Policy` that only allows scripts
-    from this server and the CDNs used by the UI (`cdn.jsdelivr.net`,
-    `esm.run`, `esm.sh`). See `dav_explorer.content_security_policy`.
+    from this server and the CDN used by the UI (`cdn.jsdelivr.net`).
+    See `dav_explorer.content_security_policy`.
     Custom `app.html` templates must add `nonce="{{ csp_nonce }}"` to inline
     scripts.
+  - DAV Explorer: all JavaScript modules and stylesheets that are loaded from
+    the CDN are pinned to exact versions and verified with Subresource
+    Integrity (SRI) hashes (import map `integrity` for modules). Libraries are
+    loaded as static package files from jsDelivr (no longer from esm.run or
+    esm.sh, whose generated bundles cannot be pinned).
   - COPY/MOVE onto a parent of the source is rejected with 403. Previously the
     destination was deleted first, including the source and its siblings.
   - PROPPATCH applies the changes inside the write transaction.
