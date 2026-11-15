@@ -19,6 +19,7 @@ import os
 import shutil
 import stat
 import sys
+import tempfile
 
 from wsgidav import util
 from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
@@ -29,6 +30,10 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 BUFFER_SIZE = 8192
+
+#: Uploads are written to a temporary file with this name prefix, that replaces
+#: the target when the upload is complete. Such files are hidden from listings.
+UPLOAD_TEMP_PREFIX = ".~wsgidav-upload-"
 
 
 # ========================================================================
@@ -47,6 +52,8 @@ class FileResource(DAVNonCollection):
         # Setting the name from the file path should fix the case on Windows
         self.name: str = os.path.basename(self._file_path)
         self.name = util.to_str(self.name)
+        #: (temp_path, target_path, file_object) while an upload is in progress
+        self._pending_write = None
 
     # Getter methods for standard live properties
     def get_content_length(self):
@@ -96,9 +103,66 @@ class FileResource(DAVNonCollection):
         assert not self.is_collection
         if self.provider.readonly:
             raise DAVError(HTTP_FORBIDDEN)
-        # _logger.debug("begin_write: {}, {}".format(self._file_path, "wb"))
+        self._discard_pending_write()
+        # Don't truncate the existing file before the new content has arrived:
+        # an aborted or failed upload would destroy it. Instead we write to a
+        # temporary file in the same folder, that replaces the target in
+        # `end_write()`.
+        # (Resolve symlinks, so we replace the link target, not the link.)
+        target_path = os.path.realpath(self._file_path)
+        try:
+            fd, temp_path = tempfile.mkstemp(
+                prefix=UPLOAD_TEMP_PREFIX, dir=os.path.dirname(target_path)
+            )
+        except OSError:
+            # For example the folder is not writable: write in place
+            _logger.debug(f"begin_write: could not create temp file for {target_path}")
+            return open(self._file_path, "wb", BUFFER_SIZE)
+        try:
+            shutil.copymode(target_path, temp_path)
+        except OSError:
+            pass
         # GC issue 57: always store as binary
-        return open(self._file_path, "wb", BUFFER_SIZE)
+        fileobj = os.fdopen(fd, "wb", BUFFER_SIZE)
+        self._pending_write = (temp_path, target_path, fileobj)
+        return fileobj
+
+    def _discard_pending_write(self):
+        if self._pending_write is None:
+            return
+        temp_path, _target_path, fileobj = self._pending_write
+        self._pending_write = None
+        try:
+            fileobj.close()
+        except OSError:
+            pass
+        try:
+            os.unlink(temp_path)
+        except OSError:
+            _logger.warning(f"Could not remove temporary upload file {temp_path!r}")
+
+    def end_write(self, *, with_errors):
+        """Replace the file with the uploaded content, or discard a failed upload.
+
+        See DAVResource.end_write()
+        """
+        if self._pending_write is None:
+            return
+        if with_errors:
+            self._discard_pending_write()
+            return
+        temp_path, target_path, fileobj = self._pending_write
+        try:
+            fileobj.close()
+            try:
+                os.replace(temp_path, target_path)
+                self._pending_write = None
+            except PermissionError:
+                # On Windows, a file cannot be replaced while it is opened by
+                # another request: copy the content instead
+                shutil.copyfile(temp_path, target_path)
+        finally:
+            self._discard_pending_write()
 
     def delete(self):
         """Remove this resource or collection (recursive).
@@ -238,6 +302,8 @@ class FolderResource(DAVCollection):
             if not util.is_str(name):
                 name = name.decode(sys.getfilesystemencoding())
             assert util.is_str(name)
+            if name.startswith(UPLOAD_TEMP_PREFIX):
+                continue  # upload in progress, see FileResource.begin_write()
             # Skip non files (links and mount points)
             fp = os.path.join(self._file_path, name)
             if not self.provider.fs_opts.get("follow_symlinks") and os.path.islink(fp):
