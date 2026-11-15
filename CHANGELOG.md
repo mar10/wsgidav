@@ -53,6 +53,30 @@
   - Files are served with `X-Content-Type-Options: nosniff`. DirBrowser and
     DAV Explorer pages additionally send `X-Frame-Options: SAMEORIGIN` and
     `Content-Security-Policy: frame-ancestors 'self'`.
+  - BREAKING: HTML, XML, and SVG files are served with
+    `Content-Security-Policy: sandbox`, so scripts in uploaded files cannot
+    run with the credentials of the user who opens them. Set
+    `sandbox_active_content: false` for shares that host web pages.
+  - DAV Explorer sends a `Content-Security-Policy` that only allows scripts
+    from this server and the CDNs used by the UI (`cdn.jsdelivr.net`,
+    `esm.run`, `esm.sh`). See `dav_explorer.content_security_policy`.
+    Custom `app.html` templates must add `nonce="{{ csp_nonce }}"` to inline
+    scripts.
+  - COPY/MOVE onto a parent of the source is rejected with 403. Previously the
+    destination was deleted first, including the source and its siblings.
+  - PROPPATCH applies the changes inside the write transaction.
+  - A refused LOCK on an unmapped URL no longer leaves an empty file behind.
+  - New options `max_locks_per_user` and `max_dead_props_per_resource`
+    (default 1000 each): further requests are rejected with 507.
+  - DirBrowser: escape the URL of the 'Edit with Libre Office' link.
+  - Property managers: moving a collection only replaces the leading part of
+    the stored URLs (`/a/x/a/f` was stored as `/b/x/b/f`). CouchDB and
+    MongoDB property managers no longer interpolate URLs into queries.
+  - `FilesystemProvider`: open files with `O_NOFOLLOW` if symlinks are
+    disabled (not available on Windows).
+  - `WsgiDavDebugFilter`: do not log `Authorization` and `Cookie` headers.
+- Fix share names that contain upper-case letters (e.g. `/Docs`): such shares
+  could not be resolved. Share names that only differ in case are rejected.
   - New option `max_xml_body_size` (default 1 MiB): larger PROPFIND, PROPPATCH,
     and LOCK bodies are rejected with 413.
   - New options `max_upload_size` (default: no limit) and
