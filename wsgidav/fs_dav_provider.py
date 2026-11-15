@@ -15,6 +15,7 @@ and :class:`~wsgidav.fs_dav_provider.FolderResource` to represent files and
 directories respectively.
 """
 
+import errno
 import os
 import shutil
 import stat
@@ -93,7 +94,7 @@ class FileResource(DAVNonCollection):
         # GC issue 28, 57: if we open in text mode, \r\n is converted to one byte.
         # So the file size reported by Windows differs from len(..), thus
         # content-length will be wrong.
-        return open(self._file_path, "rb", BUFFER_SIZE)
+        return self.provider._open_file(self._file_path, "rb")
 
     def begin_write(self, *, content_type=None):
         """Open content as a stream for writing.
@@ -117,7 +118,7 @@ class FileResource(DAVNonCollection):
         except OSError:
             # For example the folder is not writable: write in place
             _logger.debug(f"begin_write: could not create temp file for {target_path}")
-            return open(self._file_path, "wb", BUFFER_SIZE)
+            return self.provider._open_file(self._file_path, "wb")
         try:
             shutil.copymode(target_path, temp_path)
         except OSError:
@@ -339,7 +340,7 @@ class FolderResource(DAVCollection):
             raise DAVError(HTTP_FORBIDDEN)
         path = util.join_uri(self.path, name)
         fp = self.provider._loc_to_file_path(path, self.environ)
-        f = open(fp, "wb")
+        f = self.provider._open_file(fp, "wb")
         f.close()
         return self.provider.get_resource_inst(path, self.environ)
 
@@ -505,6 +506,35 @@ class FilesystemProvider(DAVProvider):
             return False, file_path
         _logger.info(f"Shadow {path} -> {shadow}")
         return True, shadow
+
+    def _open_file(self, file_path: str, mode: str):
+        """Open a file in binary mode ('rb' or 'wb').
+
+        `_loc_to_file_path()` checks that a path does not leave the share
+        through a symbolic link, but the file is opened later. If symlinks are
+        disabled, we refuse to follow a link that was placed in between
+        (CWE-367). This is not available on Windows, and it only covers the
+        file itself, not its parent folders.
+        """
+        assert mode in ("rb", "wb")
+        nofollow = getattr(os, "O_NOFOLLOW", 0)
+        if self.fs_opts.get("follow_symlinks") or not nofollow:
+            return open(file_path, mode, BUFFER_SIZE)
+
+        if mode == "rb":
+            flags = os.O_RDONLY
+        else:
+            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        flags |= nofollow | getattr(os, "O_BINARY", 0)
+        try:
+            fd = os.open(file_path, flags, 0o666)
+        except OSError as e:
+            if e.errno in (errno.ELOOP, errno.EMLINK):
+                raise DAVError(
+                    HTTP_FORBIDDEN, f"Symlink support is disabled: {file_path!r}"
+                ) from None
+            raise
+        return os.fdopen(fd, mode, BUFFER_SIZE)
 
     def _loc_to_file_path(self, path: str, environ: dict = None):
         """Convert resource path to a unicode absolute file path.
