@@ -142,6 +142,9 @@ DEFAULT_CONFIG = {
         "show_info_pane": True,  # Show the info pane on the right side
         "max_preview_size_kb": 500,  # Maximum size of file to preview
         "office_support": True,  # Invoke MS- and Libre-Office documents for editing using WebDAV
+        # Content-Security-Policy of the page. True: allow scripts from this server and
+        # the CDNs that are used by the UI, False: disable, or a custom policy string
+        "content_security_policy": True,
         # The path to the directory that contains template.html and associated assets.
         # The default is the htdocs directory within the dav_explorer directory.
         "htdocs_path": None,

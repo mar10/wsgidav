@@ -6,6 +6,7 @@ WSGI middleware that handles GET requests on collections to display directories.
 """
 
 import os
+import secrets
 import sys
 from urllib.parse import unquote
 
@@ -21,6 +22,29 @@ __docformat__ = "reStructuredText"
 _logger = util.get_module_logger(__name__)
 
 ASSET_SHARE = "/:dav_explorer"
+
+#: Default Content-Security-Policy for the DAV Explorer page.
+#: The UI loads some libraries from CDNs. This policy makes sure that scripts
+#: can only be loaded from these hosts (and this server), and that the page
+#: only talks to this server. `{nonce}` is replaced with a per-response value
+#: that is required for inline scripts.
+DEFAULT_CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://esm.run https://esm.sh",
+        # Inline styles are used by the UI and injected by the libraries
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+        "font-src 'self' data: https://cdn.jsdelivr.net",
+        "img-src 'self' data: blob:",
+        "media-src 'self' blob:",
+        "connect-src 'self'",
+        "frame-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        # Do not allow other sites to embed the UI (clickjacking)
+        "frame-ancestors 'self'",
+    ]
+)
 
 
 class WsgiDavExplorer(BaseMiddleware):
@@ -44,6 +68,18 @@ class WsgiDavExplorer(BaseMiddleware):
 
         if not os.path.isdir(self.htdocs_path):
             raise ValueError(f"Invalid dav_explorer htdocs_path {self.htdocs_path!r}")
+
+        # True: use default, False: only prevent framing, str: custom policy
+        csp = self.davex_config.get("content_security_policy", True)
+        if csp is True:
+            csp = DEFAULT_CONTENT_SECURITY_POLICY
+        elif not csp:
+            csp = "frame-ancestors 'self'"
+        elif not isinstance(csp, str):
+            raise ValueError(
+                "dav_explorer.content_security_policy must be true, false, or a string"
+            )
+        self.content_security_policy = csp
 
         # Add an additional read-only FS provider that serves the dav_explorer assets
         self.wsgidav_app.add_provider(ASSET_SHARE, self.htdocs_path, readonly=True)
@@ -103,6 +139,9 @@ class WsgiDavExplorer(BaseMiddleware):
                 )
 
             context = self._get_jinja_context(environ, dav_res)
+            # Inline scripts are only executed if they carry this nonce
+            csp_nonce = context["csp_nonce"] = secrets.token_urlsafe(16)
+            csp = self.content_security_policy.replace("{nonce}", csp_nonce)
 
             res = self.template_env.get_template("app.html").render(**context)
             res = util.to_bytes(res)
@@ -116,7 +155,7 @@ class WsgiDavExplorer(BaseMiddleware):
                     ("X-Content-Type-Options", "nosniff"),
                     # Do not allow other sites to embed the UI (clickjacking)
                     ("X-Frame-Options", "SAMEORIGIN"),
-                    ("Content-Security-Policy", "frame-ancestors 'self'"),
+                    ("Content-Security-Policy", csp),
                 ],
             )
             return [res]

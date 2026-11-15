@@ -385,6 +385,12 @@ dav_explorer:
     show_login: true
     #: Generate `ms-word:ofe|u|" prefix for office URLs (Microsoft and LibreOffice)
     office_support: true
+    #: Content-Security-Policy header of the page (default: true).
+    #: true: only allow scripts from this server and from the CDNs that are
+    #: used by the UI (cdn.jsdelivr.net, esm.run, esm.sh).
+    #: false: don't restrict scripts, or pass a custom policy string. The
+    #: placeholder `{nonce}` is replaced with the nonce for inline scripts.
+    content_security_policy: true
     #: The path to the directory that contains template.html and associated
     #: assets.
     #: The default is the htdocs directory within the dav_explorer directory.

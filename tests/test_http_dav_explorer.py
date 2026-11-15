@@ -83,7 +83,21 @@ class DavExplorerTest(unittest.TestCase):
         res = requests.get(self.url, auth=self.auth)
         assert res.headers["X-Content-Type-Options"] == "nosniff"
         assert res.headers["X-Frame-Options"] == "SAMEORIGIN"
-        assert res.headers["Content-Security-Policy"] == "frame-ancestors 'self'"
+        csp = res.headers["Content-Security-Policy"]
+        assert "frame-ancestors 'self'" in csp
+        assert "script-src 'self' 'nonce-" in csp
+        assert "https://esm.sh" in csp and "connect-src 'self'" in csp
+        # Inline scripts carry the nonce of this response (changes every time)
+        nonce = csp.split("'nonce-")[1].split("'")[0]
+        assert len(nonce) >= 16
+        assert f'<script nonce="{nonce}">' in res.text
+        assert res.text.count("<script") == 3  # inline, JSON data, app.js
+        res2 = requests.get(self.url, auth=self.auth)
+        assert f"'nonce-{nonce}'" not in res2.headers["Content-Security-Policy"]
+        # Assets of the UI are not sandboxed
+        res = requests.get(self.url + ":dav_explorer/help.html")
+        assert res.status_code == 200
+        assert "Content-Security-Policy" not in res.headers
         # Files are served with `nosniff` as well
         res = requests.get(self.url + ":dav_explorer/app.js")
         assert res.status_code == 200

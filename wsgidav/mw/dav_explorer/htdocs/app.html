@@ -7,7 +7,7 @@
   <meta name="generator" content="WsgiDAV/{{ version }}" />
   <title>WsgiDAV - Index of {{ display_path }}</title>
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
     // Apply theme early to avoid a flash of the wrong colors
     (function () {
       var t = localStorage.getItem("dav-explorer-theme") || "auto";
