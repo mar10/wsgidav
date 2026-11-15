@@ -37,6 +37,34 @@
   (PEP 8). `copy_properties()`/`move_properties()` of the CouchDB and MongoDB
   property managers now use `src_url`/`dest_url` like the base class;
   `ExtServer` (ext-wsgiutils) methods and arguments were renamed as well.
+- Security hardening:
+  - Digest authentication: only accept nonces that were issued by this server
+    and are not older than `http_authenticator.digest_nonce_lifetime` (default
+    300 seconds). Previously any nonce was accepted, so a captured
+    `Authorization` header could be replayed. Clients are asked to
+    re-authenticate with `stale=true`. Deployments with several server
+    processes must set `http_authenticator.digest_nonce_secret`.
+  - Basic authentication: malformed credentials are answered with 401 (was 500).
+  - `SimpleDomainController`: compare passwords in constant time.
+  - `PAMDomainController`: `allow_users: current` was evaluated as a substring
+    match if the name was not the current user (e.g. `rent` was accepted).
+  - `?logout` is only honored as a query parameter (was: any query string that
+    contains the text 'logout').
+  - Files are served with `X-Content-Type-Options: nosniff`. DirBrowser and
+    DAV Explorer pages additionally send `X-Frame-Options: SAMEORIGIN` and
+    `Content-Security-Policy: frame-ancestors 'self'`.
+  - New option `max_xml_body_size` (default 1 MiB): larger PROPFIND, PROPPATCH,
+    and LOCK bodies are rejected with 413.
+  - New options `max_upload_size` (default: no limit) and
+    `allow_propfind_infinite` (default: true).
+  - Unread request bodies are discarded in blocks instead of being read into
+    memory at once.
+  - `FilesystemProvider`: PUT writes to a temporary file (`.~wsgidav-upload-*`,
+    hidden from listings) that replaces the target when the upload has
+    finished, so a failed upload no longer truncates the existing file.
+    Note that this replaces the file (new inode; hard links are not updated).
+  - BREAKING: `LockStorageRedis` stores locks as JSON instead of pickle.
+    Locks that were stored by a previous version are ignored.
 
 ## 4.4.1 / Unreleased
 
